@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68ba9b25669097645b432b9202f22a9e, type: 3}
+  m_Name: Lightning
+  m_EditorClassIdentifier: 
+  <isStackable>k__BackingField: 0
+  <maxStackSize>k__BackingField: 1
+  <itemName>k__BackingField: Bolt
+  <description>k__BackingField: Shocking
+  <itemImage>k__BackingField: {fileID: 21300000, guid: acd877136f07d3d46bbd6e7887c72a38,
+    type: 3}
+  <DefaultParameterList>k__BackingField:
+  - itemParameter: {fileID: 11400000, guid: 2e0030ff4a36f424991e488b67db2aea, type: 2}
+    value: 100
