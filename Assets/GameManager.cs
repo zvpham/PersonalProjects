@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 
 
@@ -12,8 +13,11 @@ public class GameManager : MonoBehaviour
     public int baseTurnTime = 500;
     public int worldPriority = 0;
 
+    public Tilemap groundTilemap;
+    public Tilemap collisionTilemap;
     public List<Vector3> locations = new List<Vector3>();
     public List<Vector3> itemLocations = new List<Vector3>();
+
 
     public List<Unit> scripts;
     public List<EnemyTest> enemies;
@@ -53,6 +57,8 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         inputManager = InputManager.instance;
+        collisionTilemap = Obstacles.instance.collisionTilemap;
+        groundTilemap = Ground.instance.groundTilemap;
     }
 
     // Update is called once per frame
