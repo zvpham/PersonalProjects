@@ -340,7 +340,6 @@ public class Player : Unit
         {
             if (gameManager.itemLocations[i] == newPosition)
             {
-                Debug.Log(gameManager.scripts[i]);
                 this.gameObject.GetComponent<PickupSystem>().Pickup(gameManager.items[i]);
             }
         }
