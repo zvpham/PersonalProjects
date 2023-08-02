@@ -29,7 +29,8 @@ MonoBehaviour:
   physicalWisdom: 0
   physicalIntelligence: 0
   physicalCharisma: 0
-  <mentalAbilityList>k__BackingField: []
+  <mentalAbilityList>k__BackingField:
+  - {fileID: 11400000, guid: 88fcd91fe9eeef94b95d84ea03487687, type: 2}
   mentalStrength: 0
   mentalAgility: 0
   mentalEndurance: 0

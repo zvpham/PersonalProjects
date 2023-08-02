@@ -23,4 +23,7 @@ MonoBehaviour:
   isFreeStateChange: 1
   isActiveAction: 1
   isTurnActivated: 0
-  status: {fileID: 11400000, guid: 2d0e5a8f0dd42a1448d680e1961e33cf, type: 2}
+  affectedUnit: {fileID: 0}
+  status:
+  - {fileID: 11400000, guid: 2d0e5a8f0dd42a1448d680e1961e33cf, type: 2}
+  targeting: {fileID: 0}

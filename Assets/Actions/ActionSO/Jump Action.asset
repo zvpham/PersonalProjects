@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionName: Jump
   weight: 0
-  maxCooldown: 0
+  maxCooldown: 5
   currentCooldown: 0
   duration: 0
   isUsable: 0
@@ -23,4 +23,8 @@ MonoBehaviour:
   isFreeStateChange: 0
   isActiveAction: 0
   isTurnActivated: 0
-  status: {fileID: 0}
+  affectedUnit: {fileID: 0}
+  status:
+  - {fileID: 11400000, guid: 33e766e1fbfca4a449a7e3e497c9e38b, type: 2}
+  targeting: {fileID: 4150051304992838050, guid: 7dc608e731b2fb647b058f3975ec5a10,
+    type: 3}
