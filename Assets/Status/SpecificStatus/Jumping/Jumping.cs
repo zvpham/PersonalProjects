@@ -10,10 +10,6 @@ public class Jumping : Status
     public int currentJumpProgress = 0;
     override public void ApplyEffect(Unit target)
     {
-        if(this.currentJumpProgress + this.speed == this.path.Count)
-        {
-            RemoveEffect(target);
-        }
         Debug.Log("wadwd " + this.currentJumpProgress);
         foreach(Vector3 node in this.path)
         {
@@ -32,6 +28,7 @@ public class Jumping : Status
             }
             Debug.Log("This is speed " + this.speed);
             target.statuses.Add(this);
+            this.isWorldTurnActivated = true;
             this.isFirstTurn = false;
             target.statusDuration.Add(this.statusDuration);
         }
@@ -40,9 +37,13 @@ public class Jumping : Status
             Debug.Log("whoaidhawd" + (i + this.currentJumpProgress));
             target.self.transform.position = this.path[i + this.currentJumpProgress];
         }
-        this.isWorldTurnActivated = true;
         this.currentJumpProgress = this.speed;
         this.speed = this.path.Count - this.speed;
+
+        if (target.self.transform.position == this.path[this.path.Count - 1])
+        {
+            RemoveEffect(target);
+        }
 
         for (int i = 0; i < target.statuses.Count; i++)
         {

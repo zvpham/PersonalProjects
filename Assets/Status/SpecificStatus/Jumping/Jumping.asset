@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Jumping
   m_EditorClassIdentifier: 
   statusDuration: 10
+  nonStandardDuration: 1
   statusName: Jumping
   statusImage: {fileID: 21300092, guid: 29c9cded5e558164aaf8c9bf08aa1510, type: 3}
   ApplyEveryTurn: 1

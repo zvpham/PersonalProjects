@@ -157,7 +157,10 @@ public class GameManager : MonoBehaviour
                     {
                         for (int i = 0; i < unit.statusDuration.Count; i++)
                         {
-                            unit.statusDuration[i] -= 1;
+                            if (!unit.statuses[i].nonStandardDuration)
+                            {
+                                unit.statusDuration[i] -= 1;
+                            }
                             if (unit.statuses[i].ApplyEveryTurn)    
                             {
                                 if (!unit.statuses[i].isWorldTurnActivated)

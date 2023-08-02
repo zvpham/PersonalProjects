@@ -5,6 +5,8 @@ using UnityEngine;
 public abstract class Status : ScriptableObject
 {
     public int statusDuration;
+    public bool nonStandardDuration = false;
+
     public string statusName;
     public Sprite statusImage;
     public bool ApplyEveryTurn;
