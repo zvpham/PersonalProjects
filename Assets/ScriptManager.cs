@@ -4,7 +4,18 @@ using UnityEngine;
 
 public class ScriptManager : MonoBehaviour
 {
-    // Start is called before the first frame update
+    public static ScriptManager instance;
+
+    public List<MonoBehaviour> running = new List<MonoBehaviour>();
+    public List<MonoBehaviour> onHold = new List<MonoBehaviour>();
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+    }
     void Start()
     {
         

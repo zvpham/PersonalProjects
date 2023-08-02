@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Tilemaps;
 
 
@@ -59,6 +60,7 @@ public class GameManager : MonoBehaviour
         inputManager = InputManager.instance;
         collisionTilemap = Obstacles.instance.collisionTilemap;
         groundTilemap = Ground.instance.groundTilemap;
+
     }
 
     // Update is called once per frame
@@ -68,7 +70,7 @@ public class GameManager : MonoBehaviour
         currentTime += Time.deltaTime;
         if (currentTime >= secSpriteChangeSpeed)
         {
-            Debug.Log("THIS is Sprite Change");
+            //Debug.Log("THIS is Sprite Change");
             foreach (Unit unit in scripts)
             {
                 if (unit.statuses.Count != 0)
@@ -83,6 +85,10 @@ public class GameManager : MonoBehaviour
                     {
                         unit.ChangeSprite(unit.statuses[unit.spriteIndex].statusImage);
                     }
+                }
+                else
+                {
+                    unit.ChangeSprite(unit.originalSprite);
                 }
             }
             currentTime = 0;
@@ -152,6 +158,17 @@ public class GameManager : MonoBehaviour
                         for (int i = 0; i < unit.statusDuration.Count; i++)
                         {
                             unit.statusDuration[i] -= 1;
+                            if (unit.statuses[i].ApplyEveryTurn)    
+                            {
+                                if (!unit.statuses[i].isWorldTurnActivated)
+                                {
+                                    unit.statuses[i].isWorldTurnActivated = false;
+                                }
+                                else
+                                {
+                                    unit.statuses[i].ApplyEffect(unit);
+                                }
+                            }
                             if (unit.statusDuration[i] <= 0)
                             {
                                 unit.statuses[i].RemoveEffect(unit);

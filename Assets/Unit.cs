@@ -53,7 +53,10 @@ public class Unit : MonoBehaviour
     public SoulItemSO[] physicalSouls = new SoulItemSO[3];
     public SoulItemSO[] mentalSouls = new SoulItemSO[3];
 
-    public List<GameObject> drops; 
+    public List<GameObject> drops;
+
+
+    public bool notOnHold = true;
 
     void Awake()
     {
@@ -73,7 +76,7 @@ public class Unit : MonoBehaviour
             {
                 if(action.currentCooldown > 0 && !action.isTurnActivated)
                 {
-                    if(action.isActiveAction && IsMatchingStatus(action.status))
+                    if(action.isActiveAction && IsMatchingStatus(action.status[0]))
                     {
                         continue;
                     }

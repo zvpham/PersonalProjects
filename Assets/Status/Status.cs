@@ -8,6 +8,9 @@ public abstract class Status : ScriptableObject
     public string statusName;
     public Sprite statusImage;
     public bool ApplyEveryTurn;
+    public bool isWorldTurnActivated = false;
+    public bool isFirstTurn = true;
+    public List<Vector3> path;
     /*  
     public static void make()
     {

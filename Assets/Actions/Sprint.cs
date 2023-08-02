@@ -7,16 +7,18 @@ public class Sprint : Action
 {   
     public override void Activate(Unit self)
     {
-        if(currentCooldown == 0)
+        if (startActionPresets())
         {
-            Debug.Log("Sprint");
-            status.ApplyEffect(self);
-            currentCooldown = maxCooldown;
-            isTurnActivated = true;
+            startStatusPresets(self);
         }
     }
 
-    new public void  CalculateWeight()
+    public override void PlayerActivate(Unit self)
+    {
+        Activate(self);
+    }
+
+    new public void CalculateWeight()
     {
 
     }

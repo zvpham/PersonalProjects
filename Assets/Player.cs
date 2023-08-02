@@ -32,7 +32,6 @@ public class Player : Unit
     [SerializeField]
     private AudioSource audioSource;
 
-
     // Start is called before the first frame update
     void Start()
     {
@@ -74,11 +73,19 @@ public class Player : Unit
                 {
                     SoulItemSO soul =  (SoulItemSO) space.item;
                     soul.AddPhysicalSoul(this);
+                    soul.AddMentalSoul(this);
                 }
             }
             foreach (Action action in actions)
             {
-                keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.Keypad0 });
+                if(action.actionName == "Sprint")
+                {
+                    keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.Keypad0 });
+                }
+                if (action.actionName == "Jump")
+                {
+                    keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.Space });
+                }
             }
         }
         
@@ -214,76 +221,86 @@ public class Player : Unit
     // Update is called once per frame
     void Update()
     {
-        if (inputManager.GetKeyDown("Move_Northeast"))
+        if(notOnHold)
         {
-            newPosition.Set(1f, 1f);
-            Move(newPosition);
-            TurnEnd();
-        }
+            if (inputManager.GetKeyDown("Move_Northeast"))
+            {
+                newPosition.Set(1f, 1f);
+                Move(newPosition);
+                TurnEnd();
+            }
 
-        else if (inputManager.GetKeyDown("Move_North"))
-        {
-            newPosition.Set(0f, 1f);
-            Move(newPosition);
-            TurnEnd();
-        }
+            else if (inputManager.GetKeyDown("Move_North"))
+            {
+                newPosition.Set(0f, 1f);
+                Move(newPosition);
+                TurnEnd();
+            }
 
-        else if (inputManager.GetKeyDown("Move_Northwest"))
-        {
-            newPosition.Set(-1f, 1f);
-            Move(newPosition);
-            TurnEnd();
-        }
+            else if (inputManager.GetKeyDown("Move_Northwest"))
+            {
+                newPosition.Set(-1f, 1f);
+                Move(newPosition);
+                TurnEnd();
+            }
 
-        else if (inputManager.GetKeyDown("Move_West"))
-        {
-            newPosition.Set(-1f, 0f);
-            Move(newPosition);
-            TurnEnd();
-        }
+            else if (inputManager.GetKeyDown("Move_West"))
+            {
+                newPosition.Set(-1f, 0f);
+                Move(newPosition);
+                TurnEnd();
+            }
 
-        else if (inputManager.GetKeyDown("Move_Southwest"))
-        {
-            newPosition.Set(-1f, -1f);
-            Move(newPosition);
-            TurnEnd();
-        }
+            else if (inputManager.GetKeyDown("Move_Southwest"))
+            {
+                newPosition.Set(-1f, -1f);
+                Move(newPosition);
+                TurnEnd();
+            }
 
-        else if (inputManager.GetKeyDown("Move_South"))
-        {
-            newPosition.Set(0f, -1f);
+            else if (inputManager.GetKeyDown("Move_South"))
+            {
+                newPosition.Set(0f, -1f);
 
-            Move(newPosition);
-            TurnEnd();
-        }
+                Move(newPosition);
+                TurnEnd();
+            }
 
-        else if (inputManager.GetKeyDown("Move_Southeast"))
-        {
-            newPosition.Set(1f, -1f);
-            Move(newPosition);
-            TurnEnd();
+            else if (inputManager.GetKeyDown("Move_Southeast"))
+            {
+                newPosition.Set(1f, -1f);
+                Move(newPosition);
+                TurnEnd();
+            }
+            else if (inputManager.GetKeyDown("Move_East"))
+            {
+                newPosition.Set(1f, 0f);
+                Move(newPosition);
+                TurnEnd();
+            }
+            else if (inputManager.GetKeyDown("Wait"))
+            {
+                TurnEnd();
+            }
+            else
+            {
+                for (int i = 0; i < actions.Count; i++)
+                {
+                    /*
+                    foreach (string key in keybindings.actionkeyBinds.Keys)
+                    {
+                        Debug.Log("Action Name " + key.Equals(actions[i].actionName));
+                    }
+                    */
+                    if (inputManager.GetKeyDownAction(actions[i].actionName))
+                    {
+                        actions[i].PlayerActivate(this);
+                        TurnEnd();
+                    }
+                }
+            }
         }
-        else if (inputManager.GetKeyDown("Move_East"))
-        {
-            newPosition.Set(1f, 0f);
-            Move(newPosition);
-            TurnEnd();
-        }
-        else if (inputManager.GetKeyDown("Wait"))
-        {
-            TurnEnd();
-        }
-        else if (inputManager.GetKeyDown("Sprint"))
-        {
-            /*
-           Sprinting sprint = Instantiate(Test1);
-           activeStatuses.Add(sprint);
-           sprint.ApplyEffect(this);
-           */
-           //Sprint.Activate(this );
-           
-        }
-        else if (inputManager.GetKeyDown("InventoryMenu"))
+        if (inputManager.GetKeyDown("InventoryMenu"))
         {
             if (inventoryUI.isActiveAndEnabled == false)
             {
@@ -294,27 +311,15 @@ public class Player : Unit
                         item.Value.item.itemImage,
                         item.Value.quantity);
                 }
+                notOnHold = false;
             }
             else
             {
                 inventoryUI.Hide();
+                notOnHold = true;   
             }
         }
-        else
-        {
-            for (int i = 0; i < actions.Count; i++)
-            {
-                foreach (string key in keybindings.actionkeyBinds.Keys)
-                {
-                    Debug.Log("Action Name " + key.Equals( actions[i].actionName));
-                }
-                if (inputManager.GetKeyDownAction(actions[i].actionName))
-                {
-                    actions[i].Activate(this);
-                    TurnEnd();
-                }
-            }
-        }
+
     }
 
     public void Move(Vector2 direction)

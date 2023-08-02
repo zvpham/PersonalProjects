@@ -86,9 +86,11 @@ public class InputManager : MonoBehaviour
                 {
                     if (i == keyBindings.actionkeyBinds[key].Count - 1)
                     {
+                        /*
                         Debug.Log("Is Spring Key " + i);
                         Debug.Log("Is Spring Key " + keyBindings.actionkeyBinds[key][0]);
                         Debug.Log("Is Spring Key " + keyBindings.actionkeyBinds[key][i]);
+                        */
                         return (Input.GetKeyDown(keyBindings.actionkeyBinds[key][i]));
                     }
                     else

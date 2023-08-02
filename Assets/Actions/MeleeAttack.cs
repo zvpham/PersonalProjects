@@ -120,4 +120,9 @@ public class MeleeAttack : Action
     {
         throw new System.NotImplementedException();
     }
+
+    public override void PlayerActivate(Unit self)
+    {
+        throw new System.NotImplementedException();
+    }
 }
