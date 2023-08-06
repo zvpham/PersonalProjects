@@ -7,17 +7,12 @@ public class Jumping : Status
 {
     //private int jumpProgress = 0;
     public int speed = 0;
-    public int currentJumpProgress = 0;
+    public int currentProgress = 0;
     override public void ApplyEffect(Unit target)
     {
-        Debug.Log("wadwd " + this.currentJumpProgress);
-        foreach(Vector3 node in this.path)
-        {
-            Debug.Log(node);
-        }
         if(this.isFirstTurn)
         {
-            this.currentJumpProgress = 0;
+            this.currentProgress = 0;
             if(this.path.Count != 2)
             {
                 this.speed = (this.path.Count / 2) + 1;
@@ -26,19 +21,23 @@ public class Jumping : Status
             {
                 this.speed = this.path.Count / 2;
             }
-            Debug.Log("This is speed " + this.speed);
             target.statuses.Add(this);
             this.isWorldTurnActivated = true;
             this.isFirstTurn = false;
             target.statusDuration.Add(this.statusDuration);
+            target.gameManager.isLocationChangeStatus += 1;
+            target.hasLocationChangeStatus += 1;
+
+            AddUnusableStatuses(target);
         }
         for (int i = 0; i < this.speed; i++)
         {
-            Debug.Log("whoaidhawd" + (i + this.currentJumpProgress));
-            target.self.transform.position = this.path[i + this.currentJumpProgress];
+            target.self.transform.position = this.path[i + this.currentProgress];
+            target.gameManager.locations[target.index] = target.self.transform.position;
         }
-        this.currentJumpProgress = this.speed;
+        this.currentProgress = this.speed;
         this.speed = this.path.Count - this.speed;
+
 
         if (target.self.transform.position == this.path[this.path.Count - 1])
         {
@@ -64,5 +63,14 @@ public class Jumping : Status
         int index = target.statuses.IndexOf(this);
         target.statuses.RemoveAt(index);
         target.statusDuration.RemoveAt(index);
+        target.gameManager.isLocationChangeStatus -= 1;
+        target.hasLocationChangeStatus -= 1;
+        foreach (ActionTypes actionType in actionTypesNotPermitted)
+        {
+            Debug.Log(target.unusableActionTypes[actionType] + " Testing");
+            target.unusableActionTypes[actionType] = target.unusableActionTypes[actionType] - 1;
+            if(target.unusableActionTypes[actionType] <= 0) { }
+            target.unusableActionTypes.Remove(actionType);
+        }
     }
 }

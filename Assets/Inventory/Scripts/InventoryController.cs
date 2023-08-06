@@ -19,7 +19,7 @@ public class InventoryController : MonoBehaviour
     }
     public void Update()
     {
-        if (inputManager.GetKeyDown("InventoryMenu"))
+        if (inputManager.GetKeyDown(ActionName.InventoryMenu))
         {
             if (inventoryUI.isActiveAndEnabled == false)
             {

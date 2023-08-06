@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc17e09aa6a3d4c1593cc8504a920ba5, type: 3}
+  m_Name: PlayerTemplate
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerTemplate
+  Actions:
+  - {fileID: 11400000, guid: aebcb2bcd63de41f492ae60e33197359, type: 2}
+  - {fileID: 11400000, guid: f2c7ca8a2a98a4eeab5fd5f1a9671b25, type: 2}
+  - {fileID: 11400000, guid: 87c49c60640c44bbf9d3af4c743200a7, type: 2}
+  - {fileID: 11400000, guid: 4e2d34a8d25bc4e0bbc72c0b383560e1, type: 2}
+  - {fileID: 11400000, guid: d36dfa2af331440dea74c05d00a4928d, type: 2}
+  - {fileID: 11400000, guid: 41a421f41452742e0b333350e05dd23a, type: 2}
+  - {fileID: 11400000, guid: 5f6035b808c714fa889781de29c47905, type: 2}
+  - {fileID: 11400000, guid: 21bd42c09a9734dce89fe9ca7cd81f45, type: 2}
+  - {fileID: 11400000, guid: f1770d72357e149ef9663f7d2d85acc9, type: 2}

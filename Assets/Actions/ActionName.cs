@@ -1,0 +1,17 @@
+public enum ActionName
+{
+    MoveNorth,
+    MoveNorthEast,
+    MoveNorthWest,
+    MoveWest,
+    MoveSouthWest,
+    MoveSouth,
+    MoveSouthEast,
+    MoveEast,
+    Jump,
+    Sprint,
+    Pause,
+    Wait, 
+    InventoryMenu,
+    Back
+}

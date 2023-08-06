@@ -14,16 +14,13 @@ public class Jump : Action
 
     public override void PlayerActivate(Unit self)
     {   
-        if (startActionPresets())
-        {
-            affectedUnit = self;
-            affectedUnit.notOnHold = false;
-            Vector3 position = Vector3.zero;
-            Quaternion rotation = new Quaternion(0, 0, 0, 1f);
-            targetingSystem = Instantiate(targeting, position, rotation);
-            targetingSystem.GetComponent<LineOfSight>().setParameters(affectedUnit.transform.position, true);
-            targetingSystem.GetComponent<LineOfSight>().lineMade += foundTarget;
-        }
+        affectedUnit = self;
+        affectedUnit.notOnHold = false;
+        Vector3 position = Vector3.zero;
+        Quaternion rotation = new Quaternion(0, 0, 0, 1f);
+        targetingSystem = Instantiate(targeting, position, rotation);
+        targetingSystem.GetComponent<LineOfSight>().setParameters(affectedUnit.transform.position, true, 9, self.originalSprite, numSections: 2);
+        targetingSystem.GetComponent<LineOfSight>().lineMade += foundTarget;
     }
 
 

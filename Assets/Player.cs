@@ -46,13 +46,13 @@ public class Player : Unit
         gameManager.scripts.Insert(0, this);
         gameManager.locations.Insert(0, transform.position);
 
-        collisionTilemap = Obstacles.instance.collisionTilemap;
-        groundTilemap = Ground.instance.groundTilemap;
+
+        index = 0;
         inputManager = InputManager.instance;
         keybindings = KeyBindings.instance;
         Debug.Log("Player Start");
 
-        if(initialItems.Count != 0)
+        if (initialItems.Count != 0)
         {
             UpdatePlayerActions();
         }
@@ -63,32 +63,32 @@ public class Player : Unit
 
     public void UpdatePlayerActions(Dictionary<int, InventoryItem> inventoryState = null)
     {
-        
-        if(inventoryData.inventoryItems.Count != 0)
+
+        if (inventoryData.inventoryItems.Count != 0)
         {
             keybindings.actionkeyBinds.Clear();
             foreach (InventoryItem space in inventoryData.inventoryItems)
             {
-               if(space.item != null)
+                if (space.item != null)
                 {
-                    SoulItemSO soul =  (SoulItemSO) space.item;
+                    SoulItemSO soul = (SoulItemSO)space.item;
                     soul.AddPhysicalSoul(this);
                     soul.AddMentalSoul(this);
                 }
             }
             foreach (Action action in actions)
             {
-                if(action.actionName == "Sprint")
+                if (action.actionName == ActionName.Sprint)
                 {
                     keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.Keypad0 });
                 }
-                if (action.actionName == "Jump")
+                if (action.actionName == ActionName.Jump)
                 {
                     keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.Space });
                 }
             }
         }
-        
+
     }
 
     private void PrepareInventoryData()
@@ -109,7 +109,7 @@ public class Player : Unit
     private void UpdateInventoryUI(Dictionary<int, InventoryItem> inventoryState)
     {
         inventoryUI.ResetAllItems();
-        foreach(var item in inventoryState)
+        foreach (var item in inventoryState)
         {
             inventoryUI.UpdateData(item.Key, item.Value.item.itemImage, item.Value.quantity);
         }
@@ -132,7 +132,7 @@ public class Player : Unit
             return;
         }
         IItemAction itemAction = inventoryItem.item as IItemAction;
-        if(itemAction != null)
+        if (itemAction != null)
         {
             inventoryUI.ShowItemAction(itemIndex);
             inventoryUI.AddAction(itemAction.ActionName, () => PerformAction(itemIndex));
@@ -193,7 +193,7 @@ public class Player : Unit
     private void HandleDescriptionRequest(int itemIndex)
     {
         InventoryItem inventoryItem = inventoryData.GetItemAt(itemIndex);
-        if(inventoryItem.isEmpty)
+        if (inventoryItem.isEmpty)
         {
             inventoryUI.ResetSelection();
             return;
@@ -221,163 +221,136 @@ public class Player : Unit
     // Update is called once per frame
     void Update()
     {
-        if(notOnHold)
+        if (notOnHold)
         {
-            if (inputManager.GetKeyDown("Move_Northeast"))
+            for (int i = 0; i < baseActions.Count; i++)
             {
-                newPosition.Set(1f, 1f);
-                Move(newPosition);
-                TurnEnd();
-            }
-
-            else if (inputManager.GetKeyDown("Move_North"))
-            {
-                newPosition.Set(0f, 1f);
-                Move(newPosition);
-                TurnEnd();
-            }
-
-            else if (inputManager.GetKeyDown("Move_Northwest"))
-            {
-                newPosition.Set(-1f, 1f);
-                Move(newPosition);
-                TurnEnd();
-            }
-
-            else if (inputManager.GetKeyDown("Move_West"))
-            {
-                newPosition.Set(-1f, 0f);
-                Move(newPosition);
-                TurnEnd();
-            }
-
-            else if (inputManager.GetKeyDown("Move_Southwest"))
-            {
-                newPosition.Set(-1f, -1f);
-                Move(newPosition);
-                TurnEnd();
-            }
-
-            else if (inputManager.GetKeyDown("Move_South"))
-            {
-                newPosition.Set(0f, -1f);
-
-                Move(newPosition);
-                TurnEnd();
-            }
-
-            else if (inputManager.GetKeyDown("Move_Southeast"))
-            {
-                newPosition.Set(1f, -1f);
-                Move(newPosition);
-                TurnEnd();
-            }
-            else if (inputManager.GetKeyDown("Move_East"))
-            {
-                newPosition.Set(1f, 0f);
-                Move(newPosition);
-                TurnEnd();
-            }
-            else if (inputManager.GetKeyDown("Wait"))
-            {
-                TurnEnd();
-            }
-            else
-            {
-                for (int i = 0; i < actions.Count; i++)
+                if (inputManager.GetKeyDownAction(baseActions[i].actionName))
                 {
-                    /*
-                    foreach (string key in keybindings.actionkeyBinds.Keys)
+                    if (ContainsMatchingActionType(i))
                     {
-                        Debug.Log("Action Name " + key.Equals(actions[i].actionName));
+                        break;
                     }
-                    */
-                    if (inputManager.GetKeyDownAction(actions[i].actionName))
+                    if (baseActions[i].startActionPresets())
+                    {
+                        baseActions[i].PlayerActivate(this);
+                        TurnEnd();
+                    }
+                }
+            }
+
+            for (int i = 0; i < actions.Count; i++)
+            {
+                if (inputManager.GetKeyDownAction(actions[i].actionName))
+                {
+                    if (ContainsMatchingActionType(i))
+                    {
+                        break;
+                    }
+                    if (actions[i].startActionPresets())
                     {
                         actions[i].PlayerActivate(this);
                         TurnEnd();
                     }
                 }
             }
-        }
-        if (inputManager.GetKeyDown("InventoryMenu"))
-        {
-            if (inventoryUI.isActiveAndEnabled == false)
+            if (inputManager.GetKeyDown(ActionName.InventoryMenu))
             {
-                inventoryUI.Show();
-                foreach (var item in inventoryData.GetCurrentInventoryState())
+                if (inventoryUI.isActiveAndEnabled == false)
                 {
-                    inventoryUI.UpdateData(item.Key,
-                        item.Value.item.itemImage,
-                        item.Value.quantity);
+                    inventoryUI.Show();
+                    foreach (var item in inventoryData.GetCurrentInventoryState())
+                    {
+                        inventoryUI.UpdateData(item.Key,
+                            item.Value.item.itemImage,
+                            item.Value.quantity);
+                    }
+                    notOnHold = false;
                 }
-                notOnHold = false;
+                else
+                {
+                    inventoryUI.Hide();
+                    notOnHold = true;
+                }
             }
-            else
+
+        }
+
+        /*
+        public void Move(Vector2 direction)
+        {
+             transform.position += (Vector3)direction;
+            if (CanMove(transform.position, direction))
             {
-                inventoryUI.Hide();
-                notOnHold = true;   
+                if (IsEnemy(transform.position))
+                {
+                    transform.position -= (Vector3)direction;
+                }
+                else
+                {
+                    PickupIfItem(transform.position);
+                    gameManager.locations[0] = transform.position;
+                }
             }
         }
 
-    }
-
-    public void Move(Vector2 direction)
-    {
-         transform.position += (Vector3)direction;
-        if (CanMove(transform.position, direction))
+        private void PickupIfItem(Vector3 newPosition)
         {
-            if (IsEnemy(transform.position))
+            for (int i = 0; i < gameManager.itemLocations.Count; i++)
+            {
+                if (gameManager.itemLocations[i] == newPosition)
+                {
+                    this.gameObject.GetComponent<PickupSystem>().Pickup(gameManager.items[i]);
+                }
+            }
+        }
+
+        public bool CanMove(Vector3 newPosition, Vector2 direction)
+        {
+            Vector3Int gridPosition = groundTilemap.WorldToCell(newPosition);
+            if (!groundTilemap.HasTile(gridPosition) || collisionTilemap.HasTile(gridPosition))
             {
                 transform.position -= (Vector3)direction;
+                return false;
             }
-            else
-            {
-                PickupIfItem(transform.position);
-                gameManager.locations[0] = transform.position;
-            }
+            return true;
         }
-    }
 
-    private void PickupIfItem(Vector3 newPosition)
-    {
-        for (int i = 0; i < gameManager.itemLocations.Count; i++)
+        public bool IsEnemy(Vector3 newPosition)
         {
-            if (gameManager.itemLocations[i] == newPosition)
+
+            for (int i = 0; i < gameManager.locations.Count; i++)
             {
-                this.gameObject.GetComponent<PickupSystem>().Pickup(gameManager.items[i]);
+                if (i == 0)
+                {
+                    continue;
+                }
+                if (gameManager.locations[i] == newPosition)
+                {
+                    Debug.Log(gameManager.scripts[i]);
+                    MeleeAttack.Attack(gameManager.scripts[i], toHitBonus, armorPenetration, damage);
+                    return true;
+                }
             }
-        }
-    }
 
-    public bool CanMove(Vector3 newPosition, Vector2 direction)
-    {
-        Vector3Int gridPosition = groundTilemap.WorldToCell(newPosition);
-        if (!groundTilemap.HasTile(gridPosition) || collisionTilemap.HasTile(gridPosition))
-        {
-            transform.position -= (Vector3)direction;
             return false;
         }
-        return true;
+        */
     }
-
-    public bool IsEnemy(Vector3 newPosition)
+    public bool ContainsMatchingActionType(int i)
     {
-        
-        for (int i = 0; i < gameManager.locations.Count; i++)
+        if (baseActions[i].actionType.Length != 0 && unusableActionTypes.Count > 0)
         {
-            if (i == 0)
+            foreach (ActionTypes actionType in baseActions[i].actionType)
             {
-                continue;
-            }
-            if (gameManager.locations[i] == newPosition)
-            {
-                Debug.Log(gameManager.scripts[i]);
-                MeleeAttack.Attack(gameManager.scripts[i], toHitBonus, armorPenetration, damage);
-                return true;
+                if (unusableActionTypes.ContainsKey(actionType))
+                {
+                    Debug.Log("Can't Use Action" + baseActions[i].actionName.ToString());
+                    return true;
+                }
             }
         }
-        
+        Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
         return false;
     }
 }

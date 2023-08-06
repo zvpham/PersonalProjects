@@ -12,15 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7333b5a38f92e846934c73e332cb09f, type: 3}
   m_Name: Jump Action
   m_EditorClassIdentifier: 
-  actionName: Jump
+  actionName: 8
   weight: 0
   maxCooldown: 5
   currentCooldown: 0
   duration: 0
   isUsable: 0
-  isMovement: 0
-  isRanged: 0
-  isFreeStateChange: 0
+  actionType: 00000000
   isActiveAction: 0
   isTurnActivated: 0
   affectedUnit: {fileID: 0}

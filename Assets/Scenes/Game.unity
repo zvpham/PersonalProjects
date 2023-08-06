@@ -3207,6 +3207,10 @@ MonoBehaviour:
   sprites:
   - {fileID: 21300000, guid: 2ad4705d69a8f6248a12f204a17e3da2, type: 3}
   secSpriteChangeSpeed: 1.5
+  expectedLocationChangeSpeed: 0
+  currentExpectedLoactionChangeSpeed: 0
+  isLocationChangeStatus: 0
+  expectedLocationList: []
 --- !u!4 &1409101050
 Transform:
   m_ObjectHideFlags: 0
@@ -3401,9 +3405,21 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5251331894971950644, guid: 50497ed9059cccf4d8c0e2d69851928b,
         type: 3}
+      propertyPath: BaseActions
+      value: 
+      objectReference: {fileID: 11400000, guid: dbfb033e35fa74f94b5b29a198fb5385,
+        type: 2}
+    - target: {fileID: 5251331894971950644, guid: 50497ed9059cccf4d8c0e2d69851928b,
+        type: 3}
       propertyPath: drops.Array.size
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 5251331894971950644, guid: 50497ed9059cccf4d8c0e2d69851928b,
+        type: 3}
+      propertyPath: baseActionTemplate
+      value: 
+      objectReference: {fileID: 11400000, guid: dbfb033e35fa74f94b5b29a198fb5385,
+        type: 2}
     - target: {fileID: 5251331894971950644, guid: 50497ed9059cccf4d8c0e2d69851928b,
         type: 3}
       propertyPath: drops.Array.data[1]
@@ -3817,8 +3833,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff68c2936c5ac8b42ac2ce7f9ecbb4f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groundTilemap: {fileID: 0}
-  collisionTilemap: {fileID: 0}
   self: {fileID: 1845725615}
   quickness: 0.5
   strength: 20
@@ -3842,12 +3856,17 @@ MonoBehaviour:
   gameManager: {fileID: 0}
   index: 0
   statusDuration: 
+  baseActionTemplate: {fileID: 11400000, guid: dbfb033e35fa74f94b5b29a198fb5385, type: 2}
+  baseActions: []
   actions: []
   statuses: []
+  hasLocationChangeStatus: 0
   originalSprite: {fileID: 0}
   spriteIndex: -1
   physicalSouls: []
   mentalSouls: []
+  _keysUnusableActionTypes: 
+  _valuesUnusableActionTypes: 
   drops: []
   notOnHold: 1
   inventoryUI: {fileID: 1810426781}
@@ -4432,22 +4451,22 @@ PrefabInstance:
     - target: {fileID: 8619417199855662347, guid: dd60a6214760a724f89aef165111b280,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8619417199855662347, guid: dd60a6214760a724f89aef165111b280,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8619417199855662347, guid: dd60a6214760a724f89aef165111b280,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 75
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8619417199855662347, guid: dd60a6214760a724f89aef165111b280,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -75
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8619417200201919541, guid: dd60a6214760a724f89aef165111b280,
         type: 3}

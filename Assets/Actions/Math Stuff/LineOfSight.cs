@@ -14,15 +14,26 @@ public class LineOfSight : MonoBehaviour
     public int startingY;
     public int endX;
     public int endY;
+
+    public int projectileSpeed;
+    public int projectileRangeSections;
+    public Sprite projectile;
+
+    
     public GameObject linePrefab;
     public GameObject collisionPrefab;
     private GameObject finalMarker;
+    private List<GameObject> markerList = new List<GameObject>();
+
+
     public float offSet;
     private float xOffSet;
     private float yOffSet;
 
     public bool careAboutObstacles;
     public bool hitObstacle;
+    public int numhitObstacle = -1;
+
     private bool isreturn = false;
     private bool isPlayer = false;
 
@@ -42,11 +53,15 @@ public class LineOfSight : MonoBehaviour
         gameManager = GameManager.instance;
     }
         
-    public void setParameters(Vector3 startPosition, bool isPlayerCharacter)
+    public void setParameters(Vector3 startPosition, bool isPlayerCharacter, int projectileRange, Sprite projectilBeingLaunched, int projectileSpeedWhenFired = int.MaxValue, int numSections = 1)
     {
         startingX = (int)startPosition.x;
         startingY = (int)startPosition.y;
         isPlayer = isPlayerCharacter;
+        range = projectileRange;
+        projectile = projectilBeingLaunched;
+        projectileSpeed = projectileSpeedWhenFired;
+        projectileRangeSections = numSections;
     }
 
 
@@ -81,7 +96,29 @@ public class LineOfSight : MonoBehaviour
 
         BresenhamsAlgorithm.PlotFunction plotFunction = createDot;
         BresenhamsAlgorithm.Line(startingX, startingY, (int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), plotFunction);
-        if(isreturn)
+
+        if (projectileRangeSections != 1)
+        {
+            if (markerList.Count != 2)
+            {
+                projectileSpeed = (markerList.Count / projectileRangeSections) + 1;
+            }
+            else
+            {
+                projectileSpeed = markerList.Count / projectileRangeSections;
+            }
+        }
+
+        if (numhitObstacle == -1 || !(projectileSpeed - 1 >= numhitObstacle))
+        {
+            markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().sprite = projectile;
+
+            Color tmp = markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color;
+            tmp.a = 0.5f;
+            markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color = tmp;
+
+        }
+        if (isreturn)
         {
             lineMade?.Invoke(path);
         }
@@ -94,6 +131,13 @@ public class LineOfSight : MonoBehaviour
             position.Set((float)x, (float)y, 0);
             finalMarker = Instantiate(linePrefab, position, rotation);
 
+            if(numberMarkers == 0)
+            {
+                markerList.Clear();
+            }
+
+            markerList.Add(finalMarker);
+
             if(isreturn)
             {
                 path.Add(position);
@@ -104,6 +148,7 @@ public class LineOfSight : MonoBehaviour
                 {
                     finalMarker.GetComponent<SpriteRenderer>().color = linePrefab.GetComponent<SpriteRenderer>().color;
                     hitObstacle = false;
+                    numhitObstacle = -1;
                 }
                 if (hitObstacle)
                 {
@@ -116,6 +161,7 @@ public class LineOfSight : MonoBehaviour
                     {
                         Debug.Log("Hit WAll");
                         hitObstacle = true;
+                        numhitObstacle = numberMarkers;
                         finalMarker.GetComponent<SpriteRenderer>().color = Color.red;
                         GameObject collisionMarker = Instantiate(collisionPrefab, position, rotation);
                         collisionMarker.GetComponent<SpriteRenderer>().color = Color.red;

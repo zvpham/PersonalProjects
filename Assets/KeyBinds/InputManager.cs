@@ -29,9 +29,9 @@ public class InputManager : MonoBehaviour
         keyBindings = KeyBindings.instance;
     }
 
-    public List<KeyCode> GetKeyForAction(string KeyBindingAction)
+    public List<KeyCode> GetKeyForAction(ActionName KeyBindingAction)
     {
-        foreach (string key in keyBindings.defaultActionKeyBinds.Keys)
+        foreach (ActionName key in keyBindings.defaultActionKeyBinds.Keys)
         {
             if (key == KeyBindingAction)
             {
@@ -43,13 +43,13 @@ public class InputManager : MonoBehaviour
         return  temp;
     }
 
-    public bool GetKeyDown(string action)
+    public bool GetKeyDown(ActionName action)
     {
         // detects if player is pressing button
         if (!Input.anyKey)
             return false;
 
-        foreach (string key in keyBindings.defaultActionKeyBinds.Keys)
+        foreach (ActionName key in keyBindings.defaultActionKeyBinds.Keys)
         {
             if (key == action)
             {
@@ -72,13 +72,35 @@ public class InputManager : MonoBehaviour
         return false;
     }
 
-    public bool GetKeyDownAction(string action)
+    public bool GetKeyDownAction(ActionName action)
     {
         // detects if player is pressing button
         if (!Input.anyKey)
             return false;
 
-        foreach (string key in keyBindings.actionkeyBinds.Keys)
+        foreach (ActionName key in keyBindings.defaultActionKeyBinds.Keys)
+        {
+            if (key.Equals(action))
+            {
+                for (int i = 0; i < keyBindings.defaultActionKeyBinds[key].Count; i++)
+                {
+                    if (i == keyBindings.defaultActionKeyBinds[key].Count - 1)
+                    {
+
+                        return (Input.GetKeyDown(keyBindings.defaultActionKeyBinds[key][i]));
+                    }
+                    else
+                    {
+                        if (!Input.GetKey(keyBindings.defaultActionKeyBinds[key][i]))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach (ActionName key in keyBindings.actionkeyBinds.Keys)
         {
             if (key.Equals(action))
             {
@@ -86,11 +108,7 @@ public class InputManager : MonoBehaviour
                 {
                     if (i == keyBindings.actionkeyBinds[key].Count - 1)
                     {
-                        /*
-                        Debug.Log("Is Spring Key " + i);
-                        Debug.Log("Is Spring Key " + keyBindings.actionkeyBinds[key][0]);
-                        Debug.Log("Is Spring Key " + keyBindings.actionkeyBinds[key][i]);
-                        */
+           
                         return (Input.GetKeyDown(keyBindings.actionkeyBinds[key][i]));
                     }
                     else
@@ -106,13 +124,35 @@ public class InputManager : MonoBehaviour
         return false;
     }
 
-    public bool GetKey(string action)
+    public bool GetKey(ActionName action)
     {
         // detects if player is pressing button
         if (!Input.anyKey)
             return false;
 
-        foreach (string key in keyBindings.defaultActionKeyBinds.Keys)
+        foreach (ActionName key in keyBindings.defaultActionKeyBinds.Keys)
+        {
+            if (key.Equals(action))
+            {
+                for (int i = 0; i < keyBindings.defaultActionKeyBinds[key].Count; i++)
+                {
+                    if (i == keyBindings.defaultActionKeyBinds[key].Count - 1)
+                    {
+
+                        return (Input.GetKey(keyBindings.defaultActionKeyBinds[key][i]));
+                    }
+                    else
+                    {
+                        if (!Input.GetKey(keyBindings.defaultActionKeyBinds[key][i]))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach (ActionName key in keyBindings.defaultActionKeyBinds.Keys)
         {
             if (key == action)
             {
@@ -135,13 +175,35 @@ public class InputManager : MonoBehaviour
         return false;
     }
 
-    public bool GetKeyUp(string action)
+    public bool GetKeyUp(ActionName action)
     {
         // detects if player is pressing button
         if (!Input.anyKey)
             return false;
 
-        foreach (string key in keyBindings.defaultActionKeyBinds.Keys)
+        foreach (ActionName key in keyBindings.defaultActionKeyBinds.Keys)
+        {
+            if (key.Equals(action))
+            {
+                for (int i = 0; i < keyBindings.defaultActionKeyBinds[key].Count; i++)
+                {
+                    if (i == keyBindings.defaultActionKeyBinds[key].Count - 1)
+                    {
+
+                        return (Input.GetKeyUp(keyBindings.defaultActionKeyBinds[key][i]));
+                    }
+                    else
+                    {
+                        if (!Input.GetKey(keyBindings.defaultActionKeyBinds[key][i]))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach (ActionName key in keyBindings.defaultActionKeyBinds.Keys)
         {
             if (key == action)
             {

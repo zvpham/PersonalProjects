@@ -48,9 +48,6 @@ public class EnemyTest : Unit
         gameManager.enemies.Add(this);
         gameManager.locations.Add(transform.position);
 
-        collisionTilemap = Obstacles.instance.collisionTilemap;
-        groundTilemap = Ground.instance.groundTilemap;
-
         index = gameManager.speeds.Count;
         Debug.Log("Player Start");
 
@@ -87,8 +84,8 @@ public class EnemyTest : Unit
 
     public bool CanMove(Vector2 direction)
     {
-        Vector3Int gridPosition = groundTilemap.WorldToCell(transform.position + (Vector3)direction);
-        if (!groundTilemap.HasTile(gridPosition) || collisionTilemap.HasTile(gridPosition))
+        Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(transform.position + (Vector3)direction);
+        if (!gameManager.groundTilemap.HasTile(gridPosition) || gameManager.collisionTilemap.HasTile(gridPosition))
         {
             return false;
         }

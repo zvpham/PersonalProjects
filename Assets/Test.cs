@@ -18,11 +18,11 @@ public class Test : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-       if(inputManager.GetKeyDown("Test"))
+       if(inputManager.GetKeyDown(ActionName.Back))
         {
         }
 
-        if (inputManager.GetKeyDown("Pause")) 
+        if (inputManager.GetKeyDown(ActionName.Pause)) 
         {
             SceneManager.LoadScene("SettingsMenu");
         }

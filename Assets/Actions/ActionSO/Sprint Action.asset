@@ -12,15 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0ddccb30fd3d474f85c42090e18f291, type: 3}
   m_Name: Sprint Action
   m_EditorClassIdentifier: 
-  actionName: Sprint
+  actionName: 9
   weight: 0
   maxCooldown: 10
   currentCooldown: 0
   duration: 0
   isUsable: 1
-  isMovement: 0
-  isRanged: 0
-  isFreeStateChange: 1
+  actionType: 04000000
   isActiveAction: 1
   isTurnActivated: 0
   affectedUnit: {fileID: 0}

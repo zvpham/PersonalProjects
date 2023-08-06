@@ -17,13 +17,13 @@ public class BackToGame : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (inputManager.GetKeyDown("Back"))
-        {
+        if (inputManager.GetKeyDown(ActionName.Back))
+        {   
             Debug.Log("Hello");
             SceneManager.LoadScene("Game");
         }
 
-        else if (inputManager.GetKeyDown("Pause"))
+        else if (inputManager.GetKeyDown(ActionName.Pause))
         {
             SceneManager.LoadScene("SettingsMenu");
         }

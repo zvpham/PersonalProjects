@@ -6,7 +6,7 @@ using UnityEngine;
 public class Rebind : MonoBehaviour
 {
     // Start is called before the first frame update
-    public string action;
+    public ActionName action;
     [SerializeField] private TMPro.TextMeshProUGUI buttontext;
 
     private KeyBindings keyBindings;
@@ -87,9 +87,9 @@ public class Rebind : MonoBehaviour
         newKeyBinds.Clear();
     }
 
-    public void KeyChange(string action, List<KeyCode> newKeyBinds)
+    public void KeyChange(ActionName action, List<KeyCode> newKeyBinds)
     {
-        foreach (string key in keyBindings.defaultActionKeyBinds.Keys)
+        foreach (ActionName key in keyBindings.defaultActionKeyBinds.Keys)
         {
             if (key == action)
             {
@@ -127,9 +127,9 @@ public class Rebind : MonoBehaviour
         }
     }
 
-    private bool CheckDuplicateBindings(string action)
+    private bool CheckDuplicateBindings(ActionName action)
     {
-        foreach (string key in keyBindings.defaultActionKeyBinds.Keys)
+        foreach (ActionName key in keyBindings.defaultActionKeyBinds.Keys)
         {
             Debug.Log(key.ToString() );
             // check if same action
@@ -170,7 +170,7 @@ public class Rebind : MonoBehaviour
         return true;
     }
 
-    public bool SwapKeyBinds(string action, List<KeyCode> currentKeyBinds)
+    public bool SwapKeyBinds(ActionName action, List<KeyCode> currentKeyBinds)
     {
         Debug.Log("Test 124301287409128");
         /*

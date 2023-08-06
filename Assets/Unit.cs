@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-public class Unit : MonoBehaviour
+public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 {
     //[SerializeField]
-    public Tilemap groundTilemap;
+    //public Tilemap groundTilemap;
 
     //[SerializeField]
-    public Tilemap collisionTilemap;
+    //public Tilemap collisionTilemap;
     public GameObject self;
 
     public double quickness = 1;
@@ -43,8 +43,13 @@ public class Unit : MonoBehaviour
     public int index;
 
     public List<int> statusDuration;
+
+    public TemplateHolder baseActionTemplate;
+
+    public List<Action> baseActions;
     public List<Action> actions;
     public List<Status> statuses;
+    public int hasLocationChangeStatus = 0;
     public static Unit instance;
 
     public Sprite originalSprite;
@@ -52,6 +57,12 @@ public class Unit : MonoBehaviour
 
     public SoulItemSO[] physicalSouls = new SoulItemSO[3];
     public SoulItemSO[] mentalSouls = new SoulItemSO[3];
+
+
+    public List<ActionTypes> _keysUnusableActionTypes = new List<ActionTypes> ();
+    public List<int> _valuesUnusableActionTypes = new List<int> ();
+
+    public Dictionary<ActionTypes, int> unusableActionTypes = new Dictionary<ActionTypes, int>();
 
     public List<GameObject> drops;
 
@@ -64,8 +75,38 @@ public class Unit : MonoBehaviour
         {
             instance = this;
         }
+        baseActionTemplate = Instantiate(baseActionTemplate);
+        foreach(Action templateAction in baseActionTemplate.Actions)
+        {
+            baseActions.Add(Instantiate(templateAction));
+        }
     }
 
+    public void OnBeforeSerialize()
+    {
+        _keysUnusableActionTypes.Clear();
+        _valuesUnusableActionTypes.Clear();
+
+        foreach (var kvp in unusableActionTypes)
+        {
+            _keysUnusableActionTypes.Add(kvp.Key);
+            _valuesUnusableActionTypes.Add(kvp.Value);
+        }
+    }
+
+    public void OnAfterDeserialize()
+    {
+        unusableActionTypes = new Dictionary<ActionTypes, int>();
+
+        for (int i = 0; i != Mathf.Min(_keysUnusableActionTypes.Count, _valuesUnusableActionTypes.Count); i++)
+            unusableActionTypes.Add(_keysUnusableActionTypes[i], _valuesUnusableActionTypes[i]);
+    }
+
+    void OnGUI()
+    {
+        foreach (var kvp in unusableActionTypes)
+            GUILayout.Label("Key: " + kvp.Key + " value: " + kvp.Value);
+    }
 
 
     public void TurnEnd()

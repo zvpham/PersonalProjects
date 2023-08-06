@@ -31,7 +31,12 @@ public class GameManager : MonoBehaviour
     private int index = 0;
 
     public float secSpriteChangeSpeed;
+    public float expectedLocationChangeSpeed;
+    public float currentExpectedLoactionChangeSpeed;
     private float currentTime = 0;
+
+    public int isLocationChangeStatus = 0;
+    public List<GameObject> expectedLocationList = new List<GameObject>();
 
     // during turn 0 = no; 1 = yes
     private int duringTurn = 0;
@@ -60,6 +65,7 @@ public class GameManager : MonoBehaviour
         inputManager = InputManager.instance;
         collisionTilemap = Obstacles.instance.collisionTilemap;
         groundTilemap = Ground.instance.groundTilemap;
+        currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
 
     }
 
@@ -68,6 +74,28 @@ public class GameManager : MonoBehaviour
     {
         // Changes Sprites of all units based on statuses they have independent of Turns
         currentTime += Time.deltaTime;
+
+        if(isLocationChangeStatus >= 1)
+        {
+            if (currentTime >= currentExpectedLoactionChangeSpeed)
+            {
+                foreach (Unit unit in scripts)
+                {
+                    if(unit.hasLocationChangeStatus >= 1)
+                    {
+                        foreach(Status unitstatus in unit.statuses)
+                        {
+                            if(unitstatus.path != null && unitstatus.path.Count >= 1)
+                            {
+
+                            }
+                        }
+                    }
+                }
+                currentExpectedLoactionChangeSpeed += expectedLocationChangeSpeed;
+            }
+        }
+
         if (currentTime >= secSpriteChangeSpeed)
         {
             //Debug.Log("THIS is Sprite Change");
@@ -172,9 +200,12 @@ public class GameManager : MonoBehaviour
                                     unit.statuses[i].ApplyEffect(unit);
                                 }
                             }
-                            if (unit.statusDuration[i] <= 0)
+                            if (unit.statusDuration.Count == 0 ||unit.statusDuration[i] <= 0)
                             {
-                                unit.statuses[i].RemoveEffect(unit);
+                                if(unit.statusDuration.Count != 0)
+                                {
+                                    unit.statuses[i].RemoveEffect(unit);
+                                }
                                 unit.ChangeSprite(unit.originalSprite);
                                 unit.spriteIndex = -1;
                             }

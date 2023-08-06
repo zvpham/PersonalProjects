@@ -6,15 +6,13 @@ using UnityEngine;
 
 public abstract class Action : ScriptableObject
 {
-    public string actionName;
+    public ActionName actionName;
     public int weight;
     public int maxCooldown;
     public int currentCooldown;
     public int duration;
     public bool isUsable;
-    public bool isMovement;
-    public bool isRanged;
-    public bool isFreeStateChange;
+    public ActionTypes[] actionType;
     public bool isActiveAction;
     public bool isTurnActivated;
 
@@ -31,11 +29,11 @@ public abstract class Action : ScriptableObject
 
     public bool startActionPresets()
     {
-        if (currentCooldown == 0)
+        if (this.currentCooldown == 0)
         {
             Debug.Log("Jump");
-            currentCooldown = maxCooldown;
-            isTurnActivated = true;
+            this.currentCooldown = maxCooldown;
+            this.isTurnActivated = true;
             return true;
         }
         return false;

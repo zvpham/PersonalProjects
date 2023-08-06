@@ -19,6 +19,8 @@ MonoBehaviour:
   ApplyEveryTurn: 1
   isWorldTurnActivated: 0
   isFirstTurn: 1
+  actionTypesNotPermitted: 00000000
+  actionTypesThatCancelStatus: 
   path: []
   speed: 0
   currentJumpProgress: 0

@@ -12,6 +12,8 @@ public abstract class Status : ScriptableObject
     public bool ApplyEveryTurn;
     public bool isWorldTurnActivated = false;
     public bool isFirstTurn = true;
+    public List<ActionTypes> actionTypesNotPermitted;
+    public List<ActionTypes> actionTypesThatCancelStatus;
     public List<Vector3> path;
     /*  
     public static void make()
@@ -34,5 +36,20 @@ public abstract class Status : ScriptableObject
 
     // Update is called once per frame
     abstract public void RemoveEffect(Unit target);
+
+    public void AddUnusableStatuses(Unit target)
+    {
+        foreach (ActionTypes actionType in this.actionTypesNotPermitted)
+        {
+            if (target.unusableActionTypes.ContainsKey(actionType))
+            {
+                target.unusableActionTypes[actionType] = target.unusableActionTypes[actionType] + 1;
+            }
+            else
+            {
+                target.unusableActionTypes.Add(actionType, 1);
+            }
+        }
+    }
 
 }
