@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Tilemaps;
@@ -31,12 +32,14 @@ public class GameManager : MonoBehaviour
     private int index = 0;
 
     public float secSpriteChangeSpeed;
-    public float expectedLocationChangeSpeed;
-    public float currentExpectedLoactionChangeSpeed;
     private float currentTime = 0;
 
+    public float expectedLocationChangeSpeed;
+    public float currentExpectedLoactionChangeSpeed;
     public int isLocationChangeStatus = 0;
-    public List<GameObject> expectedLocationList = new List<GameObject>();
+    public ExpectedLocationMarker expectedLocationMarker;
+    public List<int> expectedLocationChangeList = new List<int>();
+    public List<Unit> unitWhoHaveLocationChangeStatus = new List<Unit>();
 
     // during turn 0 = no; 1 = yes
     private int duringTurn = 0;
@@ -66,6 +69,8 @@ public class GameManager : MonoBehaviour
         collisionTilemap = Obstacles.instance.collisionTilemap;
         groundTilemap = Ground.instance.groundTilemap;
         currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
+        expectedLocationMarker.selfDestructionTimer = expectedLocationChangeSpeed;
+        Debug.Log("awefeofhweofawe" + expectedLocationMarker.selfDestructionTimer);
 
     }
 
@@ -79,15 +84,29 @@ public class GameManager : MonoBehaviour
         {
             if (currentTime >= currentExpectedLoactionChangeSpeed)
             {
+                Debug.Log("testing 12314");
                 foreach (Unit unit in scripts)
                 {
                     if(unit.hasLocationChangeStatus >= 1)
                     {
+                        if (!unitWhoHaveLocationChangeStatus.Contains<Unit>(unit))
+                        {
+                            unitWhoHaveLocationChangeStatus.Add(unit);
+                            expectedLocationChangeList.Add(0);
+                        }
                         foreach(Status unitstatus in unit.statuses)
                         {
                             if(unitstatus.path != null && unitstatus.path.Count >= 1)
                             {
-
+                                int i = unitWhoHaveLocationChangeStatus.IndexOf(unit);
+                                GameObject temp = Instantiate(expectedLocationMarker.gameObject);
+                                temp.GetComponent<SpriteRenderer>().sprite = unit.originalSprite;
+                                temp.transform.position = unitstatus.path[unitstatus.currentProgress + expectedLocationChangeList[i]];
+                                expectedLocationChangeList[i] += 1;
+                                if (expectedLocationChangeList[i] + unitstatus.currentProgress > unitstatus.path.Count - 1)
+                                {
+                                    expectedLocationChangeList[i] = 0;
+                                }
                             }
                         }
                     }
@@ -101,6 +120,7 @@ public class GameManager : MonoBehaviour
             //Debug.Log("THIS is Sprite Change");
             foreach (Unit unit in scripts)
             {
+                currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
                 if (unit.statuses.Count != 0)
                 {
                     unit.spriteIndex += 1;

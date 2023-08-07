@@ -15,8 +15,9 @@ public abstract class Status : ScriptableObject
     public List<ActionTypes> actionTypesNotPermitted;
     public List<ActionTypes> actionTypesThatCancelStatus;
     public List<Vector3> path;
+    public int currentProgress;
     /*  
-    public static void make()
+    public static void make()S
     {
         Instantiate(statusPrefab);
        // Instance = statusPrefab.GetComponent<Sprinting>();

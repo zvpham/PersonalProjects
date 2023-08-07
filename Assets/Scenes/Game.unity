@@ -3207,10 +3207,13 @@ MonoBehaviour:
   sprites:
   - {fileID: 21300000, guid: 2ad4705d69a8f6248a12f204a17e3da2, type: 3}
   secSpriteChangeSpeed: 1.5
-  expectedLocationChangeSpeed: 0
+  expectedLocationChangeSpeed: 0.5
   currentExpectedLoactionChangeSpeed: 0
   isLocationChangeStatus: 0
-  expectedLocationList: []
+  expectedLocationMarker: {fileID: 4025858013429184281, guid: 4beb833a62749e54187a4d865fc6ccfb,
+    type: 3}
+  expectedLocationChangeList: 
+  unitWhoHaveLocationChangeStatus: []
 --- !u!4 &1409101050
 Transform:
   m_ObjectHideFlags: 0
@@ -4451,22 +4454,22 @@ PrefabInstance:
     - target: {fileID: 8619417199855662347, guid: dd60a6214760a724f89aef165111b280,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8619417199855662347, guid: dd60a6214760a724f89aef165111b280,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8619417199855662347, guid: dd60a6214760a724f89aef165111b280,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 75
       objectReference: {fileID: 0}
     - target: {fileID: 8619417199855662347, guid: dd60a6214760a724f89aef165111b280,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -75
       objectReference: {fileID: 0}
     - target: {fileID: 8619417200201919541, guid: dd60a6214760a724f89aef165111b280,
         type: 3}

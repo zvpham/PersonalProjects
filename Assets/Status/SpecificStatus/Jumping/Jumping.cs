@@ -7,7 +7,6 @@ public class Jumping : Status
 {
     //private int jumpProgress = 0;
     public int speed = 0;
-    public int currentProgress = 0;
     override public void ApplyEffect(Unit target)
     {
         if(this.isFirstTurn)

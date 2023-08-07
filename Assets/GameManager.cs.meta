@@ -3,7 +3,11 @@ guid: c3e28ab4b660fd94893ee333dd9fdfcd
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - groundTilemap: {instanceID: 0}
+  - collisionTilemap: {instanceID: 0}
+  - expectedLocationMarker: {fileID: 8882772987381676195, guid: 4beb833a62749e54187a4d865fc6ccfb,
+      type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
