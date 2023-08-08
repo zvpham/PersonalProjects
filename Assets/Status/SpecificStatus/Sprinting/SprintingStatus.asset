@@ -12,7 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a6e5a6b3d66c524a85b01566031a8a6, type: 3}
   m_Name: SprintingStatus
   m_EditorClassIdentifier: 
+  targetUnit: {fileID: 0}
+  statusQuickness: 1
   statusDuration: 4
+  nonStandardDuration: 0
   statusName: Sprinting
   statusImage: {fileID: 21300000, guid: 2ad4705d69a8f6248a12f204a17e3da2, type: 3}
   ApplyEveryTurn: 0
+  isFirstTurn: 1
+  actionTypesNotPermitted: 
+  actionTypesThatCancelStatus: 
+  path: []
+  currentProgress: 0

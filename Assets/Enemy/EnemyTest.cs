@@ -61,9 +61,14 @@ public class EnemyTest : Unit
         if (turn1)
         {
             if(actions.Count > 0)
-                actions[0].Activate(this);
-            turn1 = false;  
-            TurnEnd();
+            {
+                if (actions[0].startActionPresets() )
+                {
+                    actions[0].Activate(this);
+                    turn1 = false;
+                    TurnEnd();
+                }
+            }
         }
         else
         {

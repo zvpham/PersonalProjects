@@ -275,67 +275,6 @@ public class Player : Unit
             }
 
         }
-
-        /*
-        public void Move(Vector2 direction)
-        {
-             transform.position += (Vector3)direction;
-            if (CanMove(transform.position, direction))
-            {
-                if (IsEnemy(transform.position))
-                {
-                    transform.position -= (Vector3)direction;
-                }
-                else
-                {
-                    PickupIfItem(transform.position);
-                    gameManager.locations[0] = transform.position;
-                }
-            }
-        }
-
-        private void PickupIfItem(Vector3 newPosition)
-        {
-            for (int i = 0; i < gameManager.itemLocations.Count; i++)
-            {
-                if (gameManager.itemLocations[i] == newPosition)
-                {
-                    this.gameObject.GetComponent<PickupSystem>().Pickup(gameManager.items[i]);
-                }
-            }
-        }
-
-        public bool CanMove(Vector3 newPosition, Vector2 direction)
-        {
-            Vector3Int gridPosition = groundTilemap.WorldToCell(newPosition);
-            if (!groundTilemap.HasTile(gridPosition) || collisionTilemap.HasTile(gridPosition))
-            {
-                transform.position -= (Vector3)direction;
-                return false;
-            }
-            return true;
-        }
-
-        public bool IsEnemy(Vector3 newPosition)
-        {
-
-            for (int i = 0; i < gameManager.locations.Count; i++)
-            {
-                if (i == 0)
-                {
-                    continue;
-                }
-                if (gameManager.locations[i] == newPosition)
-                {
-                    Debug.Log(gameManager.scripts[i]);
-                    MeleeAttack.Attack(gameManager.scripts[i], toHitBonus, armorPenetration, damage);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-        */
     }
     public bool ContainsMatchingActionType(int i)
     {
@@ -345,12 +284,12 @@ public class Player : Unit
             {
                 if (unusableActionTypes.ContainsKey(actionType))
                 {
-                    Debug.Log("Can't Use Action" + baseActions[i].actionName.ToString());
+                    //Debug.Log("Can't Use Action" + baseActions[i].actionName.ToString());
                     return true;
                 }
             }
         }
-        Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
+        //Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
         return false;
     }
 }

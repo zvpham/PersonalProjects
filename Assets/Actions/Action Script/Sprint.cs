@@ -7,10 +7,7 @@ public class Sprint : Action
 {   
     public override void Activate(Unit self)
     {
-        if (startActionPresets())
-        {
-            startStatusPresets(self);
-        }
+        startStatusPresets(self);
     }
 
     public override void PlayerActivate(Unit self)

@@ -12,6 +12,10 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
     public List<double> speeds;
     public List<int> priority;
+    public List<int> statusPriority;
+    public List<int> statusDuration;
+
+
     public int baseTurnTime = 500;
     public int worldPriority = 0;
 
@@ -24,6 +28,7 @@ public class GameManager : MonoBehaviour
     public List<Unit> scripts;
     public List<EnemyTest> enemies;
     public List<Item> items;
+    public List<Status> allStatuses;
 
     public List<Sprite> sprites;
     private InputManager inputManager;
@@ -74,15 +79,15 @@ public class GameManager : MonoBehaviour
 
     }
 
-    // Update is called once per frame
+    // Update is called once per frame 
     void Update()
     {
-        // Changes Sprites of all units based on statuses they have independent of Turns
+        // Adds a phantome image of things that have a set or predicted path
         currentTime += Time.deltaTime;
 
-        if(isLocationChangeStatus >= 1)
+        if(currentTime >= currentExpectedLoactionChangeSpeed)
         {
-            if (currentTime >= currentExpectedLoactionChangeSpeed)
+            if (isLocationChangeStatus >= 1)
             {
                 Debug.Log("testing 12314");
                 foreach (Unit unit in scripts)
@@ -96,14 +101,17 @@ public class GameManager : MonoBehaviour
                         }
                         foreach(Status unitstatus in unit.statuses)
                         {
-                            if(unitstatus.path != null && unitstatus.path.Count >= 1)
+                            if(unitstatus.path != null && unitstatus.path.Count >= 1)       
                             {
                                 int i = unitWhoHaveLocationChangeStatus.IndexOf(unit);
-                                GameObject temp = Instantiate(expectedLocationMarker.gameObject);
-                                temp.GetComponent<SpriteRenderer>().sprite = unit.originalSprite;
-                                temp.transform.position = unitstatus.path[unitstatus.currentProgress + expectedLocationChangeList[i]];
+                                if(!(expectedLocationChangeList[i] + unitstatus.currentProgress > unitstatus.path.Count - 1))
+                                {
+                                    GameObject temp = Instantiate(expectedLocationMarker.gameObject);
+                                    temp.GetComponent<SpriteRenderer>().sprite = unit.originalSprite;
+                                    temp.transform.position = unitstatus.path[unitstatus.currentProgress + expectedLocationChangeList[i]];
+                                }
                                 expectedLocationChangeList[i] += 1;
-                                if (expectedLocationChangeList[i] + unitstatus.currentProgress > unitstatus.path.Count - 1)
+                                if (expectedLocationChangeList[i] + unitstatus.currentProgress > unitstatus.path.Count)
                                 {
                                     expectedLocationChangeList[i] = 0;
                                 }
@@ -111,13 +119,13 @@ public class GameManager : MonoBehaviour
                         }
                     }
                 }
-                currentExpectedLoactionChangeSpeed += expectedLocationChangeSpeed;
+                
             }
+            currentExpectedLoactionChangeSpeed += expectedLocationChangeSpeed;
         }
-
+        // Changes Sprites of all units based on statuses they have independent of Turns
         if (currentTime >= secSpriteChangeSpeed)
         {
-            //Debug.Log("THIS is Sprite Change");
             foreach (Unit unit in scripts)
             {
                 currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
@@ -131,7 +139,10 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                        unit.ChangeSprite(unit.statuses[unit.spriteIndex].statusImage);
+                        if((unit.spriteIndex < unit.statuses.Count))
+                        {
+                            unit.ChangeSprite(unit.statuses[unit.spriteIndex].statusImage);
+                        }
                     }
                 }
                 else
@@ -144,10 +155,12 @@ public class GameManager : MonoBehaviour
 
         if (CanContinue(scripts[index]))
         {
-            // finds the lowest priority amongst all the units
+            // finds the lowest priority amongst all the units, statuses, worldtimer
             // if we are at the top of a turn
+            Debug.Log("CAn Continue");
             if (duringTurn == 0)
             {
+                Debug.Log(" During Turn");
                 least = (int)priority[0];
                 for (int i = 0; i < priority.Count; i++)
                 {
@@ -155,6 +168,60 @@ public class GameManager : MonoBehaviour
                     {
                         least = priority[i];
                     }
+                }
+               /*
+                if (worldPriority < least)
+                {
+                    least = worldPriority;
+                }
+               */
+                if (allStatuses.Count >= 0)
+                {
+                    for (int i = 0; i < statusPriority.Count; i++)
+                    {
+                        if (statusPriority[i] < least)
+                        {
+                            least = statusPriority[i];
+                        }
+                    }
+                    
+                    // change Status Priority at top of turn
+
+                    for (int i = 0; i < statusPriority.Count; i++)
+                    {
+                        statusPriority[i] -= least;
+                        if (statusPriority[i] <= 0)
+                        {
+                            statusPriority[i] = (int)(allStatuses[i].statusQuickness * baseTurnTime);
+                            Unit tempUnit = allStatuses[i].targetUnit;
+                            int tempIndex = tempUnit.statusDuration.Count;  
+
+                            //reduces status duration of a status if it is supposed to go down at the end of a turn
+                            if (!allStatuses[i].nonStandardDuration)
+                            {
+                                statusDuration[i] -= 1;
+                            }
+
+                            // if an affect applyies everyturn apply the affect if it isn't the  turn it was activated
+                            if (allStatuses[i].ApplyEveryTurn)
+                            {
+                                allStatuses[i].ApplyEffect(tempUnit);
+                            }
+
+                            //if a status was removed in previous step reset sprite of unit otherwise if a status duration is 0 remove the status from the unit and reset the units sprite
+                            if (tempUnit.statusDuration.Count != tempIndex || statusDuration[i] <= 0)
+                            {
+                                if(tempUnit.statusDuration.Count == tempIndex)
+                                {
+                                    allStatuses[i].RemoveEffect(tempUnit);
+                                }
+                                tempUnit.ChangeSprite(tempUnit.originalSprite);
+                                tempUnit.spriteIndex = -1;
+
+                            }
+                        }
+                    }
+
                 }
             }
             //lowers priority of a unit by the least amount of priority 
@@ -196,6 +263,7 @@ public class GameManager : MonoBehaviour
                         priority[i] = (int) (baseTurnTime * speeds[i]);
                     }
                 }
+                /*
                 // changes the worlds turn if 0 reduce status effects by 1 and resets unit sprite and remove statuses if a duraction is 0
                 worldPriority -= least;
                 if (worldPriority <= 0)
@@ -203,12 +271,16 @@ public class GameManager : MonoBehaviour
 
                     foreach (Unit unit in scripts)
                     {
+                        int tempIndex = unit.statusDuration.Count;
                         for (int i = 0; i < unit.statusDuration.Count; i++)
                         {
+                            //reduces status duration of a status if it is supposed to go down at the end of a turn
                             if (!unit.statuses[i].nonStandardDuration)
                             {
                                 unit.statusDuration[i] -= 1;
                             }
+
+                            // if an affect applyies everyturn apply the affect if it isn't the  turn it was activated
                             if (unit.statuses[i].ApplyEveryTurn)    
                             {
                                 if (!unit.statuses[i].isWorldTurnActivated)
@@ -220,9 +292,11 @@ public class GameManager : MonoBehaviour
                                     unit.statuses[i].ApplyEffect(unit);
                                 }
                             }
-                            if (unit.statusDuration.Count == 0 ||unit.statusDuration[i] <= 0)
+
+                            //if a status was removed in previous step reset sprite of unit otherwise if a status duration is 0 remove the status from the unit and reset the units sprite
+                            if (unit.statusDuration.Count != tempIndex || unit.statusDuration[i] <= 0)
                             {
-                                if(unit.statusDuration.Count != 0)
+                                if(unit.statusDuration.Count == tempIndex)
                                 {
                                     unit.statuses[i].RemoveEffect(unit);
                                 }
@@ -233,6 +307,7 @@ public class GameManager : MonoBehaviour
                     }
                     worldPriority = 1 * baseTurnTime;
                 }
+                */
             }
         }
     }
@@ -240,7 +315,6 @@ public class GameManager : MonoBehaviour
 
     private bool CanContinue(MonoBehaviour script)
     {
-        //Debug.Log(!script.isActiveAndEnabled);
         return !script.isActiveAndEnabled;
     }
 }   

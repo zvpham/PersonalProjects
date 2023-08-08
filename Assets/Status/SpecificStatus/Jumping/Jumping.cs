@@ -20,12 +20,15 @@ public class Jumping : Status
             {
                 this.speed = this.path.Count / 2;
             }
+            this.targetUnit = target;
             target.statuses.Add(this);
-            this.isWorldTurnActivated = true;
             this.isFirstTurn = false;
             target.statusDuration.Add(this.statusDuration);
+            target.gameManager.statusDuration.Add(this.statusDuration);
             target.gameManager.isLocationChangeStatus += 1;
+            target.gameManager.statusPriority.Add(target.gameManager.baseTurnTime);
             target.hasLocationChangeStatus += 1;
+            target.gameManager.allStatuses.Add(this);
 
             AddUnusableStatuses(target);
         }
@@ -64,6 +67,10 @@ public class Jumping : Status
         target.statusDuration.RemoveAt(index);
         target.gameManager.isLocationChangeStatus -= 1;
         target.hasLocationChangeStatus -= 1;
+        int statusindex = target.gameManager.allStatuses.IndexOf(this);
+        target.gameManager.statusPriority.RemoveAt(statusindex);
+        target.gameManager.allStatuses.RemoveAt(statusindex);
+        target.gameManager.statusDuration.RemoveAt(statusindex);
         foreach (ActionTypes actionType in actionTypesNotPermitted)
         {
             Debug.Log(target.unusableActionTypes[actionType] + " Testing");

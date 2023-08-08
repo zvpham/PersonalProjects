@@ -29,13 +29,14 @@ public abstract class Action : ScriptableObject
 
     public bool startActionPresets()
     {
+        Debug.Log("This is on coolDown" + this.currentCooldown);
         if (this.currentCooldown == 0)
         {
-            Debug.Log("Jump");
             this.currentCooldown = maxCooldown;
             this.isTurnActivated = true;
             return true;
         }
+        Debug.Log("Failure");
         return false;
     }
 

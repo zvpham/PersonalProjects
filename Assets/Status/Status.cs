@@ -4,13 +4,15 @@ using UnityEngine;
 
 public abstract class Status : ScriptableObject
 {
+    public Unit targetUnit;
+    public float statusQuickness = 1;
+
     public int statusDuration;
     public bool nonStandardDuration = false;
 
     public string statusName;
     public Sprite statusImage;
     public bool ApplyEveryTurn;
-    public bool isWorldTurnActivated = false;
     public bool isFirstTurn = true;
     public List<ActionTypes> actionTypesNotPermitted;
     public List<ActionTypes> actionTypesThatCancelStatus;
