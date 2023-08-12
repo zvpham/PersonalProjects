@@ -79,7 +79,7 @@ public class Player : Unit
             {
                 if (action.actionName == ActionName.Sprint)
                 {
-                    keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.Keypad0 });
+                    keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.S});
                 }
                 if (action.actionName == ActionName.Jump)
                 {
@@ -253,7 +253,6 @@ public class Player : Unit
                     }
                 }
             }
-        }
 
         if (inputManager.GetKeyDown(ActionName.InventoryMenu))
         {
@@ -274,6 +273,7 @@ public class Player : Unit
                 notOnHold = true;
             }
         }
+
     }
     public bool ContainsMatchingActionType(int i, bool isBaseAction)
     {
