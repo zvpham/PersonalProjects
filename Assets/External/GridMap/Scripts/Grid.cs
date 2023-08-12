@@ -44,7 +44,7 @@ public class Grid<TGridObject> {
             }
         }
 
-        bool showDebug = true;
+        bool showDebug = false;
         if (showDebug) {
             TextMesh[,] debugTextArray = new TextMesh[width, height];
 
@@ -106,6 +106,7 @@ public class Grid<TGridObject> {
         if (x >= 0 && y >= 0 && x < width && y < height) {
             return gridArray[x, y];
         } else {
+            Debug.Log("Theres Noting THere");
             return default(TGridObject);
         }
     }

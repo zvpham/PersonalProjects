@@ -44,13 +44,12 @@ public class Player : Unit
         gameManager.speeds.Insert(0, this.quickness);
         gameManager.priority.Insert(0, (int)(this.quickness * gameManager.baseTurnTime));
         gameManager.scripts.Insert(0, this);
-        gameManager.locations.Insert(0, transform.position);
-
+        //gameManager.locations.Insert(0, transform.position);
+        gameManager.grid.SetGridObject(self.transform.position, this);
 
         index = 0;
         inputManager = InputManager.instance;
         keybindings = KeyBindings.instance;
-        Debug.Log("Player Start");
 
         if (initialItems.Count != 0)
         {
@@ -227,13 +226,13 @@ public class Player : Unit
             {
                 if (inputManager.GetKeyDownAction(baseActions[i].actionName))
                 {
-                    if (ContainsMatchingActionType(i))
+                    if (ContainsMatchingActionType(i, true))
                     {
                         break;
                     }
                     if (baseActions[i].startActionPresets())
                     {
-                        baseActions[i].PlayerActivate(this);
+                        baseActions[i].PlayerActivate(this);    
                         TurnEnd();
                     }
                 }
@@ -243,7 +242,7 @@ public class Player : Unit
             {
                 if (inputManager.GetKeyDownAction(actions[i].actionName))
                 {
-                    if (ContainsMatchingActionType(i))
+                    if (ContainsMatchingActionType(i, false))
                     {
                         break;
                     }
@@ -254,42 +253,61 @@ public class Player : Unit
                     }
                 }
             }
-            if (inputManager.GetKeyDown(ActionName.InventoryMenu))
-            {
-                if (inventoryUI.isActiveAndEnabled == false)
-                {
-                    inventoryUI.Show();
-                    foreach (var item in inventoryData.GetCurrentInventoryState())
-                    {
-                        inventoryUI.UpdateData(item.Key,
-                            item.Value.item.itemImage,
-                            item.Value.quantity);
-                    }
-                    notOnHold = false;
-                }
-                else
-                {
-                    inventoryUI.Hide();
-                    notOnHold = true;
-                }
-            }
+        }
 
+        if (inputManager.GetKeyDown(ActionName.InventoryMenu))
+        {
+            if (inventoryUI.isActiveAndEnabled == false)
+            {
+                inventoryUI.Show();
+                foreach (var item in inventoryData.GetCurrentInventoryState())
+                {
+                    inventoryUI.UpdateData(item.Key,
+                        item.Value.item.itemImage,
+                        item.Value.quantity);
+                }
+                notOnHold = false;
+            }
+            else
+            {
+                inventoryUI.Hide();
+                notOnHold = true;
+            }
         }
     }
-    public bool ContainsMatchingActionType(int i)
+    public bool ContainsMatchingActionType(int i, bool isBaseAction)
     {
-        if (baseActions[i].actionType.Length != 0 && unusableActionTypes.Count > 0)
+        if (isBaseAction)
         {
-            foreach (ActionTypes actionType in baseActions[i].actionType)
+            if (baseActions[i].actionType.Length != 0 && unusableActionTypes.Count > 0)
             {
-                if (unusableActionTypes.ContainsKey(actionType))
+                foreach (ActionTypes actionType in baseActions[i].actionType)
                 {
-                    //Debug.Log("Can't Use Action" + baseActions[i].actionName.ToString());
-                    return true;
+                    if (unusableActionTypes.ContainsKey(actionType))
+                    {
+                        //Debug.Log("Can't Use Action" + baseActions[i].actionName.ToString());
+                        return true;
+                    }
                 }
             }
+            //Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
+            return false;
         }
-        //Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
-        return false;
+        else
+        {
+            if (actions[i].actionType.Length != 0 && unusableActionTypes.Count > 0)
+            {
+                foreach (ActionTypes actionType in actions[i].actionType)
+                {
+                    if (unusableActionTypes.ContainsKey(actionType))
+                    {
+                        Debug.Log("Can't Use Action" + actions[i].actionName.ToString());
+                        return true;
+                    }
+                }
+            }
+            //Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
+            return false;
+        }
     }
 }

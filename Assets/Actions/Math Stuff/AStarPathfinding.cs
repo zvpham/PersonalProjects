@@ -6,15 +6,20 @@ using UnityEngine;
 public class AStarPathfinding 
 {
     private const int Move_Straight_Cost = 10;
-    private const int Move_Diagonal_Cost = 14;
+    private const int Move_Diagonal_Cost = 10;
 
     private Grid<AStarPathNode> grid;
     private List<AStarPathNode> openList;
     private List<AStarPathNode> closedList;
 
-    public AStarPathfinding(int width, int height) 
-    { 
-        grid = new Grid<AStarPathNode> (width, height, 1f, Vector3.zero, (Grid<AStarPathNode> g, int x, int y ) => new AStarPathNode(g, x, y));
+    public AStarPathfinding(int width, int height, List<Vector3> walkableSpaces, Vector3 orginPosition) 
+    {
+        List<Vector2> walkableSpacesV2 = new List<Vector2>();
+        foreach (Vector3 space in walkableSpaces)
+        {
+            walkableSpacesV2.Add(new Vector2(space.x, space.y));
+        }
+        grid = new Grid<AStarPathNode> (width, height, 1f, orginPosition, (Grid<AStarPathNode> g, int x, int y ) => new AStarPathNode(g, x, y, walkableSpacesV2));
     }
 
     public Grid<AStarPathNode> GetGrid() 
@@ -47,8 +52,10 @@ public class AStarPathfinding
 
         while(openList.Count > 0)
         {
+           
             AStarPathNode currentNode = GetLowestFCostNode(openList);
-            if(currentNode == endNode)
+            Debug.Log("this is Current Node " + currentNode);
+            if (currentNode == endNode) 
             {
                 return CalculatePath(endNode);
             }
@@ -57,39 +64,42 @@ public class AStarPathfinding
 
             foreach (AStarPathNode neighborNode in GetNeighborList(currentNode))
             {
-                if (closedList.Contains(neighborNode)) continue;
+                if (!neighborNode.IsWalkable || closedList.Contains(neighborNode)) continue;
 
                 int tentativeGCost = currentNode.gCost + CalculateDistanceCost(currentNode, neighborNode);
-                if(tentativeGCost < neighborNode.gCost)
+
+                if (tentativeGCost < neighborNode.gCost)
                 {
                     neighborNode.cameFromNode = currentNode;
                     neighborNode.gCost = tentativeGCost;
                     neighborNode.hCost = CalculateDistanceCost(neighborNode, endNode);
                     neighborNode.CalculateFCost();
-                    
-                    if(!openList.Contains(neighborNode))
+
+                    if (!openList.Contains(neighborNode))
                     {
                         openList.Add(neighborNode);
                     }
                 }
             }
         }
+        Debug.Log("SAD FACE :(");   
         return null;
     }
 
     private List<AStarPathNode> GetNeighborList(AStarPathNode currentNode)
     {
         List<AStarPathNode> neighborList  = new List<AStarPathNode>();
-        for (int i = -1;  i == 1; i++)
+        for (int i = -1;  i <= 1; i++)
         {
-            for (int j = -1; i == 1; j++)
+            for (int j = -1; j <= 1; j++)
             {
-                if(currentNode.x + j >= 0 && currentNode.x <grid.GetWidth())
+                if (currentNode.x + j >= 0 && currentNode.x <grid.GetWidth())
                 {
                     if (currentNode.y + i >= 0 && currentNode.y < grid.GetHeight())
                     {
-                        if(i == 0 && j == 0)
+                        if (i == 0 && j == 0)
                         {
+
                         }
                         else
                         {

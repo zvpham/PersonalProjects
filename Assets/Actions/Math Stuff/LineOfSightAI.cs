@@ -8,7 +8,7 @@ using CodeMonkey.Utils;
 using UnityEngine.Rendering.Universal;
 using System;
 
-public class LineOfSight : MonoBehaviour
+public class LineOfSightAI : MonoBehaviour
 {
     public int startingX;
     public int startingY;
@@ -17,18 +17,10 @@ public class LineOfSight : MonoBehaviour
 
     public int projectileSpeed;
     public int projectileRangeSections;
-    public Sprite projectile;
 
-    
     public GameObject linePrefab;
-    public GameObject collisionPrefab;
-    private GameObject finalMarker;
     private List<GameObject> markerList = new List<GameObject>();
-
-
-    public float offSet;
-    private float xOffSet;
-    private float yOffSet;
+    private GameObject finalMarker;
 
     public bool careAboutObstacles;
     public bool hitObstacle;
@@ -43,21 +35,20 @@ public class LineOfSight : MonoBehaviour
 
     private GameManager gameManager;
 
-    public List<Vector3> path  = new List<Vector3>();
+    public List<Vector3> path = new List<Vector3>();
 
-    public event Action< List<Vector3> > lineMade;
+    public event Action<List<Vector3>> lineMade;
 
     private void Start()
     {
         gameManager = GameManager.instance;
     }
-        
-    public void setParameters(Vector3 startPosition,  int projectileRange, Sprite projectilBeingLaunched, int projectileSpeedWhenFired = int.MaxValue, int numSections = 1)
+
+    public void setParameters(Vector3 startPosition, int projectileRange, int projectileSpeedWhenFired = int.MaxValue, int numSections = 1)
     {
         startingX = (int)startPosition.x;
         startingY = (int)startPosition.y;
         range = projectileRange;
-        projectile = projectilBeingLaunched;
         projectileSpeed = projectileSpeedWhenFired;
         projectileRangeSections = numSections;
     }
@@ -66,34 +57,8 @@ public class LineOfSight : MonoBehaviour
 
     void Update()
     {
-        xOffSet = 0;
-        yOffSet = 0;
-        Vector3 mousePosition = UtilsClass.GetMouseWorldPosition();
-        if ((startingX - mousePosition.x) % 1 <= .5 && (startingX - mousePosition.x) % 1 >= 0)
-        {
-            xOffSet = offSet;
-        }
-        else if ((startingX - mousePosition.x) % 1 <= -.5)
-        {
-            xOffSet = offSet;
-        }
-
-        if ((startingY - mousePosition.y) % 1 <= .5 && (startingY - mousePosition.y) % 1 >= 0)
-        {
-            yOffSet = offSet;
-        }
-        else if ((startingY - mousePosition.y) % 1 <= -.5)
-        {
-            yOffSet = offSet;
-        }
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            isreturn = true;
-        }
-
-        BresenhamsAlgorithm.PlotFunction plotFunction = createDot;
-        BresenhamsAlgorithm.Line(startingX, startingY, (int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), plotFunction);
+        BresenhamsAlgorithm.PlotFunction plotFunction = GetPath;
+        BresenhamsAlgorithm.Line(startingX, startingY, endX, endY, plotFunction);
 
         if (projectileRangeSections != 1)
         {
@@ -103,17 +68,12 @@ public class LineOfSight : MonoBehaviour
             }
             else
             {
-                projectileSpeed = markerList.Count / projectileRangeSections;
+                projectileSpeed = markerList.Count / projectileRangeSections;   
             }
         }
 
         if (numhitObstacle == -1 || !(projectileSpeed - 1 >= numhitObstacle))
         {
-            markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().sprite = projectile;
-
-            Color tmp = markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color;
-            tmp.a = 0.5f;
-            markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color = tmp;
 
         }
         if (isreturn)
@@ -122,27 +82,27 @@ public class LineOfSight : MonoBehaviour
         }
     }
 
-    public bool createDot(int x, int y, int numberMarkers)
+    public bool GetPath(int x, int y, int numberMarkers)
     {
-        if(numberMarkers < range)
+        if (numberMarkers < range)
         {
             position.Set((float)x, (float)y, 0);
             finalMarker = Instantiate(linePrefab, position, rotation);
 
-            if(numberMarkers == 0)
+            if (numberMarkers == 0)
             {
                 markerList.Clear();
             }
 
             markerList.Add(finalMarker);
 
-            if(isreturn)
+            if (isreturn)
             {
                 path.Add(position);
             }
             if (careAboutObstacles)
             {
-                if(numberMarkers == 0)
+                if (numberMarkers == 0)
                 {
                     finalMarker.GetComponent<SpriteRenderer>().color = linePrefab.GetComponent<SpriteRenderer>().color;
                     hitObstacle = false;
@@ -161,8 +121,6 @@ public class LineOfSight : MonoBehaviour
                         hitObstacle = true;
                         numhitObstacle = numberMarkers;
                         finalMarker.GetComponent<SpriteRenderer>().color = Color.red;
-                        GameObject collisionMarker = Instantiate(collisionPrefab, position, rotation);
-                        collisionMarker.GetComponent<SpriteRenderer>().color = Color.red;
                     }
                 }
             }

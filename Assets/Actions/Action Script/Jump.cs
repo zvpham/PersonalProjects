@@ -19,7 +19,7 @@ public class Jump : Action
         Vector3 position = Vector3.zero;
         Quaternion rotation = new Quaternion(0, 0, 0, 1f);
         targetingSystem = Instantiate(targeting, position, rotation);
-        targetingSystem.GetComponent<LineOfSight>().setParameters(affectedUnit.transform.position, true, 9, self.originalSprite, numSections: 2);
+        targetingSystem.GetComponent<LineOfSight>().setParameters(affectedUnit.transform.position, 9, self.originalSprite, numSections: 2);
         targetingSystem.GetComponent<LineOfSight>().lineMade += foundTarget;
     }
 
@@ -27,16 +27,12 @@ public class Jump : Action
     private void foundTarget(List<Vector3> path)
     {
         Destroy(targetingSystem);
-        Debug.Log("How Many Times");
+
         foreach (Status statuseffect in status)
         {
             Status temp = Instantiate(statuseffect);
             temp.path = path;
             temp.ApplyEffect(affectedUnit);
-        }
-        foreach (Vector3 point in path)
-        {
-            Debug.Log(point);
         }
         affectedUnit.notOnHold = true;
     }

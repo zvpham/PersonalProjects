@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using static UnityEngine.GraphicsBuffer;
 
 public class EnemyTest : Unit
 {
@@ -46,7 +47,8 @@ public class EnemyTest : Unit
         gameManager.priority.Add((int)(this.quickness * gameManager.baseTurnTime));
         gameManager.scripts.Add(this);
         gameManager.enemies.Add(this);
-        gameManager.locations.Add(transform.position);
+        //gameManager.locations.Add(transform.position);
+        gameManager.grid.SetGridObject(self.transform.position, this);
 
         index = gameManager.speeds.Count;
         Debug.Log("Player Start");
@@ -58,6 +60,7 @@ public class EnemyTest : Unit
     // Update is called once per frame
     void Update()
     {
+        /*
         if (turn1)
         {
             if(actions.Count > 0)
@@ -76,14 +79,19 @@ public class EnemyTest : Unit
             Move(newPosition);
             TurnEnd();
         }
+        */
+        TurnEnd();
     }
 
     public void Move(Vector2 direction)
     {
         if (CanMove(direction))
         {
+            Vector3 originalPosition = transform.position;
             transform.position += (Vector3)direction;
-            gameManager.locations[index] = transform.position;
+            gameManager.grid.SetGridObject(originalPosition, null);
+            gameManager.grid.SetGridObject(transform.position, this);
+            //gameManager.locations[index] = transform.position;
         }
     }
 

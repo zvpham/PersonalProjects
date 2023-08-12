@@ -21,9 +21,11 @@ public class GameManager : MonoBehaviour
 
     public Tilemap groundTilemap;
     public Tilemap collisionTilemap;
-    public List<Vector3> locations = new List<Vector3>();
+    //public List<Vector3> locations = new List<Vector3>();
     public List<Vector3> itemLocations = new List<Vector3>();
 
+    public Grid<Unit> grid;
+    public Grid<Unit> flyingGrid;
 
     public List<Unit> scripts;
     public List<EnemyTest> enemies;
@@ -66,19 +68,19 @@ public class GameManager : MonoBehaviour
         }
         DontDestroyOnLoad(this);
         */
+        grid = new Grid<Unit>(20, 10, 1f, new Vector3(-0.5f, -0.5f, 0f), (Grid<Unit> g, int x, int y) => null);
+        flyingGrid = new Grid<Unit>(20, 10, 1f, new Vector3(-0.5f, -0.5f, 0f), (Grid<Unit> g, int x, int y) => null);
     }
 
     void Start()
     {
-        inputManager = InputManager.instance;
+        inputManager = InputManager.    instance;
         collisionTilemap = Obstacles.instance.collisionTilemap;
         groundTilemap = Ground.instance.groundTilemap;
         currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
         expectedLocationMarker.selfDestructionTimer = expectedLocationChangeSpeed;
-        Debug.Log("awefeofhweofawe" + expectedLocationMarker.selfDestructionTimer);
-
     }
-
+     
     // Update is called once per frame 
     void Update()
     {
@@ -89,7 +91,6 @@ public class GameManager : MonoBehaviour
         {
             if (isLocationChangeStatus >= 1)
             {
-                Debug.Log("testing 12314");
                 foreach (Unit unit in scripts)
                 {
                     if(unit.hasLocationChangeStatus >= 1)

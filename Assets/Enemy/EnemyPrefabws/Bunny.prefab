@@ -97,8 +97,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56bd2a3232fd7714babfc6eadc0e5245, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groundTilemap: {fileID: 0}
-  collisionTilemap: {fileID: 0}
   self: {fileID: 8096759470053534158}
   quickness: 1
   strength: 16
@@ -122,18 +120,24 @@ MonoBehaviour:
   gameManager: {fileID: 0}
   index: 0
   statusDuration: 
+  baseActionTemplate: {fileID: 0}
+  baseActions: []
   actions: []
   statuses: []
+  hasLocationChangeStatus: 0
   originalSprite: {fileID: 0}
   spriteIndex: -1
   physicalSouls:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
+  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
+  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
   mentalSouls:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
+  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
+  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
+  _keysUnusableActionTypes: 
+  _valuesUnusableActionTypes: 
   drops:
   - {fileID: 6784984918314032300, guid: 80956f5d3212a094788d2002a850e114, type: 3}
+  notOnHold: 1
   turn1: 1

@@ -6,6 +6,7 @@ public class Move
 {
     public static void Movement(Unit target, Vector2 direction, GameManager gameManager)
     {
+        Vector3 originalPosition = target.self.transform.position;
         target.self.transform.position += (Vector3)direction;
         if (CanMove(target, target.self.transform.position, direction, gameManager))
         {
@@ -16,7 +17,9 @@ public class Move
             else
             {
                 PickupIfItem(target, target.self.transform.position, gameManager);
-                gameManager.locations[0] = target.self.transform.position;
+                //gameManager.locations[0] = target.self.transform.position;
+                gameManager.grid.SetGridObject(originalPosition, null);
+                gameManager.grid.SetGridObject(target.self.transform.position, target);
             }
         }
     }
@@ -45,21 +48,12 @@ public class Move
 
     public static bool IsEnemy(Unit target, Vector3 newPosition, GameManager gameManager)
     {
-
-        for (int i = 0; i < gameManager.locations.Count; i++)
+        Unit unit = gameManager.grid.GetGridObject((int)newPosition.x, (int)newPosition.y);
+        if (unit != null)
         {
-            if (i == 0)
-            {
-                continue;
-            }
-            if (gameManager.locations[i] == newPosition)
-            {
-                Debug.Log(gameManager.scripts[i]);
-                MeleeAttack.Attack(gameManager.scripts[i], target.toHitBonus, target.armorPenetration, target.damage);
-                return true;
-            }
+            MeleeAttack.Attack(unit, target.toHitBonus, target.armorPenetration, target.damage);
+            return true;
         }
-
         return false;
     }
 

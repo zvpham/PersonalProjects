@@ -314,7 +314,9 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         gameManager.priority.RemoveAt(index);
         gameManager.scripts.RemoveAt(index);
         gameManager.enemies.RemoveAt(index - 1);
-        gameManager.locations.RemoveAt(index);
+        gameManager.grid.SetGridObject(self.transform.position, null);
+        gameManager.flyingGrid.SetGridObject(self.transform.position, null);
+        //gameManager.locations.RemoveAt(index);
         Destroy(this);
         Destroy(self);
 

@@ -1,11 +1,13 @@
-﻿using System.Collections;
+﻿/*
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using CodeMonkey.Utils;
 using CodeMonkey;
 
 public class Testing : MonoBehaviour {
-    /*
+
     [SerializeField] private TilemapVisual tilemapVisual;
     private TilemapSetUp tilemap;
     private TilemapSetUp.TilemapObject.TilemapSprite tilemapSprite;
@@ -49,7 +51,7 @@ public class Testing : MonoBehaviour {
             CMDebug.TextPopupMouse("Loaded!");
         }
     }
-    */
+
     private AStarPathfinding pathfinding;
     private void Start()
     {
@@ -76,3 +78,5 @@ public class Testing : MonoBehaviour {
         }
     }
 }
+
+*/
