@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.XR;
 using UnityEngine;
 
 public abstract class Status : ScriptableObject
@@ -12,27 +14,16 @@ public abstract class Status : ScriptableObject
 
     public string statusName;
     public Sprite statusImage;
+
+    public bool isFieldStatus;
     public bool ApplyEveryTurn;
     public bool isFirstTurn = true;
+
     public List<ActionTypes> actionTypesNotPermitted;
     public List<ActionTypes> actionTypesThatCancelStatus;
     public List<Vector3> path;
     public int currentProgress;
-    /*  
-    public static void make()S
-    {
-        Instantiate(statusPrefab);
-       // Instance = statusPrefab.GetComponent<Sprinting>();
-    }
-    */
-    /*
-    public void Create(Unit target)
-    {
-        GameObject temp = Instantiate(statusPrefab);
-        Status status = temp.GetComponent<Status>();
-        target.activeStatuses.Add(status);
-    }
-    */
+
     // Start is called before the first frame update
     abstract public void ApplyEffect(Unit target);
 
@@ -54,5 +45,24 @@ public abstract class Status : ScriptableObject
             }
         }
     }
+
+    public void ChangeQuickness(float value)
+    {
+        if(nonStandardDuration)
+        {
+            ChangeQuicknessNonstandard(value);
+        }
+        else
+        {
+            int index = targetUnit.gameManager.allStatuses.IndexOf(this);
+            Debug.Log("Value: " + value);
+            targetUnit.gameManager.allStatuses[index].statusQuickness *= value;
+            Debug.Log("Speed: " + targetUnit.gameManager.allStatuses[index].statusQuickness);
+            Debug.Log("Quickness: " + (int)(targetUnit.gameManager.priority[index] * value));
+            targetUnit.gameManager.priority[index] = (int)(targetUnit.gameManager.statusPriority[index] * value);
+        }
+    }
+
+    abstract public void ChangeQuicknessNonstandard(float value);
 
 }

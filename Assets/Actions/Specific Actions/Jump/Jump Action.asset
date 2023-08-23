@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7333b5a38f92e846934c73e332cb09f, type: 3}
+  m_Name: Jump Action
+  m_EditorClassIdentifier: 
+  blastRadius: 0
+  actionName: 8
+  weight: 0
+  maxCooldown: 5
+  currentCooldown: 0
+  duration: 0
+  range: 69
+  isUsable: 0
+  actionType: 00000000
+  isActiveAction: 0
+  isTurnActivated: 0
+  affectedUnit: {fileID: 0}
+  status:
+  - {fileID: 11400000, guid: 33e766e1fbfca4a449a7e3e497c9e38b, type: 2}
+  targetingPrefab: {fileID: 4150051304992838050, guid: 7dc608e731b2fb647b058f3975ec5a10,
+    type: 3}
+  targetingSystem: {fileID: 0}
+  createdObjectPrefab: {fileID: 0}
+  createdObjectStatuses: []
+  createdObjectDuration: 0

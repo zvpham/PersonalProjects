@@ -135,10 +135,13 @@ namespace Inventory.Model
 
         public void SwapItems(int itemIndex1,  int itemIndex2)
         {
-            InventoryItem item1 = inventoryItems[itemIndex1];
-            inventoryItems[itemIndex1] = inventoryItems[itemIndex2];
-            inventoryItems[itemIndex2] = item1;
-            InformAboutChange();
+            if(itemIndex1 != -1 && itemIndex2 != -1)
+            {
+                InventoryItem item1 = inventoryItems[itemIndex1];
+                inventoryItems[itemIndex1] = inventoryItems[itemIndex2];
+                inventoryItems[itemIndex2] = item1;
+                InformAboutChange();
+            }
         }
 
         private void InformAboutChange()

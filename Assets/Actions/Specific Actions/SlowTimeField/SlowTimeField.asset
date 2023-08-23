@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 052fd4ec53498dc409d7a3fea1a7cf88, type: 3}
+  m_Name: SlowTimeField
+  m_EditorClassIdentifier: 
+  blastRadius: 4
+  actionName: 14
+  weight: 0
+  maxCooldown: 5
+  currentCooldown: 0
+  duration: 0
+  range: 0
+  isUsable: 0
+  actionType: 
+  isActiveAction: 0
+  isTurnActivated: 0
+  affectedUnit: {fileID: 0}
+  status: []
+  targetingPrefab: {fileID: 4150051304992838050, guid: 7dc608e731b2fb647b058f3975ec5a10,
+    type: 3}
+  targetingSystem: {fileID: 0}
+  createdField: {fileID: 11400000, guid: d8c36ee90bdf4ec42a83c8250e9a2d8d, type: 2}

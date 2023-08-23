@@ -15,6 +15,8 @@ public class GameManager : MonoBehaviour
     public List<int> statusPriority;
     public List<int> statusDuration;
 
+    public List<int> statusObjectPriority;
+    public List<int> StatusObjectDuration;
 
     public int baseTurnTime = 500;
     public int worldPriority = 0;
@@ -26,6 +28,8 @@ public class GameManager : MonoBehaviour
 
     public Grid<Unit> grid;
     public Grid<Unit> flyingGrid;
+
+    public List<CreatedField> StatusFields = new List<CreatedField>();
 
     public List<Unit> scripts;
     public List<EnemyTest> enemies;
@@ -170,13 +174,7 @@ public class GameManager : MonoBehaviour
                         least = priority[i];
                     }
                 }
-               /*
-                if (worldPriority < least)
-                {
-                    least = worldPriority;
-                }
-               */
-                if (allStatuses.Count >= 0)
+                if (allStatuses.Count > 0)
                 {
                     for (int i = 0; i < statusPriority.Count; i++)
                     {
@@ -185,9 +183,24 @@ public class GameManager : MonoBehaviour
                             least = statusPriority[i];
                         }
                     }
-                    
-                    // change Status Priority at top of turn
+                }
 
+                if(statusObjectPriority.Count > 0)
+                {
+                    for(int i = 0;i < statusObjectPriority.Count;i++) 
+                    { 
+                        if(statusObjectPriority[i] < least)
+                        {
+                            least = statusObjectPriority[i];
+                        }
+                        
+                    }
+                }
+
+
+                // change Status Priority at top of turn
+                if (allStatuses.Count > 0)
+                {
                     for (int i = 0; i < statusPriority.Count; i++)
                     {
                         statusPriority[i] -= least;
@@ -195,7 +208,7 @@ public class GameManager : MonoBehaviour
                         {
                             statusPriority[i] = (int)(allStatuses[i].statusQuickness * baseTurnTime);
                             Unit tempUnit = allStatuses[i].targetUnit;
-                            int tempIndex = tempUnit.statusDuration.Count;  
+                            int tempIndex = tempUnit.statusDuration.Count;
 
                             //reduces status duration of a status if it is supposed to go down at the end of a turn
                             if (!allStatuses[i].nonStandardDuration)
@@ -212,7 +225,7 @@ public class GameManager : MonoBehaviour
                             //if a status was removed in previous step reset sprite of unit otherwise if a status duration is 0 remove the status from the unit and reset the units sprite
                             if (tempUnit.statusDuration.Count != tempIndex || statusDuration[i] <= 0)
                             {
-                                if(tempUnit.statusDuration.Count == tempIndex)
+                                if (tempUnit.statusDuration.Count == tempIndex)
                                 {
                                     allStatuses[i].RemoveEffect(tempUnit);
                                 }
@@ -222,9 +235,34 @@ public class GameManager : MonoBehaviour
                             }
                         }
                     }
+                }
 
+                // change Status Priority at top of turn
+                if (statusObjectPriority.Count > 0)
+                {
+                    for (int i = 0; i < statusObjectPriority.Count; i++)
+                    {
+                        statusObjectPriority[i] -= least;
+                        if (statusObjectPriority[i] <= 0)
+                        {
+                            statusObjectPriority[i] = (int)(StatusFields[i].createdFieldQuickness * baseTurnTime);
+
+                            //reduces status duration of a status if it is supposed to go down at the end of a turn
+                            if (!StatusFields[i].nonStandardDuration)
+                            {
+                                StatusObjectDuration[i] -= 1;
+                            }
+
+                            //if a status was removed in previous step reset sprite of unit otherwise if a status duration is 0 remove the status from the unit and reset the units sprite
+                            if (StatusObjectDuration[i] <= 0)
+                            {
+                                StatusFields[i].RemoveStatusOnDeletion();
+                            }
+                        }
+                    }
                 }
             }
+
             //lowers priority of a unit by the least amount of priority 
             // if priority is 0 activate unit and end loop
             // if mid turn will resume list one more than unit that just went
@@ -264,51 +302,6 @@ public class GameManager : MonoBehaviour
                         priority[i] = (int) (baseTurnTime * speeds[i]);
                     }
                 }
-                /*
-                // changes the worlds turn if 0 reduce status effects by 1 and resets unit sprite and remove statuses if a duraction is 0
-                worldPriority -= least;
-                if (worldPriority <= 0)
-                {
-
-                    foreach (Unit unit in scripts)
-                    {
-                        int tempIndex = unit.statusDuration.Count;
-                        for (int i = 0; i < unit.statusDuration.Count; i++)
-                        {
-                            //reduces status duration of a status if it is supposed to go down at the end of a turn
-                            if (!unit.statuses[i].nonStandardDuration)
-                            {
-                                unit.statusDuration[i] -= 1;
-                            }
-
-                            // if an affect applyies everyturn apply the affect if it isn't the  turn it was activated
-                            if (unit.statuses[i].ApplyEveryTurn)    
-                            {
-                                if (!unit.statuses[i].isWorldTurnActivated)
-                                {
-                                    unit.statuses[i].isWorldTurnActivated = false;
-                                }
-                                else
-                                {
-                                    unit.statuses[i].ApplyEffect(unit);
-                                }
-                            }
-
-                            //if a status was removed in previous step reset sprite of unit otherwise if a status duration is 0 remove the status from the unit and reset the units sprite
-                            if (unit.statusDuration.Count != tempIndex || unit.statusDuration[i] <= 0)
-                            {
-                                if(unit.statusDuration.Count == tempIndex)
-                                {
-                                    unit.statuses[i].RemoveEffect(unit);
-                                }
-                                unit.ChangeSprite(unit.originalSprite);
-                                unit.spriteIndex = -1;
-                            }
-                        }
-                    }
-                    worldPriority = 1 * baseTurnTime;
-                }
-                */
             }
         }
     }

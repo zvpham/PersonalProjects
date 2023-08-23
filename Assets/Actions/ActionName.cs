@@ -13,5 +13,6 @@ public enum ActionName
     Pause,
     Wait, 
     InventoryMenu,
-    Back
+    Back,
+    SlowTimeField
 }

@@ -15,12 +15,10 @@ MonoBehaviour:
   <isStackable>k__BackingField: 1
   <maxStackSize>k__BackingField: 99
   <itemName>k__BackingField: BunnySoul
-  <description>k__BackingField: 
+  <description>k__BackingField: Bunny Hop
   <itemImage>k__BackingField: {fileID: 21300000, guid: 37a78d4caec418b42a483c0defb42efd,
     type: 3}
-  <DefaultParameterList>k__BackingField:
-  - itemParameter: {fileID: 0}
-    value: 0
+  <DefaultParameterList>k__BackingField: []
   <physicalAbilityList>k__BackingField:
   - {fileID: 11400000, guid: 35532db6b7d0a47448312083c33f342c, type: 2}
   physicalStrength: 0

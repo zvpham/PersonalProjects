@@ -62,39 +62,48 @@ public class Player : Unit
 
     public void UpdatePlayerActions(Dictionary<int, InventoryItem> inventoryState = null)
     {
-
-        if (inventoryData.inventoryItems.Count != 0)
+        foreach(SoulSlot soulSlot in inventoryUI.soulSlots)
         {
-            keybindings.actionkeyBinds.Clear();
-            foreach (InventoryItem space in inventoryData.inventoryItems)
+            if(soulSlot.contentImage != null)
             {
-                if (space.item != null)
-                {
-                    SoulItemSO soul = (SoulItemSO)space.item;
-                    soul.AddPhysicalSoul(this);
-                    soul.AddMentalSoul(this);
-                }
-            }
-            foreach (Action action in actions)
-            {
-                if (action.actionName == ActionName.Sprint)
-                {
-                    keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.S});
-                }
-                if (action.actionName == ActionName.Jump)
-                {
-                    keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.Space });
-                }
+                break;
             }
         }
-
+        keybindings.actionkeyBinds.Clear();
+        /*
+        foreach (InventoryItem space in inventoryData.inventoryItems)
+        {
+            if (space.item != null)
+            {
+                SoulItemSO soul = (SoulItemSO)space.item;
+                soul.AddPhysicalSoul(this);
+                soul.AddMentalSoul(this);
+            }
+        }
+        */
+        Debug.Log("Player Action Update");
+        foreach (Action action in actions)
+        {
+            if (action.actionName == ActionName.Sprint)
+            {
+                Debug.Log("Player Action Update SPRINGINT");
+                keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.S});
+            }
+            if (action.actionName == ActionName.Jump)
+            {
+                keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.Space });
+            }
+            if(action.actionName == ActionName.SlowTimeField)
+            {
+                keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.T });
+            }
+        }
     }
 
     private void PrepareInventoryData()
     {
         inventoryData.Initialize();
         inventoryData.OnInventoryUpdated += UpdateInventoryUI;
-        inventoryData.OnInventoryUpdated += UpdatePlayerActions;
         foreach (InventoryItem item in initialItems)
         {
             if (item.isEmpty)
@@ -121,6 +130,7 @@ public class Player : Unit
         this.inventoryUI.OnSwapItems += HandleSwapItems;
         this.inventoryUI.OnStartDragging += HandleDragging;
         this.inventoryUI.OnItemActionRequested += HandleItemActionRequest;
+        this.inventoryUI.OnEquipSoul += HandleEquipSoul;
     }
 
     private void HandleItemActionRequest(int itemIndex)
@@ -189,6 +199,13 @@ public class Player : Unit
         inventoryData.SwapItems(itemIndex1, itemIndex2);
     }
 
+    private void HandleEquipSoul(int itemIndex,  SoulSlot soulSlot)
+    {
+        soulSlot.AddSoul((SoulItemSO)inventoryData.GetItemAt(itemIndex).item, this);
+        inventoryData.RemoveItem(itemIndex, 1);
+        UpdatePlayerActions();
+    }
+
     private void HandleDescriptionRequest(int itemIndex)
     {
         InventoryItem inventoryItem = inventoryData.GetItemAt(itemIndex);
@@ -232,7 +249,7 @@ public class Player : Unit
                     }
                     if (baseActions[i].startActionPresets())
                     {
-                        baseActions[i].PlayerActivate(this);    
+                        baseActions[i].PlayerActivate(this);
                         TurnEnd();
                     }
                 }
@@ -253,6 +270,7 @@ public class Player : Unit
                     }
                 }
             }
+        }
 
         if (inputManager.GetKeyDown(ActionName.InventoryMenu))
         {
@@ -275,7 +293,8 @@ public class Player : Unit
         }
 
     }
-    public bool ContainsMatchingActionType(int i, bool isBaseAction)
+
+    public bool ContainsMatchingActionType(int i, bool isBaseAction)    
     {
         if (isBaseAction)
         {

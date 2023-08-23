@@ -70,6 +70,31 @@ namespace Inventory.Model
             }
         }
 
+        public void RemovePhysicalSoul(Unit self)
+        {
+            self.ChangeStr(-physicalStrength);
+            self.ChangeAgi(-physicalAgility);
+            self.ChangeEnd(-physicalEndurance);
+            self.ChangeWis(-physicalWisdom);
+            self.ChangeInt(-physicalIntelligence);
+            self.ChangeCha(-physicalCharisma);
+
+            if (physicalAbilityList.Count != 0)
+            {
+                foreach (Action action in physicalAbilityList)
+                {
+                    if (IsActionInUnit(action, self))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        self.actions.Add(Instantiate(action));
+                    }
+                }
+            }
+        }
+
         public void AddMentalSoul(Unit self)
         {
             self.ChangeStr(mentalStrength);
@@ -78,6 +103,31 @@ namespace Inventory.Model
             self.ChangeWis(mentalWisdom);
             self.ChangeInt(mentalIntelligence);
             self.ChangeCha(mentalCharisma);
+
+            if (mentalAbilityList.Count != 0)
+            {
+                foreach (Action action in mentalAbilityList)
+                {
+                    if (IsActionInUnit(action, self))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        self.actions.Add(Instantiate(action));
+                    }
+                }
+            }
+        }
+
+        public void RemoveMentalSoul(Unit self)
+        {
+            self.ChangeStr(-mentalStrength);
+            self.ChangeAgi(-mentalAgility);
+            self.ChangeEnd(-mentalEndurance);
+            self.ChangeWis(-mentalWisdom);
+            self.ChangeInt(-mentalIntelligence);
+            self.ChangeCha(-mentalCharisma);
 
             if (mentalAbilityList.Count != 0)
             {

@@ -1,8 +1,11 @@
 using Inventory.Model;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using static UnityEngine.GraphicsBuffer;
+
 public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 {
     //[SerializeField]
@@ -13,6 +16,8 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public GameObject self;
 
     public double quickness = 1;
+    public float timeFlow = 1f;
+
 
     public int strength = 16;
     public int strengthMod;
@@ -130,6 +135,66 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             }
         }
         enabled = false;
+    }
+
+    public void CheckForStatusFields(Vector3 newPosition)
+    {
+        if (gameManager.StatusFields.Count > 0)
+        {
+            foreach (CreatedField field in gameManager.StatusFields)
+            {
+                try
+                {
+                    foreach (Status status in field.grid.GetGridObject(newPosition).statuses)
+                    {
+                        status.ApplyEffect(this);
+                    }
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        if (statuses.Count > 0)
+        {
+            try
+            {
+                foreach (Status status in statuses)
+                {
+                    bool foundMatchingStatus = false;
+                    if (status.isFieldStatus)
+                    {
+                        if (gameManager.StatusFields.Count > 0)
+                        {
+                            foreach (CreatedField statusField in gameManager.StatusFields)
+                            {
+                                try
+                                {
+                                    if (statusField.grid.GetGridObject(self.transform.position).statuses.Contains(status))
+                                    {
+                                        foundMatchingStatus = true;
+                                        break;
+                                    }
+                                }
+                                catch
+                                {
+
+                                }
+                            }
+                            if (!foundMatchingStatus)
+                            {
+                                status.RemoveEffect(this);
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+        }
     }
 
     public bool IsMatchingStatus(Status actionStatus)
@@ -277,8 +342,19 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         Debug.Log("Value: " + value);
         gameManager.speeds[index] *= value;
         Debug.Log("Speed: " + gameManager.speeds[index]);
-        Debug.Log("Quickness: " + (int)(gameManager.priority[index] * value));
+        Debug.Log("Priority: " + (int)(gameManager.priority[index] * value));
         gameManager.priority[index] = (int) (gameManager.priority[index] * value);
+    }
+
+    public void ChangeTimeFlow(float value)
+    {
+        timeFlow *= value;  
+        Debug.Log("King Crimson" + value);
+        ChangeQuickness(value);
+        foreach (Status status in statuses)
+        {
+            status.ChangeQuickness(value);
+        }
     }
 
     public void TakeDamage(int value)

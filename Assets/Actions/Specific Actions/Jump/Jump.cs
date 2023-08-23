@@ -1,0 +1,44 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using Unity.VisualScripting;
+using UnityEngine;
+
+[CreateAssetMenu(menuName = "Action/Jump")]
+public class Jump : Action
+{
+    public override void Activate(Unit self)
+    {
+        startActionPresets();
+    }
+
+    public override void PlayerActivate(Unit self)
+    {   
+        affectedUnit = self;
+        affectedUnit.notOnHold = false;
+        Vector3 position = Vector3.zero;
+        Quaternion rotation = new Quaternion(0, 0, 0, 1f);
+        targetingSystem = Instantiate(targetingPrefab, position, rotation);
+        targetingSystem.GetComponent<LineOfSight>().setParameters(affectedUnit.transform.position, range, self.originalSprite, numSections: 2);
+        targetingSystem.GetComponent<LineOfSight>().lineMade += foundTarget;
+    }
+
+
+    private void foundTarget(List<Vector3> path)
+    {
+        targetingSystem.GetComponent<LineOfSight>().DestroySelf();
+        Destroy(targetingSystem);
+
+        foreach (Status statuseffect in status)
+        {
+            Status temp = Instantiate(statuseffect);
+            temp.path = path;
+            temp.ApplyEffect(affectedUnit);
+        }
+        affectedUnit.notOnHold = true;
+    }
+    new public void CalculateWeight()
+    {
+
+    }
+}

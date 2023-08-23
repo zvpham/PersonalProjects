@@ -6,11 +6,13 @@ using UnityEngine;
 
 public abstract class Action : ScriptableObject
 {
+    public int blastRadius;
     public ActionName actionName;
     public int weight;
     public int maxCooldown;
     public int currentCooldown;
     public int duration;
+    public int range;
     public bool isUsable;
     public ActionTypes[] actionType;
     public bool isActiveAction;
@@ -20,7 +22,10 @@ public abstract class Action : ScriptableObject
 
     public Status[] status;
 
-    public GameObject targeting;
+    public GameObject targetingPrefab;
+    public GameObject targetingSystem;
+
+    public CreatedField createdField;
 
     abstract public void Activate(Unit self);
 

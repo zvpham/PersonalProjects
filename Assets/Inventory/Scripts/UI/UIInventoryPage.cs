@@ -23,6 +23,8 @@ namespace Inventory.UI
 
         List<UIInventoryItem> listOfUIItems = new List<UIInventoryItem>();
 
+        public List<SoulSlot> soulSlots = new List<SoulSlot>();
+
         private int currentlyDraggedItemIndex = -1;
 
         public event Action<int> OnDescriptionRequested,
@@ -30,6 +32,8 @@ namespace Inventory.UI
             OnStartDragging;
 
         public event Action<int, int> OnSwapItems;
+
+        public event Action<int, SoulSlot> OnEquipSoul;
 
         [SerializeField]
         private ItemActionPanel actionPanel;
@@ -42,7 +46,11 @@ namespace Inventory.UI
 
         public void InitializeInventoryUI(int inventorySize)
         {
-            for (int i = 0; i < inventorySize; i++)
+            for (int i = 0; i < soulSlots.Count; i++)
+            {
+                soulSlots[i].OnItemDroppedOn += HandleSoulEquip;
+            }
+                for (int i = 0; i < inventorySize; i++)
             {
                 UIInventoryItem uiItem = Instantiate(itemPrefab, Vector3.zero, Quaternion.identity);
                 uiItem.transform.SetParent(contentPanel);
@@ -94,6 +102,18 @@ namespace Inventory.UI
             }
             OnSwapItems?.Invoke(currentlyDraggedItemIndex, index);
             HandleItemSelection(inventoryItemUI);
+        }
+
+        private void HandleSoulEquip(SoulSlot soulSlot)
+        {
+            Debug.Log(currentlyDraggedItemIndex);
+            if(currentlyDraggedItemIndex == -1)
+            {
+                return;
+            }
+            Debug.Log("Drop");
+            soulSlot.contentImage.sprite = listOfUIItems[currentlyDraggedItemIndex].itemImage.sprite;
+            OnEquipSoul?.Invoke(currentlyDraggedItemIndex, soulSlot);
         }
 
         private void ResetDraggedItem()

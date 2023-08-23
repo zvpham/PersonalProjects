@@ -11,7 +11,7 @@ namespace Inventory.UI
     public class UIInventoryItem : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEndDragHandler, IDropHandler, IDragHandler
     {
         [SerializeField]
-        private Image itemImage;
+        public Image itemImage;
         [SerializeField]
         private TMP_Text quantityTxt;
 
@@ -87,7 +87,7 @@ namespace Inventory.UI
 
         public void OnDrag(PointerEventData eventData)
         {
-            throw new NotImplementedException();
+
         }
     }
 }

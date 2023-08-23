@@ -30,6 +30,11 @@ public class Sprinting : Status
         this.targetUnit = target; 
     }
 
+    public override void ChangeQuicknessNonstandard(float value)
+    {
+
+    }
+
     // Update is called once per frame
     override public void RemoveEffect(Unit target)
     {
