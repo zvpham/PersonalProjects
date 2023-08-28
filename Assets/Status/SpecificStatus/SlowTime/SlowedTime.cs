@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Status/SlowedTime")]
@@ -22,12 +23,7 @@ public class SlowedTime : Status
             }
         }
         target.ChangeTimeFlow(2f);
-        target.statuses.Add(this);    
-        target.statusDuration.Add(statusDuration);
-        target.gameManager.statusPriority.Add(target.gameManager.baseTurnTime);
-        target.gameManager.allStatuses.Add(this);
-        target.gameManager.statusDuration.Add(this.statusDuration);
-        this.targetUnit = target;
+        AddStatusPreset(target);
     }
 
     public override void ChangeQuicknessNonstandard(float value)
@@ -39,16 +35,10 @@ public class SlowedTime : Status
     override public void RemoveEffect(Unit target)
     {
         target.ChangeTimeFlow(1 / 2f);
-        target.statuses.Remove(this);
-        target.statusDuration.Remove(this.statusDuration);
-        int statusindex = target.gameManager.allStatuses.IndexOf(this);
-        target.gameManager.statusPriority.RemoveAt(statusindex);
-        target.gameManager.allStatuses.RemoveAt(statusindex);
-        target.gameManager.statusDuration.RemoveAt(statusindex);
-
         foreach (Status status in target.statuses)
         {
             status.ChangeQuickness(1 / 2f);
         }
+        RemoveStatusPreset(target);
     }
 }

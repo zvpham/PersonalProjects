@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b77ee03553895d64a85794f90ecafda0, type: 3}
+  m_Name: Flame Breath
+  m_EditorClassIdentifier: 
+  actionName: 15
+  weight: 0
+  maxCooldown: 10
+  currentCooldown: 0
+  duration: 0
+  isUsable: 0
+  actionType: 
+  isActiveAction: 0
+  isTurnActivated: 0
+  affectedUnit: {fileID: 0}
+  status: []
+  targetingPrefab: {fileID: 3471521004899725154, guid: 7efc53ddb9dfe284992896a392fe0817,
+    type: 3}
+  targetingSystem: {fileID: 0}
+  createdField: {fileID: 0}
+  range: 0
+  blastRadius: 20
+  blastAngle: 0.8

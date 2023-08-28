@@ -21,19 +21,14 @@ public class Jumping : Status
         {
             this.speed = (this.path.Count - 1) / 2f;
             this.baseSpeed =  this.path.Count - this.speed;
-            this.targetUnit = target;
-            target.statuses.Add(this);
-            this.isFirstTurn = false;
-            target.statusDuration.Add(this.statusDuration);
-            target.gameManager.statusDuration.Add(this.statusDuration);
-            target.gameManager.isLocationChangeStatus += 1;
-            target.gameManager.statusPriority.Add(target.gameManager.baseTurnTime);
-            target.hasLocationChangeStatus += 1;
-            target.gameManager.allStatuses.Add(this);
-            target.gameManager.grid.SetGridObject(target.self.transform.position, null);
+
+            AddStatusPreset(target);
             ChangeQuicknessNonstandard(target.timeFlow);
             AddUnusableStatuses(target);
 
+            target.gameManager.grid.SetGridObject(target.self.transform.position, null);
+            target.hasLocationChangeStatus += 1;
+            target.gameManager.isLocationChangeStatus += 1;
             target.self.transform.position = this.path[this.pathIndex];
             this.pathIndex++;
         }
@@ -114,15 +109,9 @@ public class Jumping : Status
             target.gameManager.grid.SetGridObject(target.self.transform.position, target);
         }
 
-        int index = target.statuses.IndexOf(this);
-        target.statuses.RemoveAt(index);
-        target.statusDuration.RemoveAt(index);
+        RemoveStatusPreset(target);
         target.gameManager.isLocationChangeStatus -= 1;
         target.hasLocationChangeStatus -= 1;
-        int statusindex = target.gameManager.allStatuses.IndexOf(this);
-        target.gameManager.statusPriority.RemoveAt(statusindex);
-        target.gameManager.allStatuses.RemoveAt(statusindex);
-        target.gameManager.statusDuration.RemoveAt(statusindex);
         foreach (ActionTypes actionType in actionTypesNotPermitted)
         { 
             target.unusableActionTypes[actionType] = target.unusableActionTypes[actionType] - 1;

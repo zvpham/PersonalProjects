@@ -14,5 +14,6 @@ public enum ActionName
     Wait, 
     InventoryMenu,
     Back,
-    SlowTimeField
+    SlowTimeField,
+    FlameBreath
 }

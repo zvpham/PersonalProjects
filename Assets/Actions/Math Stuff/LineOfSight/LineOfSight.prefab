@@ -54,7 +54,7 @@ MonoBehaviour:
   CareAboutPath: 0
   linePrefab: {fileID: 5584086906981062238, guid: 09602942c3f1f2e47a1a9a7e7f3adce7,
     type: 3}
-  collisionPrefab: {fileID: 5584086906981062238, guid: 6b084f2341113a4488f249e928915b85,
+  collisionMarkerSprite: {fileID: 21300000, guid: 371503aa5809b954a83cce39189bd7b9,
     type: 3}
   offSet: 0.5
   careAboutObstacles: 1
@@ -68,3 +68,4 @@ MonoBehaviour:
   blastRadiusMarker: {fileID: 2363729580697148819, guid: 4d361b04edfd02e489947dd812169d9c,
     type: 3}
   path: []
+  prevMousePosition: {x: 0, y: 0, z: 0}

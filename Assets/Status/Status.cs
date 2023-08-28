@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.XR;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public abstract class Status : ScriptableObject
 {
@@ -44,6 +45,28 @@ public abstract class Status : ScriptableObject
                 target.unusableActionTypes.Add(actionType, 1);
             }
         }
+    }
+
+    public void AddStatusPreset(Unit target)
+    {
+        this.isFirstTurn = false;
+        target.statuses.Add(this);
+        target.statusDuration.Add(statusDuration);
+        target.gameManager.statusPriority.Add(target.gameManager.baseTurnTime);
+        target.gameManager.allStatuses.Add(this);
+        target.gameManager.statusDuration.Add(this.statusDuration);
+        this.targetUnit = target;
+    }
+
+    public void RemoveStatusPreset(Unit target)
+    {
+        int index = target.statuses.IndexOf(this);
+        target.statuses.RemoveAt(index);
+        target.statusDuration.RemoveAt(index);
+        int statusindex = target.gameManager.allStatuses.IndexOf(this);
+        target.gameManager.statusPriority.RemoveAt(statusindex);
+        target.gameManager.allStatuses.RemoveAt(statusindex);
+        target.gameManager.statusDuration.RemoveAt(statusindex);
     }
 
     public void ChangeQuickness(float value)

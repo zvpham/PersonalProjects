@@ -97,6 +97,10 @@ public class Player : Unit
             {
                 keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.T });
             }
+            if (action.actionName == ActionName.FlameBreath)
+            {
+                keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.F });
+            }
         }
     }
 

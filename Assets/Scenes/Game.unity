@@ -5706,7 +5706,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   self: {fileID: 1845725615}
-  quickness: 0.5
+  quickness: 1
   timeFlow: 1
   strength: 16
   strengthMod: 0

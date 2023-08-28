@@ -9,15 +9,12 @@ public class BlastRadiusMarker : MonoBehaviour
     public int x;
     public int y;
     public GameObject blastMarker;
-    private float dist;
     public BlastRadiusMarker(Grid<BlastRadiusMarker> grid, int x, int y, GameObject blastMarkerPrefab, Vector3 originPosition, float radius)
     {
         this.grid = grid;
         this.x = x;
         this.y = y;
-        this.dist = radius;
-        Debug.Log("Start Location" + (originPosition + new Vector3(grid.GetWidth() / 2, grid.GetHeight() / 2, 0)));
-        if (Vector3.Distance(originPosition + new Vector3(grid.GetWidth() / 2, grid.GetHeight() / 2, 0), originPosition + new Vector3(x, y, 0)) <= dist)
+        if (Vector3.Distance(originPosition + new Vector3(grid.GetWidth() / 2, grid.GetHeight() / 2, 0), originPosition + new Vector3(x, y, 0)) <= radius)
             this.blastMarker = Instantiate(blastMarkerPrefab, originPosition + new Vector3(x, y, 0), new Quaternion(0, 0, 0, 1f));
     }   
 

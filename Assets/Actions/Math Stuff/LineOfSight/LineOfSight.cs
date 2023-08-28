@@ -5,7 +5,6 @@ using Bresenhams;
 using UnityEngine.EventSystems;
 using Unity.VisualScripting;
 using CodeMonkey.Utils;
-using UnityEngine.Rendering.Universal;
 using System;
 
 public class LineOfSight : MonoBehaviour
@@ -21,7 +20,7 @@ public class LineOfSight : MonoBehaviour
 
     public bool CareAboutPath;
     public GameObject linePrefab;
-    public GameObject collisionPrefab;
+    public Sprite collisionMarkerSprite;
     private GameObject finalMarker;
     private List<GameObject> markerList = new List<GameObject>();
 
@@ -55,9 +54,13 @@ public class LineOfSight : MonoBehaviour
     public event Action< List<Vector3> > lineMade;
     public event Action<Vector3> endPointFound;
 
+    public Vector3 prevMousePosition;
+    public Vector3 mousePosition;
+
     private void Start()
     {
         gameManager = GameManager.instance;
+        prevMousePosition = Input.mousePosition + new Vector3(1,1, 0) ;
     }
         
     public void setParameters(Vector3 startPosition,  int projectileRange = 0, Sprite projectilBeingLaunched = null, int projectileSpeedWhenFired = int.MaxValue, int numSections = 1, int blaseRadiusGiven = 0, bool careAboutPathGiven = true, bool careAboutRangeGiven = true)
@@ -82,9 +85,9 @@ public class LineOfSight : MonoBehaviour
 
     void Update()
     {
+        mousePosition = UtilsClass.GetMouseWorldPosition();
         xOffSet = 0;
         yOffSet = 0;
-        Vector3 mousePosition = UtilsClass.GetMouseWorldPosition();
         if ((startingX - mousePosition.x) % 1 <= .5 && (startingX - mousePosition.x) % 1 >= 0)
         {
             xOffSet = offSet;
@@ -103,58 +106,138 @@ public class LineOfSight : MonoBehaviour
             yOffSet = offSet;
         }
 
-        if (Input.GetMouseButtonDown(0))
+        if (new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != prevMousePosition)
         {
-            isreturn = true;
-        }
-
-        BresenhamsAlgorithm.PlotFunction plotFunction = createDot;
-        BresenhamsAlgorithm.Line(startingX, startingY, (int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), plotFunction);
-        if (careAboutRange)
-        {
-            if(blastRadius > 0)
+            Debug.Log("MOUSE MOVING");
+            prevMousePosition =  new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
+            ClearMarkers();
+            if (Input.GetMouseButtonDown(0))
             {
-                blastRadiusGrid = new Grid<BlastRadiusMarker>(blastRadius * 2 + 1, blastRadius * 2 + 1, 1f, markerList[markerList.Count - 1].transform.position + new Vector3(-blastRadius, -blastRadius, 0), (Grid<BlastRadiusMarker> g, int x, int y) => new BlastRadiusMarker(g, x, y, blastRadiusMarker, markerList[markerList.Count - 1].transform.position + new Vector3(-blastRadius, -blastRadius, 0), blastRadius));
+                isreturn = true;
             }
-                
-            if (CareAboutPath)
+
+            BresenhamsAlgorithm.PlotFunction plotFunction = createDot;
+            BresenhamsAlgorithm.Line(startingX, startingY, (int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), plotFunction);
+            if (careAboutRange)
             {
-                if (projectileRangeSections != 1)
+                if (blastRadius > 0)
                 {
-                    if (markerList.Count % 2 == 1 && markerList.Count >= 3)
+                    if (blastRadiusGrid != null)
                     {
-                        projectileSpeed = (markerList.Count / projectileRangeSections) + 1;
+                        for (int i = 0; i < blastRadiusGrid.GetWidth(); i++)
+                        {
+                            for (int j = 0; j < blastRadiusGrid.GetHeight(); j++)
+                            {
+                                blastRadiusGrid.GetGridObject(i, j).DestroySelf();
+                            }
+                        }
                     }
-                    else
-                    {
-                        projectileSpeed = markerList.Count / projectileRangeSections;
-                    }
+                    blastRadiusGrid = new Grid<BlastRadiusMarker>(blastRadius * 2 + 1, blastRadius * 2 + 1, 1f, markerList[markerList.Count - 1].transform.position + new Vector3(-blastRadius, -blastRadius, 0), (Grid<BlastRadiusMarker> g, int x, int y) => new BlastRadiusMarker(g, x, y, blastRadiusMarker, markerList[markerList.Count - 1].transform.position + new Vector3(-blastRadius, -blastRadius, 0), blastRadius));
                 }
 
-                if (markerList.Count >= 2 && (numhitObstacle == -1 || !(projectileSpeed - 1 >= numhitObstacle)))
+                if (CareAboutPath)
                 {
-                    markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().sprite = projectile;
+                    if (projectileRangeSections != 1)
+                    {
+                        if (markerList.Count % 2 == 1 && markerList.Count >= 3)
+                        {
+                            projectileSpeed = (markerList.Count / projectileRangeSections) + 1;
+                        }
+                        else
+                        {
+                            projectileSpeed = markerList.Count / projectileRangeSections;
+                        }
+                    }
 
-                    Color tmp = markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color;
-                    tmp.a = 0.5f;
-                    markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color = tmp;
+                    if (markerList.Count >= 2 && (numhitObstacle == -1 || !(projectileSpeed - 1 >= numhitObstacle)))
+                    {
+                        markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().sprite = projectile;
 
+                        Color tmp = markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color;
+                        tmp.a = 0.5f;
+                        markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color = tmp;
+
+                    }
+
+                    if (isreturn)
+                    {
+                        foreach (GameObject marker in markerList)
+                        {
+                            path.Add(marker.transform.position);
+                        }
+                        ClearMarkers();
+                        lineMade?.Invoke(path);
+                    }
                 }
 
                 if (isreturn)
                 {
-                    lineMade?.Invoke(path);
+                    ClearMarkers();
+                    endPointFound?.Invoke(markerList[markerList.Count - 1].transform.position);
                 }
             }
-            
-            if (isreturn)
+            else if (isreturn && range == 1)
             {
-                endPointFound?.Invoke(markerList[markerList.Count - 1].transform.position);
+                ClearMarkers();
+                endPointFound?.Invoke(new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0));
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
         }
-        else if(isreturn && range == 1)
+        else
         {
-            endPointFound?.Invoke(new Vector3 ((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0));
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (CareAboutPath)
+                {
+                    foreach (GameObject marker in markerList)
+                    {
+                        path.Add(marker.transform.position);
+                    }
+                    ClearMarkers();
+                    lineMade?.Invoke(path);
+                }
+                else if(range != 1)
+                {
+                    ClearMarkers();
+                    endPointFound?.Invoke(markerList[markerList.Count - 1].transform.position);
+                }
+                else if (range == 1){
+                    ClearMarkers();
+                    endPointFound?.Invoke(new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0));
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+            }
+        }
+
+        
+    }
+
+    public void ClearMarkers()
+    {
+        if (markerList != null || markerList.Count > 0)
+        {
+            foreach (GameObject marker in markerList)
+            {
+                Destroy(marker);
+            }
+        }
+
+        if (blastRadiusGrid != null)
+        {
+            for (int i = 0; i < blastRadiusGrid.GetWidth(); i++)
+            {
+                for (int j = 0; j < blastRadiusGrid.GetHeight(); j++)
+                {
+                    blastRadiusGrid.GetGridObject(i, j).DestroySelf();
+                }
+            }
         }
     }
 
@@ -170,12 +253,6 @@ public class LineOfSight : MonoBehaviour
                 markerList.Clear();
             }
 
-            markerList.Add(finalMarker);
-
-            if(isreturn)
-            {
-                path.Add(position);
-            }
             if (careAboutObstacles)
             {
                 if(numberMarkers == 0)
@@ -196,12 +273,13 @@ public class LineOfSight : MonoBehaviour
                         Debug.Log("Hit WAll");
                         hitObstacle = true;
                         numhitObstacle = numberMarkers;
+                        finalMarker.GetComponent<SpriteRenderer>().sprite = collisionMarkerSprite;
                         finalMarker.GetComponent<SpriteRenderer>().color = Color.red;
-                        GameObject collisionMarker = Instantiate(collisionPrefab, position, rotation);
-                        collisionMarker.GetComponent<SpriteRenderer>().color = Color.red;
                     }
                 }
             }
+                
+            markerList.Add(finalMarker);
             return true;
         }
         else
