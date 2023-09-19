@@ -7,7 +7,6 @@ public abstract class CreatedField : ScriptableObject
 {
     public float createdFieldQuickness = 1;
 
-    public int fieldDuration;
     public bool nonStandardDuration = false;
 
     public GameObject createdObjectPrefab;
@@ -19,7 +18,7 @@ public abstract class CreatedField : ScriptableObject
 
     public GameManager gameManager;
 
-    abstract public void CreateGridOfObjects(GameManager gameManager, int fieldRadius, Vector3 originPosition);
+    abstract public void CreateGridOfObjects(GameManager gameManager, Vector3 originPosition, int fieldRadius, int fieldDuration);
 
     public void ApplyStatusOnCreation()
     {
@@ -27,32 +26,7 @@ public abstract class CreatedField : ScriptableObject
         {
             for (int j = 0; j < grid.GetWidth(); j++)
             {
-                if (grid.GetGridObject(i, j).statuses != null)
-                {
-                    Vector3 location = grid.GetWorldPosition(i, j);
-                    Unit ground = gameManager.grid.GetGridObject(location);
-                    
-                    if (ground != null)
-                    {
-                        foreach (Status status in grid.GetGridObject(i, j).statuses)
-                        {
-                            status.ApplyEffect(ground);
-                        }
-
-                    }
-
-                    if (affectFlying)
-                    {
-                        Unit flying = gameManager.flyingGrid.GetGridObject(location);
-                        if (flying != null)
-                        {
-                            foreach (Status status in grid.GetGridObject(i, j).statuses)
-                            {
-                                status.ApplyEffect(flying);
-                            }
-                        }
-                    }
-                }
+                grid.GetGridObject(i, j).ApplyObject(1, gameManager);
             }
         }
     }
@@ -78,7 +52,6 @@ public abstract class CreatedField : ScriptableObject
                             }
                            
                         }
-
                     }
 
                     if (affectFlying)
@@ -88,7 +61,7 @@ public abstract class CreatedField : ScriptableObject
                         {
                             foreach (Status status in grid.GetGridObject(i, j).statuses)
                             {
-                                if (ground.statuses.Contains(status))
+                                if (flying.statuses.Contains(status))
                                 {
                                     status.RemoveEffect(flying);
                                 }

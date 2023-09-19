@@ -19,11 +19,15 @@ public abstract class Status : ScriptableObject
     public bool isFieldStatus;
     public bool ApplyEveryTurn;
     public bool isFirstTurn = true;
+    public bool isFirstWorldTurn = true;
 
     public List<ActionTypes> actionTypesNotPermitted;
     public List<ActionTypes> actionTypesThatCancelStatus;
+    public List<ActionTypes> actionTypesThatActionMustContain;
     public List<Vector3> path;
     public int currentProgress;
+
+    public event Action<bool> StatusRemovedOnActivation;
 
     // Start is called before the first frame update
     abstract public void ApplyEffect(Unit target);
@@ -52,14 +56,17 @@ public abstract class Status : ScriptableObject
         this.isFirstTurn = false;
         target.statuses.Add(this);
         target.statusDuration.Add(statusDuration);
-        target.gameManager.statusPriority.Add(target.gameManager.baseTurnTime);
+        target.gameManager.statusPriority.Add((int)(target.gameManager.baseTurnTime * this.statusQuickness));
         target.gameManager.allStatuses.Add(this);
         target.gameManager.statusDuration.Add(this.statusDuration);
         this.targetUnit = target;
+        ChangeQuickness(target.timeFlow);
     }
 
     public void RemoveStatusPreset(Unit target)
     {
+        Debug.Log(this);
+        target.gameManager.numberOfStatusRemoved += 1;
         int index = target.statuses.IndexOf(this);
         target.statuses.RemoveAt(index);
         target.statusDuration.RemoveAt(index);
@@ -67,6 +74,37 @@ public abstract class Status : ScriptableObject
         target.gameManager.statusPriority.RemoveAt(statusindex);
         target.gameManager.allStatuses.RemoveAt(statusindex);
         target.gameManager.statusDuration.RemoveAt(statusindex);
+    }
+
+    public void CancelStatusIfActionContainsMatchingType(ActionTypes[] actionTypes, ActionName actionName)
+    {
+        foreach (ActionTypes actionType in actionTypes)
+        {
+            if (actionTypesThatCancelStatus.Contains(actionType))
+            {
+                RemoveEffect(targetUnit);
+            }
+        }
+    }
+
+    public void CancelStatusIfActionNotContainMatchingType(ActionTypes[] actionTypes, ActionName actionName)
+    {
+        if(actionName == ActionName.Wait)
+        {
+            return;
+        }
+        bool actionContainsMatchingActionType = false;
+        foreach( ActionTypes actionType in actionTypes )
+        {
+            if (actionTypesThatActionMustContain.Contains(actionType))
+            {
+                actionContainsMatchingActionType = true;
+            }
+        }
+        if (!actionContainsMatchingActionType)
+        {
+            RemoveEffect(targetUnit);
+        }
     }
 
     public void ChangeQuickness(float value)
@@ -78,11 +116,8 @@ public abstract class Status : ScriptableObject
         else
         {
             int index = targetUnit.gameManager.allStatuses.IndexOf(this);
-            Debug.Log("Value: " + value);
             targetUnit.gameManager.allStatuses[index].statusQuickness *= value;
-            Debug.Log("Speed: " + targetUnit.gameManager.allStatuses[index].statusQuickness);
-            Debug.Log("Quickness: " + (int)(targetUnit.gameManager.priority[index] * value));
-            targetUnit.gameManager.priority[index] = (int)(targetUnit.gameManager.statusPriority[index] * value);
+            targetUnit.gameManager.statusPriority[index] = (int)(targetUnit.gameManager.statusPriority[index] * value);
         }
     }
 

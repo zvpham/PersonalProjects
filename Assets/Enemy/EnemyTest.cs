@@ -1,14 +1,23 @@
 using Inventory.Model;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.UIElements;
 using static UnityEngine.GraphicsBuffer;
 
 public class EnemyTest : Unit
 {
     private Vector2 newPosition = new Vector2(0.0f, 0.0f);
-    public bool turn1 = true;
+    public bool ableToWander = true;
+
+    public int highestPriorityActionIndex;
+
+    public int currentActionWeight;
+    public int highestActionWeight = 0;
     //private GameManager gameManager;
 
    // public int index;
@@ -47,61 +56,120 @@ public class EnemyTest : Unit
         gameManager.priority.Add((int)(this.quickness * gameManager.baseTurnTime));
         gameManager.scripts.Add(this);
         gameManager.enemies.Add(this);
-        //gameManager.locations.Add(transform.position);
         gameManager.grid.SetGridObject(self.transform.position, this);
-
-        index = gameManager.speeds.Count;
-        Debug.Log("Player Start");
-
         enabled = false;
         
+    }
+
+    private void OnEnable()
+    {
+        if(gameManager != null)
+        {
+            highestActionWeight = 0;
+            highestPriorityActionIndex = -1;
+            DetermineAllyOrEnemy();
+
+            if (enemyList.Count == 0)
+            {
+                if (ableToWander && !unusableActionTypes.Keys.Contains(ActionTypes.movement))
+                {
+                    Wander();
+                }
+                TurnEnd();
+            }
+            else
+            {
+                IsInMelee();
+                FindClosestEnemy();
+            }
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        /*
-        if (turn1)
+        for (int i = 0; i < actions.Count; i++)
         {
-            if(actions.Count > 0)
+            if (actions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, false))
             {
-                if (actions[0].startActionPresets() )
-                {
-                    actions[0].Activate(this);
-                    turn1 = false;
-                    TurnEnd();
-                }
+                currentActionWeight = actions[i].CalculateWeight(this);
             }
+            else
+            {
+                currentActionWeight = 0;
+            }
+
+            if(currentActionWeight > highestActionWeight)
+            {
+                highestPriorityActionIndex = i;
+                highestActionWeight = currentActionWeight;
+            }
+        }
+        
+        if(highestPriorityActionIndex != -1)
+        {
+            actions[highestPriorityActionIndex].StartActionPresetAI(this);
+            actions[highestPriorityActionIndex].Activate(this);
+            highestActionWeight = 0;
+            highestPriorityActionIndex = -1;
         }
         else
         {
-            newPosition.Set(-1f, 0f);
-            Move(newPosition);
+            for (int i = 0; i < baseActions.Count; i++)
+            {
+                if (baseActions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, false))
+                {
+                    currentActionWeight = baseActions[i].CalculateWeight(this);
+                }
+                else
+                {
+                    currentActionWeight = 0;
+                }
+
+                if (currentActionWeight > highestActionWeight)
+                {
+                    highestPriorityActionIndex = i;
+                    highestActionWeight = currentActionWeight;
+                }
+            }
+
+            if (highestPriorityActionIndex != -1)
+            {
+                baseActions[highestPriorityActionIndex].StartActionPresetAI(this);
+                baseActions[highestPriorityActionIndex].Activate(this);
+                highestActionWeight = 0;
+                highestPriorityActionIndex = -1;
+            }
             TurnEnd();
         }
-        */
+    }
+
+    public void Wander()
+    {
+        List<Vector3> possiblePositions = new List<Vector3>();
+        Vector3Int gridPosition;
+        Unit unit;
+
+        for (int i = -1; i <= 1; i++)
+        {
+            for (int j = -1; j <= 1; j++)
+            {
+                gridPosition = gameManager.groundTilemap.WorldToCell(gameObject.transform.position + new Vector3(j, i, 0));
+                unit = gameManager.grid.GetGridObject((int)gameObject.transform.position.x + j, (int)gameObject.transform.position.y + i);
+
+                if (!(!gameManager.groundTilemap.HasTile(gridPosition) || gameManager.collisionTilemap.HasTile(gridPosition) || unit != null))
+                {
+                    possiblePositions.Add(new Vector3(j, i, 0));
+                }
+            }
+        }
+
+        if(possiblePositions.Count > 0)
+        {
+            Vector2 newPosition = (Vector2) possiblePositions[Random.Range(0, possiblePositions.Count)];
+            Move.Movement(this, newPosition, gameManager, false);
+            TurnEnd();
+        }
         TurnEnd();
-    }
-
-    public void Move(Vector2 direction)
-    {
-        if (CanMove(direction))
-        {
-            Vector3 originalPosition = transform.position;
-            transform.position += (Vector3)direction;
-            gameManager.grid.SetGridObject(originalPosition, null);
-            gameManager.grid.SetGridObject(transform.position, this);
-            //gameManager.locations[index] = transform.position;
-        }
-    }
-
-    public bool CanMove(Vector2 direction)
-    {
-        Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(transform.position + (Vector3)direction);
-        if (!gameManager.groundTilemap.HasTile(gridPosition) || gameManager.collisionTilemap.HasTile(gridPosition))
-        {
-            return false;
-        }
-        return true;
     }
 }

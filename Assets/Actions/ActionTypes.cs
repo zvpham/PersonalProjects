@@ -4,6 +4,9 @@ public enum ActionTypes
     attack,
     meleeAttack,
     rangedAttack,
-    freeStateChange
+    coneAttack,
+    freeStateChange,
+    createField
+
 };
     

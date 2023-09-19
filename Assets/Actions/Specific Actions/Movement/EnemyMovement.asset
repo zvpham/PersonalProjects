@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d526778905989c44beab0882478dd24, type: 3}
+  m_Name: EnemyMovement
+  m_EditorClassIdentifier: 
+  actionName: 16
+  weight: 1
+  maxCooldown: 0
+  currentCooldown: 0
+  duration: 0
+  isUsable: 0
+  actionType: 00000000
+  isActiveAction: 0
+  isTurnActivated: 0
+  affectedUnit: {fileID: 0}
+  status: []
+  targetingPrefab: {fileID: 0}
+  targetingSystem: {fileID: 0}
+  createdField: {fileID: 0}
+  createObject: {fileID: 0}
+  range: 0
+  blastRadius: 0
+  blastAngle: 0

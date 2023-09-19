@@ -12,7 +12,7 @@ using UnityEngine.UIElements;
 using static ForcedMovement;
 using static UnityEngine.UI.CanvasScaler;
 
-public  static class ForcedMovement
+public static class ForcedMovement
 {
     public static List<Vector3> openList;
     public static List<Vector3> closedList;
@@ -121,7 +121,6 @@ public  static class ForcedMovement
                 }
             }
         }
-        Debug.Log("SAD FACE :(");
         return false;
     }
     private static bool CalculatePath(Vector3 endNode, Unit movingUnit)
@@ -131,7 +130,6 @@ public  static class ForcedMovement
         List<AStarPathNode> movementPath = path.FindPath((int)movingUnit.self.transform.position.x, (int)movingUnit.self.transform.position.y, (int)endNode.x, (int)endNode.y);
         if (movementPath != null)
         {
-            Debug.Log("Num Nodes" + movementPath.Count);
             storedUnit = null;
             nextUnit = null;
             Vector3 prevNodePosition;
@@ -143,11 +141,9 @@ public  static class ForcedMovement
                     storedUnit = movingUnit.gameManager.grid.GetGridObject(movementPath[i].grid.GetWorldPosition(movementPath[i].x, movementPath[i].y));
                     nextUnit = movingUnit.gameManager.grid.GetGridObject(movementPath[i - 1].grid.GetWorldPosition(movementPath[i - 1].x, movementPath[i - 1].y));
                     prevNodePosition = movementPath[i - 1].grid.GetWorldPosition(movementPath[i - 1].x, movementPath[i - 1].y);
-                    Debug.Log("This Previous Node " + prevNodePosition);
                     movingUnit.gameManager.grid.SetGridObject(prevNodePosition, null);
                     newNodePosition = movementPath[i].grid.GetWorldPosition(movementPath[i].x, movementPath[i].y);
                     movingUnit.gameManager.grid.SetGridObject(newNodePosition, nextUnit);
-                    Debug.Log("This NExt Node " + newNodePosition);
                     movingUnit.self.transform.position = newNodePosition;
                 }
                 else

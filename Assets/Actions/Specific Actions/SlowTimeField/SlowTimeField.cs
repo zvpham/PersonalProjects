@@ -6,6 +6,11 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Action/SlowTimeField")]
 public class SlowTimeField : Action
 {
+    public override int CalculateWeight(Unit self)
+    {
+        throw new System.NotImplementedException();
+    }
+
     public override void Activate(Unit self)
     {
         throw new System.NotImplementedException();
@@ -18,18 +23,19 @@ public class SlowTimeField : Action
         Vector3 position = Vector3.zero;
         Quaternion rotation = new Quaternion(0, 0, 0, 1f);
         targetingSystem = Instantiate(targetingPrefab, position, rotation);
-        targetingSystem.GetComponent<LineOfSight>().setParameters(affectedUnit.transform.position, 4, blaseRadiusGiven: blastRadius, careAboutPathGiven: false);
-        targetingSystem.GetComponent<LineOfSight>().endPointFound += foundTarget;
+        targetingSystem.GetComponent<BlastPointAndClick>().setParameters(affectedUnit.transform.position, blastRadius, range);
+        targetingSystem.GetComponent<BlastPointAndClick>().endPointFound += foundTarget;
     }
 
 
     private void foundTarget(Vector3 endpoint)
     {
-        Debug.Log("SLow TIme Found Target " + endpoint);
-        targetingSystem.GetComponent<LineOfSight>().DestroySelf();
+        targetingSystem.GetComponent<BlastPointAndClick>().DestroySelf();
         Destroy(targetingSystem);
-
-        createdField.CreateGridOfObjects(affectedUnit.gameManager, blastRadius, endpoint);
+        CreatedField newField = Instantiate(createdField);
+        newField.CreateGridOfObjects(affectedUnit.gameManager, endpoint, blastRadius, duration);
+        affectedUnit.HandlePerformActions(actionType, actionName);
         affectedUnit.notOnHold = true;
+        affectedUnit.TurnEnd();
     }
 }   

@@ -18,7 +18,7 @@ MonoBehaviour:
   currentCooldown: 0
   duration: 0
   isUsable: 0
-  actionType: 
+  actionType: 0100000004000000
   isActiveAction: 0
   isTurnActivated: 0
   affectedUnit: {fileID: 0}
@@ -27,6 +27,10 @@ MonoBehaviour:
     type: 3}
   targetingSystem: {fileID: 0}
   createdField: {fileID: 0}
+  createObject: {fileID: 2828790863296621109, guid: 7b7f9bc463aab454b916bd817e88a8b7,
+    type: 3}
   range: 0
-  blastRadius: 20
+  blastRadius: 7
   blastAngle: 0.8
+  animation: {fileID: 4689956040164853605, guid: 07eb8e88b629b344b970b4e4c2282c19,
+    type: 3}

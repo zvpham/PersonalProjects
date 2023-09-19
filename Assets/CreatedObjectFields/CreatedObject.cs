@@ -4,11 +4,14 @@ using UnityEngine;
 
 public abstract class CreatedObject : MonoBehaviour
 {
+    public Grid<CreatedObject> grid;
     public int x;
     public int y;
-    // Start is called before the first frame update
+    public CreatedObject createdObject;
 
-    // Update is called once per frame
+    abstract public CreatedObject CreateObject(Grid<CreatedObject> grid, int x, int y, List<Vector3> validLocations);
+    abstract public void ApplyObject(float applyPercentage, GameManager gameManager);
+
     void Update()
     {
         

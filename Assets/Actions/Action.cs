@@ -24,6 +24,7 @@ public abstract class Action : ScriptableObject
     public GameObject targetingSystem;
 
     public CreatedField createdField;
+    public GameObject createObject;
     
     public int range;
     public int blastRadius;
@@ -32,13 +33,22 @@ public abstract class Action : ScriptableObject
 
     abstract public void PlayerActivate(Unit self);
 
+    abstract public int CalculateWeight(Unit self);
 
-    public bool startActionPresets()
+    public void StartActionPresetAI(Unit self)
+    {
+        this.currentCooldown = maxCooldown;
+        this.isTurnActivated = true;
+        this.affectedUnit = self;
+    }
+
+    public bool startActionPresets(Unit self)
     {
         if (this.currentCooldown == 0)
         {
             this.currentCooldown = maxCooldown;
             this.isTurnActivated = true;
+            this.affectedUnit = self;
             return true;
         }
         return false;
@@ -54,13 +64,4 @@ public abstract class Action : ScriptableObject
         return true;
     }
 
-    public void CalculateWeight()
-    {
-        // reorder ability list according to its weight.
-        Debug.Log("hi");
-    }
-    public void AddAction()
-    {
-
-    }
 }

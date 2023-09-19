@@ -107,11 +107,13 @@ namespace Inventory.UI
         private void HandleSoulEquip(SoulSlot soulSlot)
         {
             Debug.Log(currentlyDraggedItemIndex);
-            if(currentlyDraggedItemIndex == -1)
+            if(currentlyDraggedItemIndex == -1 || mouseFollower.item == null)
             {
                 return;
             }
+
             Debug.Log("Drop");
+            soulSlot.contentImage.gameObject.SetActive(true);
             soulSlot.contentImage.sprite = listOfUIItems[currentlyDraggedItemIndex].itemImage.sprite;
             OnEquipSoul?.Invoke(currentlyDraggedItemIndex, soulSlot);
         }

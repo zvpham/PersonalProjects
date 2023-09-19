@@ -20,7 +20,6 @@ public class SoulSlot : MonoBehaviour, IDropHandler
 
     public void OnDrop(PointerEventData eventData)
     {
-        contentImage.gameObject.SetActive(true);
         OnItemDroppedOn?.Invoke(this);
     }
 

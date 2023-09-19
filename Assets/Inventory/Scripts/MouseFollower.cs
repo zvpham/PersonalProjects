@@ -10,7 +10,7 @@ public class MouseFollower : MonoBehaviour
     private Canvas canvas;
  
     [SerializeField]
-    private UIInventoryItem item;
+    public UIInventoryItem item;
 
     public void Awake()
     {

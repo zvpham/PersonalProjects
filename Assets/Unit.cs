@@ -1,10 +1,17 @@
+using Bresenhams;
+using CodeMonkey.Utils;
 using Inventory.Model;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
+using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Tilemaps;
 using static UnityEngine.GraphicsBuffer;
+using static UnityEngine.UI.CanvasScaler;
 
 public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 {
@@ -18,17 +25,14 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public double quickness = 1;
     public float timeFlow = 1f;
 
-
     public int strength = 16;
     public int strengthMod;
     public int armorPenetration;
-    public int damage;
 
     public int agility = 16;
     public int agilityMod;
     public int dodgeValue;
     public int toHitBonus;
-
 
     public int endurance = 16;
     public int enduranceMod;
@@ -43,6 +47,14 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
     public int charisma = 16;
     public int charismaMod;
+
+    public int closestEnemyIndex;
+    public int visionRadius = 5;
+    public bool clearLineOfSightToEnemy;
+
+    public Faction faction;
+    public List<Unit> enemyList = new List<Unit>();
+    public List<Unit> allyList = new List<Unit>();
 
     public GameManager gameManager;
     public int index;
@@ -71,8 +83,12 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
     public List<GameObject> drops;
 
-
     public bool notOnHold = true;
+
+    public bool inMelee;
+
+    public event UnityAction<DamageTypes, int> OnDamage;
+    public event UnityAction<ActionTypes[], ActionName> PerformedAction;
 
     void Awake()
     {
@@ -113,6 +129,77 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             GUILayout.Label("Key: " + kvp.Key + " value: " + kvp.Value);
     }
 
+
+    public void DetermineAllyOrEnemy()
+    {
+        allyList.Clear();
+        enemyList.Clear();
+        foreach (Unit unit in gameManager.scripts)
+        {
+            if (unit.faction == this.faction)
+            {
+                allyList.Add(unit);
+            }
+            else
+            {
+                BresenhamsAlgorithm.PlotFunction plotFunction = CheckForBarriers;
+                clearLineOfSightToEnemy = true;
+                BresenhamsAlgorithm.Line((int) gameObject.transform.position.x, (int)gameObject.transform.position.y, (int) unit.self.transform.position.x, (int) unit.self.transform.position.y , plotFunction);
+                if (clearLineOfSightToEnemy)
+                {
+                    enemyList.Add(unit);
+                }
+            }
+        }
+    }
+
+    public void FindClosestEnemy()
+    {
+
+        float distance;
+        float closestDistance = Vector3.Distance(gameObject.transform.position, enemyList[0].self.transform.position);
+        closestEnemyIndex = 0;
+
+        for (int i = 0; i < enemyList.Count; i++)
+        {
+            distance = Vector3.Distance(gameObject.transform.position, enemyList[i].self.transform.position);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestEnemyIndex = i;
+            }
+        }
+    }
+
+    public void IsInMelee()
+    {
+        Unit unit;
+        for (int i = -1; i <= 1; i++)
+        {
+            for (int j = -1; j <= 1; j++)
+            {
+                unit = gameManager.grid.GetGridObject((int)gameObject.transform.position.x + j, (int)gameObject.transform.position.y + i);
+
+                if (unit != null && enemyList.Contains(unit))
+                {
+                   inMelee = true;
+                   return;
+                }
+            }
+        }
+        inMelee = false;
+    }
+
+    private bool CheckForBarriers(int x, int y, int numberMarkers)
+    {
+        Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(new Vector3(x, y, 0));
+        if (numberMarkers <= visionRadius && !gameManager.collisionTilemap.HasTile(gridPosition))
+        {
+            return true;
+        }
+        clearLineOfSightToEnemy = false;
+        return false;
+    }
 
     public void TurnEnd()
     {
@@ -207,6 +294,11 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             }
         }
         return false;
+    }
+
+   public void HandlePerformActions(ActionTypes[] actionTypes, ActionName actionName)
+    {
+        PerformedAction?.Invoke(actionTypes, actionName);
     }
 
     public void UpdateActions()
@@ -339,17 +431,19 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
     public void ChangeQuickness(double value)
     {
-        Debug.Log("Value: " + value);
+        index = gameManager.scripts.IndexOf(this);
         gameManager.speeds[index] *= value;
+        /*
+        Debug.Log("Value: " + value);
         Debug.Log("Speed: " + gameManager.speeds[index]);
         Debug.Log("Priority: " + (int)(gameManager.priority[index] * value));
+        */
         gameManager.priority[index] = (int) (gameManager.priority[index] * value);
     }
 
     public void ChangeTimeFlow(float value)
     {
         timeFlow *= value;  
-        Debug.Log("King Crimson" + value);
         ChangeQuickness(value);
         foreach (Status status in statuses)
         {
@@ -357,14 +451,77 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         }
     }
 
-    public void TakeDamage(int value)
-    {
-        health -= value;
-    }
-
     public void ChangeSprite(Sprite sprite)
     {
         this.GetComponent<SpriteRenderer>().sprite = sprite;
+    }
+
+    public bool ContainsMatchingUnusableActionType(int i, bool isBaseAction)
+    {
+        if(unusableActionTypes.Count <= 0)
+        {
+            return false;
+        }
+
+        if (isBaseAction)
+        {
+            if (baseActions[i].actionType.Length != 0)
+            {
+                foreach (ActionTypes actionType in baseActions[i].actionType)
+                {
+                    if (unusableActionTypes.ContainsKey(actionType))
+                    {
+                        //Debug.Log("Can't Use Action" + baseActions[i].actionName.ToString());
+                        return true;
+                    }
+                }
+            }
+            //Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
+            return false;
+        }
+        else
+        {
+            if (actions[i].actionType.Length != 0)
+            {
+                foreach (ActionTypes actionType in actions[i].actionType)
+                {
+                    if (unusableActionTypes.ContainsKey(actionType))
+                    {
+                        Debug.Log("Can't Use Action" + actions[i].actionName.ToString());
+                        return true;
+                    }
+                }
+            }
+            //Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
+            return false;
+        }
+    }
+
+    public void TakeDamage(DamageTypes damageType, int value)
+    {
+        OnDamage?.Invoke(damageType, value);
+        health -= value;
+        Instantiate(UtilsClass.CreateWorldText(value.ToString(), localPosition: self.transform.position).gameObject.AddComponent<DamageText>());
+        if (health <= 0)
+        {
+            Death();
+        }
+    }
+
+    public void TakeDamage(FullDamage damageCalaculation, float damagePercentage = 1)
+    {
+        int value = 0;
+        foreach (Tuple<DamageTypes, int> damage in damageCalaculation.RollForDamage())
+        {
+            value = (int)(damage.Item2 * damagePercentage);
+            OnDamage?.Invoke(damage.Item1, value);
+            health -= value;
+            Instantiate(UtilsClass.CreateWorldText(value.ToString(), localPosition: self.transform.position).gameObject.AddComponent<DamageText>());
+        }
+        if (health <= 0)
+        {
+            Death();
+        }
     }
 
     public void Death()
@@ -373,25 +530,45 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         {
             foreach (GameObject drop in drops)
             {
-                Debug.Log("SOMEONE DIED   A SDADAD" + drop);
                 Instantiate(drop, this.transform.position, this.transform.rotation);
             }
         }
-        for (int i = index + 1; i < gameManager.speeds.Count; i++)
+
+        if(statuses.Count != 0)
         {
-            gameManager.scripts[i].index -= 1;
+            for(int i = 0; i < statuses.Count; i++)
+            {
+                statuses[i].RemoveStatusPreset(this);
+                i--;
+            }
         }
-        Debug.Log("Index" + index);
-        foreach (int speed in gameManager.speeds)
+
+        int expectedLocationIndex = gameManager.unitWhoHaveLocationChangeStatus.IndexOf(this);
+        if (expectedLocationIndex != -1)
         {
-            Debug.Log("Speed " + speed);
+            gameManager.unitWhoHaveLocationChangeStatus.RemoveAt(expectedLocationIndex);
+            gameManager.expectedLocationChangeList.RemoveAt(expectedLocationIndex);
+
+        }
+
+        index = gameManager.scripts.IndexOf(this);
+        if(index < gameManager.index)
+        {
+            gameManager.index -= 1;
         }
         gameManager.speeds.RemoveAt(index);
         gameManager.priority.RemoveAt(index);
         gameManager.scripts.RemoveAt(index);
         gameManager.enemies.RemoveAt(index - 1);
-        gameManager.grid.SetGridObject(self.transform.position, null);
-        gameManager.flyingGrid.SetGridObject(self.transform.position, null);
+        gameManager.isLocationChangeStatus -= hasLocationChangeStatus;
+        if(gameManager.grid.GetGridObject(self.transform.position) != null)
+        {
+            gameManager.grid.SetGridObject(self.transform.position, null);
+        }
+        else
+        {
+            gameManager.flyingGrid.SetGridObject(self.transform.position, null);
+        }
         //gameManager.locations.RemoveAt(index);
         Destroy(this);
         Destroy(self);

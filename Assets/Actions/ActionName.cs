@@ -15,5 +15,7 @@ public enum ActionName
     InventoryMenu,
     Back,
     SlowTimeField,
-    FlameBreath
+    FlameBreath,
+    EnemyMovement,
+    MeleeAttack
 }

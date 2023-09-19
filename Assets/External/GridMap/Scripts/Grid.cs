@@ -106,7 +106,6 @@ public class Grid<TGridObject> {
         if (x >= 0 && y >= 0 && x < width && y < height) {
             return gridArray[x, y];
         } else {
-            Debug.Log("Theres Noting THere");
             return default(TGridObject);
         }
     }

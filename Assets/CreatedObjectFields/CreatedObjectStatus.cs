@@ -5,14 +5,15 @@ using UnityEngine;
 public abstract class CreatedObjectStatus : CreatedObject
 {
     public Grid<CreatedObjectStatus> grid;
-    public int quickness = 1;
+    public float quickness = 1;
+    public float timeflow = 1;
     public int duration;
     public Status[] statuses;
     public GameObject spriteObject;
     public float blastRadius;
-
+        
     public override string ToString()
     {
-        return grid.GetWorldPosition(x,y).ToString();
+        return timeflow.ToString();
     }
 }

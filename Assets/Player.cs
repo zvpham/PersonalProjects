@@ -50,6 +50,7 @@ public class Player : Unit
         index = 0;
         inputManager = InputManager.instance;
         keybindings = KeyBindings.instance;
+        health = 1000;
 
         if (initialItems.Count != 0)
         {
@@ -247,14 +248,13 @@ public class Player : Unit
             {
                 if (inputManager.GetKeyDownAction(baseActions[i].actionName))
                 {
-                    if (ContainsMatchingActionType(i, true))
+                    if (ContainsMatchingUnusableActionType(i, true))
                     {
                         break;
                     }
-                    if (baseActions[i].startActionPresets())
+                    if (baseActions[i].startActionPresets(this))
                     {
                         baseActions[i].PlayerActivate(this);
-                        TurnEnd();
                     }
                 }
             }
@@ -263,14 +263,13 @@ public class Player : Unit
             {
                 if (inputManager.GetKeyDownAction(actions[i].actionName))
                 {
-                    if (ContainsMatchingActionType(i, false))
+                    if (ContainsMatchingUnusableActionType(i, false))
                     {
                         break;
                     }
-                    if (actions[i].startActionPresets())
+                    if (actions[i].startActionPresets(this))
                     {
                         actions[i].PlayerActivate(this);
-                        TurnEnd();
                     }
                 }
             }
@@ -296,41 +295,5 @@ public class Player : Unit
             }
         }
 
-    }
-
-    public bool ContainsMatchingActionType(int i, bool isBaseAction)    
-    {
-        if (isBaseAction)
-        {
-            if (baseActions[i].actionType.Length != 0 && unusableActionTypes.Count > 0)
-            {
-                foreach (ActionTypes actionType in baseActions[i].actionType)
-                {
-                    if (unusableActionTypes.ContainsKey(actionType))
-                    {
-                        //Debug.Log("Can't Use Action" + baseActions[i].actionName.ToString());
-                        return true;
-                    }
-                }
-            }
-            //Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
-            return false;
-        }
-        else
-        {
-            if (actions[i].actionType.Length != 0 && unusableActionTypes.Count > 0)
-            {
-                foreach (ActionTypes actionType in actions[i].actionType)
-                {
-                    if (unusableActionTypes.ContainsKey(actionType))
-                    {
-                        Debug.Log("Can't Use Action" + actions[i].actionName.ToString());
-                        return true;
-                    }
-                }
-            }
-            //Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
-            return false;
-        }
     }
 }

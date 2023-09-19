@@ -13,11 +13,43 @@ public class SlowTimeFieldObject : CreatedObjectStatus
         blastRadius = blastRadiusGet;
         if (Vector3.Distance(originPosition + new Vector3(grid.GetWidth() / 2, grid.GetHeight() / 2, 0), originPosition + new Vector3(x, y, 0)) <= blastRadius)
         {
+            this.timeflow = 2;
             this.statuses = statuses;
             this.duration = duration;
             spriteObject = Instantiate(createdObjectPrefab, originPosition + new Vector3(x, y, 0), new Quaternion(0, 0, 0, 1f));
         }
     }
- 
+
+    public override void ApplyObject(float applyPercentage, GameManager gameManager)
+    {
+        if(statuses != null)
+        {
+            Vector3 location = grid.GetWorldPosition(x, y);
+            Unit ground = gameManager.grid.GetGridObject(location);
+
+            if (ground != null)
+            {
+                foreach (Status status in statuses)
+                {
+                    status.ApplyEffect(ground);
+                }
+
+            }
+
+            Unit flying = gameManager.flyingGrid.GetGridObject(location);
+            if (flying != null)
+            {
+                foreach (Status status in statuses)
+                {
+                    status.ApplyEffect(flying);
+                }
+            }
+        }
+    }
+
+    public override CreatedObject CreateObject(Grid<CreatedObject> grid, int x, int y, List<Vector3> validLocations)
+    {
+        throw new System.NotImplementedException();
+    }
 }
     

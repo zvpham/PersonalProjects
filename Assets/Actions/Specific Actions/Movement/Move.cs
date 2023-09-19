@@ -5,7 +5,9 @@ using UnityEngine;
 
 public class Move
 {
-    public static void Movement(Unit target, Vector2 direction, GameManager gameManager)
+    public static ActionTypes[] momvementActions = { ActionTypes.movement};
+    public static ActionTypes[] meleeActions = {ActionTypes.attack, ActionTypes.meleeAttack};
+    public static void Movement(Unit target, Vector2 direction, GameManager gameManager, bool isPlayer = true)
     {
         Vector3 originalPosition = target.self.transform.position;
         target.self.transform.position += (Vector3)direction;
@@ -17,11 +19,15 @@ public class Move
             }
             else
             {
-                PickupIfItem(target, target.self.transform.position, gameManager);
+                if(target.index == 0 && isPlayer)
+                {
+                    PickupIfItem(target, target.self.transform.position, gameManager);
+                }
                 //gameManager.locations[0] = target.self.transform.position;
                 gameManager.grid.SetGridObject(originalPosition, null);
                 target.CheckForStatusFields(target.self.transform.position);
                 gameManager.grid.SetGridObject(target.self.transform.position, target);
+                target.HandlePerformActions(momvementActions, ActionName.MoveNorth);
             }
         }
     }
@@ -53,7 +59,8 @@ public class Move
         Unit unit = gameManager.grid.GetGridObject((int)newPosition.x, (int)newPosition.y);
         if (unit != null)
         {
-            MeleeAttack.Attack(unit, target.toHitBonus, target.armorPenetration, target.damage);
+            MeleeAttack.Attack(unit, target.toHitBonus, target.armorPenetration, target.strengthMod + 3);
+            target.HandlePerformActions(meleeActions, ActionName.MeleeAttack);
             return true;
         }
         return false;

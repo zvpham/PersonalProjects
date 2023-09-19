@@ -99,10 +99,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   self: {fileID: 8096759470053534158}
   quickness: 1
+  timeFlow: 1
   strength: 16
   strengthMod: 0
   armorPenetration: 0
-  damage: 0
   agility: 16
   agilityMod: 0
   dodgeValue: 0
@@ -117,10 +117,16 @@ MonoBehaviour:
   intelligenceMod: 0
   charisma: 16
   charismaMod: 0
+  closestEnemyIndex: 0
+  visionRadius: 7
+  clearLineOfSightToEnemy: 0
+  faction: 2
+  enemyList: []
+  allyList: []
   gameManager: {fileID: 0}
   index: 0
   statusDuration: 
-  baseActionTemplate: {fileID: 0}
+  baseActionTemplate: {fileID: 11400000, guid: fff8b30047d67314883a3273f082f15a, type: 2}
   baseActions: []
   actions: []
   statuses: []
@@ -140,4 +146,8 @@ MonoBehaviour:
   drops:
   - {fileID: 6784984918314032300, guid: 80956f5d3212a094788d2002a850e114, type: 3}
   notOnHold: 1
-  turn1: 1
+  inMelee: 0
+  ableToWander: 1
+  highestPriorityActionIndex: 0
+  currentActionWeight: 0
+  highestActionWeight: 0

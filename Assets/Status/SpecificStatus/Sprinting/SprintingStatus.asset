@@ -18,9 +18,12 @@ MonoBehaviour:
   nonStandardDuration: 0
   statusName: Sprinting
   statusImage: {fileID: 21300000, guid: 2ad4705d69a8f6248a12f204a17e3da2, type: 3}
+  isFieldStatus: 0
   ApplyEveryTurn: 0
   isFirstTurn: 1
+  isFirstWorldTurn: 1
   actionTypesNotPermitted: 
   actionTypesThatCancelStatus: 
+  actionTypesThatActionMustContain: 00000000
   path: []
   currentProgress: 0

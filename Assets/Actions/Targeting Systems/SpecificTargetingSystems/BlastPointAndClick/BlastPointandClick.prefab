@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2214998987756014707
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4428795316850815487}
+  - component: {fileID: -3460665642589487464}
+  m_Layer: 0
+  m_Name: BlastPointandClick
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4428795316850815487
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2214998987756014707}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-3460665642589487464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2214998987756014707}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be2ba32230135a644a4daebe68cd0660, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startPositionTotal: {x: 0, y: 0, z: 0}
+  startingX: 0
+  startingY: 0
+  endX: 0
+  endY: 0
+  blastRadius: 0
+  blastMarkerList: []
+  blastRadiusMarker: {fileID: 2363729580697148819, guid: 4d361b04edfd02e489947dd812169d9c,
+    type: 3}
+  collisionMarkerSprite: {fileID: 0}
+  careAboutObstacles: 0
+  hitObstacle: 0
+  numhitObstacle: -1
+  offSet: 0.5
+  careAboutRange: 0
+  range: 0
+  rangeMarker: {fileID: 2840022361494867787, guid: aca771cb109c67e4d90b5d7933b17892,
+    type: 3}
+  path: []
+  prevMousePosition: {x: 0, y: 0, z: 0}
+  mousePosition: {x: 0, y: 0, z: 0}
