@@ -19,7 +19,7 @@ public class SlowTimeField : Action
     public override void PlayerActivate(Unit self)
     {
         affectedUnit = self;
-        affectedUnit.notOnHold = false;
+        affectedUnit.ActivateTargeting();
         Vector3 position = Vector3.zero;
         Quaternion rotation = new Quaternion(0, 0, 0, 1f);
         targetingSystem = Instantiate(targetingPrefab, position, rotation);
@@ -35,7 +35,7 @@ public class SlowTimeField : Action
         CreatedField newField = Instantiate(createdField);
         newField.CreateGridOfObjects(affectedUnit.gameManager, endpoint, blastRadius, duration);
         affectedUnit.HandlePerformActions(actionType, actionName);
-        affectedUnit.notOnHold = true;
+        affectedUnit.DeactivateTargeting();
         affectedUnit.TurnEnd();
     }
 }   

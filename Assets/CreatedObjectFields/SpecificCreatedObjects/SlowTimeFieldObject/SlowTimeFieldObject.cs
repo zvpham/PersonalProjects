@@ -1,11 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class SlowTimeFieldObject : CreatedObjectStatus
 {
 
-    public SlowTimeFieldObject(Grid<CreatedObjectStatus> grid, int x, int y, GameObject createdObjectPrefab, Vector3 originPosition, Status[] statuses, int duration, float blastRadiusGet)
+    public SlowTimeFieldObject(Grid<CreatedObject> grid, int x, int y, GameObject createdObjectPrefab, Vector3 originPosition, Status[] statuses, int duration, float blastRadiusGet)
     {
         this.grid = grid;
         this.x = x;
@@ -25,8 +27,7 @@ public class SlowTimeFieldObject : CreatedObjectStatus
         if(statuses != null)
         {
             Vector3 location = grid.GetWorldPosition(x, y);
-            Unit ground = gameManager.grid.GetGridObject(location);
-
+            Unit ground = gameManager.grid.GetGridObject(location);  
             if (ground != null)
             {
                 foreach (Status status in statuses)
@@ -47,6 +48,30 @@ public class SlowTimeFieldObject : CreatedObjectStatus
         }
     }
 
+    public override void ApplyObject(float applyPercentage, GameManager gameManager, Vector3 Location)
+    {
+        if (statuses != null)
+        {
+            Unit ground = gameManager.grid.GetGridObject(Location);
+            if (ground != null)
+            {
+                foreach (Status status in statuses)
+                {
+                    status.ApplyEffect(ground);
+                }
+
+            }
+
+            Unit flying = gameManager.flyingGrid.GetGridObject(Location);
+            if (flying != null)
+            {
+                foreach (Status status in statuses)
+                {
+                    status.ApplyEffect(flying);
+                }
+            }
+        }
+    }
     public override CreatedObject CreateObject(Grid<CreatedObject> grid, int x, int y, List<Vector3> validLocations)
     {
         throw new System.NotImplementedException();

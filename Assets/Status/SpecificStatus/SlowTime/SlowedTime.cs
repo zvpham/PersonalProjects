@@ -31,6 +31,12 @@ public class SlowedTime : Status
 
     }
 
+    public override void onLoadApply(Unit target)
+    {
+        target.ChangeTimeFlow(2f);
+        AddStatusOnLoadPreset(target);
+    }
+
     // Update is called once per frame
     override public void RemoveEffect(Unit target)
     {

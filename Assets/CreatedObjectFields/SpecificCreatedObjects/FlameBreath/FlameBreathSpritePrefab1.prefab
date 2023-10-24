@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7175012740688547022}
   - component: {fileID: 3509150845060487908}
-  - component: {fileID: 1546330704548293219}
   m_Layer: 0
   m_Name: FlameBreathSpritePrefab1
   m_TagString: Untagged
@@ -85,18 +84,3 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &1546330704548293219
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2828790863296621109}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60207014c7e1ea54aba38cc64a06c8ec, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  x: 0
-  y: 0
-  damageCalculation: {fileID: 11400000, guid: 427ab6803a6b38d4d9145bbdd2301668, type: 2}

@@ -69,36 +69,6 @@ public class InputManager : MonoBehaviour
                 }
             }
         }
-        return false;
-    }
-
-    public bool GetKeyDownAction(ActionName action)
-    {
-        // detects if player is pressing button
-        if (!Input.anyKey)
-            return false;
-
-        foreach (ActionName key in keyBindings.defaultActionKeyBinds.Keys)
-        {
-            if (key.Equals(action))
-            {
-                for (int i = 0; i < keyBindings.defaultActionKeyBinds[key].Count; i++)
-                {
-                    if (i == keyBindings.defaultActionKeyBinds[key].Count - 1)
-                    {
-
-                        return (Input.GetKeyDown(keyBindings.defaultActionKeyBinds[key][i]));
-                    }
-                    else
-                    {
-                        if (!Input.GetKey(keyBindings.defaultActionKeyBinds[key][i]))
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
 
         foreach (ActionName key in keyBindings.actionkeyBinds.Keys)
         {
@@ -108,12 +78,41 @@ public class InputManager : MonoBehaviour
                 {
                     if (i == keyBindings.actionkeyBinds[key].Count - 1)
                     {
-           
+
                         return (Input.GetKeyDown(keyBindings.actionkeyBinds[key][i]));
                     }
                     else
                     {
                         if (!Input.GetKey(keyBindings.actionkeyBinds[key][i]))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public bool GetKeyDownTargeting(DirectionName direction)
+    {
+        // detects if player is pressing button
+        if (!Input.anyKey)
+            return false;
+
+        foreach (DirectionName key in keyBindings.targetingKeyBinds.Keys)
+        {
+            if (key == direction)
+            {
+                for (int i = 0; i < keyBindings.targetingKeyBinds[key].Count; i++)
+                {
+                    if (i == keyBindings.targetingKeyBinds[key].Count - 1)
+                    {
+                        return (Input.GetKeyDown(keyBindings.targetingKeyBinds[key][i]));
+                    }
+                    else
+                    {
+                        if (!Input.GetKey(keyBindings.targetingKeyBinds[key][i]))
                         {
                             return false;
                         }

@@ -3,6 +3,7 @@ using CodeMonkey.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class BlastProjectile: MonoBehaviour
@@ -17,6 +18,7 @@ public class BlastProjectile: MonoBehaviour
     public int projectileRangeSections;
     public Sprite projectile;
 
+    public GameObject endPositionMarker;
     public GameObject linePrefab;
     private GameObject finalMarker;
     private List<GameObject> markerList = new List<GameObject>();
@@ -47,16 +49,22 @@ public class BlastProjectile: MonoBehaviour
 
     public List<Vector3> path = new List<Vector3>();
 
+    public AllDirections allDirections;
+
     public event Action<List<Vector3>> lineMade;
 
     public Vector3 prevMousePosition;
     public Vector3 mousePosition;
 
+    public Vector3 targetPosition;
+
     public GameManager gameManager;
+    public InputManager inputManager;
 
     public void Start()
     {
         gameManager = GameManager.instance;
+        inputManager = InputManager.instance;
     }
 
     public void setParameters(Vector3 startPosition, int blaseRadiusGiven, int projectileRange = 0, Sprite projectilBeingLaunched = null, int projectileSpeedWhenFired = int.MaxValue, int numSections = 1, bool careAboutRangeGiven = true, bool careAboutObstaclesGiven = false)
@@ -82,6 +90,9 @@ public class BlastProjectile: MonoBehaviour
                 }
             }
         }
+
+        targetPosition = startPosition;
+        prevMousePosition = UtilsClass.GetMouseWorldPosition();
     }
 
 
@@ -109,69 +120,21 @@ public class BlastProjectile: MonoBehaviour
             yOffSet = offSet;
         }
 
-        if (new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != prevMousePosition)
+        if (mousePosition != prevMousePosition && new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != targetPosition)
         {
-            prevMousePosition = new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
-            ClearMarkers();
-
-            if (Input.GetMouseButtonDown(0))
-            {
-                isreturn = true;
-            }
-
-            BresenhamsAlgorithm.PlotFunction plotFunction = createDot;
-            BresenhamsAlgorithm.Line(startingX, startingY, (int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), plotFunction);
-
-            if (projectileRangeSections != 1)
-            {
-                if (markerList.Count % 2 == 1 && markerList.Count >= 3)
-                {
-                    projectileSpeed = (markerList.Count / projectileRangeSections) + 1;
-                }
-                else
-                {
-                    projectileSpeed = markerList.Count / projectileRangeSections;
-                }
-            }
-
-            if (careAboutObstacles &&  projectile != null && (markerList.Count >= 2 && (numhitObstacle == -1 || !(projectileSpeed - 1 >= numhitObstacle))))
-            {
-                markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().sprite = projectile; 
-
-                Color tmp = markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color;
-                tmp.a = 0.5f;
-                markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color = tmp;
-
-            }
-            if(numhitObstacle == -1)
-            {
-                numhitObstacle = markerList.Count - 1;  
-            }
-
-            for (int i = 0; i < blastRadius * 2 + 1; i++)
-            {
-                for (int j = 0; j < blastRadius * 2 + 1; j++)
-                {
-                    if (Vector3.Distance(markerList[numhitObstacle].transform.position, markerList[numhitObstacle].transform.position + new Vector3(-blastRadius, -blastRadius, 0) + new Vector3(j, i, 0)) <= blastRadius)
-                    {
-                        blastMarkerList.Add(Instantiate(blastRadiusMarker, markerList[numhitObstacle].transform.position + new Vector3(-blastRadius, -blastRadius, 0) + new Vector3(j, i, 0), new Quaternion(0, 0, 0, 1f)));
-                    }
-                }
-            }
-
-            if (isreturn)
-            {
-                foreach (GameObject marker in markerList)
-                {
-                    path.Add(marker.transform.position);
-                }
-                ClearMarkers();
-                lineMade?.Invoke(path);
-            }   
-
+            targetPosition = new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
+            MakeBlastProjectile();
         }
         else
         {
+            for (int i = 0; i < allDirections.Directions.Length; i++)
+            {
+                if (inputManager.GetKeyDownTargeting(allDirections.Directions[i].directionName))
+                {
+                    targetPosition = targetPosition + allDirections.Directions[i].GetDirection();
+                    MakeBlastProjectile();
+                }
+            }
             if (Input.GetMouseButtonDown(0))
             {
                 foreach (GameObject marker in markerList)
@@ -182,8 +145,67 @@ public class BlastProjectile: MonoBehaviour
                 lineMade?.Invoke(path);
             }
         }
+        prevMousePosition = mousePosition;
+    }
 
+    public void MakeBlastProjectile()
+    {
+        ClearMarkers();
 
+        if (Input.GetMouseButtonDown(0))
+        {
+            isreturn = true;
+        }
+        markerList.Add(Instantiate(endPositionMarker, targetPosition, new Quaternion(0, 0, 0, 1f)));
+        BresenhamsAlgorithm.PlotFunction plotFunction = createDot;
+        BresenhamsAlgorithm.Line(startingX, startingY, (int)targetPosition.x, (int)targetPosition.y, plotFunction);
+
+        if (projectileRangeSections != 1)
+        {
+            if (markerList.Count % 2 == 1 && markerList.Count >= 3)
+            {
+                projectileSpeed = (markerList.Count / projectileRangeSections) + 1;
+            }
+            else
+            {
+                projectileSpeed = markerList.Count / projectileRangeSections;
+            }
+        }
+
+        if (careAboutObstacles && projectile != null && (markerList.Count >= 2 && (numhitObstacle == -1 || !(projectileSpeed - 1 >= numhitObstacle))))
+        {
+            markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().sprite = projectile;
+
+            Color tmp = markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color;
+            tmp.a = 0.5f;
+            markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color = tmp;
+
+        }
+        if (numhitObstacle == -1)
+        {
+            numhitObstacle = markerList.Count - 1;
+        }
+
+        for (int i = 0; i < blastRadius * 2 + 1; i++)
+        {
+            for (int j = 0; j < blastRadius * 2 + 1; j++)
+            {
+                if (Vector3.Distance(markerList[numhitObstacle].transform.position, markerList[numhitObstacle].transform.position + new Vector3(-blastRadius, -blastRadius, 0) + new Vector3(j, i, 0)) <= blastRadius)
+                {
+                    blastMarkerList.Add(Instantiate(blastRadiusMarker, markerList[numhitObstacle].transform.position + new Vector3(-blastRadius, -blastRadius, 0) + new Vector3(j, i, 0), new Quaternion(0, 0, 0, 1f)));
+                }
+            }
+        }
+
+        if (isreturn)
+        {
+            foreach (GameObject marker in markerList)
+            {
+                path.Add(marker.transform.position);
+            }
+            ClearMarkers();
+            lineMade?.Invoke(path);
+        }
     }
 
     public void ClearMarkers()

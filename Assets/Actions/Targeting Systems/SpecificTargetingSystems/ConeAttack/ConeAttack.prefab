@@ -53,8 +53,9 @@ MonoBehaviour:
   gridOriginPosition: {x: 0, y: 0, z: 0}
   prevMousePosition: {x: 0, y: 0, z: 0}
   mousePosition: {x: 0, y: 0, z: 0}
+  endPointMarkerPrefab: {fileID: 2363729580697148819, guid: 98882de8cadc30a4391edbe82481e1b8,
+    type: 3}
   coneMarkerPrefab: {fileID: 2363729580697148819, guid: 4d361b04edfd02e489947dd812169d9c,
     type: 3}
   markerList: []
-  DebugTimes: 1000
-  currentDebugTImes: 0
+  allDirections: {fileID: 11400000, guid: 7c1e5ae140c835b4097c2a7dbb13d47a, type: 2}

@@ -12,9 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37d39d892fa67f84ebf642a40ac36c8f, type: 3}
   m_Name: New Slow Time Field Field
   m_EditorClassIdentifier: 
+  createdFieldTypeIndex: 0
   createdFieldQuickness: 1
-  fieldDuration: 4
+  originPosition: {x: 0, y: 0, z: 0}
+  fieldRadius: 0
+  createdObjectPositions: []
   nonStandardDuration: 0
+  fromAnimatedField: 0
+  createdWithBlastRadius: 0
   createdObjectPrefab: {fileID: 1881648639116491096, guid: 91fd5ba2c398e6e488c63d8eb8d658f1,
     type: 3}
   createdObjectStatuses:

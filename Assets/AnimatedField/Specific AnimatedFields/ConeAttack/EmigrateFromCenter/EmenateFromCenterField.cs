@@ -4,69 +4,29 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SocialPlatforms;
+using UnityEngine.UIElements;
 
 public class EmenateFromCenterField : AnimatedField
 {
-    public Grid<CreatedObject> ConeGrid;
-    public List<Node> slowedNodeList;
-
-    public List<Vector3> openListLocation;
-    public List<Vector3> closedListLocation;
-
-    public List<Node> openList = new List<Node>();
-    public List<Node> closedList = new List<Node>();
-    public List<GameObject> markerList = new List<GameObject>();
-
-    public int x;
-    public int y;
-    public int debugTries;
-    public int maxDebugTries;
-
-    public string debugWord;
-
-    public GameObject createdObject;
-    public List<Vector3> markerLocations;
-
-    public float secEmenateSpeed;
-    public float currentTime;
-
-    public NodeState nodeState;
-
-    public bool isAffectFlying;
-    public bool ignoreWalls;
-
-    public Vector3 startPosition;
-    public Vector3 initialDirection;
-    public int range;
-    public float angle;
-
-    public int maxUnitBlastValueAbsorbtion;
-    public int maxObstacleBlastValueAbsorbtion;
-
-    public int currentRowIndex = 0;
-    public Dictionary<Vector3, List<Node>> possibleConeStates = new Dictionary<Vector3, List<Node>>();
-    public List<List<Node>> fullExpectedConePath = new List<List<Node>>();
-    public List<Node> currentRow = new List<Node>();
-
-    public bool IsSlowInTimeFlow = false;
-
-    public event Action<int> animationEnd;
-
     public void Start()
     {
         gameManager = GameManager.instance;
     }
 
-    public override void SetParameters(Vector3 startPosition, Vector3 direction, float angle, GameObject createdObject, int range, List<Vector3> markerLocations, int initialConeBlastValue, int maxObstacleBlastValueAbsorbtion, int maxUnitBlastValueAbsorbtion, float secEmenateSpeed = 0.035F, bool isAffectFlying = true, bool ignoreWalls = true)
+    public override void SetParameters(Vector3 startPosition, Vector3 direction, float angle, CreatedObject createdObject,
+        GameObject createdObjectHolder, CreatedField createdField, int range, int initialConeBlastValue, int maxObstacleBlastValueAbsorbtion,
+        int maxUnitBlastValueAbsorbtion, float secEmenateSpeed = 0.035F, bool isAffectFlying = true, bool ignoreWalls = true)
     {
         this.startPosition = startPosition;
         this.initialDirection = direction;
         this.angle = angle;
         this.range = range + 1;
         this.createdObject = createdObject;
-        this.markerLocations = markerLocations;
+        this.createdObjectHolder = createdObjectHolder;
+        this.createdField = Instantiate(createdField);
+        this.createdFieldType = createdField;
         this.secEmenateSpeed = secEmenateSpeed;
-        this.isAffectFlying = isAffectFlying;
+        this.affectFlying = isAffectFlying;
         this.ignoreWalls = ignoreWalls;
         this.maxObstacleBlastValueAbsorbtion = maxObstacleBlastValueAbsorbtion;
         this.maxUnitBlastValueAbsorbtion = maxUnitBlastValueAbsorbtion;
@@ -82,7 +42,7 @@ public class EmenateFromCenterField : AnimatedField
         {
             if (currentRowIndex >= 30)
             {
-                animationEnd?.Invoke(0);
+                AnimationEnd();
             }
             else
             {
@@ -92,7 +52,8 @@ public class EmenateFromCenterField : AnimatedField
                 Coalesce();
                 if (openList.Count <= 0)
                 {
-                    animationEnd?.Invoke(0);
+                    AnimationEnd();
+                    DestroySelf();
                 }
 
             }
@@ -102,11 +63,41 @@ public class EmenateFromCenterField : AnimatedField
 
     public override void Activate()
     {
-        throw new System.NotImplementedException();
+        enabled = true;
+        List<Vector3> validLocations = new List<Vector3>();
+        currentRowIndex = slowedNodeList[0].priority;
+        List<Node> adjustedList = new List<Node>();
+        foreach (Node node in slowedNodeList)
+        {
+            validLocations.Add(node.position);
+            if (node.priority < currentRowIndex)
+            {
+                currentRowIndex = node.priority;
+            }
+            Node temp = node;
+            temp.blastSpeed += range + 1;
+            adjustedList.Add(temp);
+        }
+            
+        this.openListLocation = validLocations;
+        this.openList = adjustedList;
+        this.closedList.Clear();
+        this.closedListLocation.Clear();
     }
 
-    public override void GetAnimation()
+    public override void GetAnimation(bool isLoading = false)
     {
+        enabled = false;
+        if(!gameManager.animatedFields.Contains(this))
+        {
+            if (!isLoading)
+            {
+                this.gameManager.animatedFieldPriority.Add((int)(createdFieldQuickness * gameManager.baseTurnTime) + gameManager.least);
+            }
+            this.gameManager.animatedFields.Add(this);
+            this.gameManager.expectedBlastPaths.Add(fullExpectedConePath);
+            this.gameManager.expectedBlastRowNumber.Add(0);
+        }
         List<Vector3> validLocations = new List<Vector3>();
         currentRowIndex = slowedNodeList[0].priority;
         List<Node> adjustedList = new List<Node>();
@@ -124,8 +115,8 @@ public class EmenateFromCenterField : AnimatedField
 
         this.openListLocation = validLocations;
         this.openList = adjustedList;
-        this.ConeGrid = new Grid<CreatedObject>(range * 2 - 1, range * 2 - 1, 1f, startPosition + new Vector3(-range - 1, -range - 1, 0), (Grid<CreatedObject> g, int x, int y) => createdObject.GetComponent<CreatedObject>().CreateObject(g, x, y, validLocations));
-
+        this.createdField.CreateGridOfObjects(gameManager, new Grid<CreatedObject>(range * 2 - 1, range * 2 - 1, 1f, startPosition + new Vector3(-range - 1, -range - 1, 0), (Grid<CreatedObject> g, int x, int y) => Instantiate(createdObject.CreateObject(g, x, y, validLocations))), 10, isLoading);
+        this.createdField.fromAnimatedField = true;
         for (int i = currentRowIndex; i < range; i++)
         {
             possibleConeStates.Clear();
@@ -144,9 +135,6 @@ public class EmenateFromCenterField : AnimatedField
                 break;
             }
         }
-
-        this.gameManager.expectedBlastPaths.Add(fullExpectedConePath);
-        this.gameManager.expectedBlastRowNumber.Add(0);
     }
 
     private bool FindPath(bool ignoreWalls)
@@ -207,9 +195,14 @@ public class EmenateFromCenterField : AnimatedField
                 if (!(i == 0 && j == 0))
                 {
                     Node newNode = new Node(new Vector3(currentNode.position.x + j, currentNode.position.y + i, 0), currentNode.direction, currentNode.priority + 1, currentNode.blastValue, currentNode.blastSpeed, currentNode.affectedTimeFlow, currentNode.createdObject);
-                    Vector3 dirTowardsOtherObject = (newNode.position - this.startPosition).normalized;
-                    float dotProduct = Vector3.Dot(dirTowardsOtherObject, newNode.direction);
-                    if (!closedListLocation.Contains(newNode.position) && !openListLocation.Contains(newNode.position) && dotProduct >= this.angle && Vector3.Distance(startPosition, newNode.position) < this.range)
+                    Vector3 dirTowardsOtherObjectFromStartPosition = (newNode.position - this.startPosition).normalized;
+                    float dotProduct = Vector3.Dot(dirTowardsOtherObjectFromStartPosition, newNode.direction);
+
+                    Vector3 dirTowardsOtherObjectFromCurrentPosition = (newNode.position - currentNode.position).normalized;
+                    float dotProduct2 = Vector3.Dot(dirTowardsOtherObjectFromCurrentPosition, newNode.direction);
+
+                    Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(newNode.position);
+                    if (!closedListLocation.Contains(newNode.position) && !openListLocation.Contains(newNode.position) && dotProduct >= this.angle && dotProduct2 >= .350f && Vector3.Distance(startPosition, newNode.position) < this.range && gameManager.groundTilemap.HasTile(gridPosition))
                     {
                         neighborList.Add(newNode);
                     }
@@ -264,9 +257,9 @@ public class EmenateFromCenterField : AnimatedField
             }
 
             float timeFlow = 1;
-            if (gameManager.StatusFields.Count > 0)
+            if (gameManager.createdFields.Count > 0)
             {
-                foreach (CreatedField field in gameManager.StatusFields)
+                foreach (CreatedField field in gameManager.createdFields)
                 {
                     try
                     {
@@ -310,16 +303,37 @@ public class EmenateFromCenterField : AnimatedField
             {
                 AddEmptySpaceAnimation(currentNode);
             }
+            else
+            {
+                AddWallSpaceAnimation(currentNode);
+            }
         }
     }
 
     private void AddUnitSpaceAnimation(Node neighborNode)
     {
-        ;
         currentRow.Add(neighborNode);
-        if (neighborNode.blastValue - maxUnitBlastValueAbsorbtion >= 0)
+        if (neighborNode.blastValue - maxUnitBlastValueAbsorbtion > 0)
         {
             neighborNode.blastValue -= maxUnitBlastValueAbsorbtion;
+            openList.Add(neighborNode);
+            openListLocation.Add(neighborNode.position);
+
+        }
+        else
+        {
+            neighborNode.blastValue = 0;
+            closedList.Add(neighborNode);
+            closedListLocation.Add(neighborNode.position);
+        }
+    }
+
+    private void AddWallSpaceAnimation(Node neighborNode)
+    {
+        currentRow.Add(neighborNode);
+        if (neighborNode.blastValue - maxObstacleBlastValueAbsorbtion > 0)
+        {
+            neighborNode.blastValue -= maxObstacleBlastValueAbsorbtion;
             openList.Add(neighborNode);
             openListLocation.Add(neighborNode.position);
 
@@ -383,9 +397,9 @@ public class EmenateFromCenterField : AnimatedField
             }
 
             float timeFlow = 1;
-            if (gameManager.StatusFields.Count > 0)
+            if (gameManager.createdFields.Count > 0)
             {
-                foreach (CreatedField field in gameManager.StatusFields)
+                foreach (CreatedField field in gameManager.createdFields)
                 {
                     try
                     {
@@ -409,7 +423,6 @@ public class EmenateFromCenterField : AnimatedField
             {
                 continue;
             }
-
             //detecting What the created object is hitting and how it responds to it
             nodeState = NodeState.wall;
             if (!ignoreWalls)
@@ -429,23 +442,27 @@ public class EmenateFromCenterField : AnimatedField
             {
                 AddEmptySpace(currentNode);
             }
+            else
+            {
+                AddWallSpace(currentNode);
+            }
         }
     }
 
     private void AddUnitSpace(Node neighborNode)
     {
-        GameObject marker = Instantiate(createdObject, neighborNode.position, new Quaternion(0, 0, 0, 1f));
+        GameObject marker = Instantiate(createdObjectHolder, neighborNode.position, new Quaternion(0, 0, 0, 1f));
 
-        if (neighborNode.blastValue - maxUnitBlastValueAbsorbtion >= 0)
+        if (neighborNode.blastValue - maxUnitBlastValueAbsorbtion > 0)
         {
             neighborNode.blastValue -= maxUnitBlastValueAbsorbtion;
-            marker.GetComponent<CreatedObject>().ApplyObject(1, gameManager);
+            marker.GetComponent<CreatedObjectHolder>().createdObject.ApplyObject(1, gameManager, neighborNode.position);
             openList.Add(neighborNode);
             openListLocation.Add(neighborNode.position);
         }
         else
         {
-            marker.GetComponent<CreatedObject>().ApplyObject(((float)neighborNode.blastValue / (float)maxUnitBlastValueAbsorbtion), gameManager);
+            marker.GetComponent<CreatedObjectHolder>().createdObject.ApplyObject(((float)neighborNode.blastValue / (float)maxUnitBlastValueAbsorbtion), gameManager, neighborNode.position);
             neighborNode.blastValue = 0;
             closedList.Add(neighborNode);
             closedListLocation.Add(neighborNode.position);
@@ -455,9 +472,30 @@ public class EmenateFromCenterField : AnimatedField
 
     private void AddEmptySpace(Node neighborNode)
     {
-        GameObject marker = Instantiate(createdObject, neighborNode.position, new Quaternion(0, 0, 0, 1f));
+        GameObject marker = Instantiate(createdObjectHolder, neighborNode.position, new Quaternion(0, 0, 0, 1f));
         openList.Add(neighborNode);
         openListLocation.Add(neighborNode.position);
+        markerList.Add(marker);
+    }
+
+    private void AddWallSpace(Node neighborNode)
+    {
+        GameObject marker = Instantiate(createdObjectHolder, neighborNode.position, new Quaternion(0, 0, 0, 1f));
+
+        if (neighborNode.blastValue - maxObstacleBlastValueAbsorbtion > 0)
+        {
+            neighborNode.blastValue -= maxObstacleBlastValueAbsorbtion;
+            marker.GetComponent<CreatedObjectHolder>().createdObject.ApplyObject(1, gameManager, neighborNode.position);
+            openList.Add(neighborNode);
+            openListLocation.Add(neighborNode.position);
+        }
+        else
+        {
+            marker.GetComponent<CreatedObjectHolder>().createdObject.ApplyObject(((float)neighborNode.blastValue / (float)maxObstacleBlastValueAbsorbtion), gameManager, neighborNode.position);
+            neighborNode.blastValue = 0;
+            closedList.Add(neighborNode);
+            closedListLocation.Add(neighborNode.position);
+        }
         markerList.Add(marker);
     }
 
@@ -475,7 +513,7 @@ public class EmenateFromCenterField : AnimatedField
             return NodeState.unit;
         }
 
-        if (isAffectFlying)
+        if (affectFlying)
         {
             unit = gameManager.flyingGrid.GetGridObject((int)position.x, (int)position.y);
             if (unit != null)
@@ -501,7 +539,7 @@ public class EmenateFromCenterField : AnimatedField
             return NodeState.unit;
         }
 
-        if (isAffectFlying)
+        if (affectFlying)
         {
             unit = gameManager.flyingGrid.GetGridObject((int)position.x, (int)position.y);
             if (unit != null)
@@ -515,15 +553,17 @@ public class EmenateFromCenterField : AnimatedField
 
     public void DestroySelf()
     {
-        List<Node> slowedNodeList = new List<Node>();
+        bool isFinished = true;
         if (IsSlowInTimeFlow)
         {
+            slowedNodeList.Clear();
             foreach (Node node in closedList)
             {
-                if (node.affectedTimeFlow == 1)
+                if (node.affectedTimeFlow == 1 || node.blastValue <= 0)
                 {
                     continue;
                 }
+
                 for (int i = -1; i <= 1; i++)
                 {
                     for (int j = -1; j <= 1; j++)
@@ -531,23 +571,33 @@ public class EmenateFromCenterField : AnimatedField
                         if (!(i == 0 && j == 0))
                         {
                             Node newNode = new Node(new Vector3(node.position.x + j, node.position.y + i, 0), node.direction, node.priority + 1, node.blastValue, node.blastSpeed, node.affectedTimeFlow, node.createdObject);
+                            
                             Vector3 dirTowardsOtherObject = (newNode.position - this.startPosition).normalized;
                             float dotProduct = Vector3.Dot(dirTowardsOtherObject, newNode.direction);
-                            if (!closedListLocation.Contains(newNode.position) && dotProduct >= this.angle && Vector3.Distance(startPosition, newNode.position) < this.range)
+
+                            Vector3 dirTowardsOtherObjectFromCurrentPosition = (newNode.position - node.position).normalized;
+                            float dotProduct2 = Vector3.Dot(dirTowardsOtherObjectFromCurrentPosition, newNode.direction);
+
+                            Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(newNode.position);
+                            if (!closedListLocation.Contains(newNode.position) && dotProduct >= this.angle && dotProduct2 >= .350f && Vector3.Distance(startPosition, newNode.position) < this.range && gameManager.groundTilemap.HasTile(gridPosition))
                             {
                                 slowedNodeList.Add(node);
                                 break;
-                            }
+                            }       
                         }
                     }
                 }
             }
-
-            foreach (Node node in slowedNodeList)
+            if(slowedNodeList.Count > 0)
             {
-                closedListLocation.Remove(node.position);
+                foreach (Node node in slowedNodeList)
+                {
+                    closedListLocation.Remove(node.position);
+                }
+                GetAnimation();
+                isFinished = false;
+                IsSlowInTimeFlow = false;
             }
-            GetAnimation();
         }
 
         foreach (GameObject marker in markerList)
@@ -555,6 +605,23 @@ public class EmenateFromCenterField : AnimatedField
             Destroy(marker);
         }
         markerList.Clear();
+        if(isFinished)
+        {
+            if (gameManager.animatedFields.Contains(this))
+            {
+                int index = gameManager.animatedFields.IndexOf(this);
+                gameManager.animatedFields.RemoveAt(index);
+                gameManager.animatedFieldPriority.RemoveAt(index);
+                gameManager.expectedBlastPaths.RemoveAt(index);
+                gameManager.expectedBlastRowNumber.RemoveAt(index);
+
+                if(this.createdField != null)
+                {
+                    this.createdField.RemoveStatusOnDeletion();
+                }
+            }
+            Destroy(this.gameObject);
+        }
 
     }
 

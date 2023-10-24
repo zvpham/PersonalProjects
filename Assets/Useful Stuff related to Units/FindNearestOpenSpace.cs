@@ -44,7 +44,7 @@ public static class FindNearestOpenSpace
     private static Vector3 FindPath(Unit targetUnit, bool ignoreWalls)
     {
         debugTries = 0;
-        openList.Add(targetUnit.self.transform.position);
+        openList.Add(targetUnit.gameObject.transform.position);
         while (openList.Count > 0)
         {
             debugTries += 1;

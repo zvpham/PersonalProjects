@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 public class Move
 {
@@ -9,24 +10,24 @@ public class Move
     public static ActionTypes[] meleeActions = {ActionTypes.attack, ActionTypes.meleeAttack};
     public static void Movement(Unit target, Vector2 direction, GameManager gameManager, bool isPlayer = true)
     {
-        Vector3 originalPosition = target.self.transform.position;
-        target.self.transform.position += (Vector3)direction;
-        if (CanMove(target, target.self.transform.position, direction, gameManager))
+        Vector3 originalPosition = target.gameObject.transform.position;
+        target.gameObject.transform.position += (Vector3)direction;
+        if (CanMove(target, target.gameObject.transform.position, direction, gameManager))
         {
-            if (IsEnemy(target, target.self.transform.position, gameManager))
+            if (IsEnemy(target, target.gameObject.transform.position, gameManager))
             {
-                target.self.transform.position -= (Vector3)direction;
+                target.gameObject.transform.position -= (Vector3)direction;
             }
             else
             {
                 if(target.index == 0 && isPlayer)
                 {
-                    PickupIfItem(target, target.self.transform.position, gameManager);
+                    PickupIfItem(target, target.gameObject.transform.position, gameManager);
                 }
-                //gameManager.locations[0] = target.self.transform.position;
+                //gameManager.locations[0] = target.gameObject.transform.position;
                 gameManager.grid.SetGridObject(originalPosition, null);
-                target.CheckForStatusFields(target.self.transform.position);
-                gameManager.grid.SetGridObject(target.self.transform.position, target);
+                target.CheckForStatusFields(target.gameObject.transform.position);
+                gameManager.grid.SetGridObject(target.gameObject.transform.position, target);
                 target.HandlePerformActions(momvementActions, ActionName.MoveNorth);
             }
         }
@@ -34,11 +35,12 @@ public class Move
 
     private static void PickupIfItem(Unit target, Vector3 newPosition, GameManager gameManager)
     {
-        for (int i = 0; i < gameManager.itemLocations.Count; i++)
+        List<Item> tempItemList = gameManager.itemgrid.GetGridObject(newPosition);
+        if(tempItemList != null)
         {
-            if (gameManager.itemLocations[i] == newPosition)
+            for(int i = 0; i < tempItemList.Count; i++)
             {
-                target.self.GetComponent<PickupSystem>().Pickup(gameManager.items[i]);
+                target.gameObject.GetComponent<PickupSystem>().Pickup(tempItemList[i], i);
             }
         }
     }
@@ -48,7 +50,7 @@ public class Move
         Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(newPosition);
         if (!gameManager.groundTilemap.HasTile(gridPosition) || gameManager.collisionTilemap.HasTile(gridPosition))
         {
-            target.self.transform.position -= (Vector3)direction;
+            target.gameObject.transform.position -= (Vector3)direction;
             return false;
         }
         return true;

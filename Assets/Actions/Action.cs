@@ -14,7 +14,7 @@ public abstract class Action : ScriptableObject
     public bool isUsable;
     public ActionTypes[] actionType;
     public bool isActiveAction;
-    public bool isTurnActivated;
+    //public bool isTurnActivated;
 
     public Unit affectedUnit;
 
@@ -24,7 +24,8 @@ public abstract class Action : ScriptableObject
     public GameObject targetingSystem;
 
     public CreatedField createdField;
-    public GameObject createObject;
+    public CreatedObject createObject;
+    public GameObject createObjectHolder;
     
     public int range;
     public int blastRadius;
@@ -38,7 +39,7 @@ public abstract class Action : ScriptableObject
     public void StartActionPresetAI(Unit self)
     {
         this.currentCooldown = maxCooldown;
-        this.isTurnActivated = true;
+        //this.isTurnActivated = true;
         this.affectedUnit = self;
     }
 
@@ -47,7 +48,7 @@ public abstract class Action : ScriptableObject
         if (this.currentCooldown == 0)
         {
             this.currentCooldown = maxCooldown;
-            this.isTurnActivated = true;
+            //this.isTurnActivated = true;
             this.affectedUnit = self;
             return true;
         }

@@ -13,18 +13,30 @@ public class PointAndClick : MonoBehaviour
     private float xOffSet;
     private float yOffSet;
 
-    public Vector3 prevMousePosition;
     public Vector3 mousePosition;
+    public Vector3 prevMousePosition;
+
+    public Vector3 targetPosition;
 
     public GameObject endPointMarkerPrefab;
     private GameObject endPointMarker;
 
+    public AllDirections allDirections; 
+    public InputManager inputManager;
+
     public event Action<Vector3> endPointFound;
+
+    public void Start()
+    {
+        inputManager = InputManager.instance;
+    }
 
     public void setParameters(Vector3 startPosition)
     {
         startingX = (int)startPosition.x;
         startingY = (int)startPosition.y;
+        targetPosition = startPosition;
+        prevMousePosition = UtilsClass.GetMouseWorldPosition();
     }
 
     // Update is called once per frame
@@ -51,18 +63,30 @@ public class PointAndClick : MonoBehaviour
             yOffSet = offSet;
         }
 
-        if (new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != prevMousePosition)
-        {
-            prevMousePosition = new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
-            ClearMarkers();
-            endPointMarker = Instantiate(endPointMarkerPrefab, new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0), new Quaternion(0, 0, 0, 1f));
-        }
 
+        if (mousePosition != prevMousePosition && new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != targetPosition)
+        {
+            targetPosition = new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
+            ClearMarkers();
+            endPointMarker = Instantiate(endPointMarkerPrefab, targetPosition, new Quaternion(0, 0, 0, 1f));
+        }
+        else
+        {
+            for (int i = 0; i < allDirections.Directions.Length; i++)
+            {
+                if (inputManager.GetKeyDownTargeting(allDirections.Directions[i].directionName))
+                {
+                    targetPosition = targetPosition + allDirections.Directions[i].GetDirection();
+                    ClearMarkers();
+                    endPointMarker = Instantiate(endPointMarkerPrefab, targetPosition, new Quaternion(0, 0, 0, 1f));
+                }
+            }
+        }
         if (Input.GetMouseButtonDown(0))
         {
             endPointFound?.Invoke(endPointMarker.transform.position);
         }
-
+        prevMousePosition = mousePosition;
     }
 
     public void ClearMarkers()

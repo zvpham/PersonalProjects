@@ -31,6 +31,13 @@ public class Sprinting : Status
 
     }
 
+    public override void onLoadApply(Unit target)
+    {
+        AddStatusOnLoadPreset(target);
+        target.ChangeQuickness(0.5);
+        target.PerformedAction += CancelStatusIfActionNotContainMatchingType;
+    }
+
     // Update is called once per frame
     override public void RemoveEffect(Unit target)
     {

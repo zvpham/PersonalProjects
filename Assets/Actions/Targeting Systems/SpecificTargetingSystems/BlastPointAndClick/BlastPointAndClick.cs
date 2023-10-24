@@ -17,11 +17,11 @@ public class BlastPointAndClick : MonoBehaviour
     //public Grid<BlastRadiusMarker> blastRadiusGrid;
     public List<GameObject> blastMarkerList;
     public GameObject blastRadiusMarker;
+    public GameObject endPositionMarker;
 
     public float offSet;
     private float xOffSet;
     private float yOffSet;
-
 
     public bool careAboutRange;
     public int range;
@@ -30,10 +30,20 @@ public class BlastPointAndClick : MonoBehaviour
 
     public List<Vector3> path = new List<Vector3>();
 
+    public AllDirections allDirections;
+
     public event Action<Vector3> endPointFound;
 
     public Vector3 prevMousePosition;
     public Vector3 mousePosition;
+    public Vector3 targetPosition;
+
+    public InputManager inputManager;
+
+    public void Start()
+    {
+        inputManager = InputManager.instance;
+    }
 
     public void setParameters(Vector3 startPosition, int blaseRadiusGiven, int projectileRange = 0, Sprite projectilBeingLaunched = null, int projectileSpeedWhenFired = int.MaxValue, int numSections = 1, bool careAboutRangeGiven = true, bool careAboutObstaclesGiven = false)
     {
@@ -53,6 +63,8 @@ public class BlastPointAndClick : MonoBehaviour
                 }
             }
         }
+        targetPosition = startPosition;
+        prevMousePosition = UtilsClass.GetMouseWorldPosition();
     }
 
 
@@ -80,35 +92,49 @@ public class BlastPointAndClick : MonoBehaviour
             yOffSet = offSet;
         }
 
-        if (new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != prevMousePosition)
+        if (mousePosition != prevMousePosition && new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != targetPosition)
         {
-            prevMousePosition = new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
-            ClearMarkers();
-
-            for (int i = 0; i < blastRadius * 2 + 1; i++)
+            targetPosition = new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
+            MakeBlast();
+        }
+        else
+        {
+            for (int i = 0; i < allDirections.Directions.Length; i++)
             {
-                for (int j = 0; j < blastRadius * 2 + 1; j++)
+                if (inputManager.GetKeyDownTargeting(allDirections.Directions[i].directionName))
                 {
-                    if (Vector3.Distance(prevMousePosition, prevMousePosition + new Vector3(-blastRadius, -blastRadius, 0) + new Vector3(j, i, 0)) <= blastRadius)
-                    {
-                        blastMarkerList.Add(Instantiate(blastRadiusMarker, prevMousePosition + new Vector3(-blastRadius, -blastRadius, 0) + new Vector3(j, i, 0), new Quaternion(0, 0, 0, 1f)));
-                    }
+                    targetPosition = targetPosition + allDirections.Directions[i].GetDirection();
+                    MakeBlast();
                 }
             }
 
             if (Input.GetMouseButtonDown(0))
             {
-                endPointFound?.Invoke(prevMousePosition);
+                endPointFound?.Invoke(targetPosition);
             }
-
         }
-        else
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                endPointFound?.Invoke(prevMousePosition);
-            }
+        prevMousePosition = mousePosition;
+    }
 
+    public void MakeBlast()
+    {
+        ClearMarkers();
+
+        for (int i = 0; i < blastRadius * 2 + 1; i++)
+        {
+            for (int j = 0; j < blastRadius * 2 + 1; j++)
+            {
+                if (Vector3.Distance(targetPosition, targetPosition + new Vector3(-blastRadius, -blastRadius, 0) + new Vector3(j, i, 0)) <= blastRadius)
+                {
+                    blastMarkerList.Add(Instantiate(blastRadiusMarker, targetPosition + new Vector3(-blastRadius, -blastRadius, 0) + new Vector3(j, i, 0), new Quaternion(0, 0, 0, 1f)));
+                }
+            }
+        }
+        blastMarkerList.Add(Instantiate(endPositionMarker, targetPosition, new Quaternion(0, 0, 0, 1f)));
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            endPointFound?.Invoke(targetPosition);
         }
     }
 

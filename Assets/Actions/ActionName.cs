@@ -1,3 +1,4 @@
+[System.Serializable]
 public enum ActionName
 {
     MoveNorth,
@@ -17,5 +18,8 @@ public enum ActionName
     SlowTimeField,
     FlameBreath,
     EnemyMovement,
-    MeleeAttack
+    MeleeAttack,
+    Conk,
+    Bonk,
+    SeeTheFuture,
 }

@@ -27,6 +27,8 @@ namespace Inventory.UI
 
         private int currentlyDraggedItemIndex = -1;
 
+        public static UIInventoryPage Instance;
+
         public event Action<int> OnDescriptionRequested,
             OnItemActionRequested,
             OnStartDragging;
@@ -39,6 +41,14 @@ namespace Inventory.UI
         private ItemActionPanel actionPanel;
         public void Awake()
         {
+            if (Instance != null)
+            {
+                Debug.LogWarning("Found more than ONe InventoryUiPage in scene in the Scence");
+                Destroy(this.gameObject);
+                return;
+            }
+            Instance = this;
+
             Hide();
             mouseFollower.Toggle(false);
             itemDescription.ResetDescription();

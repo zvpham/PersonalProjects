@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abea2bf2c05fbb745a60e58c3f552f1f, type: 3}
+  m_Name: New See The Future
+  m_EditorClassIdentifier: 
+  actionName: 20
+  weight: 10
+  maxCooldown: 40
+  currentCooldown: 0
+  duration: 0
+  isUsable: 0
+  actionType: 
+  isActiveAction: 0
+  affectedUnit: {fileID: 0}
+  status:
+  - {fileID: 11400000, guid: e28a0a136f642374cb07795dacb8f9a5, type: 2}
+  targetingPrefab: {fileID: 0}
+  targetingSystem: {fileID: 0}
+  createdField: {fileID: 0}
+  createObject: {fileID: 0}
+  createObjectHolder: {fileID: 0}
+  range: 0
+  blastRadius: 0
+  blastAngle: 0
+  pathAI: []

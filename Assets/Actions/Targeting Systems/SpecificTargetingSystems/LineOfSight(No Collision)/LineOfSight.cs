@@ -3,6 +3,7 @@ using CodeMonkey.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class LineOfSight: MonoBehaviour
@@ -16,6 +17,7 @@ public class LineOfSight: MonoBehaviour
     public int projectileRangeSections;
     public Sprite projectile;
 
+    public GameObject endPositionMarker;
     public GameObject linePrefab;
     private GameObject finalMarker;
     private List<GameObject> markerList = new List<GameObject>();
@@ -41,16 +43,22 @@ public class LineOfSight: MonoBehaviour
 
     public List<Vector3> path = new List<Vector3>();
 
+    public AllDirections allDirections;
+
     public GameManager gameManager;
+    public InputManager inputManager;
 
     public event Action<List<Vector3>> lineMade;
 
     public Vector3 prevMousePosition;
     public Vector3 mousePosition;
 
+    public Vector3 targetPosition;
+
     public void Start()
     {
         gameManager = GameManager.instance;
+        inputManager = InputManager.instance;
     }
 
     public void setParameters(Vector3 startPosition, int projectileRange = 0, Sprite projectilBeingLaunched = null, int projectileSpeedWhenFired = int.MaxValue, int numSections = 1, bool careAboutRangeGiven = true)
@@ -73,6 +81,8 @@ public class LineOfSight: MonoBehaviour
                 }
             }
         }
+        targetPosition = startPosition;
+        prevMousePosition = UtilsClass.GetMouseWorldPosition();
     }
 
     public static void LineOfSightAI(Vector3 startPosition, Vector3 endPosition, int projectileRange = 0, int projectileSpeedWhenFired = int.MaxValue, int numSections = 1, bool careAboutRangeGiven = true, bool careAboutObstacles = true)
@@ -109,59 +119,30 @@ public class LineOfSight: MonoBehaviour
             yOffSet = offSet;
         }
 
-        if (new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != prevMousePosition)
+        if (mousePosition != prevMousePosition && new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != targetPosition)
         {
             Debug.Log("MOUSE MOVING");
-            prevMousePosition = new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
+            targetPosition = new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
             ClearMarkers();
             if (Input.GetMouseButtonDown(0))
             {
                 isreturn = true;
             }
 
-            BresenhamsAlgorithm.PlotFunction plotFunction = createDot;
-            BresenhamsAlgorithm.Line(startingX, startingY, (int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), plotFunction);
-            if (careAboutRange)
-            {
-                if (projectileRangeSections != 1)
-                {
-                    if (markerList.Count % 2 == 1 && markerList.Count >= 3)
-                    {
-                        projectileSpeed = (markerList.Count / projectileRangeSections) + 1;
-                    }
-                    else
-                    {
-                        projectileSpeed = markerList.Count / projectileRangeSections;
-                    }
-                }
-
-                if (markerList.Count >= 2 && (numhitObstacle == -1 || !(projectileSpeed - 1 >= numhitObstacle)))
-                {
-                    markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().sprite = projectile;
-
-                    Color tmp = markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color;
-                    tmp.a = 0.5f;
-                    markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color = tmp;
-
-                }
-
-                if (isreturn)
-                {
-                    foreach (GameObject marker in markerList)
-                    {
-                        path.Add(marker.transform.position);
-                    }
-                    ClearMarkers();
-                    lineMade?.Invoke(path);
-                }
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
+            MakeLine();
         }
         else
         {
+            for (int i = 0; i < allDirections.Directions.Length; i++)
+            {
+                if (inputManager.GetKeyDownTargeting(allDirections.Directions[i].directionName))
+                {
+                    targetPosition = targetPosition + allDirections.Directions[i].GetDirection();
+                    ClearMarkers();
+                    MakeLine();
+                }
+            }
+
             if (Input.GetMouseButtonDown(0))
             {
                 foreach (GameObject marker in markerList)
@@ -172,8 +153,48 @@ public class LineOfSight: MonoBehaviour
                 lineMade?.Invoke(path);
             }
         }
+        prevMousePosition = mousePosition;
+    }
 
+    public void MakeLine()
+    {
+        BresenhamsAlgorithm.PlotFunction plotFunction = createDot;
+        BresenhamsAlgorithm.Line(startingX, startingY, (int)targetPosition.x, (int)targetPosition.y, plotFunction);
+        markerList.Add(Instantiate(endPositionMarker, targetPosition, new Quaternion(0, 0, 0, 1f)));
+        if (careAboutRange)
+        {
+            if (projectileRangeSections != 1)
+            {
+                if (markerList.Count % 2 == 1 && markerList.Count >= 3)
+                {
+                    projectileSpeed = (markerList.Count / projectileRangeSections) + 1;
+                }
+                else
+                {
+                    projectileSpeed = markerList.Count / projectileRangeSections;
+                }
+            }
 
+            if (markerList.Count >= 2 && (numhitObstacle == -1 || !(projectileSpeed - 1 >= numhitObstacle)))
+            {
+                markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().sprite = projectile;
+
+                Color tmp = markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color;
+                tmp.a = 0.5f;
+                markerList[projectileSpeed - 1].GetComponent<SpriteRenderer>().color = tmp;
+
+            }
+
+            if (isreturn)
+            {
+                foreach (GameObject marker in markerList)
+                {
+                    path.Add(marker.transform.position);
+                }
+                ClearMarkers();
+                lineMade?.Invoke(path);
+            }
+        }
     }
 
     public void ClearMarkers()

@@ -12,16 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09bef074d5ff4e04fbaeeb06c9186626, type: 3}
   m_Name: Jumping
   m_EditorClassIdentifier: 
+  statusPrefabIndex: 1
   targetUnit: {fileID: 0}
   statusQuickness: 1
   statusDuration: 10
   nonStandardDuration: 1
   statusName: Jumping
   statusImage: {fileID: 21300092, guid: 29c9cded5e558164aaf8c9bf08aa1510, type: 3}
+  isFieldStatus: 0
   ApplyEveryTurn: 1
   isFirstTurn: 1
+  isFirstWorldTurn: 1
+  isMovementStatus: 1
   actionTypesNotPermitted: 00000000
   actionTypesThatCancelStatus: 
-  path: []
-  currentProgress: 0
-  speed: 0
+  actionTypesThatActionMustContain: 
+  Ivalue: 0

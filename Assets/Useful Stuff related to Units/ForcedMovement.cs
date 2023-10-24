@@ -50,6 +50,7 @@ public static class ForcedMovement
         gameManager = movingUnit.gameManager;
         if (!FindPath(movingUnit, false))
         {
+            /*
             debugWord = "Open List ";
             foreach (Vector3 node in openList)
             {
@@ -63,12 +64,12 @@ public static class ForcedMovement
                 debugWord += node.ToString() + " ";
             }
             Debug.Log(debugWord);
-
+            */
             openList = new List<Vector3>();
             closedList = new List<Vector3>();
 
             FindPath(movingUnit, true);
-
+            /*
             debugWord = "Open List ";
             foreach (Vector3 node in openList)
             {
@@ -82,13 +83,14 @@ public static class ForcedMovement
                 debugWord += node.ToString() + " ";
             }
             Debug.Log(debugWord);
+            */
         }
     }
 
     private static bool FindPath(Unit movingUnit, bool ignoreWalls)
     {
         debugTries = 0;
-        openList.Add(movingUnit.self.transform.position);
+        openList.Add(movingUnit.gameObject.transform.position);
         while (openList.Count > 0)
         {
             debugTries += 1;
@@ -127,7 +129,7 @@ public static class ForcedMovement
     {
         closedList.Add(endNode);
         AStarPathfinding path = new AStarPathfinding(gameManager.grid.GetWidth(), gameManager.grid.GetHeight(), closedList, Vector3.zero);
-        List<AStarPathNode> movementPath = path.FindPath((int)movingUnit.self.transform.position.x, (int)movingUnit.self.transform.position.y, (int)endNode.x, (int)endNode.y);
+        List<AStarPathNode> movementPath = path.FindPath((int)movingUnit.gameObject.transform.position.x, (int)movingUnit.gameObject.transform.position.y, (int)endNode.x, (int)endNode.y);
         if (movementPath != null)
         {
             storedUnit = null;
@@ -144,7 +146,7 @@ public static class ForcedMovement
                     movingUnit.gameManager.grid.SetGridObject(prevNodePosition, null);
                     newNodePosition = movementPath[i].grid.GetWorldPosition(movementPath[i].x, movementPath[i].y);
                     movingUnit.gameManager.grid.SetGridObject(newNodePosition, nextUnit);
-                    movingUnit.self.transform.position = newNodePosition;
+                    movingUnit.gameObject.transform.position = newNodePosition;
                 }
                 else
                 {
@@ -152,7 +154,7 @@ public static class ForcedMovement
                     storedUnit = movingUnit.gameManager.grid.GetGridObject(movementPath[i].grid.GetWorldPosition(movementPath[i].x, movementPath[i].y));
                     newNodePosition = movementPath[i].grid.GetWorldPosition(movementPath[i].x, movementPath[i].y);
                     movingUnit.gameManager.grid.SetGridObject(newNodePosition, nextUnit);
-                    nextUnit.self.transform.position = newNodePosition;
+                    nextUnit.gameObject.transform.position = newNodePosition;
                     nextUnit = storedUnit;
                 }
             }

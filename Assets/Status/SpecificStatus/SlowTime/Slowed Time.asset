@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44cfc087ab638684a9776b496db37cf3, type: 3}
   m_Name: Slowed Time
   m_EditorClassIdentifier: 
+  statusPrefabIndex: 2
   targetUnit: {fileID: 0}
   statusQuickness: 1
   statusDuration: 1
@@ -21,7 +22,8 @@ MonoBehaviour:
   isFieldStatus: 1
   ApplyEveryTurn: 0
   isFirstTurn: 1
+  isFirstWorldTurn: 1
+  isMovementStatus: 0
   actionTypesNotPermitted: 
   actionTypesThatCancelStatus: 
-  path: []
-  currentProgress: 0
+  actionTypesThatActionMustContain: 

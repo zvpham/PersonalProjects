@@ -7,7 +7,7 @@ using System;
 public class Item : MonoBehaviour
 {
     [field:SerializeField]
-    public ItemSO inventoryItem { get; private set; }
+    public ItemSO inventoryItem { get; set; }
 
     [field: SerializeField]
     public int quantity { get; set; } = 1;
@@ -22,17 +22,49 @@ public class Item : MonoBehaviour
     // Start is called before the first frame update
     private void Start()
     {
-        GetComponent<SpriteRenderer>().sprite = inventoryItem.itemImage;
         gameManager = GameManager.instance; 
-        gameManager.itemLocations.Add(transform.position);
+        if(gameManager.itemgrid.GetGridObject(gameObject.transform.position) == null)
+        {
+            gameManager.itemgrid.SetGridObject(gameObject.transform.position, new List<Item>() {this});
+            GetComponent<SpriteRenderer>().sprite = inventoryItem.itemImage;
+        }
+        else
+        {
+            List<Item> tempItemList = gameManager.itemgrid.GetGridObject(gameObject.transform.position);
+            tempItemList[tempItemList.Count - 1].gameObject.GetComponent<SpriteRenderer>().sprite = null;
+            GetComponent<SpriteRenderer>().sprite = inventoryItem.itemImage;
+            tempItemList.Add(this);
+            gameManager.itemgrid.SetGridObject(gameObject.transform.position, tempItemList);
+        }
         gameManager.items.Add(this);
 
     }
 
-    public void DestroyItem()
+    public void DestroyItem(int itemIndexInList)
     {
-        //GetComponent<Collider2D>().enabled = false;
-        StartCoroutine(AnimateItemPickup());
+        List<Item> tempItemList = gameManager.itemgrid.GetGridObject(gameObject.transform.position);
+        if(itemIndexInList == tempItemList.Count - 1) 
+        {
+            for(int i = 0; i < tempItemList.Count; i++)
+            {
+                if (tempItemList[i].quantity <= 0)
+                {
+                    if(i != tempItemList.Count - 1)
+                    {
+                        gameManager.items.Remove(tempItemList[i]);
+                        Destroy(tempItemList[i].gameObject);
+                    }
+                    tempItemList.RemoveAt(i);
+                    i--;
+                }
+            }
+            if(tempItemList.Count == 0)
+            {
+                gameManager.items.Remove(this);
+                StartCoroutine(AnimateItemPickup());
+                gameManager.itemgrid.SetGridObject(gameObject.transform.position, null);
+            }
+        }
     }
 
     private IEnumerator AnimateItemPickup()

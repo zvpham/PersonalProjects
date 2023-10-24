@@ -7,6 +7,7 @@ using static UnityEngine.GraphicsBuffer;
 
 public abstract class Status : ScriptableObject
 {
+    public int statusPrefabIndex;
     public Unit targetUnit;
     public float statusQuickness = 1;
 
@@ -20,17 +21,30 @@ public abstract class Status : ScriptableObject
     public bool ApplyEveryTurn;
     public bool isFirstTurn = true;
     public bool isFirstWorldTurn = true;
+    public bool isMovementStatus = false;
+
+    public int statusIntData;
+    public string statusStringData;
+    public bool statusBoolData;
 
     public List<ActionTypes> actionTypesNotPermitted;
     public List<ActionTypes> actionTypesThatCancelStatus;
     public List<ActionTypes> actionTypesThatActionMustContain;
-    public List<Vector3> path;
-    public int currentProgress;
-
-    public event Action<bool> StatusRemovedOnActivation;
 
     // Start is called before the first frame update
     abstract public void ApplyEffect(Unit target);
+
+    abstract public void onLoadApply(Unit target);
+
+    virtual public void ApplyEffectEnemy(Unit target)
+    {
+
+    }
+
+    virtual public void ApplyEffectPlayer(Unit target)
+    {
+
+    }
 
 
     // Update is called once per frame
@@ -60,6 +74,16 @@ public abstract class Status : ScriptableObject
         target.gameManager.allStatuses.Add(this);
         target.gameManager.statusDuration.Add(this.statusDuration);
         this.targetUnit = target;
+        ChangeQuickness(target.timeFlow);
+    }
+
+    public void AddStatusOnLoadPreset(Unit target)
+    {
+        this.isFirstTurn = false;
+        this.targetUnit = target;
+        target.statuses.Add(this);
+        target.statusDuration.Add(statusDuration);
+        target.gameManager.allStatuses.Add(this);
         ChangeQuickness(target.timeFlow);
     }
 

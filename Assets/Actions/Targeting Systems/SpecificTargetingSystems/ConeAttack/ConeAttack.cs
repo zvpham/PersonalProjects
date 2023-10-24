@@ -21,12 +21,23 @@ public class ConeAttack : MonoBehaviour
     public Vector3 prevMousePosition;
     public Vector3 mousePosition;
 
-    Vector3 dirTowardsMouse;
+    public Vector3 targetPosition;
 
+    Vector3 dirTowardsMouse;
+    public GameObject endPointMarkerPrefab;
     public GameObject coneMarkerPrefab;
     public List<GameObject> markerList;
 
-    public event Action<List<Vector3>, Vector3> foundTarget;
+    public AllDirections allDirections;
+
+    public InputManager inputManager;
+
+    public event Action<Vector3> foundTarget;
+
+    public void Start()
+    {
+        inputManager = InputManager.instance;
+    }
 
     public void setParameters(Vector3 startPosition, int range, float angle)
     {
@@ -38,6 +49,8 @@ public class ConeAttack : MonoBehaviour
         this.range = range + 1;
         this.angle = angle;
 
+        targetPosition = startPosition;
+        prevMousePosition = UtilsClass.GetMouseWorldPosition();
     }
 
     // Update is called once per frame
@@ -65,37 +78,21 @@ public class ConeAttack : MonoBehaviour
             yOffSet = offSet;
         }
 
-        if (new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != prevMousePosition)
+        if (mousePosition != prevMousePosition && new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != targetPosition)
         {
-            prevMousePosition = new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
-            ClearMarkers();
-            dirTowardsMouse = (prevMousePosition - startPositionTotal).normalized;
-
-            for(int i = 0; i < range * 2; i++)
+            targetPosition = new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
+            MakeCone();
+        }
+        else
+        {
+            for (int i = 0; i < allDirections.Directions.Length; i++)
             {
-                for (int j = 0; j < range * 2; j++)
+                if (inputManager.GetKeyDownTargeting(allDirections.Directions[i].directionName))
                 {
-                    Vector3 dirTowardsOtherObject = (this.gridOriginPosition + new Vector3(j, i, 0) - startPositionTotal).normalized;
-                    float dotProduct = Vector3.Dot(dirTowardsOtherObject, dirTowardsMouse);
-                    if (dotProduct > this.angle && Vector3.Distance(startPositionTotal, this.gridOriginPosition + new Vector3(j, i, 0)) < range) // our threx`shold is 0.1
-                    {
-                        markerList.Add(Instantiate(coneMarkerPrefab, this.gridOriginPosition + new Vector3(j, i, 0), new Quaternion(0, 0, 0, 1f)));
-                    }
+                    targetPosition = targetPosition + allDirections.Directions[i].GetDirection();
+                    MakeCone();
                 }
             }
-
-            if (Input.GetMouseButton(0))
-            {
-                List<Vector3> markerLocationList = new List<Vector3>();
-
-                foreach (GameObject marker in markerList)
-                {
-                    markerLocationList.Add(marker.transform.position);
-                }
-
-                foundTarget?.Invoke(markerLocationList, dirTowardsMouse);
-            }
-
         }
         
         if (Input.GetMouseButton(0))
@@ -107,10 +104,43 @@ public class ConeAttack : MonoBehaviour
                 markerLocationList.Add(marker.transform.position);
             }
 
-            foundTarget?.Invoke(markerLocationList, dirTowardsMouse);
+            foundTarget?.Invoke(dirTowardsMouse);
         }
-        
+        prevMousePosition = mousePosition;
 
+    }
+
+    public void MakeCone()
+    {
+        ClearMarkers();
+        dirTowardsMouse = (targetPosition - startPositionTotal).normalized;
+
+        for (int i = 0; i < range * 2; i++)
+        {
+            for (int j = 0; j < range * 2; j++)
+            {
+                Vector3 dirTowardsOtherObject = (this.gridOriginPosition + new Vector3(j, i, 0) - startPositionTotal).normalized;
+                float dotProduct = Vector3.Dot(dirTowardsOtherObject, dirTowardsMouse);
+                if (dotProduct > this.angle && Vector3.Distance(startPositionTotal, this.gridOriginPosition + new Vector3(j, i, 0)) < range) // our threx`shold is 0.1
+                {
+                    markerList.Add(Instantiate(coneMarkerPrefab, this.gridOriginPosition + new Vector3(j, i, 0), new Quaternion(0, 0, 0, 1f)));
+                }
+            }
+        }
+
+        markerList.Add(Instantiate(endPointMarkerPrefab, targetPosition, new Quaternion(0, 0, 0, 1f)));
+
+        if (Input.GetMouseButton(0))
+        {
+            List<Vector3> markerLocationList = new List<Vector3>();
+
+            foreach (GameObject marker in markerList)
+            {
+                markerLocationList.Add(marker.transform.position);
+            }
+
+            foundTarget?.Invoke(dirTowardsMouse);
+        }
     }
 
     public void ClearMarkers()

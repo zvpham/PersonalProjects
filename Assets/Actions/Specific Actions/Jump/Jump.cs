@@ -40,22 +40,22 @@ public class Jump : Action
 
     public override void Activate(Unit self)
     {
+        self.forcedMovementPathData.forcedMovementPath = pathAI;
         foreach (Status statuseffect in status)
         {
             Status temp = Instantiate(statuseffect);
-            temp.path = pathAI;
-            temp.ApplyEffect(affectedUnit);
+            temp.ApplyEffect(self);
         }
         self.TurnEnd();
     }
 
     public override void PlayerActivate(Unit self)
-    {   
-        affectedUnit.notOnHold = false;
+    {
+        self.ActivateTargeting();
         Vector3 position = Vector3.zero;
         Quaternion rotation = new Quaternion(0, 0, 0, 1f);
         targetingSystem = Instantiate(targetingPrefab, position, rotation);
-        targetingSystem.GetComponent<LineOfSight>().setParameters(affectedUnit.transform.position, range, self.originalSprite, numSections: 2);
+        targetingSystem.GetComponent<LineOfSight>().setParameters(self.transform.position, range, self.originalSprite, numSections: 2);
         targetingSystem.GetComponent<LineOfSight>().lineMade += foundTarget;
     }
 
@@ -64,16 +64,15 @@ public class Jump : Action
     {
         targetingSystem.GetComponent<LineOfSight>().DestroySelf();
         Destroy(targetingSystem);
-
+        affectedUnit.forcedMovementPathData.forcedMovementPath = path;
         foreach (Status statuseffect in status)
         {
             Status temp = Instantiate(statuseffect);
-            temp.path = path;
             temp.ApplyEffect(affectedUnit);
         }
 
         affectedUnit.HandlePerformActions(actionType, actionName);
-        affectedUnit.notOnHold = true;
+        affectedUnit.DeactivateTargeting();
         affectedUnit.TurnEnd();
     }
 }

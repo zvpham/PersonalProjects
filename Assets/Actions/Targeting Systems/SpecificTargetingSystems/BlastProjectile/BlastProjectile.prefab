@@ -52,6 +52,8 @@ MonoBehaviour:
   projectileSpeed: 0
   projectileRangeSections: 0
   projectile: {fileID: 0}
+  endPositionMarker: {fileID: 2363729580697148819, guid: 98882de8cadc30a4391edbe82481e1b8,
+    type: 3}
   linePrefab: {fileID: 5584086906981062238, guid: 09602942c3f1f2e47a1a9a7e7f3adce7,
     type: 3}
   blastRadius: 0
@@ -66,9 +68,11 @@ MonoBehaviour:
   offSet: 0.5
   careAboutRange: 0
   range: 0
+  rangeMarkerList: []
   rangeMarker: {fileID: 2840022361494867787, guid: aca771cb109c67e4d90b5d7933b17892,
     type: 3}
   path: []
+  allDirections: {fileID: 11400000, guid: 7c1e5ae140c835b4097c2a7dbb13d47a, type: 2}
   prevMousePosition: {x: 0, y: 0, z: 0}
   mousePosition: {x: 0, y: 0, z: 0}
   gameManager: {fileID: 0}

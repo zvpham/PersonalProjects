@@ -46,7 +46,7 @@ public static class FindNearestEmptySpaceWithPath
     private static List<Vector3> FindPath(Unit targetUnit, Unit originUnit, bool ignoreWalls)
     {
         debugTries = 0;
-        openList.Add(targetUnit.self.transform.position);
+        openList.Add(targetUnit.gameObject.transform.position);
         while (openList.Count > 0)
         {
             debugTries += 1;
@@ -89,7 +89,7 @@ public static class FindNearestEmptySpaceWithPath
     private static List<Vector3> isPath(Vector3 endNode, Unit originUnit)
     {
         AStarPathfinding path = new AStarPathfinding(gameManager.grid.GetWidth(), gameManager.grid.GetHeight(), gameManager.collisionTilemap, gameManager.grid, Vector3.zero);
-        List<AStarPathNode> movementPath = path.FindPath((int)originUnit.self.transform.position.x, (int)originUnit.self.transform.position.y, (int)endNode.x, (int)endNode.y, true);
+        List<AStarPathNode> movementPath = path.FindPath((int)originUnit.gameObject.transform.position.x, (int)originUnit.gameObject.transform.position.y, (int)endNode.x, (int)endNode.y, true);
         if(movementPath != null )
         {
             List<Vector3> movement = new List<Vector3>();

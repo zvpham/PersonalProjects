@@ -8,18 +8,15 @@ public class PickupSystem : MonoBehaviour
     [SerializeField]
     private InventorySO inventoryData;
 
-    public void Pickup(Item item)
+    public void Pickup(Item item, int itemIndexInList)
     {
         if(item != null)
         {
             int remainder = inventoryData.AddItem(item.inventoryItem, item.quantity);
-            if(remainder == 0)
+            item.quantity = remainder;
+            if (remainder == 0)
             {
-                item.DestroyItem();
-            }
-            else
-            {
-                item.quantity = remainder;
+                item.DestroyItem(itemIndexInList);
             }
         }
     }
