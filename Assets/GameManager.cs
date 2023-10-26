@@ -13,6 +13,10 @@ using UnityEngine.Tilemaps;
 public class GameManager : MonoBehaviour, IDataPersistence
 {
     public static GameManager instance;
+
+    public int mapWidth;
+    public int mapHeight;
+
     public List<double> speeds;
     public List<int> priority;
     public List<int> statusPriority;
@@ -28,6 +32,8 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
     public Tilemap groundTilemap;
     public Tilemap collisionTilemap;
+
+    public MapGenerator mapGenerator;
 
     public ResourceManager resourceManager;
 
@@ -70,9 +76,9 @@ public class GameManager : MonoBehaviour, IDataPersistence
         {
             instance = this;
         }
-        grid = new Grid<Unit>(20, 10, 1f, new Vector3(-0.5f, -0.5f, 0f), (Grid<Unit> g, int x, int y) => null);
-        flyingGrid = new Grid<Unit>(20, 10, 1f, new Vector3(-0.5f, -0.5f, 0f), (Grid<Unit> g, int x, int y) => null);
-        itemgrid = new Grid<List<Item>>(20, 10, 1f, new Vector3(-0.5f, -0.5f, 0f), (Grid<List<Item>> g, int x, int y) => null);
+        grid = new Grid<Unit>(mapWidth, mapHeight, 1f, new Vector3(-0.5f, -0.5f, 0f), (Grid<Unit> g, int x, int y) => null);
+        flyingGrid = new Grid<Unit>(mapWidth, mapHeight, 1f, new Vector3(-0.5f, -0.5f, 0f), (Grid<Unit> g, int x, int y) => null);
+        itemgrid = new Grid<List<Item>>(mapWidth, mapHeight, 1f, new Vector3(-0.5f, -0.5f, 0f), (Grid<List<Item>> g, int x, int y) => null);
     }
 
     void Start()
@@ -98,7 +104,6 @@ public class GameManager : MonoBehaviour, IDataPersistence
         {
             isNewSlate = true;
             GameObject temp = Instantiate(resourceManager.unitPrefabs[0], new Vector3(10, 5, 0), new Quaternion(0, 0, 0, 1f));
-            Debug.Log(temp);
             return;
         }
         else
