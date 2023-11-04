@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using static UnityEditor.Progress;
 
@@ -12,6 +13,18 @@ public class Move
     {
         Vector3 originalPosition = target.gameObject.transform.position;
         target.gameObject.transform.position += (Vector3)direction;
+        Vector3 newPosition = target.gameObject.transform.position;
+
+        if(target.inMiddleMap && isPlayer)
+        {
+            int x = (int) (newPosition.x / gameManager.mapWidth);
+            int y = (int)(newPosition.y / gameManager.mapWidth);
+            if (x != 1 || y != 1)
+            {
+                
+            }
+        }
+
         if (CanMove(target, target.gameObject.transform.position, direction, gameManager))
         {
             if (IsEnemy(target, target.gameObject.transform.position, gameManager))
@@ -66,5 +79,10 @@ public class Move
             return true;
         }
         return false;
+    }
+
+    public static void ChangeScreens()
+    {
+
     }
 }

@@ -6,6 +6,7 @@ using UnityEngine;
 public class TileBase : ScriptableObject
 {
     public TileType tileType;
+    public string tileNameAbbreviation;
     public List<Structure> structures;
     public List<GameObject> setPieces;
     public List<Encounter> encounters;

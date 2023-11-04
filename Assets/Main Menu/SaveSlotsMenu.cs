@@ -57,6 +57,7 @@ public class SaveSlotsMenu : Menu
         else
         {
             DataPersistenceManager.Instance.ChangeSelectedProfileID(saveSlot.GetProfileId());
+            DataPersistenceManager.Instance.SaveGame(0, DataPersistenceManager.Instance.playerID);
             DataPersistenceManager.Instance.NewGame();
             SaveGameAndLoadScene();
         }
@@ -64,9 +65,11 @@ public class SaveSlotsMenu : Menu
 
     private void SaveGameAndLoadScene()
     {
+        /*
         // save the game anytime before Loading a new Scene
         DataPersistenceManager.Instance.SaveGame(0, DataPersistenceManager.Instance.playerID);
         DataPersistenceManager.Instance.SaveGame(DataPersistenceManager.Instance.autoSaveID, DataPersistenceManager.Instance.playerID);
+        */
         DataPersistenceManager.userID = DataPersistenceManager.Instance.playerID;
         // Load the Scene -  Which will inturn save the game Because of OnSceneUnloaded() in the DataPersistenceManager
         SceneManager.LoadSceneAsync("Game");
@@ -105,12 +108,12 @@ public class SaveSlotsMenu : Menu
         this.isLoadingGame = isLoadingGame;
 
         // Load alll of the profiles that exist
-        Dictionary<string, GameData> profilesGameData = DataPersistenceManager.Instance.GetAllProfilesGameData();
+        Dictionary<string, MapData> profilesGameData = DataPersistenceManager.Instance.GetAllProfilesGameData();
 
         //ensures the back button is enabled when we activate the menu
         BackButton.interactable = true;
 
-        Dictionary<string, GameData>.KeyCollection temp = profilesGameData.Keys;
+        Dictionary<string, MapData>.KeyCollection temp = profilesGameData.Keys;
         foreach(string key in temp)
         {
             Debug.Log("1 " + key);
@@ -120,7 +123,7 @@ public class SaveSlotsMenu : Menu
         GameObject firstSelected =  BackButton.gameObject;
         foreach(SaveSlot saveSlot in saveSlots)
         {
-            GameData profileData = null;
+            MapData profileData = null;
             Debug.Log(saveSlot.GetProfileId() + DataPersistenceManager.Instance.autoSaveID + DataPersistenceManager.Instance.playerID);
             profilesGameData.TryGetValue(saveSlot.GetProfileId() + " " + DataPersistenceManager.Instance.autoSaveID + " " +
                 DataPersistenceManager.Instance.playerID, out profileData);

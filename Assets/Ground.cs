@@ -6,13 +6,11 @@ using UnityEngine.Tilemaps;
 public class Ground : MonoBehaviour
 {
     public Tilemap groundTilemap;
-    public static Ground instance;
-    // Start is called before the first frame update
-    void Awake()
+    public GameManager gameManager;
+
+    public void Start()
     {
-        if (instance == null)
-        {
-            instance = this;
-        }
+        gameManager = GameManager.instance;
+        gameManager.groundTilemap = groundTilemap;
     }
 }

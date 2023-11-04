@@ -2,5 +2,6 @@ public enum TileType
 {
     Premade,
     GrassLand,
-    Forest
+    Forest,
+    Desert
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public interface IDataPersistence
 {
-    public void LoadData(GameData data);
+    public void LoadData(MapData mapData = null);
 
-    public void SaveData(GameData data);
+    public void SaveData(MapData mapData = null);
 }

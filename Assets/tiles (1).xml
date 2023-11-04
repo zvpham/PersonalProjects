@@ -1,0 +1,22 @@
+<set>
+  <tiles>
+<tile name="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls" symmetry="X" weight="1.0"/>
+<tile name="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Inside" symmetry="X" weight="1.0"/>
+<tile name="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Outside" symmetry="X" weight="1.0"/>
+	</tiles>
+<neighbors>  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Outside 0" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Outside 0"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Outside 1" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Outside 1"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Outside 0" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 0"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 0" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 0"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 1" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 1"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 1" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Inside 1"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Outside 1" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 1"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 0" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Inside 0"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Inside 0" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Inside 0"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Inside 1" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Inside 1"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Inside 0" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 0"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 0" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Outside 0"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Inside 1" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 1"/>
+  <neighbor left="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Walls 1" right="Assets/Map Generation/unity-wave-function-collapse/TilePainterColors/Outside 1"/>
+	</neighbors>
+</set>

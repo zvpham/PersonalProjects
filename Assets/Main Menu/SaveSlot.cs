@@ -32,7 +32,7 @@ public class SaveSlot : MonoBehaviour
         }
     }
 
-    public void SetData(GameData data)
+    public void SetData(MapData data)
     {
         // There's no data for this profileID
         if(data == null)

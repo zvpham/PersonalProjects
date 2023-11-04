@@ -64,6 +64,8 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public List<Action> baseActions;
 
     public List<Action> actions;
+
+    public List<Sense> senses = new List<Sense>();
     
     // These are only to be set on Load and Read after actions instanted
     // For Updating action cooldowns to be cooldowns in the saveData
@@ -92,6 +94,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         new List<Vector3>(), 0, 0, 0, 0, 0);
 
     public bool notOnHold = true;
+    public bool inMiddleMap = true;
 
     public bool inMelee;
     public bool continueDeath = true;

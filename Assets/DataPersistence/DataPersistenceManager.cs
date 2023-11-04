@@ -23,11 +23,14 @@ public class DataPersistenceManager : MonoBehaviour
     [Header("File Storage Config")]
 
     [SerializeField] private string fileName;
+    [SerializeField] private string mapFileName;
     [SerializeField] private bool useEncryption;
 
-    private GameData gameData;
+    private TileData gameData;
+    private MapData mapData;
     private List<IDataPersistence> dataPersistenceObjects;
-    private FileDataHandler dataHandler;
+    private FileDataHandler gameDataHandler;
+    private FileDataHandler mapDataHandler;
     private string selectedProfileId = "";
     public static string userID = "";
     public string playerID = "Player";
@@ -53,7 +56,8 @@ public class DataPersistenceManager : MonoBehaviour
             Debug.LogWarning("Data Persistence is currently disabled;");
         }
 
-        this.dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, useEncryption);
+        this.gameDataHandler = new FileDataHandler(Application.persistentDataPath, fileName, useEncryption);
+        this.mapDataHandler = new FileDataHandler(Application.persistentDataPath, mapFileName, useEncryption);
 
         InitializeSelectedProfileId();
     }
@@ -68,6 +72,11 @@ public class DataPersistenceManager : MonoBehaviour
     public void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveGame(autoSaveID, playerID);
     }
 
     // Reminder For Future Me you don't save on OnSceneUnloaded() because it already destroyed the previous scene
@@ -93,7 +102,7 @@ public class DataPersistenceManager : MonoBehaviour
     public void DeleteProfileData(string profileId)
     {
         // delete the data for his profile ID
-        dataHandler.Delete(profileId);
+        gameDataHandler.Delete(profileId);
 
         // initialize the selected profile Id
         InitializeSelectedProfileId();
@@ -106,13 +115,13 @@ public class DataPersistenceManager : MonoBehaviour
     {
         // delete the data 
         string fullerPath =  Path.Combine(selectedProfileId, autoSaveID, fullPath);
-        dataHandler.Delete(fullerPath);
+        gameDataHandler.Delete(fullerPath);
     }
 
     private void InitializeSelectedProfileId()
     {
         
-        string tempList = dataHandler.GetMostRecentlyUpdatedProfileId();
+        string tempList = gameDataHandler.GetMostRecentlyUpdatedProfileId();
         try
         {
             this.selectedProfileId = tempList.Substring(0, 1);
@@ -132,7 +141,32 @@ public class DataPersistenceManager : MonoBehaviour
 
     public void NewGame()
     {
-        this.gameData = new GameData();
+        this.gameData = new TileData();
+    }
+
+    public void LoadMapData()
+    {
+        //return right away if data persistence is disabled
+        if (disableDataPersistence)
+        {
+            return;
+        }
+
+        //Load Any saved Data from a file using the Data handler
+        this.gameData = mapDataHandler.Load(selectedProfileId);
+
+        //if no data can be loaded, initialize to a new game
+        if (this.gameData == null)
+        {
+            Debug.Log("No data was found. A New Game needs to be started before data can be loaded.");
+            return;
+        }
+
+        // Push the Loaded Data to all other scripts that need it
+        foreach (IDataPersistence dataPersistenceObj in dataPersistenceObjects)
+        {
+            dataPersistenceObj.LoadData(mapData);
+        }
     }
 
     public void LoadGame()
@@ -144,7 +178,7 @@ public class DataPersistenceManager : MonoBehaviour
         }
 
         //Load Any saved Data from a file using the Data handler
-        this.gameData = dataHandler.Load(selectedProfileId, autoSaveID, userID);
+        this.gameData = gameDataHandler.Load(selectedProfileId, autoSaveID, userID);
 
         //start a new game if the data is null and we're configured to initialize data for debugging Purposes
         if(this.gameData == null  && initializeDataIfNull)
@@ -162,7 +196,7 @@ public class DataPersistenceManager : MonoBehaviour
         // Push the Loaded Data to all other scripts that need it
         foreach(IDataPersistence dataPersistenceObj in dataPersistenceObjects)
         {
-            dataPersistenceObj.LoadData(gameData);
+            dataPersistenceObj.LoadData(mapData);
         }
     }
 
@@ -175,7 +209,7 @@ public class DataPersistenceManager : MonoBehaviour
         }
 
         //Load Any saved Data from a file using the Data handler
-        this.gameData = dataHandler.Load(selectedProfileId, autoSaveID, subFolder);
+        this.gameData = gameDataHandler.Load(selectedProfileId, autoSaveID, subFolder);
 
         //start a new game if the data is null and we're configured to initialize data for debugging Purposes
         if (this.gameData == null && initializeDataIfNull)
@@ -193,8 +227,13 @@ public class DataPersistenceManager : MonoBehaviour
         // Push the Loaded Data to all other scripts that need it
         foreach (IDataPersistence dataPersistenceObj in dataPersistenceObjects)
         {
-            dataPersistenceObj.LoadData(gameData);
+            //dataPersistenceObj.LoadData(gameData);
         }
+    }
+
+    public TileData GetTileData(string timeID, Vector2Int tileLocation)
+    {
+        return gameDataHandler.Load(selectedProfileId, timeID, userID, tileLocation.x.ToString(), tileLocation.y.ToString());
     }
 
     private void SaveGameBase()
@@ -215,17 +254,19 @@ public class DataPersistenceManager : MonoBehaviour
         // pass data to other scirpts so they can update it
         foreach (IDataPersistence dataPersistenceObj in dataPersistenceObjects)
         {
-            dataPersistenceObj.SaveData(gameData);
+            dataPersistenceObj.SaveData(mapData);
         }
 
         gameData.lastUpdated = System.DateTime.Now.ToBinary();
+        mapData.lastUpdated = System.DateTime.Now.ToBinary();
+
     }
 
     public void SaveGame(int timeID, string subFolder)
     {
         SaveGameBase();
         //Save that data to a file using the data handler
-        dataHandler.Save(gameData, selectedProfileId, timeID.ToString(), subFolder);
+        gameDataHandler.Save(gameData, selectedProfileId, timeID.ToString(), subFolder);
     }
 
     // For AutoSaves
@@ -234,24 +275,20 @@ public class DataPersistenceManager : MonoBehaviour
     {
         SaveGameBase();
         //Save that data to a file using the data handler
-        dataHandler.Save(gameData, selectedProfileId, dirName, subFolder);
+        gameDataHandler.Save(gameData, selectedProfileId, dirName, subFolder);
     }
 
+    // For Manuel Saves and Precognition
     public void SaveGame(string subFolder)
     {
         SaveGameBase();
         //Save that data to a file using the data handler
-        dataHandler.Save(gameData, selectedProfileId, subFolder);
+        gameDataHandler.Save(gameData, selectedProfileId, subFolder);
     }
 
     public void ChangeGameData(string subFolder)
     {
         this.gameData.saveToDelete = subFolder;
-    }
-
-    private void OnApplicationQuit()
-    {
-        SaveGame(autoSaveID, playerID);
     }
 
     private List<IDataPersistence> FindAllDataPersistenceObjects()
@@ -273,8 +310,8 @@ public class DataPersistenceManager : MonoBehaviour
         return userID.ToString();
     }
 
-    public Dictionary<string, GameData> GetAllProfilesGameData()
+    public Dictionary<string, MapData> GetAllProfilesGameData()
     {
-        return dataHandler.LoadAllProfiles();
+        return gameDataHandler.LoadAllProfiles();
     }
 }

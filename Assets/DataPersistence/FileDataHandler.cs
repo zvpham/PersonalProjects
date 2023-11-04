@@ -15,6 +15,8 @@ public class FileDataHandler
 
     private readonly string encryptionCodeWord = "TouchGrass";
 
+    private readonly string fileExtension = ".game";
+
     private readonly string backupExtension = ".bak";
 
     public FileDataHandler(string dataDirPath, string dataFileName, bool useEncryption)
@@ -24,7 +26,7 @@ public class FileDataHandler
         this.useEncryption = useEncryption;
     }
 
-    public GameData Load(string profileId, bool allowedRestoreFromBackup = true)
+    public TileData Load(string profileId, bool allowedRestoreFromBackup = true)
     {
         // base Case - if the profileId is nll, return right away
         if(profileId == null)
@@ -33,12 +35,12 @@ public class FileDataHandler
         }
 
         // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
-        string fullPath = Path.Combine(dataDirPath, profileId, dataFileName);
+        string fullPath = Path.Combine(dataDirPath, profileId, dataFileName + fileExtension);
         List<string> dataPath = new List<string>() { profileId};
         return LoadBase(fullPath, dataPath, allowedRestoreFromBackup);
     }
 
-    public GameData Load(string profileId, string timeID, string subFolder, bool allowedRestoreFromBackup = true)
+    public TileData Load(string profileId, string timeID, string subFolder, bool allowedRestoreFromBackup = true)
     {
         // base Case - if the profileId is nll, return right away
         if (profileId == null)
@@ -55,14 +57,44 @@ public class FileDataHandler
         }
 
         // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
-        string fullPath = Path.Combine(dataDirPath, profileId, timeID, subFolder, dataFileName);
+        string fullPath = Path.Combine(dataDirPath, profileId, timeID, subFolder, dataFileName + fileExtension);
         List<string> dataPath = new List<string>() { profileId, timeID, subFolder };
         return LoadBase(fullPath, dataPath, allowedRestoreFromBackup);
     }
 
-    public GameData LoadBase(string fullPath, List<string> dataPath, bool allowedRestoreFromBackup = true)
+    public TileData Load(string profileId, string timeID, string subFolder, string x, string y, bool allowedRestoreFromBackup = true)
     {
-        GameData loadedData = null;
+        // base Case - if the profileId is nll, return right away
+        if (profileId == null)
+        {
+            return null;
+        }
+        if (timeID == null)
+        {
+            return null;
+        }
+        if (subFolder == null)
+        {
+            return null;
+        }
+        if(x == null)
+        {
+            return null;
+        }
+        if (y == null)
+        {
+            return null;
+        }
+
+        // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
+        string fullPath = Path.Combine(dataDirPath, profileId, timeID, subFolder, dataFileName + x + y + fileExtension);
+        List<string> dataPath = new List<string>() { profileId, timeID, subFolder };
+        return LoadBase(fullPath, dataPath, allowedRestoreFromBackup);
+    }
+
+    public TileData LoadBase(string fullPath, List<string> dataPath, bool allowedRestoreFromBackup = true)
+    {
+        TileData loadedData = null;
         if (File.Exists(fullPath))
         {
             try
@@ -83,7 +115,7 @@ public class FileDataHandler
                 }
 
                 //Deserialize the data from Json back into the C# object
-                loadedData = JsonUtility.FromJson<GameData>(dataToLoad);
+                loadedData = JsonUtility.FromJson<TileData>(dataToLoad);
             }
             catch (Exception e)
             {
@@ -126,7 +158,95 @@ public class FileDataHandler
         return loadedData;
     }
 
-    public void Save(GameData data, string profileId, string timeID, string subFolder)
+    public MapData LoadMapData(string profileId, string timeID, string subFolder, bool allowedRestoreFromBackup = true)
+    {
+        // base Case - if the profileId is nll, return right away
+        if (profileId == null)
+        {
+            return null;
+        }
+        if (timeID == null)
+        {
+            return null;
+        }
+        if (subFolder == null)
+        {
+            return null;
+        }
+
+        // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
+        string fullPath = Path.Combine(dataDirPath, profileId, timeID, subFolder, dataFileName + fileExtension);
+        List<string> dataPath = new List<string>() { profileId, timeID, subFolder };
+        return LoadMapDataBase(fullPath, dataPath, allowedRestoreFromBackup);
+    }
+
+    public MapData LoadMapDataBase(string fullPath, List<string> dataPath, bool allowedRestoreFromBackup = true)
+    {
+        MapData loadedData = null;
+        if (File.Exists(fullPath))
+        {
+            try
+            {
+                string dataToLoad = "";
+                using (FileStream stream = new FileStream(fullPath, FileMode.Open))
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        dataToLoad = reader.ReadToEnd();
+                    }
+                }
+
+                //Optionally Decrypt Data
+                if (useEncryption)
+                {
+                    dataToLoad = EncryptDecrypt(dataToLoad);
+                }
+
+                //Deserialize the data from Json back into the C# object
+                loadedData = JsonUtility.FromJson<MapData>(dataToLoad);
+            }
+            catch (Exception e)
+            {
+                //Since We're calling Load recursively, we need to account for the case wehre
+                // the Rollback succeseds, but data is still failing to load for some other reason
+                // which without this scheck may happen an infinite amount of tims
+                if (allowedRestoreFromBackup)
+                {
+                    Debug.LogWarning("Failed to Load data file. Attempting to roll back. \n" + e);
+                    bool rollbackSuccess = AttemptRollback(fullPath);
+                    if (rollbackSuccess)
+                    {
+                        // try to load again recursively for rollback\
+                        switch (dataPath.Count)
+                        {
+                            case 0:
+                                Debug.LogError("ROLLBACK SAVES ARE BROKEN HELP");
+                                return null;
+                            case 1:
+                                //ProfileID
+                                //loadedData = Load(dataPath[0], false);
+                                break;
+                            case 2:
+                                //Currenly not Implemented
+                                break;
+                            case 3:
+                                loadedData = LoadMapData(dataPath[0], dataPath[1], dataPath[2], false);
+                                break;
+                        }
+                    }
+                }
+                // if we hit this, one possibility is that the backup file is also corrupt
+                else
+                {
+                    Debug.LogError("error occured when trying to load file at path: " + fullPath
+                        + " and backup did not work.\n" + e);
+                }
+            }
+        }
+        return loadedData;
+    }
+
+    public void Save(TileData data, string profileId, string timeID, string subFolder)
     {
 
         // base Case - if the profileId is nll, return right away
@@ -137,7 +257,7 @@ public class FileDataHandler
 
         // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
         string temp = Path.Combine(profileId, timeID, subFolder);
-        string fullPath = Path.Combine(dataDirPath, temp, dataFileName);
+        string fullPath = Path.Combine(dataDirPath, temp, dataFileName + fileExtension);
         string backupFilePAth = fullPath + backupExtension;
         try
         {
@@ -163,7 +283,7 @@ public class FileDataHandler
             }
 
             // verify the newly saved file can be loaded successfully
-            GameData verifiedGameDatya = Load(profileId, timeID, subFolder);
+            TileData verifiedGameDatya = Load(profileId, timeID, subFolder);
             //if the data can be verified, back it up;
             if(verifiedGameDatya != null)
             {
@@ -181,7 +301,7 @@ public class FileDataHandler
         }
     }
 
-    public void Save(GameData data, string profileId, string subFolder)
+    public void Save(TileData data, string profileId, string subFolder)
     {
 
         // base Case - if the profileId is null, return right away
@@ -191,7 +311,7 @@ public class FileDataHandler
         }
 
         // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
-        string fullPath = Path.Combine(dataDirPath, profileId, DataPersistenceManager.Instance.autoSaveID, subFolder, dataFileName);
+        string fullPath = Path.Combine(dataDirPath, profileId, DataPersistenceManager.Instance.autoSaveID, subFolder, dataFileName + fileExtension);
         string backupFilePAth = fullPath + backupExtension;
         try
         {
@@ -217,7 +337,7 @@ public class FileDataHandler
             }
 
             // verify the newly saved file can be loaded successfully
-            GameData verifiedGameDatya = Load(profileId, DataPersistenceManager.Instance.autoSaveID, subFolder);
+            TileData verifiedGameDatya = Load(profileId, DataPersistenceManager.Instance.autoSaveID, subFolder);
             //if the data can be verified, back it up;
             if (verifiedGameDatya != null)
             {
@@ -267,9 +387,9 @@ public class FileDataHandler
         }
     }
 
-    public Dictionary<string, GameData> LoadAllProfiles()
+    public Dictionary<string, MapData> LoadAllProfiles()
     {
-        Dictionary<string, GameData> profileDictionary = new Dictionary<string, GameData>();
+        Dictionary<string, MapData> profileDictionary = new Dictionary<string, MapData>();
 
         //Loop over all directory names in the data directionary path
         IEnumerable<DirectoryInfo> profileDirInfos = new DirectoryInfo(dataDirPath).EnumerateDirectories();
@@ -291,7 +411,7 @@ public class FileDataHandler
                         {
                             // defensive programming - check if data file exists
                             // if it doesn't, then folder isn't a profile and should be skipped
-                            string fullPath = Path.Combine(dataDirPath, profileDirInfo.Name, dirInfo.Name, userInfo.Name, dataFileName);
+                            string fullPath = Path.Combine(dataDirPath, profileDirInfo.Name, dirInfo.Name, userInfo.Name, dataFileName + fileExtension);
                             if (!File.Exists(fullPath))
                             {
                                 Debug.LogWarning("Skipping Directory when loading all profiles because it does not contain data: " + profileDirInfo.Name +
@@ -300,7 +420,7 @@ public class FileDataHandler
                             }
 
                             // Load the game data for this profile and put it in the Dictionary
-                            GameData profileData = Load(profileDirInfo.Name, dirInfo.Name, userInfo.Name);
+                            MapData profileData = LoadMapData(profileDirInfo.Name, dirInfo.Name, userInfo.Name);
 
                             //defensive programming ensure the profie data isn't null,
                             // because if it is then something went wrong and we should let Ourselves know
@@ -327,14 +447,14 @@ public class FileDataHandler
     {
         string mostRecentProfileId = null;
 
-        Dictionary<string, GameData> profilesGameData = LoadAllProfiles();
-        foreach(KeyValuePair<string, GameData> pair in profilesGameData)
+        Dictionary<string, MapData> profilesGameData = LoadAllProfiles();
+        foreach(KeyValuePair<string, MapData> pair in profilesGameData)
         {
             string profileId = pair.Key;
-            GameData gameData = pair.Value;
+            MapData mapData = pair.Value;
 
             // SKip entry if null
-            if(gameData == null)    
+            if(mapData == null)    
             {
                 continue;
             }
@@ -348,7 +468,7 @@ public class FileDataHandler
             else
             {
                 DateTime mostRecentDateTime = DateTime.FromBinary(profilesGameData[mostRecentProfileId].lastUpdated);
-                DateTime newDateTime = DateTime.FromBinary(gameData.lastUpdated);
+                DateTime newDateTime = DateTime.FromBinary(mapData.lastUpdated);
 
                 // the greastest DateTime value is the most recent
                 if(newDateTime > mostRecentDateTime)
@@ -359,7 +479,7 @@ public class FileDataHandler
         }
         return mostRecentProfileId;
     }
-
+     
     private string EncryptDecrypt(string data)
     {
         string modifiedData = "";

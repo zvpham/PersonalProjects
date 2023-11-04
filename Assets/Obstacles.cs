@@ -6,14 +6,12 @@ using UnityEngine.Tilemaps;
 public class Obstacles : MonoBehaviour
 {
     public Tilemap collisionTilemap;
-    public static Obstacles instance;
-    // Start is called before the first frame update
-    void Awake()
+    public GameManager gameManager;
+    
+    public void Start()
     {
-        if (instance == null)
-        {
-            instance = this;
-        }
+        gameManager = GameManager.instance;
+        gameManager.collisionTilemap = collisionTilemap;
     }
 }
 
