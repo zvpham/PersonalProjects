@@ -35,6 +35,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public int enduranceMod;
     public int armorValue;
     public int health;
+    public int maxHealth;
 
     public int wisdom = 16;
     public int wisdomMod;

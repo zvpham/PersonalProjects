@@ -304,13 +304,13 @@ public class WorldMapTilePainter : MonoBehaviour
         TileBase[,] tileBases = new TileBase[width, height];
         string debugWord = "";
         List<string> debugWorld = new List<string>();
-        for(int i = 0; i < width; i++)
+        for(int i = 0; i < height; i++)
         {
             debugWord = "";
-            for(int j = 0; j < height; j++)
+            for(int j = 0; j < width; j++)
             {
-                tileBases[i, j] = tileobs[i, j].GetComponent<WorldMapTile>().Tile;
-                debugWord += tileobs[i, j].GetComponent<WorldMapTile>().Tile.tileNameAbbreviation + " ";
+                tileBases[j, i] = tileobs[j, i].GetComponent<WorldMapTile>().Tile;
+                debugWord += tileobs[j, i].GetComponent<WorldMapTile>().Tile.tileNameAbbreviation + " ";
             }
             debugWorld.Add(debugWord);  
         }

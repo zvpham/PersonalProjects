@@ -1,4 +1,5 @@
 using Inventory.Model;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,5 +17,8 @@ public class ResourceManager : ScriptableObject
     public List<CreatedField> createdFields = new List<CreatedField>();
     public List<CreatedObject> createdObjects = new List<CreatedObject>();
     public List<GameObject> createdObjectHoldersPrefabs = new List<GameObject>();
+
+    public List<GameObject> walls;
+    public List<WallSpriteStruct> wallSprites;
 
 }

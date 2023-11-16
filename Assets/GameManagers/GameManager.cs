@@ -41,6 +41,7 @@ public class GameManager : MonoBehaviour
     public Grid<Unit> grid;
     public Grid<Unit> flyingGrid;
     public Grid<List<Item>> itemgrid;
+    public Grid<Wall> obstacleGrid;
 
     public List<Unit> scripts;
     public List<Item> items;
@@ -80,6 +81,7 @@ public class GameManager : MonoBehaviour
         grid = new Grid<Unit>(mapWidth, mapHeight, 1f, defaultGridPosition, (Grid<Unit> g, int x, int y) => null);
         flyingGrid = new Grid<Unit>(mapWidth, mapHeight, 1f, defaultGridPosition, (Grid<Unit> g, int x, int y) => null);
         itemgrid = new Grid<List<Item>>(mapWidth, mapHeight, 1f, defaultGridPosition, (Grid<List<Item>> g, int x, int y) => null);
+        obstacleGrid = new Grid<Wall>(mapWidth, mapHeight, 1f, defaultGridPosition, (Grid<Wall> g, int x, int y) => null);
     }
 
     void Start()
