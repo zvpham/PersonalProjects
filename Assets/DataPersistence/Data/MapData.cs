@@ -6,9 +6,12 @@ public class MapData
 {
     public long lastUpdated;
 
+    public float extraDangerModifier;
+    public Vector2Int playerPosition;
     public Vector2Int currentMapPosition;
-    public List<Vector2> previousMapPositions;
-    public List<Vector2> mapPositionsKey;
+    public bool changedMapPosition;
+    public List<Vector2Int> previousMapPositions;
+    public List<Vector2Int> mapPositionsKey;
     public List<int> mapPositionValue;
-    public bool[,] hasVisitedLocations;
+    public List<Vector3Int> hasVisitedLocations;
 }

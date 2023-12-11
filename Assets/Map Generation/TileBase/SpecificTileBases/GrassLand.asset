@@ -12,10 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0619dfa5279a2274593b06e8a3f453ff, type: 3}
   m_Name: GrassLand
   m_EditorClassIdentifier: 
+  tileIndex: 0
   tileType: 1
+  isUnderground: 0
   tileNameAbbreviation: G
-  structures: []
-  setPieces: []
-  encounters: []
-  minDanger: 0
-  maxDanger: 10
+  structures:
+  - {fileID: 11400000, guid: 001f36c939057d946994d9727bca87cc, type: 2}
+  setPieces:
+  - {fileID: 6420521474990462733, guid: 642037ee35a0b5a41a38e18386666b1c, type: 3}
+  encounter: {fileID: 11400000, guid: 762813cc385f0ac4c926067467732fe7, type: 2}
+  setPieceFactorMin: 0.16
+  setPieceFactorMax: 0.32
+  oneStructureChance: 0.25
+  twoStructureChance: 0.1
+  threeStructureChance: 0.05
+  fourStructureChance: 0.05

@@ -12,33 +12,51 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71d10cb9a91482e44a637539ec57d721, type: 3}
   m_Name: TemplateWallStruct
   m_EditorClassIdentifier: 
-  UpperVerticalWall: {fileID: 2016555893, guid: e1a8401086ea214419e61bea4f8a05d6,
-    type: 3}
-  LowerVerticalWall: {fileID: -1223221576, guid: e1a8401086ea214419e61bea4f8a05d6,
-    type: 3}
-  SoleWall: {fileID: -1847777106, guid: e1a8401086ea214419e61bea4f8a05d6, type: 3}
-  LeftHorzontalWall: {fileID: -510643772, guid: e1a8401086ea214419e61bea4f8a05d6,
-    type: 3}
-  RightHorzontalWall: {fileID: 1572695302, guid: e1a8401086ea214419e61bea4f8a05d6,
-    type: 3}
-  NorthWestWallModified: {fileID: -1603116230, guid: e1a8401086ea214419e61bea4f8a05d6,
-    type: 3}
-  CenterHorzontalWall: {fileID: 1457296059, guid: e1a8401086ea214419e61bea4f8a05d6,
-    type: 3}
-  NorthEastWallModified: {fileID: 533435116, guid: e1a8401086ea214419e61bea4f8a05d6,
-    type: 3}
-  NorthWestWall: {fileID: -1112570488, guid: e1a8401086ea214419e61bea4f8a05d6, type: 3}
-  NorthWall: {fileID: 2073202390, guid: e1a8401086ea214419e61bea4f8a05d6, type: 3}
-  NorthEastWall: {fileID: 2016035603, guid: e1a8401086ea214419e61bea4f8a05d6, type: 3}
-  CenterVerticalWall: {fileID: -961166613, guid: e1a8401086ea214419e61bea4f8a05d6,
-    type: 3}
-  EastWall: {fileID: -427189500, guid: e1a8401086ea214419e61bea4f8a05d6, type: 3}
-  CenterWall: {fileID: -2136261794, guid: e1a8401086ea214419e61bea4f8a05d6, type: 3}
-  WestWall: {fileID: 383181195, guid: e1a8401086ea214419e61bea4f8a05d6, type: 3}
-  SouthWestWallModified: {fileID: -1758505894, guid: e1a8401086ea214419e61bea4f8a05d6,
-    type: 3}
-  SouthEastWallModified: {fileID: -192371382, guid: e1a8401086ea214419e61bea4f8a05d6,
-    type: 3}
-  SouthWestWall: {fileID: 173050492, guid: e1a8401086ea214419e61bea4f8a05d6, type: 3}
-  SouthWall: {fileID: -2017495372, guid: e1a8401086ea214419e61bea4f8a05d6, type: 3}
-  SouthEastWall: {fileID: -1437621416, guid: e1a8401086ea214419e61bea4f8a05d6, type: 3}
+  texture: {fileID: 0}
+  UpperVerticalWall: {fileID: 0}
+  NorthModifiedRightSmallConnector: {fileID: 0}
+  NorthWallThreeWay: {fileID: 0}
+  NorthModifiedLeftSmallConnector: {fileID: 0}
+  CenterNorthSmallRightConnectorWall: {fileID: 0}
+  CenterNorthThreeWay: {fileID: 0}
+  CenterNorthSmallLeftConnectorWall: {fileID: 0}
+  WestThreeWay: {fileID: 0}
+  SouthModifiedRightSmallConnector: {fileID: 0}
+  SouthWallThreeWay: {fileID: 0}
+  SouthModifiedLeftSmallConnector: {fileID: 0}
+  CenterSouthSmallRightConnectorWall: {fileID: 0}
+  CenterSouthThreeWay: {fileID: 0}
+  CenterSouthSmallLeftConnectorWall: {fileID: 0}
+  LowerVerticalWall: {fileID: 0}
+  NorthWestWallModified: {fileID: 0}
+  CenterHorzontalWall: {fileID: 0}
+  NorthEastWallModified: {fileID: 0}
+  NorthWestWall: {fileID: 0}
+  NorthWall: {fileID: 0}
+  NorthEastWall: {fileID: 0}
+  LeftHorzontalWall: {fileID: 0}
+  EastThreeWay: {fileID: 0}
+  CenterVerticalWall: {fileID: 0}
+  WestWall: {fileID: 0}
+  CenterWall: {fileID: 0}
+  EastWall: {fileID: 0}
+  SoleWall: {fileID: 0}
+  SouthWestWallModified: {fileID: 0}
+  RightHorzontalWall: {fileID: 0}
+  SouthEastWallModified: {fileID: 0}
+  SouthWestWall: {fileID: 0}
+  SouthWall: {fileID: 0}
+  SouthEastWall: {fileID: 0}
+  WestModifiedUpperConnector: {fileID: 0}
+  EastModifiedUpperConnector: {fileID: 0}
+  CenterWestThreeWay: {fileID: 0}
+  CenterEastThreeWay: {fileID: 0}
+  CenterNorthEastToSouthWest: {fileID: 0}
+  CenterNorthWestToSouthEast: {fileID: 0}
+  CenterFourWay: {fileID: 0}
+  WestModifiedLowerConnector: {fileID: 0}
+  EastModifiedLowerConnector: {fileID: 0}
+  CenterNorthWestConnector: {fileID: 0}
+  CenterSouthWestConnector: {fileID: 0}
+  CenterSouthEastConnector: {fileID: 0}
+  CenterNorthEastConnector: {fileID: 0}

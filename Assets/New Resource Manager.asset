@@ -24,6 +24,7 @@ MonoBehaviour:
   - {fileID: 3922956318568513558, guid: 87c633fcde12f9a45bc88e009e6caf05, type: 3}
   - {fileID: 8096759470053534158, guid: 50497ed9059cccf4d8c0e2d69851928b, type: 3}
   - {fileID: 8096759470053534158, guid: e92e268034a0d264783d64aa2dc40030, type: 3}
+  - {fileID: 2527387851303890164, guid: 553bfb20872ef0a458e7b394829a2ab5, type: 3}
   genericItemPrefab: {fileID: 2351099714194458737, guid: b0cf2a572f768984d94b0ef6b7ffccc7,
     type: 3}
   items:
@@ -39,6 +40,21 @@ MonoBehaviour:
   createdObjectHoldersPrefabs:
   - {fileID: 2828790863296621109, guid: 4236afa84b24ca2498f88e6924107f37, type: 3}
   walls:
+  - {fileID: 2527387851303890164, guid: c92366727666422448a099501d0ca668, type: 3}
+  - {fileID: 2527387851303890164, guid: 7f434878fc16e4b46a43818c1c2cc5ac, type: 3}
   - {fileID: 6420521474990462733, guid: 642037ee35a0b5a41a38e18386666b1c, type: 3}
   wallSprites:
   - {fileID: 11400000, guid: b2792d25b2be7164f8a7fd28e1997835, type: 2}
+  tilesBases:
+  - {fileID: 11400000, guid: ca26216478ba67d49b18cb6224931741, type: 2}
+  - {fileID: 11400000, guid: 7fbdce591e6947246b7ff2076d1d93a0, type: 2}
+  - {fileID: 11400000, guid: f03e1a567ad19eb429bcefdc63523639, type: 2}
+  - {fileID: 11400000, guid: 2653de1a9dbcc974ab784b2ca8786018, type: 2}
+  tileBasePrefabs:
+  - {fileID: 1689565927711930161, guid: dbaa5543ba2b26e4f8dbc19ea2e7bdba, type: 3}
+  - {fileID: 1689565927711930161, guid: 35cc8a19c9cb7544f91864b8893e5e94, type: 3}
+  - {fileID: 1689565927711930161, guid: 982409dabd9d4a747b469ac9aba23ea8, type: 3}
+  - {fileID: 1689565927711930161, guid: 663a08c37de305c4fbdd7c71db983444, type: 3}
+  WFCTrainerTemplates:
+  - {fileID: 6673060735310548668, guid: ff7b12151337fdd41990b58af146d42b, type: 3}
+  - {fileID: 5237512561074942730, guid: 97bed6a851c0fa943ac486e707ea852a, type: 3}

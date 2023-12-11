@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6420521474990462739}
   - component: {fileID: 6420521474990462732}
   - component: {fileID: 7561758983990387118}
+  - component: {fileID: 3850787745693021563}
   m_Layer: 0
   m_Name: WoodenWall
   m_TagString: Untagged
@@ -106,3 +107,18 @@ MonoBehaviour:
   spriteIndex: -1
   gameManager: {fileID: 0}
   continueDeath: 0
+--- !u!114 &3850787745693021563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6420521474990462733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35af732127ba6da489b88cc7ecac5b01, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wallIndex: 2
+  mapGenerationState: 1
+  wallState: 0

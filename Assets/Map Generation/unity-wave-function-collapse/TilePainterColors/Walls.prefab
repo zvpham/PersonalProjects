@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1879058389175090589}
   - component: {fileID: 4754085508572171995}
+  - component: {fileID: 8101329099114765516}
   m_Layer: 0
   m_Name: Walls
   m_TagString: Untagged
@@ -84,3 +85,16 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &8101329099114765516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 62757905449272669}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 578d4a900c062fb40b4a4a8eeaad1923, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  WFCState: 2

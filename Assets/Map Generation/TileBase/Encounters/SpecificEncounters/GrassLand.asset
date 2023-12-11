@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b4ad888ae64628468591cd543b680dd, type: 3}
+  m_Name: GrassLand
+  m_EditorClassIdentifier: 
+  easyUnitEncounters:
+  - {fileID: 11400000, guid: a4cd9a34b943d534884383fde7fb4d80, type: 2}
+  mediumUnitEncounters:
+  - {fileID: 11400000, guid: 9817b101e33e42d41b6a9acadc6fd023, type: 2}
+  hardUnitEncounters:
+  - {fileID: 11400000, guid: 72e2bd7cfeb7f104eaf80fb9b6e489b1, type: 2}
+  easyCompositions:
+  - {fileID: 11400000, guid: c350ce248019cba448b152e77905dfed, type: 2}
+  - {fileID: 11400000, guid: 9aad3369a854fea4f8c3c9619f522bc1, type: 2}
+  - {fileID: 11400000, guid: 5c43247228876184b99e15a154e8aed0, type: 2}
+  mediumCompositions:
+  - {fileID: 11400000, guid: 5ab5ef3d4f7377440a50780f81446838, type: 2}
+  - {fileID: 11400000, guid: 976434336bcfa5148b22cca8c90d6696, type: 2}
+  - {fileID: 11400000, guid: 455fdc2258a39a842a9bef551f5f3007, type: 2}
+  - {fileID: 11400000, guid: 70c873d2a54cd8b4ba6c555d474cd3f5, type: 2}
+  - {fileID: 11400000, guid: 24f6ba30c4b37b546bda667fc2aaf615, type: 2}
+  - {fileID: 11400000, guid: 92e7c5c9badf6fe468388679dc2d677d, type: 2}
+  - {fileID: 11400000, guid: 771ad3c1135f0b94b9f97e96ffb0d977, type: 2}
+  - {fileID: 11400000, guid: 6f4d592dd2e67d747984e9e4a31cb89b, type: 2}
+  hardCompositions:
+  - {fileID: 11400000, guid: 2fd710ff5dc50184ba833ab40fdf39b4, type: 2}
+  - {fileID: 11400000, guid: 2a01938e3a06468439dc9b38c9bb95ed, type: 2}
+  - {fileID: 11400000, guid: 6fc94d170fe60a14da8cf67b0053b025, type: 2}
+  - {fileID: 11400000, guid: eac2f832d84f5184f8a1a67449fd68ae, type: 2}
+  - {fileID: 11400000, guid: d76c4eff60e051f4baefc9b9c2acc2fa, type: 2}
+  - {fileID: 11400000, guid: ab72c7f7ce4355a41b0d66fbaaac33c2, type: 2}
+  - {fileID: 11400000, guid: f0bd6342719d56a43b4123560c544800, type: 2}
+  - {fileID: 11400000, guid: 907c43bf977483444ba2379bab4dca32, type: 2}
+  - {fileID: 11400000, guid: bbe7d235d41d73f48b3c00dc415893c1, type: 2}
+  - {fileID: 11400000, guid: b3080e30e78e5094ba8449ebd69f6a82, type: 2}
+  - {fileID: 11400000, guid: 78bebf69fdbcc7e4a9cf4e4e77cc709b, type: 2}
+  - {fileID: 11400000, guid: 34a34b7728a5ef54888c658607f83409, type: 2}
+  - {fileID: 11400000, guid: ad4475554b4d8954d84639b1a58ce64f, type: 2}
+  - {fileID: 11400000, guid: 92d4c8e60e5d095449389767f077da2f, type: 2}
+  - {fileID: 11400000, guid: 2854ecded16fc444780743a4232ce385, type: 2}
+  - {fileID: 11400000, guid: 016e17063c42d7f4aab2a590d6aed430, type: 2}
+  - {fileID: 11400000, guid: 4ee42574af86a07459fa65b883173090, type: 2}
+  easyDangerChance: 0.6
+  mediumDangerChance: 0.25
+  hardDangerChance: 0.15

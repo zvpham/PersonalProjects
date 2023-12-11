@@ -127,12 +127,12 @@ public class GameManager : MonoBehaviour
             unitPrefabData tempData = data.unitPrefabDatas[i];
             GameObject temp = Instantiate(resourceManager.unitPrefabs[tempData.unitPrefabIndex], tempData.position, new Quaternion(0, 0, 0, 1f));
             Unit unit = temp.GetComponent<Unit>();
+            unit.gameManager = this;
             this.scripts.Add(unit);
             unit.health = tempData.health;
             unit.actionNamesForCoolDownOnLoad = tempData.actionNames;
             unit.currentCooldownOnLoad = tempData.actionCooldowns;
             unit.forcedMovementPathData = tempData.forcedMovementPathData;
-            unit.gameManager = this;
         }
         this.speeds = data.speeds;
         this.priority = data.priority;
@@ -344,6 +344,23 @@ public class GameManager : MonoBehaviour
             animatedFieldDataList.Add(tempAnimatedField);
         }
         data.animatedFields = animatedFieldDataList;
+    }
+
+    public void FreezeTile()
+    {
+        for (int i = 0; i < allStatuses.Count; i++)
+        {
+            numberOfStatusRemoved = 0;
+            if (i < 0)
+            {
+                break;
+            }
+            Unit tempUnit = allStatuses[i].targetUnit;
+            int tempIndex = tempUnit.statusDuration.Count;
+            allStatuses[i].RemoveEffect(tempUnit);
+            i -= numberOfStatusRemoved;
+            numberOfStatusRemoved = 0;
+        }
     }
 
     // Update is called once per frame 

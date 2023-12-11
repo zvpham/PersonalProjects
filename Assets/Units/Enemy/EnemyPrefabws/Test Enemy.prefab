@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6691114388673293122}
   - component: {fileID: 5251331894971950647}
   - component: {fileID: 5251331894971950644}
+  - component: {fileID: 5932907190750561983}
   m_Layer: 0
   m_Name: Test Enemy
   m_TagString: Untagged
@@ -111,6 +112,7 @@ MonoBehaviour:
   enduranceMod: 0
   armorValue: 0
   health: 100
+  maxHealth: 0
   wisdom: 16
   wisdomMod: 0
   intelligence: 16
@@ -130,6 +132,7 @@ MonoBehaviour:
   baseActionTemplate: {fileID: 11400000, guid: fff8b30047d67314883a3273f082f15a, type: 2}
   baseActions: []
   actions: []
+  senses: []
   actionNamesForCoolDownOnLoad: 
   currentCooldownOnLoad: 
   statuses: []
@@ -156,8 +159,23 @@ MonoBehaviour:
     forcedPathIndex: 0
     currentPathIndex: 0
   notOnHold: 1
+  inMiddleMap: 1
   inMelee: 0
+  continueDeath: 1
   ableToWander: 1
   highestPriorityActionIndex: 0
   currentActionWeight: 0
   highestActionWeight: 0
+--- !u!114 &5932907190750561983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8096759470053534158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d88dedc1e2fd934e912e645480fed41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitIndex: 2

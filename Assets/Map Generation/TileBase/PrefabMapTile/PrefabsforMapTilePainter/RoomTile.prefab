@@ -45,8 +45,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35af732127ba6da489b88cc7ecac5b01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wallIndex: -1
+  wallIndex: 1
   mapGenerationState: 2
+  wallState: 0
 --- !u!212 &4479853461932553908
 SpriteRenderer:
   m_ObjectHideFlags: 0

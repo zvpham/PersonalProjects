@@ -13,58 +13,81 @@ MonoBehaviour:
   m_Name: WoodenWallSpirites
   m_EditorClassIdentifier: 
   texture: {fileID: 2800000, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  UpperVerticalWall: {fileID: 1371150049, guid: b71d4e1648189764cb12f46c0e9380fa,
+  UpperVerticalWall: {fileID: 477485955, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  NorthModifiedRightSmallConnector: {fileID: -1089620555, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  NorthModifiedRightSmallConnector: {fileID: -509296758, guid: b71d4e1648189764cb12f46c0e9380fa,
+  NorthWallThreeWay: {fileID: 943584418, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  NorthModifiedLeftSmallConnector: {fileID: -1067800342, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  NorthWallThreeWay: {fileID: -2136725384, guid: b71d4e1648189764cb12f46c0e9380fa,
+  CenterNorthSmallRightConnectorWall: {fileID: 64352912, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  NorthModifiedLeftSmallConnector: {fileID: -757636111, guid: b71d4e1648189764cb12f46c0e9380fa,
+  CenterNorthThreeWay: {fileID: 2140736851, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  CenterNorthSmallRightConnectorWall: {fileID: 1276370266, guid: b71d4e1648189764cb12f46c0e9380fa,
+  CenterNorthSmallLeftConnectorWall: {fileID: -778155866, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  CenterNorthThreeWay: {fileID: 1651427642, guid: b71d4e1648189764cb12f46c0e9380fa,
+  WestThreeWay: {fileID: 478479269, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  SouthModifiedRightSmallConnector: {fileID: -1736456972, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  CenterNorthSmallLeftConnectorWall: {fileID: -621986113, guid: b71d4e1648189764cb12f46c0e9380fa,
+  SouthWallThreeWay: {fileID: 558370505, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  SouthModifiedLeftSmallConnector: {fileID: 810333439, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  WestThreeWay: {fileID: 1119630001, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  SouthModifiedRightSmallConnector: {fileID: 858458897, guid: b71d4e1648189764cb12f46c0e9380fa,
+  CenterSouthSmallRightConnectorWall: {fileID: 1285923607, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  SouthWallThreeWay: {fileID: -1773752862, guid: b71d4e1648189764cb12f46c0e9380fa,
+  CenterSouthThreeWay: {fileID: 2057451701, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  SouthModifiedLeftSmallConnector: {fileID: 1581198086, guid: b71d4e1648189764cb12f46c0e9380fa,
+  CenterSouthSmallLeftConnectorWall: {fileID: 2124306151, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  CenterSouthSmallRightConnectorWall: {fileID: -1836657894, guid: b71d4e1648189764cb12f46c0e9380fa,
+  LowerVerticalWall: {fileID: -1448965271, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  CenterSouthThreeWay: {fileID: -1727925771, guid: b71d4e1648189764cb12f46c0e9380fa,
+  NorthWestWallModified: {fileID: -153489341, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  CenterSouthSmallLeftConnectorWall: {fileID: -1688532170, guid: b71d4e1648189764cb12f46c0e9380fa,
+  CenterHorzontalWall: {fileID: -1671533970, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  LowerVerticalWall: {fileID: -669748782, guid: b71d4e1648189764cb12f46c0e9380fa,
+  NorthEastWallModified: {fileID: -2091355438, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  NorthWestWallModified: {fileID: -1620480075, guid: b71d4e1648189764cb12f46c0e9380fa,
+  NorthWestWall: {fileID: 768214559, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  NorthWall: {fileID: -1199778996, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  NorthEastWall: {fileID: 391465271, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  LeftHorzontalWall: {fileID: 1705164603, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  CenterHorzontalWall: {fileID: 919224475, guid: b71d4e1648189764cb12f46c0e9380fa,
+  EastThreeWay: {fileID: -2015865552, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  CenterVerticalWall: {fileID: -935984374, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  NorthEastWallModified: {fileID: -2118948428, guid: b71d4e1648189764cb12f46c0e9380fa,
+  WestWall: {fileID: 586613371, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  CenterWall: {fileID: 370339650, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  EastWall: {fileID: 884806755, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  SoleWall: {fileID: 824532604, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  SouthWestWallModified: {fileID: 140214192, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  NorthWestWall: {fileID: -2006959824, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  NorthWall: {fileID: 2110983151, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  NorthEastWall: {fileID: 234197871, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  LeftHorzontalWall: {fileID: 595150556, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  EastThreeWay: {fileID: -1627039144, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  CenterVerticalWall: {fileID: 156539105, guid: b71d4e1648189764cb12f46c0e9380fa,
+  RightHorzontalWall: {fileID: 1511665114, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  WestWall: {fileID: 369120360, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  CenterWall: {fileID: -489173679, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  EastWall: {fileID: 1859306548, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  SoleWall: {fileID: -678883696, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  SouthWestWallModified: {fileID: 201207762, guid: b71d4e1648189764cb12f46c0e9380fa,
+  SouthEastWallModified: {fileID: -1330354888, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  RightHorzontalWall: {fileID: -306767626, guid: b71d4e1648189764cb12f46c0e9380fa,
+  SouthWestWall: {fileID: 2124282897, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  SouthWall: {fileID: 1784707959, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  SouthEastWall: {fileID: -920699166, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  WestModifiedUpperConnector: {fileID: -628236585, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  SouthEastWallModified: {fileID: -1699339820, guid: b71d4e1648189764cb12f46c0e9380fa,
+  EastModifiedUpperConnector: {fileID: -569923980, guid: e25642992d097214d93985f35dc79d98,
     type: 3}
-  SouthWestWall: {fileID: 697719741, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  SouthWall: {fileID: 1751828642, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
-  SouthEastWall: {fileID: 1881527962, guid: b71d4e1648189764cb12f46c0e9380fa, type: 3}
+  CenterWestThreeWay: {fileID: -1350347562, guid: e25642992d097214d93985f35dc79d98,
+    type: 3}
+  CenterEastThreeWay: {fileID: 249794336, guid: e25642992d097214d93985f35dc79d98,
+    type: 3}
+  CenterNorthEastToSouthWest: {fileID: 1370064112, guid: e25642992d097214d93985f35dc79d98,
+    type: 3}
+  CenterNorthWestToSouthEast: {fileID: -601601535, guid: e25642992d097214d93985f35dc79d98,
+    type: 3}
+  CenterFourWay: {fileID: 1565054848, guid: e25642992d097214d93985f35dc79d98, type: 3}
+  WestModifiedLowerConnector: {fileID: -265154803, guid: e25642992d097214d93985f35dc79d98,
+    type: 3}
+  EastModifiedLowerConnector: {fileID: 1175322408, guid: e25642992d097214d93985f35dc79d98,
+    type: 3}
+  CenterNorthWestConnector: {fileID: -703142701, guid: e25642992d097214d93985f35dc79d98,
+    type: 3}
+  CenterSouthWestConnector: {fileID: -1766119206, guid: e25642992d097214d93985f35dc79d98,
+    type: 3}
+  CenterSouthEastConnector: {fileID: 1285732146, guid: e25642992d097214d93985f35dc79d98,
+    type: 3}
+  CenterNorthEastConnector: {fileID: 1791425450, guid: e25642992d097214d93985f35dc79d98,
+    type: 3}

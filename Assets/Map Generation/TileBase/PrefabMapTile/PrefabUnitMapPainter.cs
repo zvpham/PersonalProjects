@@ -11,7 +11,7 @@ using UnityEditor;
 public class PrefabUnitMapPainter : MonoBehaviour
 {
     public ResourceManager resourceManager;
-    public TilePrefab tilePremade;
+    public TilePrefabBase tilePremade;
     public int gridsize = 1;
     public int width = 20;
     public int height = 20;
@@ -302,7 +302,7 @@ public class PrefabUnitMapPainter : MonoBehaviour
 
     public void Compile()
     {
-        int[,] units = new int[width, height];
+        List<Vector3Int> units = new List<Vector3Int>();
         string debugWord = "";
         List<string> debugWorld = new List<string>();
         for (int i = 0; i < height; i++)
@@ -311,9 +311,9 @@ public class PrefabUnitMapPainter : MonoBehaviour
             for (int j = 0; j < width; j++)
             {
                 PrefabUnitMapTile tempTile = tileobs[j, i].GetComponent<PrefabUnitMapTile>();
-                units[j, i] = tempTile.unitIndex;
-                if(tempTile.unitIndex != -1
-                    && tilePremade.mapTiles[j, i].Item2 == MapGenerationStates.Wall)
+                units.Add(new Vector3Int(j, i, tempTile.unitIndex));
+                if(tempTile.unitIndex != 3
+                    && tilePremade.mapTiles[j + i * width].z > 1)
                 {
                     Debug.LogError("Unit Spawns in wall at: " + j + " " + i);
                 }
@@ -325,6 +325,43 @@ public class PrefabUnitMapPainter : MonoBehaviour
             //Debug.Log(debugWorld[i]);
         }
         tilePremade.units = units;
+        AssetDatabase.Refresh();
+        EditorUtility.SetDirty(tilePremade);
+        AssetDatabase.SaveAssets();
+    }
+
+    public void LoadPrefabMapTile()
+    {
+        Clear();
+        GameObject o;
+        // TIleINfO - <x, y, WallIndex>
+        Vector3Int tileInfo;
+        for (int i = 0; i < tilePremade.units.Count; i++)
+        {
+            tileInfo = tilePremade.units[i];
+            o = CreatePrefab(resourceManager.unitPrefabs[tileInfo.z], new Vector3(), new Quaternion(0, 0, 0, 1f));
+            o.transform.parent = tiles.transform;
+            o.transform.localPosition = (new Vector3(tileInfo.x, tileInfo.y, 0) * gridsize);
+            o.transform.localRotation = color_rotation;
+            tileobs[tileInfo.x, tileInfo.y] = o;
+        }
+    }
+
+    public void BlankCanvas()
+    {
+        Clear();
+        for (int i = 0; i < height; i++)
+        {
+            for (int j = 0; j < width; j++)
+            {
+                GameObject o;
+                o = CreatePrefab(resourceManager.unitPrefabs[3], new Vector3(), new Quaternion(0, 0, 0, 1f));
+                o.transform.parent = tiles.transform;
+                o.transform.localPosition = (new Vector3(j, i, 0) * gridsize);
+                o.transform.localRotation = color_rotation;
+                tileobs[j, i] = o;
+            }
+        }
     }
 
     public void OnDrawGizmos()
@@ -368,9 +405,17 @@ public class PrefabUnitMapEditor : Editor
         {
             me.Clear();
         }
+        if (GUILayout.Button("BLANK CANVAS"))
+        {
+            me.BlankCanvas();
+        }
         if (GUILayout.Button("COMPILE"))
         {
             me.Compile();
+        }
+        if (GUILayout.Button("Load"))
+        {
+            me.LoadPrefabMapTile();
         }
         DrawDefaultInspector();
     }

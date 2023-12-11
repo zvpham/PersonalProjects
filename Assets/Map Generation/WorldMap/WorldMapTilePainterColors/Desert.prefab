@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Tile: {fileID: 11400000, guid: f03e1a567ad19eb429bcefdc63523639, type: 2}
+  worldMapIndex: 2
 --- !u!212 &-602153529633887598
 SpriteRenderer:
   m_ObjectHideFlags: 0

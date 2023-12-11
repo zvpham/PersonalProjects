@@ -12,7 +12,7 @@ using UnityEditor;
 public class PrefabMapTilePainter : MonoBehaviour
 {
     public ResourceManager resourceManager;
-    public TilePrefab tilePremade;
+    public TilePrefabBase tilePremade;
     public GameObject emptyPrefab;
     public GameObject roomPrefab;
     public int gridsize = 1;
@@ -244,10 +244,12 @@ public class PrefabMapTilePainter : MonoBehaviour
         UnityEngine.Object fab = PrefabUtility.GetCorrespondingObjectFromSource(o);
         if (fab == null)
         {
+            Debug.Log("Test1");
             fab = Resources.Load(o.name);
         }
         if (fab == null)
         {
+            Debug.Log("Test1");
             fab = palette[0];
         }
         return fab;
@@ -307,7 +309,7 @@ public class PrefabMapTilePainter : MonoBehaviour
 
     public void Compile()
     {
-        Tuple<int, MapGenerationStates>[,] walls = new Tuple<int, MapGenerationStates>[width, height];
+        List<Vector3Int> walls =  new List<Vector3Int> ();
         string debugWord = "";
         List<string> debugWorld = new List<string>();
         for (int i = 0; i < height; i++)
@@ -316,20 +318,24 @@ public class PrefabMapTilePainter : MonoBehaviour
             for (int j = 0; j < width; j++)
             {
                 PrefabMapTile tempTile = tileobs[j, i].GetComponent<PrefabMapTile>();
-                walls[j, i] = new Tuple<int, MapGenerationStates>(tempTile.wallIndex, tempTile.mapGenerationState);
-                switch (tempTile.mapGenerationState)
+                walls.Add(new Vector3Int(j, i, tempTile.wallIndex));
+                // Case - Empty
+                if(tempTile.wallIndex == 0) 
                 {
-                    case MapGenerationStates.Empty:
-                        debugWord += "E ";
-                        break;
-                    case MapGenerationStates.Wall:
-                        RenderWall(j, i, tempTile.wallIndex);
-                        debugWord += "W ";
-                        break;
-                    case MapGenerationStates.Room:
-                        debugWord += "R ";
-                        break;
+                    debugWord += "E ";
+                } 
+                // Case - Room
+                else if(tempTile.wallIndex == 1)
+                {
+                    debugWord += "R ";
                 }
+                // Case  - Wall
+                else
+                {
+                    // The negative 2 Accounts for the Empty and Room Tile in Resource Manager
+                    RenderWall(j, i, tempTile.wallIndex - 2);
+                    debugWord += "W ";
+                } 
             }
             debugWorld.Add(debugWord);
         }
@@ -339,30 +345,39 @@ public class PrefabMapTilePainter : MonoBehaviour
             //Debug.Log(debugWorld[i]);
         }
         tilePremade.mapTiles = walls;
+        AssetDatabase.Refresh();
+        EditorUtility.SetDirty(tilePremade);
+        AssetDatabase.SaveAssets(); 
     }
 
     public void LoadPrefabMapTile()
     {
         Clear();
-        for(int i  = 0; i < height; i++)
+        GameObject o;
+        // TIleINfO - <x, y, WallIndex>
+        Vector3Int tileInfo;
+        for (int i = 0; i < tilePremade.mapTiles.Count; i++)
         {
-            for(int j = 0; j < width; j++)
+            tileInfo = tilePremade.mapTiles[i];
+            o = CreatePrefab(resourceManager.walls[tileInfo.z], new Vector3(), new Quaternion(0, 0, 0, 1f));
+            o.transform.parent = tiles.transform;
+            o.transform.localPosition = (new Vector3(tileInfo.x, tileInfo.y, 0) * gridsize);
+            o.transform.localRotation = color_rotation;
+            tileobs[tileInfo.x, tileInfo.y] = o;
+        }
+    }
+    
+    public void BlankCanvas()
+    {
+        Clear();
+        for (int i = 0; i < height; i++)
+        {
+            for (int j = 0; j < width; j++)
             {
                 GameObject o;
-                if (tilePremade.mapTiles[j, i].Item2 == MapGenerationStates.Empty)
-                {
-                    o = Instantiate(emptyPrefab);
-                }
-                else if(tilePremade.mapTiles[j, i].Item2 == MapGenerationStates.Room)
-                {
-                    o = Instantiate(roomPrefab);
-                }
-                else
-                {
-                    o = Instantiate(resourceManager.walls[tilePremade.mapTiles[j, i].Item1]);
-                }
+                o = CreatePrefab(resourceManager.walls[0], new Vector3(), new Quaternion(0, 0, 0, 1f));
                 o.transform.parent = tiles.transform;
-                o.transform.localPosition = (transform.position + new Vector3(j, i , 0) * gridsize);
+                o.transform.localPosition = (new Vector3(j, i, 0) * gridsize);
                 o.transform.localRotation = color_rotation;
                 tileobs[j, i] = o;
             }
@@ -780,6 +795,10 @@ public class PrefabTileLayerEditor : Editor
         if (GUILayout.Button("CLEAR"))
         {
             me.Clear();
+        }
+        if (GUILayout.Button("Blank Canvas"))
+        {
+            me.BlankCanvas();
         }
         if (GUILayout.Button("COMPILE"))
         {

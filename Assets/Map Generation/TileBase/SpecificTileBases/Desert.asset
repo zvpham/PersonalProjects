@@ -12,10 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0619dfa5279a2274593b06e8a3f453ff, type: 3}
   m_Name: Desert
   m_EditorClassIdentifier: 
+  tileIndex: 2
   tileType: 3
+  isUnderground: 0
   tileNameAbbreviation: D
   structures: []
   setPieces: []
-  encounters: []
-  minDanger: 0
-  maxDanger: 0
+  encounter: {fileID: 0}
+  setPieceFactorMin: 0
+  setPieceFactorMax: 0
+  oneStructureChance: 0.25
+  twoStructureChance: 0.1
+  threeStructureChance: 0.05
+  fourStructureChance: 0.05

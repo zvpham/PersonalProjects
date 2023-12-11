@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 393510028513838877}
   - component: {fileID: 3922956318568513548}
   - component: {fileID: 3922956318568513551}
+  - component: {fileID: 6260082256409847326}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -114,6 +115,7 @@ MonoBehaviour:
   enduranceMod: 0
   armorValue: 0
   health: 0
+  maxHealth: 0
   wisdom: 16
   wisdomMod: 0
   intelligence: 16
@@ -133,6 +135,7 @@ MonoBehaviour:
   baseActionTemplate: {fileID: 11400000, guid: dbfb033e35fa74f94b5b29a198fb5385, type: 2}
   baseActions: []
   actions: []
+  senses: []
   actionNamesForCoolDownOnLoad: 
   currentCooldownOnLoad: 
   statuses: []
@@ -152,9 +155,12 @@ MonoBehaviour:
     forcedPathIndex: 0
     currentPathIndex: 0
   notOnHold: 1
+  inMiddleMap: 1
   inMelee: 0
+  continueDeath: 1
   soulSlotIndexes: 
   onLoadSouls: []
+  actionBar: {fileID: 0}
 --- !u!114 &393510028513838877
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -204,3 +210,16 @@ MonoBehaviour:
   - itemParameter: {fileID: 11400000, guid: 2e0030ff4a36f424991e488b67db2aea, type: 2}
     value: -10
   itemCurrentState: []
+--- !u!114 &6260082256409847326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3922956318568513558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d88dedc1e2fd934e912e645480fed41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitIndex: 0

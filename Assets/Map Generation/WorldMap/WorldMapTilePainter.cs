@@ -10,7 +10,8 @@ using UnityEditor;
 [RequireComponent(typeof(BoxCollider))]
 public class WorldMapTilePainter : MonoBehaviour
 {
-
+    public ResourceManager resourceManager;
+    public WorldMap worldMap;
     public int gridsize = 1;
     public int width = 20;
     public int height = 20;
@@ -301,15 +302,15 @@ public class WorldMapTilePainter : MonoBehaviour
 
     public void Compile()
     {
-        TileBase[,] tileBases = new TileBase[width, height];
+        List<Vector3Int> tilesBases =  new List<Vector3Int>();
         string debugWord = "";
         List<string> debugWorld = new List<string>();
         for(int i = 0; i < height; i++)
         {
             debugWord = "";
             for(int j = 0; j < width; j++)
-            {
-                tileBases[j, i] = tileobs[j, i].GetComponent<WorldMapTile>().Tile;
+            {;
+                tilesBases.Add(new Vector3Int(j, i, tileobs[j, i].GetComponent<WorldMapTile>().Tile.tileIndex));
                 debugWord += tileobs[j, i].GetComponent<WorldMapTile>().Tile.tileNameAbbreviation + " ";
             }
             debugWorld.Add(debugWord);  
@@ -319,8 +320,44 @@ public class WorldMapTilePainter : MonoBehaviour
         {
             Debug.Log(debugWorld[i]);   
         }
-        MapManager.worldMap = tileBases;
-        MapManager.ChangeWorldSize(width, height);
+        worldMap.tilesInspectorUse = tilesBases;
+        worldMap.width = width;
+        worldMap.height = height;
+        AssetDatabase.Refresh();
+        EditorUtility.SetDirty(worldMap);
+        AssetDatabase.SaveAssets();
+    }
+
+    public void Load()
+    {
+        Clear();
+        GameObject o;
+        // TIleINfO - <x, y, TilePrefabIndex>
+        Vector3Int tileInfo;
+        string debugWord = "";
+        List<string> debugWorld = new List<string>();
+        int xIndex = 0;
+        for (int i = 0; i < worldMap.tilesInspectorUse.Count; i++)
+        {
+            tileInfo = worldMap.tilesInspectorUse[i];
+            o = CreatePrefab(resourceManager.tileBasePrefabs[tileInfo.z], new Vector3(), new Quaternion(0, 0, 0, 1f));
+            o.transform.parent = tiles.transform;
+            o.transform.localPosition = (new Vector3(tileInfo.x, tileInfo.y, 0) * gridsize);
+            o.transform.localRotation = color_rotation;
+            tileobs[tileInfo.x, tileInfo.y] = o;
+
+            debugWord += resourceManager.tilesBases[tileInfo.z].tileNameAbbreviation + " ";
+            if (xIndex == width - 1)
+            {
+                debugWorld.Add(debugWord);
+                debugWord = "";
+                xIndex = 0;
+            }
+            else
+            {
+                xIndex += 1;
+            }
+        }
     }
 
     public void OnDrawGizmos()
@@ -367,6 +404,10 @@ public class WorldMapTileLayerEditor : Editor
         if (GUILayout.Button("COMPILE"))
         {
             me.Compile();
+        }
+        if (GUILayout.Button("LOAD"))
+        {
+            me.Load();
         }
         DrawDefaultInspector();
     }

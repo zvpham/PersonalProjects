@@ -56,7 +56,7 @@ public class EnemyTest : Unit
         }
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
-        gameManager = GameManager.instance;
+        //gameManager = GameManager.instance;
         gameManager.grid.SetGridObject(gameObject.transform.position, this);
         if (gameManager.isNewSlate)
         {

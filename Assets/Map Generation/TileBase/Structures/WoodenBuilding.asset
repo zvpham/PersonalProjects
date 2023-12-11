@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66eeb6e9a6748bc4bbd003232a7ada14, type: 3}
+  m_Name: WoodenBuilding
+  m_EditorClassIdentifier: 
+  wallPrefabs:
+  - {fileID: 6420521474990462733, guid: 642037ee35a0b5a41a38e18386666b1c, type: 3}
+  WFCTemplates:
+  - {fileID: 11400000, guid: 20a213734171f7240b1c97238fefb1b8, type: 2}
+  - {fileID: 11400000, guid: 2f4c5e6a338361049b2d5c7cbe3228a6, type: 2}
+  - {fileID: 11400000, guid: 834072ca0c7447a48bcaa4b608b87b71, type: 2}
+  validWFCTrainerTemplates: 00000000
+  encounter: {fileID: 11400000, guid: 4884338f3050b834788cd996f9050043, type: 2}

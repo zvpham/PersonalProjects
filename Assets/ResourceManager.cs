@@ -21,4 +21,9 @@ public class ResourceManager : ScriptableObject
     public List<GameObject> walls;
     public List<WallSpriteStruct> wallSprites;
 
+    public List<TileBase> tilesBases;
+    public List<GameObject> tileBasePrefabs;
+
+    public List<GameObject> WFCTrainerTemplates;
+
 }

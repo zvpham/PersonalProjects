@@ -6,7 +6,7 @@ using UnityEditor;
 #endif
 
 [ExecuteInEditMode]
-class OverlapWFC : MonoBehaviour{
+public class OverlapWFC : MonoBehaviour{
 	public Training training = null;
 	public int gridsize = 1;
 	public int width = 20;
@@ -62,13 +62,13 @@ class OverlapWFC : MonoBehaviour{
 	void Start(){
 		Generate();
 	}
-
+	/*
 	void Update(){
 		if (incremental){
 			Run();
 		}
 	}
-
+	*/
 	public void Generate() {
 		if (training == null){Debug.Log("Can't Generate: no designated Training component");}
 		if (IsPrefabRef(training.gameObject)){
@@ -98,6 +98,7 @@ class OverlapWFC : MonoBehaviour{
         rendering = new GameObject[width, depth];
 		model = new OverlappingModel(training.sample, N, width, depth, periodicInput, periodicOutput, symmetry, foundation);
         undrawn = true;
+        Run();
     }
 
 	void OnDrawGizmos(){

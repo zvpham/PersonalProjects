@@ -26,69 +26,45 @@ public class FileDataHandler
         this.useEncryption = useEncryption;
     }
 
-    public TileData Load(string profileId, bool allowedRestoreFromBackup = true)
+    public TileData Load(string profileId, string fileName, bool allowedRestoreFromBackup = true)
     {
         // base Case - if the profileId is nll, return right away
-        if(profileId == null)
+        if(profileId == null || fileName == null)
         {
             return null;
         }
 
         // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
-        string fullPath = Path.Combine(dataDirPath, profileId, dataFileName + fileExtension);
-        List<string> dataPath = new List<string>() { profileId};
+        string fullPath = Path.Combine(dataDirPath, profileId, fileName + fileExtension);
+        List<string> dataPath = new List<string>() { profileId, fileName};
         return LoadBase(fullPath, dataPath, allowedRestoreFromBackup);
     }
 
-    public TileData Load(string profileId, string timeID, string subFolder, bool allowedRestoreFromBackup = true)
+    public TileData Load(string profileId, string timeID, string fileName, bool allowedRestoreFromBackup = true)
     {
         // base Case - if the profileId is nll, return right away
-        if (profileId == null)
-        {
-            return null;
-        }
-        if(timeID == null)
-        {
-            return null;
-        }
-        if(subFolder == null)
+        if (profileId == null || timeID == null || fileName == null)
         {
             return null;
         }
 
         // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
-        string fullPath = Path.Combine(dataDirPath, profileId, timeID, subFolder, dataFileName + fileExtension);
-        List<string> dataPath = new List<string>() { profileId, timeID, subFolder };
+        string fullPath = Path.Combine(dataDirPath, profileId, timeID, fileName + fileExtension);
+        List<string> dataPath = new List<string>() { profileId, timeID, fileName};
         return LoadBase(fullPath, dataPath, allowedRestoreFromBackup);
     }
 
-    public TileData Load(string profileId, string timeID, string subFolder, string x, string y, bool allowedRestoreFromBackup = true)
+    public TileData Load(string profileId, string timeID, string subFolder, string fileName, bool allowedRestoreFromBackup = true)
     {
         // base Case - if the profileId is nll, return right away
-        if (profileId == null)
-        {
-            return null;
-        }
-        if (timeID == null)
-        {
-            return null;
-        }
-        if (subFolder == null)
-        {
-            return null;
-        }
-        if(x == null)
-        {
-            return null;
-        }
-        if (y == null)
+        if (profileId == null || timeID == null || subFolder == null || fileName == null)
         {
             return null;
         }
 
         // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
-        string fullPath = Path.Combine(dataDirPath, profileId, timeID, subFolder, dataFileName + x + y + fileExtension);
-        List<string> dataPath = new List<string>() { profileId, timeID, subFolder };
+        string fullPath = Path.Combine(dataDirPath, profileId, timeID, subFolder, fileName + fileExtension);
+        List<string> dataPath = new List<string>() { profileId, timeID, subFolder, fileName };
         return LoadBase(fullPath, dataPath, allowedRestoreFromBackup);
     }
 
@@ -134,15 +110,14 @@ public class FileDataHandler
                             case 0:
                                 Debug.LogError("ROLLBACK SAVES ARE BROKEN HELP");
                                 return null;
-                            case 1:
-                                //ProfileID
-                                loadedData = Load(dataPath[0], false);
-                                break;
                             case 2:
-                                //Currenly not Implemented
+                                 loadedData = Load(dataPath[0], dataPath[1], false);
                                 break;
                             case 3:
                                 loadedData = Load(dataPath[0], dataPath[1], dataPath[2], false);
+                                break;
+                            case 4:
+                                loadedData = Load(dataPath[0], dataPath[1], dataPath[2], dataPath[3], false);
                                 break;
                         }
                     }
@@ -246,7 +221,7 @@ public class FileDataHandler
         return loadedData;
     }
 
-    public void Save(TileData data, string profileId, string timeID, string subFolder)
+    public void Save(MapData data, string profileId, string timeID, string subFolder)
     {
 
         // base Case - if the profileId is nll, return right away
@@ -283,7 +258,7 @@ public class FileDataHandler
             }
 
             // verify the newly saved file can be loaded successfully
-            TileData verifiedGameDatya = Load(profileId, timeID, subFolder);
+            MapData verifiedGameDatya = LoadMapData(profileId, timeID, subFolder);
             //if the data can be verified, back it up;
             if(verifiedGameDatya != null)
             {
@@ -301,7 +276,7 @@ public class FileDataHandler
         }
     }
 
-    public void Save(TileData data, string profileId, string subFolder)
+    public void Save(MapData data, string profileId, string subFolder)
     {
 
         // base Case - if the profileId is null, return right away
@@ -337,7 +312,170 @@ public class FileDataHandler
             }
 
             // verify the newly saved file can be loaded successfully
-            TileData verifiedGameDatya = Load(profileId, DataPersistenceManager.Instance.autoSaveID, subFolder);
+            MapData verifiedGameDatya = LoadMapData(profileId, DataPersistenceManager.Instance.autoSaveID, subFolder);
+            //if the data can be verified, back it up;
+            if (verifiedGameDatya != null)
+            {
+                File.Copy(fullPath, backupFilePAth, true);
+            }
+            // otherwise, something went wrong and we should throw up an exception
+            else
+            {
+                Debug.LogError("Save file could not be verified a nd Backup could not be created.");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error occured whne trying to save data to file: " + fullPath + "\n" + e);
+        }
+    }
+
+    public void Save(TileData data, string profileId, string timeID, string subFolder, string dataFileName)
+    {
+
+        // base Case - if the profileId is nll, return right away
+        if (profileId == null)
+        {
+            return;
+        }
+
+        // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
+        string temp = Path.Combine(profileId, timeID, subFolder);
+        string fullPath = Path.Combine(dataDirPath, temp, dataFileName + fileExtension);
+        string backupFilePAth = fullPath + backupExtension;
+        try
+        {
+            // Create the DIrectory the file will be written to if it doesn't alraeady exist
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+
+            // serialize the C# game data object into Json
+            string dataToStore = JsonUtility.ToJson(data, true);
+
+            //Optionally Encrypt Data
+            if (useEncryption)
+            {
+                dataToStore = EncryptDecrypt(dataToStore);
+            }
+
+            // write the serialized datea to the file
+            using (FileStream stream = new FileStream(fullPath, FileMode.Create))
+            {
+                using (StreamWriter writer = new StreamWriter(stream))
+                {
+                    writer.Write(dataToStore);
+                }
+            }
+
+            // verify the newly saved file can be loaded successfully
+            TileData verifiedGameDatya = Load(profileId, timeID, subFolder, dataFileName);
+            //if the data can be verified, back it up;
+            if (verifiedGameDatya != null)
+            {
+                File.Copy(fullPath, backupFilePAth, true);
+            }
+            // otherwise, something went wrong and we should throw up an exception
+            else
+            {
+                Debug.LogError("Save file could not be verified a nd Backup could not be created.");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error occured whne trying to save data to file: " + fullPath + "\n" + e);
+        }
+    }
+
+    public void Save(TileData data, string profileId, string subFolder, string dataFileName)
+    {
+
+        // base Case - if the profileId is null, return right away
+        if (profileId == null || subFolder == null)
+        {
+            return;
+        }
+
+        // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
+        string fullPath = Path.Combine(dataDirPath, profileId, DataPersistenceManager.Instance.autoSaveID, subFolder, dataFileName + fileExtension);
+        string backupFilePAth = fullPath + backupExtension;
+        try
+        {
+            // Create the Directory the file will be written to if it doesn't alraeady exist
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+
+            // serialize the C# game data object into Json
+            string dataToStore = JsonUtility.ToJson(data, true);
+
+            //Optionally Encrypt Data
+            if (useEncryption)
+            {
+                dataToStore = EncryptDecrypt(dataToStore);
+            }
+
+            // write the serialized datea to the file
+            using (FileStream stream = new FileStream(fullPath, FileMode.Create))
+            {
+                using (StreamWriter writer = new StreamWriter(stream))
+                {
+                    writer.Write(dataToStore);
+                }
+            }
+
+            // verify the newly saved file can be loaded successfully
+            TileData verifiedGameDatya = Load(profileId, DataPersistenceManager.Instance.autoSaveID, subFolder, dataFileName);
+            //if the data can be verified, back it up;
+            if (verifiedGameDatya != null)
+            {
+                File.Copy(fullPath, backupFilePAth, true);
+            }
+            // otherwise, something went wrong and we should throw up an exception
+            else
+            {
+                Debug.LogError("Save file could not be verified a nd Backup could not be created.");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error occured whne trying to save data to file: " + fullPath + "\n" + e);
+        }
+    }
+
+    public void Save(TileData data, string profileId, string dataFileName)
+    {
+
+        // base Case - if the profileId is null, return right away
+        if (profileId == null || dataFileName == null)
+        {
+            return;
+        }
+
+        // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
+        string fullPath = Path.Combine(dataDirPath, profileId, dataFileName + fileExtension);
+        string backupFilePAth = fullPath + backupExtension;
+        try
+        {
+            // Create the Directory the file will be written to if it doesn't alraeady exist
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+
+            // serialize the C# game data object into Json
+            string dataToStore = JsonUtility.ToJson(data, true);
+
+            //Optionally Encrypt Data
+            if (useEncryption)
+            {
+                dataToStore = EncryptDecrypt(dataToStore);
+            }
+
+            // write the serialized datea to the file
+            using (FileStream stream = new FileStream(fullPath, FileMode.Create))
+            {
+                using (StreamWriter writer = new StreamWriter(stream))
+                {
+                    writer.Write(dataToStore);
+                }
+            }
+
+            // verify the newly saved file can be loaded successfully
+            TileData verifiedGameDatya = Load(profileId, dataFileName);
             //if the data can be verified, back it up;
             if (verifiedGameDatya != null)
             {

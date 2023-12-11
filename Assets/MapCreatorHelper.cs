@@ -64,6 +64,7 @@ public class MapCreatorHelper : MonoBehaviour
         wallSprite.CenterSouthWestConnector = sprites[44];
         wallSprite.CenterSouthEastConnector = sprites[45];
         wallSprite.CenterNorthEastConnector = sprites[46];
+        EditorUtility.SetDirty(wallSprite);
     }
 }
 

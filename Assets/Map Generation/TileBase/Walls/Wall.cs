@@ -21,11 +21,6 @@ public class Wall : MonoBehaviour
     public event UnityAction OnDeath;
     public bool continueDeath;
 
-    public void Start()
-    {
-        gameManager = GameManager.instance;
-    }
-
     public void Death()
     {
         continueDeath = true;
