@@ -17,9 +17,9 @@ public class Encounter : ScriptableObject
 
     public Danger GetDangerRating(float dangerModifier)
     {
-        if (easyDangerChance + mediumDangerChance + hardDangerChance != 1f)
+        if ((float)(easyDangerChance + mediumDangerChance + hardDangerChance) != 1f)
         {
-            Debug.LogError("Redo Danger Values for:" +  name + " Encounter");
+            Debug.LogError("Redo Danger Values for:" +  name + " Encounter it is currently at: " + (easyDangerChance + mediumDangerChance + hardDangerChance));
             return Danger.Easy;
         }
         Random.InitState(System.DateTime.Now.Millisecond);

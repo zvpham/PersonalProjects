@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 
 public static class FindNearestOpenSpaceMapGeneration
@@ -7,17 +8,17 @@ public static class FindNearestOpenSpaceMapGeneration
     public static List<Vector3> openList;
     public static List<Vector3> closedList;
 
-    public static bool isPositionFound = false;
-    // 1 = Room WFCState, 2 = Open WFCState
+    public static List<Vector2> openListLocation;
+    public static List<Vector2> closedListLocation;
+
     public static int[,] grid;
-    public static int maxRange;
-    public static int currentRange;
     public static int x;
     public static int y;
     public static int debugTries;
     public static int maxDebugTries;
 
     public static string debugWord;
+    public static bool showDebug = false;
 
     public static NodeState nodeState;
 
@@ -31,13 +32,46 @@ public static class FindNearestOpenSpaceMapGeneration
     // Allready Spawned First Unit in a room
     public static List<Vector2Int> FindEmptySpace(int numUnits, Vector2 firstSpawnLocation, int[,]availableSpace, bool ignoreWalls)
     {
+        if (showDebug)
+        {
+            Debug.Log("Num Units: " + numUnits);
+            List<string> debugWords =  new List<string>();
+            string debugWordAvailableSpace = "";
+            Debug.Log(firstSpawnLocation);
+            for(int  i = 0; i < availableSpace.GetLength(1); i++)
+            {
+                debugWordAvailableSpace = "";
+                for(int j = 0; j < availableSpace.GetLength(0); j++)
+                {
+                    debugWordAvailableSpace += availableSpace[j, i] + " ";
+                }
+                debugWords.Add(debugWordAvailableSpace);
+            }
+
+            for(int i = debugWords.Count - 1; i > -1; i--)
+            {
+                Debug.Log(debugWords[i]);   
+            }
+        }
+
         debugWord = "";
         openList = new List<Vector3>();
         closedList = new List<Vector3>();
+        openListLocation = new List<Vector2>();
+        closedListLocation = new List<Vector2>();
         maxDebugTries = 100;
         List<Vector2Int> unitSpawnLocations = new List<Vector2Int>();
         grid = availableSpace;
+        if(numUnits == 1)
+        {
+            unitSpawnLocations.Add(new Vector2Int((int)firstSpawnLocation.x, (int)firstSpawnLocation.y));
+            return unitSpawnLocations;
+        }
         unitSpawnLocations = FindPath(numUnits, firstSpawnLocation, ignoreWalls);
+        if (unitSpawnLocations == null )
+        {
+            return null;
+        }
         unitSpawnLocations.Add(new Vector2Int((int)firstSpawnLocation.x, (int)firstSpawnLocation.y));
         return unitSpawnLocations;
     }
@@ -47,64 +81,90 @@ public static class FindNearestOpenSpaceMapGeneration
         List<Vector2Int> unitPlacements = new List<Vector2Int>();
         debugTries = 0;
         openList.Add(firstSpawnLocation);
+        openListLocation.Add(firstSpawnLocation);
         while (openList.Count > 0)
         {
             debugTries += 1;
             if (debugTries > maxDebugTries)
             {
+                Debug.Log("Too Many Tries"); 
                 break;
             }
             Vector3 currentNode = GetHighestPriorityNode(openList);
-            openList.Remove(currentNode);
+            int nodeIndex = openList.IndexOf(currentNode);
             closedList.Add(currentNode);
-            List<Vector3> neighborNodes = GetNeighborList(currentNode);
-            for(int i = 0; i < 2 ; i++)
-            {
-                foreach (Vector3 neighborNode in neighborNodes)
-                {
-                    nodeState = NodeState.wall;
-                    if (ignoreWalls)
-                    {
-                        nodeState = IsClearToMoveToPositionIgnoreWalls(neighborNode);
-                    }
-                    else
-                    {
-                        nodeState = IsClearToMoveToPositionRadial(neighborNode);
-                    }
+            closedListLocation.Add(openListLocation[nodeIndex]);
+            openList.RemoveAt(nodeIndex);
+            openListLocation.RemoveAt(nodeIndex);
 
-                    switch (nodeState)
-                    {
-                        case NodeState.wall:
-                            closedList.Add(neighborNode);
-                            break;
-                        case NodeState.unit:
-                            openList.Add(neighborNode);
-                            break;
-                        case NodeState.emptySpace:
-                            openList.Add(neighborNode);
-                            unitPlacements.Add(new Vector2Int((int)neighborNode.x, (int)neighborNode.y));
-                            grid[(int)neighborNode.x, (int)neighborNode.y] = 3;
-                            if (unitPlacements.Count == numUnits - 1)
-                            {
-                                return unitPlacements;
-                            }
-                            break;
-                        case NodeState.room:
-                            Vector3 newNode = neighborNode;
-                            newNode.z -= 10;
-                            openList.Add(newNode);
-                            unitPlacements.Add(new Vector2Int((int) neighborNode.x, (int)neighborNode.y));
-                            grid[(int)neighborNode.x, (int)neighborNode.y] = 3;
-                            if(unitPlacements.Count == numUnits - 1)
-                            {
-                                return unitPlacements;
-                            }
-                            break;
-                    }
+            List<Vector3> neighborNodes = GetNeighborList(currentNode);
+            foreach (Vector3 neighborNode in neighborNodes)
+            {
+                nodeState = NodeState.wall;
+                if (ignoreWalls)
+                {
+                    nodeState = IsClearToMoveToPositionIgnoreWalls(neighborNode);
+                }
+                else
+                {
+                    nodeState = IsClearToMoveToPositionRadial(neighborNode);
+                }
+
+                switch (nodeState)
+                {
+                    case NodeState.wall:
+                        closedList.Add(neighborNode);
+                        closedListLocation.Add(new Vector2(neighborNode.x, neighborNode.y));
+                        break;
+                    case NodeState.unit:
+                        openList.Add(neighborNode);
+                        openListLocation.Add(new Vector2(neighborNode.x, neighborNode.y));
+                        break;
+                    case NodeState.emptySpace:
+                        openList.Add(neighborNode);
+                        openListLocation.Add(new Vector2(neighborNode.x, neighborNode.y));
+                        unitPlacements.Add(new Vector2Int((int)neighborNode.x, (int)neighborNode.y));
+                        grid[(int)neighborNode.x, (int)neighborNode.y] = 3;
+                        if (unitPlacements.Count == numUnits - 1)
+                        {
+                            return unitPlacements;
+                        }
+                        break;
+                    case NodeState.room:
+                        Vector3 newNode = neighborNode;
+                        openList.Add(newNode);
+                        openListLocation.Add(new Vector2(neighborNode.x, neighborNode.y));
+                        unitPlacements.Add(new Vector2Int((int) neighborNode.x, (int)neighborNode.y));
+                        grid[(int)neighborNode.x, (int)neighborNode.y] = 3;
+                        if(unitPlacements.Count == numUnits - 1)
+                        {
+                            return unitPlacements;
+                        }
+                        break;
                 }
             }
         }
-        Debug.LogError("Help Plze Code Should not go here");
+        if (showDebug)
+        {
+            debugWord = "";
+            for (int i = 0; i < openList.Count; i++)
+            {
+                debugWord += openList[i] + " ";
+            }
+            Debug.Log("OpenList: " + debugWord);
+
+            debugWord = "";
+            for (int i = 0; i < closedList.Count; i++)
+            {
+                debugWord += closedList[i] + " ";
+            }
+            Debug.Log("ClosedList: " + debugWord);
+        }
+
+        if(ignoreWalls)
+        {
+            Debug.LogError("Help Plze Code Should not go here Already Placed this amount of Units: " + unitPlacements.Count);
+        } 
         return null;
     }
 
@@ -130,12 +190,13 @@ public static class FindNearestOpenSpaceMapGeneration
             {
                 if (!(i == 0 && j == 0))
                 {
+                    Vector2 newNodeLocation =  new Vector2(currentNode.x + j, currentNode.y + i);
                     Vector3 newNode = new Vector3(currentNode.x + j, currentNode.y + i, currentNode.z + 1);
-                    if(newNode.x < 0 || newNode.x >= grid.GetLength(1) || newNode.y < 0 || newNode.y >= grid.GetLength(0))
+                    if(newNode.x < 0 || newNode.x >= grid.GetLength(0) || newNode.y < 0 || newNode.y >= grid.GetLength(1))
                     {
                         continue;
                     }
-                    if (!closedList.Contains(newNode) && !openList.Contains(newNode))
+                    if (!closedListLocation.Contains(newNodeLocation) && !openListLocation.Contains(newNodeLocation))
                     {
                         neighborList.Add(newNode);
                     }

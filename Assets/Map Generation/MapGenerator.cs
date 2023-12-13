@@ -1,15 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Resources;
-using Unity.VisualScripting;
-using UnityEngine;
-using UnityEngine.Analytics;
-using UnityEngine.Tilemaps;
-using Random = UnityEngine.Random;
-using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
-using System.Xml;
 using UnityEditor;
+using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -28,6 +21,10 @@ public class MapGenerator : MonoBehaviour
 
     public TileBase TileBaseTest;
     public GameManager testingGameManager;
+
+    public Vector3 locateLocation;
+    public GameObject LocationMarkerPrefab;
+    public GameObject locationMarkerSpriteHolder;
 
     public static MapGenerator Instance;
 
@@ -166,7 +163,7 @@ public class MapGenerator : MonoBehaviour
         unitHolderForTesting = new List<GameObject>();
         structureWallHolderFortesting = new List<GameObject>();
         setPieceHolderForTesting = new List<GameObject>();
-        // Vector[bottomLeftCorner, topLeftCorner, bottomRightCorner, topRightCorner]
+        // Vector[bottomLeftCorner, topRightCorner]
         List<Vector3[]> structureCorners = new List<Vector3[]>();
         List<Vector3> availableLocations = new List<Vector3>();
         List<Vector3> tempLocations =  new List<Vector3>();
@@ -179,6 +176,8 @@ public class MapGenerator : MonoBehaviour
             }
         }
         int numStructures =  tileBase.FindNumberOfStructures();
+        int actualStructures = 0;
+        availableTiles = new int[mapWidth, mapHeight];
         for (int i = 0; i < numStructures; i++)
         {
             Random.InitState(System.DateTime.Now.Millisecond);
@@ -192,55 +191,87 @@ public class MapGenerator : MonoBehaviour
                 tempLocations.Add(new Vector3(availableLocations[v].x, availableLocations[v].y, 0));
             }
 
-            // Remove Invalid Points At the Edge of Map
+            // Remove Invalid Points At the Top of Map
             for(int h  = mapHeight - 1; h > mapHeight - structureTemplate.height; h--)
             {
-                for(int w = mapWidth - 1; w > mapWidth - structureTemplate.width; w--)
+                for(int w = mapWidth - 1; w > -1; w--)
                 {
-                    tempLocations.Remove(new Vector3(w, h, 0));
+                    //Debug.Log(w + "," + h + ": " + (w + (h * mapWidth)));
+                    tempLocations.Remove(new Vector3((float) w, (float) h, 0));
                 }
             }
 
+            // Remove Invalid Points At the Right side of Map
+            for (int h = mapHeight - structureTemplate.height; h > -1; h--)
+            {
+                for (int w = mapWidth - 1; w > mapWidth - structureTemplate.width; w--)
+                {
+                    //Debug.Log(w + "," + h + ": " + (w + (h * mapWidth)));
+                    tempLocations.Remove(new Vector3((float)w, (float)h, 0));
+                }
+            }
+            /*
+            for (int t = 0; t < tempLocations.Count; t++)
+            {
+                Debug.Log(tempLocations[t]);
+            }
+            */
+            List<Vector2> LocationDebugList = new List<Vector2>();
             // Remove Invalid Points near already existing structures
-            for(int s =  0; s < structureCorners.Count; s++)
+            for (int s =  0; s < structureCorners.Count; s++)
             {
                 //Remove invalid points to left of already existing structures
-                for (int h = (int)structureCorners[i][0].y; h <= (int)structureCorners[i][1].y; h++)
+                for (int h = (int)structureCorners[s][0].y; h <= (int)structureCorners[s][1].y; h++)
                 {
-                    for (int w = (int)structureCorners[i][0].x - structureTemplate.width + 1;
-                        w < (int)structureCorners[i][0].x; w++)
+                    for (int w = (int)structureCorners[s][0].x - structureTemplate.width + 1;
+                        w < (int)structureCorners[s][0].x; w++)
                     {
                         tempLocations.Remove(new Vector3(w, h, 0));
                     }
                 }
 
                 //Remove invalid points to BottomLeft of already existing structures
-                for (int h = (int)structureCorners[i][0].y - structureTemplate.height + 1;
-                    h < (int)structureCorners[i][0].y; h++)
+                for (int h = (int)structureCorners[s][0].y - structureTemplate.height + 1;
+                    h < (int)structureCorners[s][0].y; h++)
                 {
-                    for (int w = (int)structureCorners[i][0].x - structureTemplate.width + 1;
-                        w < (int)structureCorners[i][0].x; w++)
+                    for (int w = (int)structureCorners[s][0].x - structureTemplate.width + 1;
+                        w < (int)structureCorners[s][0].x; w++)
                     {
                         tempLocations.Remove(new Vector3(w, h, 0));
                     }
                 }
 
                 //Remove invalid points below already existing structures
-                for (int h = (int)structureCorners[i][0].y - structureTemplate.height + 1;
-                    h < (int)structureCorners[i][0].y; h++)
+                for (int h = (int)structureCorners[s][0].y - structureTemplate.height + 1;
+                    h < (int)structureCorners[s][0].y; h++)
                 {
-                    for (int w = (int)structureCorners[i][0].x;
-                        w <= (int)structureCorners[i][2].x; w++)
+                    for (int w = (int)structureCorners[s][0].x;
+                        w <= (int)structureCorners[s][1].x; w++)
                     {
                         tempLocations.Remove(new Vector3(w, h, 0));
+
                     }
                 }
             }
+
+            if(tempLocations.Count <= 0)
+            {
+                continue;
+            }
+
+            actualStructures += 1;
             Vector3 structureStartLocation = tempLocations[Random.Range(0, tempLocations.Count)];
             WaveFunctionCollapse(structureTemplate, tileBase.structures[structureIndex], structureStartLocation);
             WFCStates[,] tiles =
                 new WFCStates[structureTemplate.width, structureTemplate.height];
 
+            Vector3[] newStructureCorners = new Vector3[2];
+            newStructureCorners[0] = structureStartLocation;
+            newStructureCorners[1] = structureStartLocation +  
+                new Vector3(structureTemplate.width, structureTemplate.height, 0);
+            structureCorners.Add(newStructureCorners);
+
+            List<Vector2> wallLocations = new List<Vector2>();
             // Apply Structure Template Shape to Generated Structure
             // Rectangle -  All Spots valid no modification required
             if (structureTemplate.ifRectangle)
@@ -249,13 +280,12 @@ public class MapGenerator : MonoBehaviour
                 {
                     for (int w = 0; w < structureTemplate.width; w++)
                     {
-                        Debug.Log(w + "," + h);
                         tiles[w, h] = WFCGenerator.rendering[w, h].GetComponent<WaveFunctionCollapseTile>().WFCState;
-                        availableLocations.Remove(new Vector3(w, h, 0));
-                        if (tiles[w, h] == WFCStates.Wall)
+                        availableLocations.Remove(new Vector3(w + structureStartLocation.x, h + structureStartLocation.y, 0));
+                        //LocationDebugList.Add(new Vector2(w + structureStartLocation.x, h + structureStartLocation.y));
+                        if (tiles[w, h] == WFCStates.Wall) 
                         {
-                            structureWallHolderFortesting.Add(Instantiate(structure.wallPrefabs[0], gameManager.defaultGridPosition +
-                                structureStartLocation + new Vector3(w, h, 0), new Quaternion(0, 0, 0, 1f)));
+                            wallLocations.Add(structureStartLocation + new Vector3(w, h, 0));
                         }
                     }
                 }
@@ -267,15 +297,14 @@ public class MapGenerator : MonoBehaviour
                 {
                     for (int w = 0; w < structureTemplate.width; w++)
                     {
-                        availableLocations.Remove(new Vector3(w, h, 0));
+                        availableLocations.Remove(new Vector3(w + structureStartLocation.x, h + structureStartLocation.y, 0));
+                        //LocationDebugList.Add(new Vector2(w + structureStartLocation.x, h + structureStartLocation.y));
                         if (structureTemplate.templatePositions[w + h * structureTemplate.width].z == 1)
                         {
-                            Debug.Log(w + "," + h);
                             tiles[w, h] = WFCGenerator.rendering[w, h].GetComponent<WaveFunctionCollapseTile>().WFCState;
                             if (tiles[w, h] == WFCStates.Wall)
                             {
-                                structureWallHolderFortesting.Add(Instantiate(structure.wallPrefabs[0], gameManager.defaultGridPosition +
-                                    structureStartLocation + new Vector3(w, h, 0), new Quaternion(0, 0, 0, 1f)));
+                                wallLocations.Add(structureStartLocation + new Vector3(w, h, 0));
                             }
                         }
                         else
@@ -285,8 +314,6 @@ public class MapGenerator : MonoBehaviour
                     }
                 }
             }
-
-            availableTiles = new int[mapWidth, mapHeight];
             for (int h = 0; h < tiles.GetLength(1); h++)
             {
                 for (int w = 0; w < tiles.GetLength(0); w++)
@@ -302,13 +329,30 @@ public class MapGenerator : MonoBehaviour
 
                 }
             }
+
+            List<Vector2Int> wallBreakLocation = BreakOpenWallsMapGeneration.FindEmptySpace(structureStartLocation,
+                structureTemplate.width, structureTemplate.height, availableTiles);
+
+            for(int l = 0; l < wallBreakLocation.Count; l++)
+            {
+                wallLocations.Remove(wallBreakLocation[l]);
+                availableTiles[wallBreakLocation[l].x, wallBreakLocation[l].y] = 1;
+            }
+            
+            for(int l = 0; l < wallLocations.Count; l++)
+            {
+                Vector3 wallLocation = wallLocations[i];
+                structureWallHolderFortesting.Add(Instantiate(structure.wallPrefabs[0], gameManager.defaultGridPosition +
+                                   wallLocation, new Quaternion(0, 0, 0, 1f)));
+            }
+
             Danger structureDangerRating = structure.encounter.GetDangerRating(extraDangerModifier);
-            CreateEncounter(structure.encounter, availableTiles, structureStartLocation, structureDangerRating);
+            CreateEncounter(structure.encounter, availableTiles, gameManager.defaultGridPosition, structureDangerRating);
         }
 
         //DangerRating is for spawning units outside of structures
         Danger dangerRating = tileBase.encounter.GetDangerRating(extraDangerModifier);
-        if (numStructures == 4)
+        if (actualStructures == 4)
         {
             if (dangerRating == Danger.Hard)
             {
@@ -319,7 +363,7 @@ public class MapGenerator : MonoBehaviour
                 dangerRating = Danger.None;
             }
         }
-        else if (numStructures >= 2)
+        else if (actualStructures >= 2)
         {
             if (dangerRating == Danger.Hard)
             {
@@ -361,10 +405,10 @@ public class MapGenerator : MonoBehaviour
         availableTiles = new int[mapWidth, mapHeight];
         for(int i = 0; i < availableLocations.Count;  i++)
         {
-            // the 2 is an equivilant to room for structures. higher priority than open 
+            // the  is an equivilant to room for structures. higher priority than open 
             // will probably run faster 
             Vector3 location = availableLocations[i];
-            availableTiles[(int)location.x, (int)location.y] = 2;
+            availableTiles[(int)location.x, (int)location.y] = 1;
         }
 
         CreateEncounter(tileBase.encounter, availableTiles, gameManager.defaultGridPosition, dangerRating);
@@ -409,11 +453,13 @@ public class MapGenerator : MonoBehaviour
     }
 
     public void PickEncounterComposition(Encounter encounter, EncounterComposition encounterComposition,
-        List<Vector2Int> availableTiles, int[,] FirstTiles, Vector3 startingLocation)
+        List<Vector2Int> initialAvailableTiles, int[,] FirstTiles, Vector3 startingLocation)
     {
         int[,] tiles = FirstTiles;
-        int RandomUnitComposition;
+        int RandomUnitCompositionIndex;
         int numberOfUnits;
+        UnitComposition RandomUnitComposition;
+        List<Vector2Int> availableTiles = initialAvailableTiles;
         GameObject unit;
         Tuple<int[,], List<Vector2Int>> updatedTileInfo;
         if (encounterComposition.dangerType.Count != encounterComposition.encounterAmount.Count)
@@ -426,36 +472,48 @@ public class MapGenerator : MonoBehaviour
             switch (encounterComposition.dangerType[k])
             {
                 case (Danger.Easy):
-                    for (int u = 0; u < encounterComposition.encounterAmount[k]; u++)
+                    for (int a = 0; a < encounterComposition.encounterAmount[k]; a++)
                     {
-                        RandomUnitComposition = Random.Range(0, encounter.easyUnitEncounters.Count);
-                        numberOfUnits = encounter.easyUnitEncounters[RandomUnitComposition].numberOfUnits[u].GetRandomNumberInRange();
-                        unit = encounter.easyUnitEncounters[RandomUnitComposition].units[u];
-                        updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation);
-                        tiles = updatedTileInfo.Item1;
-                        availableTiles = updatedTileInfo.Item2;
+                        RandomUnitCompositionIndex = Random.Range(0, encounter.easyUnitEncounters.Count);
+                        RandomUnitComposition = encounter.easyUnitEncounters[RandomUnitCompositionIndex];
+                        for(int u = 0; u < RandomUnitComposition.units.Count; u++)
+                        {
+                            numberOfUnits = RandomUnitComposition.numberOfUnits[u].GetRandomNumberInRange();
+                            unit = RandomUnitComposition.units[u];
+                            updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation);
+                            tiles = updatedTileInfo.Item1;
+                            availableTiles = updatedTileInfo.Item2;
+                        }
                     }
                     break;
                 case (Danger.Medium):
-                    for (int u = 0; u < encounterComposition.encounterAmount[k]; u++)
+                    for (int a = 0; a < encounterComposition.encounterAmount[k]; a++)
                     {
-                        RandomUnitComposition = Random.Range(0, encounter.mediumUnitEncounters.Count);
-                        numberOfUnits = encounter.mediumUnitEncounters[RandomUnitComposition].numberOfUnits[u].GetRandomNumberInRange();
-                        unit = encounter.mediumUnitEncounters[RandomUnitComposition].units[u];
-                        updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation);
-                        tiles = updatedTileInfo.Item1;
-                        availableTiles = updatedTileInfo.Item2;
+                        RandomUnitCompositionIndex = Random.Range(0, encounter.mediumUnitEncounters.Count);
+                        RandomUnitComposition = encounter.mediumUnitEncounters[RandomUnitCompositionIndex];
+                        for (int u = 0; u < RandomUnitComposition.units.Count; u++)
+                        {
+                            numberOfUnits = RandomUnitComposition.numberOfUnits[u].GetRandomNumberInRange();
+                            unit = RandomUnitComposition.units[u];
+                            updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation);
+                            tiles = updatedTileInfo.Item1;
+                            availableTiles = updatedTileInfo.Item2;
+                        }
                     }
                     break;
                 case (Danger.Hard):
-                    for (int u = 0; u < encounterComposition.encounterAmount[k]; u++)
+                    for (int a = 0; a < encounterComposition.encounterAmount[k]; a++)
                     {
-                        RandomUnitComposition = Random.Range(0, encounter.hardUnitEncounters.Count);
-                        numberOfUnits = encounter.hardUnitEncounters[RandomUnitComposition].numberOfUnits[u].GetRandomNumberInRange();
-                        unit = encounter.hardUnitEncounters[RandomUnitComposition].units[u];
-                        updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation);
-                        tiles = updatedTileInfo.Item1;
-                        availableTiles = updatedTileInfo.Item2;
+                        RandomUnitCompositionIndex = Random.Range(0, encounter.hardUnitEncounters.Count);
+                        RandomUnitComposition = encounter.hardUnitEncounters[RandomUnitCompositionIndex];
+                        for (int u = 0; u < RandomUnitComposition.units.Count; u++)
+                        {
+                            numberOfUnits = RandomUnitComposition.numberOfUnits[u].GetRandomNumberInRange();
+                            unit = RandomUnitComposition.units[u];
+                            updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation);
+                            tiles = updatedTileInfo.Item1;
+                            availableTiles = updatedTileInfo.Item2;
+                        }
                     }
                     break;
             }
@@ -469,7 +527,6 @@ public class MapGenerator : MonoBehaviour
         Vector2Int firstUnitSpawnLocation;
         List<Vector2Int> unitPlacements;
         List<Vector2Int> modifiedAvailableTiles = availableTiles;
-
         firstUnitSpawnLocation = availableTiles[Random.Range(0, availableTiles.Count)];
         unitPlacements = FindNearestOpenSpaceMapGeneration.
             FindEmptySpace(numberOfUnits, firstUnitSpawnLocation, modifiedTiles, false);
@@ -491,6 +548,17 @@ public class MapGenerator : MonoBehaviour
         }
         return new Tuple<int[,], List<Vector2Int>>(modifiedTiles, modifiedAvailableTiles);
     }
+    
+    public void PlaceMarkerAtLocation()
+    {
+        ClearLocationMarker();
+        locationMarkerSpriteHolder = Instantiate(LocationMarkerPrefab, locateLocation + testingGameManager.defaultGridPosition, new Quaternion(0, 0, 0, 1f));
+    }
+
+    public void ClearLocationMarker()
+    {
+        DestroyImmediate(locationMarkerSpriteHolder);
+    }
 }
 
 
@@ -503,8 +571,22 @@ public class MapGeneratorTestor : Editor
         MapGenerator me = (MapGenerator)target;
         if (GUILayout.Button("Test"))
         {
+            me.ClearLocationMarker();
             me.ResetTesting();
             me.GenerateTile(null, null, 0, true);
+        }
+        if (GUILayout.Button("Reset"))
+        {
+            me.ClearLocationMarker();
+            me.ResetTesting();
+        }
+        if (GUILayout.Button("LocateLocation"))
+        {
+            me.PlaceMarkerAtLocation();
+        }
+        if (GUILayout.Button("ClearLocationMarker"))
+        {
+            me.ClearLocationMarker();
         }
         DrawDefaultInspector();
     }

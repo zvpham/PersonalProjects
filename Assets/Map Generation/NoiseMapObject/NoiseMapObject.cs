@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NoiseMapObject : MonoBehaviour
+public class NoiseMapObject
 {
     public Grid<NoiseMapObject> grid;
     public int x;
