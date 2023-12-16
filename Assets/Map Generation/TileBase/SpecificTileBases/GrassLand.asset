@@ -19,10 +19,10 @@ MonoBehaviour:
   structures:
   - {fileID: 11400000, guid: 001f36c939057d946994d9727bca87cc, type: 2}
   setPieces:
-  - {fileID: 6420521474990462733, guid: 642037ee35a0b5a41a38e18386666b1c, type: 3}
+  - {fileID: 2135971780629767742, guid: b5a03bc0397de2b41a074406bdb6f7be, type: 3}
   encounter: {fileID: 11400000, guid: 762813cc385f0ac4c926067467732fe7, type: 2}
-  setPieceFactorMin: 0.16
-  setPieceFactorMax: 0.32
+  setPieceFactorMin: 0.01
+  setPieceFactorMax: 0.01
   oneStructureChance: 0.25
   twoStructureChance: 0.1
   threeStructureChance: 0.05

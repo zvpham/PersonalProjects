@@ -11,21 +11,19 @@ using static UnityEngine.GraphicsBuffer;
 
 public class EnemyTest : Unit
 {
-    private Vector2 newPosition = new Vector2(0.0f, 0.0f);
     public bool ableToWander = true;
 
     public int highestPriorityActionIndex;
 
     public int currentActionWeight;
     public int highestActionWeight = 0;
-    //private GameManager gameManager;
 
-   // public int index;
+    public int currentInterestLevel;
+    public int maxInterestLevel = 10;
 
     // Start is called before the first frame update
     void Start()
     {
-
         ChangeStr(0);
         ChangeAgi(0);
         ChangeEnd(0);
@@ -33,27 +31,13 @@ public class EnemyTest : Unit
         ChangeInt(0);
         ChangeCha(0);
 
-        foreach (SoulItemSO physicalSoul in physicalSouls)
-        {
-            if (physicalSoul != null)
-            {
-                physicalSoul.AddPhysicalSoul(this);
-            }
-        }
-
-        foreach (SoulItemSO mentalSoul in mentalSouls)
-        {
-            if (mentalSoul != null)
-            {
-                mentalSoul.AddMentalSoul(this);
-            }
-        }
-
         baseActionTemplate = Instantiate(baseActionTemplate);
         foreach (Action templateAction in baseActionTemplate.Actions)
         {
             baseActions.Add(Instantiate(templateAction));
         }
+
+        UpdateActions();
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
         //gameManager = GameManager.instance;
@@ -62,7 +46,7 @@ public class EnemyTest : Unit
         {
             gameManager.speeds.Add(this.quickness);
             gameManager.priority.Add((int)(this.quickness * gameManager.baseTurnTime));
-            gameManager.scripts.Add(this);
+            gameManager.units.Add(this);
         }
         //gameManger will be set  to instance on the onload function in GameManagerScript
         else
@@ -94,7 +78,37 @@ public class EnemyTest : Unit
 
             if (enemyList.Count == 0)
             {
-                if (ableToWander && !unusableActionTypes.Keys.Contains(ActionTypes.movement))
+                if(lastKnownEnemyLocation != null)
+                {
+                    highestActionWeight = 0;
+                    highestPriorityActionIndex = -1;
+                    for(int i = 0; i < chaseActions.Count; i++)
+                    {
+                        if (chaseActions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, false))
+                        {
+                            currentActionWeight = chaseActions[i].CalculateWeight(this, lastKnownEnemyLocation);
+                        }
+                        else
+                        {
+                            currentActionWeight = 0;
+                        }
+
+                        if (currentActionWeight > highestActionWeight)
+                        {
+                            highestPriorityActionIndex = i;
+                            highestActionWeight = currentActionWeight;
+                        }
+                    }
+
+                    if (highestPriorityActionIndex != -1)
+                    {
+                        chaseActions[highestPriorityActionIndex].StartActionPresetAI(this);
+                        chaseActions[highestPriorityActionIndex].Activate(this, lastKnownEnemyLocation);
+                        highestActionWeight = 0;
+                        highestPriorityActionIndex = -1;
+                    }
+                }
+                else if (ableToWander && !unusableActionTypes.Keys.Contains(ActionTypes.movement))
                 {
                     Wander();
                 }

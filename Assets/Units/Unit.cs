@@ -56,6 +56,10 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public List<Unit> enemyList = new List<Unit>();
     public List<Unit> allyList = new List<Unit>();
 
+    public Vector3 lastKnownEnemyLocation;
+
+    public bool inPeripheralGameManager = false;
+
     public GameManager gameManager;
     public int index;
 
@@ -65,6 +69,10 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public List<Action> baseActions;
 
     public List<Action> actions;
+    public List<ActionName> actionNames = new List<ActionName>();
+    public List<int> actionCooldowns = new List<int>();
+
+    public List<ChaseAction> chaseActions;
 
     public List<Sense> senses = new List<Sense>();
     
@@ -140,7 +148,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     {
         allyList.Clear();
         enemyList.Clear();
-        foreach (Unit unit in gameManager.scripts)
+        foreach (Unit unit in gameManager.units)
         {
             if (unit.faction == this.faction)
             {
@@ -159,9 +167,9 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         }
     }
 
+    // There Should be enemies in enemyList if called
     public void FindClosestEnemy()
     {
-
         float distance;
         float closestDistance = Vector3.Distance(gameObject.transform.position, enemyList[0].gameObject.transform.position);
         closestEnemyIndex = 0;
@@ -175,6 +183,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
                 closestEnemyIndex = i;
             }
         }
+        lastKnownEnemyLocation = enemyList[closestEnemyIndex].gameObject.transform.position;
     }
 
     public void IsInMelee()
@@ -319,7 +328,16 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
     public void UpdateActions()
     {
+        for(int i = 0; i < actions.Count; i++)
+        {
+            actionNames.Add(actions[i].actionName);
+            actionCooldowns.Add(actions[i].currentCooldown);
+        }
+
         actions.Clear();
+        chaseActions.Clear();
+        chaseActions = new List<ChaseAction> ();
+        actions = new List<Action>();
         foreach(SoulItemSO phyiscalSoul in physicalSouls)
         {
             if(phyiscalSoul != null)
@@ -335,6 +353,35 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
                 mentalSoul.AddPhysicalSoul(this);
             }
         }
+
+        for(int i  = 0; i < actions.Count; i++)
+        {
+            int actionIndex = actionNames.IndexOf(actions[i].actionName);
+            if(actionIndex == -1)
+            {
+                actions[i].currentCooldown = 0;
+            }
+            actions[i].currentCooldown = actionCooldowns[actionIndex];
+        }
+
+        for(int i = 0; i < actions.Count; i++)
+        {
+            if (actions[i].isChaseAction)
+            {
+                chaseActions.Add((ChaseAction) actions[i]);
+            }
+        }
+
+        for (int i = 0; i < baseActions.Count; i++)
+        {
+            if (baseActions[i].isChaseAction)
+            {
+                chaseActions.Add((ChaseAction) baseActions[i]);
+            }
+        }
+
+        actionNames.Clear();
+        actionCooldowns.Clear();
     }
 
     public void ChangeStr(int value)
@@ -447,7 +494,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
     public void ChangeQuickness(double value)
     {
-        index = gameManager.scripts.IndexOf(this);
+        index = gameManager.units.IndexOf(this);
         gameManager.speeds[index] *= value;
         /*
         Debug.Log("Value: " + value);
@@ -578,14 +625,14 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
         }
 
-        index = gameManager.scripts.IndexOf(this);
+        index = gameManager.units.IndexOf(this);
         if(index < gameManager.index)
         {
             gameManager.index -= 1;
         }
         gameManager.speeds.RemoveAt(index);
         gameManager.priority.RemoveAt(index);
-        gameManager.scripts.RemoveAt(index);
+        gameManager.units.RemoveAt(index);
         gameManager.isLocationChangeStatus -= hasLocationChangeStatus;
         if(gameManager.grid.GetGridObject(gameObject.transform.position) != null)
         {

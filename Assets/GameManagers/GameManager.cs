@@ -1,4 +1,5 @@
 using Inventory.Model;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +44,7 @@ public class GameManager : MonoBehaviour
     public Grid<List<Item>> itemgrid;
     public Grid<Wall> obstacleGrid;
 
-    public List<Unit> scripts;
+    public List<Unit> units;
     public List<Item> items;
     public List<Status> allStatuses;
     public List<CreatedField> createdFields = new List<CreatedField>();
@@ -72,6 +73,9 @@ public class GameManager : MonoBehaviour
 
     public bool isNewSlate = true;
 
+    public List<Tuple<int, int, int>> initalRenderLocations;
+    public List<Tuple<int, int, int>> finalRenderLocations;
+
     void Awake()
     {
         if (instance == null)
@@ -88,6 +92,16 @@ public class GameManager : MonoBehaviour
     {
         currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
         expectedLocationMarker.selfDestructionTimer = expectedLocationChangeSpeed;
+        for(int i = 0; i < initalRenderLocations.Count; i++)
+        {
+            int x = initalRenderLocations[i].Item1;
+            int y = initalRenderLocations[i].Item2;
+            int wallIndex = initalRenderLocations[i].Item3;
+            RenderWall(x, y, wallIndex);
+        }
+        FinalRender();
+        initalRenderLocations = null;
+        finalRenderLocations = null;
     }
 
     public void ClearBoard()
@@ -128,7 +142,7 @@ public class GameManager : MonoBehaviour
             GameObject temp = Instantiate(resourceManager.unitPrefabs[tempData.unitPrefabIndex], tempData.position, new Quaternion(0, 0, 0, 1f));
             Unit unit = temp.GetComponent<Unit>();
             unit.gameManager = this;
-            this.scripts.Add(unit);
+            this.units.Add(unit);
             unit.health = tempData.health;
             unit.actionNamesForCoolDownOnLoad = tempData.actionNames;
             unit.currentCooldownOnLoad = tempData.actionCooldowns;
@@ -138,7 +152,7 @@ public class GameManager : MonoBehaviour
         this.priority = data.priority;
 
         // Load Player Specific Data
-        Player playerTemp = (Player)this.scripts[0];
+        Player playerTemp = (Player)this.units[0];
         playerTemp.soulSlotIndexes = data.soulSlotIndexes;
 
         List<SoulItemSO> souls = new List<SoulItemSO>();
@@ -166,7 +180,7 @@ public class GameManager : MonoBehaviour
             temp.statusIntData = data.statusIntData[i];
             temp.statusStringData = data.statusStringData[i];
             temp.statusBoolData = data.statusBoolData[i];
-            temp.onLoadApply(this.scripts[data.indexOfUnitThatHasStatus[i]]);
+            temp.onLoadApply(this.units[data.indexOfUnitThatHasStatus[i]]);
         }
 
         // Load Created Field Data;
@@ -218,11 +232,11 @@ public class GameManager : MonoBehaviour
         data.duringTurn = duringTurn;
 
         // Unit data
-        data.numberOfUnits = this.scripts.Count;
+        data.numberOfUnits = this.units.Count;
         data.speeds = this.speeds;
         data.priority = this.priority;
         List<unitPrefabData> tempUnitPrefabData = new List<unitPrefabData>();
-        foreach (Unit unit in this.scripts)
+        foreach (Unit unit in this.units)
         {
             List<int> actionCooldowns = new List<int>();
             List<ActionName> actionNames = new List<ActionName>();
@@ -238,7 +252,7 @@ public class GameManager : MonoBehaviour
         data.unitPrefabDatas = tempUnitPrefabData;
 
         // Player Specific Data
-        Player player = (Player)scripts[0];
+        Player player = (Player)units[0];
         List<int> tempOnLoadSouls = new List<int>();
         foreach (SoulItemSO soul in player.onLoadSouls)
         {
@@ -270,7 +284,7 @@ public class GameManager : MonoBehaviour
         foreach (Status status in allStatuses)
         {
             statusIndexList.Add(status.statusPrefabIndex);
-            indexOfUnitThatHasStatus.Add(this.scripts.IndexOf(status.targetUnit));
+            indexOfUnitThatHasStatus.Add(this.units.IndexOf(status.targetUnit));
             statusIntData.Add(status.statusIntData);
             statusStringData.Add(status.statusStringData);
             statusBoolData.Add(status.statusBoolData);
@@ -388,7 +402,7 @@ public class GameManager : MonoBehaviour
             SpriteChangeManager();
         }
 
-        if (CanContinue(scripts[index]))
+        if (CanContinue(units[index]))
         {
             // finds the lowest priority amongst all the units, statuses, worldtimer
             // if we are at the top of a turn
@@ -450,7 +464,7 @@ public class GameManager : MonoBehaviour
                 {
                     index = i;
                     duringTurn = 1;
-                    scripts[i].enabled = true;
+                    units[i].enabled = true;
                     aUnitActed = true;
                     break;
                 }
@@ -584,7 +598,7 @@ public class GameManager : MonoBehaviour
 
     private void ExpectedLocationSpriteManager()
     {
-        foreach (Unit unit in scripts)
+        foreach (Unit unit in units)
         {
             if (unit.hasLocationChangeStatus >= 1)
             {
@@ -636,7 +650,7 @@ public class GameManager : MonoBehaviour
 
     private void SpriteChangeManager()
     {
-        foreach (Unit unit in scripts)
+        foreach (Unit unit in units)
         {
             currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
             if (unit.statuses.Count != 0)
@@ -661,5 +675,375 @@ public class GameManager : MonoBehaviour
             }
         }
         currentTime = 0;
+    }
+
+    public void FinalRender()
+    {
+        int x = -1;
+        int y = -1;
+        int wallIndex = -1;
+        for (int i = 0; i < finalRenderLocations.Count; i++)
+        {
+            x = finalRenderLocations[i].Item1;
+            y = finalRenderLocations[i].Item2;
+            wallIndex = finalRenderLocations[i].Item3;
+            switch (obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState)
+            {
+                case (WallStates.EastWall):
+                    if (obstacleGrid.GetGridObject(x - 1, y).GetComponent<PrefabMapTile>().wallState == WallStates.CenterHorzontalWall ||
+                       obstacleGrid.GetGridObject(x - 1, y).GetComponent<PrefabMapTile>().wallState == WallStates.LeftHorzontalWall)
+                    {
+                        obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].EastThreeWay;
+                    }
+                    else if (obstacleGrid.GetGridObject(x - 1, y + 1) == null)
+                    {
+                        obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].EastModifiedLowerConnector;
+                    }
+                    else if (obstacleGrid.GetGridObject(x - 1, y - 1) == null)
+                    {
+                        obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].EastModifiedUpperConnector;
+                    }
+                    break;
+                case (WallStates.WestWall):
+                    if (obstacleGrid.GetGridObject(x + 1, y).GetComponent<PrefabMapTile>().wallState == WallStates.CenterHorzontalWall ||
+                        obstacleGrid.GetGridObject(x + 1, y).GetComponent<PrefabMapTile>().wallState == WallStates.RightHorzontalWall)
+                    {
+                        obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].WestThreeWay;
+                    }
+                    else if (obstacleGrid.GetGridObject(x + 1, y + 1) == null)
+                    {
+                        obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].WestModifiedLowerConnector;
+                    }
+                    else if (obstacleGrid.GetGridObject(x + 1, y - 1) == null)
+                    {
+                        obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].WestModifiedUpperConnector;
+                    }
+                    break;
+                case (WallStates.SouthWall):
+                    if (obstacleGrid.GetGridObject(x + 1, y + 1) == null ||
+                        obstacleGrid.GetGridObject(x - 1, y + 1) == null)
+                    {
+                        if (obstacleGrid.GetGridObject(x + 1, y + 1) == null &&
+                        obstacleGrid.GetGridObject(x - 1, y + 1) == null)
+                        {
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].SouthWallThreeWay;
+                        }
+                        else if (obstacleGrid.GetGridObject(x + 1, y + 1) == null)
+                        {
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].SouthModifiedRightSmallConnector;
+                        }
+                        else
+                        {
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].SouthModifiedLeftSmallConnector;
+                        }
+                    }
+                    break;
+                case (WallStates.NorthWall):
+                    if (obstacleGrid.GetGridObject(x + 1, y - 1) == null ||
+                        obstacleGrid.GetGridObject(x - 1, y - 1) == null)
+                    {
+                        if (obstacleGrid.GetGridObject(x + 1, y - 1) == null &&
+                        obstacleGrid.GetGridObject(x - 1, y - 1) == null)
+                        {
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].NorthWallThreeWay;
+                        }
+                        else if (obstacleGrid.GetGridObject(x + 1, y - 1) == null)
+                        {
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].NorthModifiedRightSmallConnector;
+                        }
+                        else
+                        {
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].NorthModifiedLeftSmallConnector;
+                        }
+                    }
+                    break;
+                case (WallStates.CenterWall):
+                    int numWallConnections = 0;
+
+                    if (obstacleGrid.GetGridObject(x + 1, y + 1) != null)
+                    {
+                        //NorthEast Wall
+                        numWallConnections += 1;
+                    }
+                    if (obstacleGrid.GetGridObject(x - 1, y - 1) != null)
+                    {
+                        //SouthWest Wall
+                        numWallConnections += 2;
+                    }
+                    if (obstacleGrid.GetGridObject(x - 1, y + 1) != null)
+                    {
+                        //is NorthWest Wall
+                        numWallConnections += 4;
+                    }
+                    if (obstacleGrid.GetGridObject(x + 1, y - 1) != null)
+                    {
+                        //is SouthEast
+                        numWallConnections += 8;
+                    }
+                    switch (numWallConnections)
+                    {
+                        case 0:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterFourWay;
+                            break;
+                        case 1:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterNorthEastConnector;
+                            break;
+                        case 2:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterSouthWestConnector;
+                            break;
+                        case 3:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterNorthEastToSouthWest;
+                            break;
+                        case 4:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterNorthWestConnector;
+                            break;
+                        case 5:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterNorthThreeWay;
+                            break;
+                        case 6:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterWestThreeWay;
+                            break;
+                        case 7:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterNorthSmallRightConnectorWall;
+                            break;
+                        case 8:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterSouthEastConnector;
+                            break;
+                        case 9:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterEastThreeWay;
+                            break;
+                        case 10:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterSouthThreeWay;
+                            break;
+                        case 11:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterSouthSmallLeftConnectorWall;
+                            break;
+                        case 12:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterNorthWestToSouthEast;
+                            break;
+                        case 13:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterNorthSmallLeftConnectorWall;
+                            break;
+                        case 14:
+                            obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterSouthSmallRightConnectorWall;
+                            break;
+                        case 15:
+                            break;
+                    }
+                    break;
+
+            }
+        }
+
+    }
+
+    public void RenderWall(int x, int y, int wallIndex)
+    {
+        int numWallConnections = 0;
+        if (x + 1 < mapWidth && obstacleGrid.GetGridObject(x + 1, y) != null)
+        {
+            //East Wall
+            numWallConnections += 1;
+        }
+        if (x - 1 >= 0 && obstacleGrid.GetGridObject(x - 1, y) != null)
+        {
+            //West Wall
+            numWallConnections += 2;
+        }
+        if (y + 1 < mapHeight && obstacleGrid.GetGridObject(x, y + 1) != null)
+        {
+            //is NorthWall
+            numWallConnections += 4;
+        }
+        if (y - 1 >= 0 && obstacleGrid.GetGridObject(x, y - 1) != null)
+        {
+            //is SouthWall
+            numWallConnections += 8;
+        }
+
+        switch (numWallConnections)
+        {
+            case 0:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].SoleWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.SoleWall;
+                break;
+            case 1:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].LeftHorzontalWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.LeftHorzontalWall;
+                finalRenderLocations.Add(new Tuple<int, int, int>(x + 1, y, wallIndex));
+                break;
+            case 2:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].RightHorzontalWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.RightHorzontalWall;
+                finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
+                break;
+            case 3:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterHorzontalWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.CenterHorzontalWall;
+                finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
+                finalRenderLocations.Add(new Tuple<int, int, int>(x + 1, y, wallIndex));
+                break;
+            case 4:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].LowerVerticalWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.LowerVerticalWall;
+                finalRenderLocations.Add(new Tuple<int, int, int>(x, y + 1, wallIndex));
+                break;
+            case 5:
+                if (obstacleGrid.GetGridObject(x + 1, y + 1) != null)
+                {
+                    obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].SouthWestWall;
+                    obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.SouthWestWall;
+                    if (y - 1 > 0 && obstacleGrid.GetGridObject(x + 1, y - 1) != null)
+                    {
+                        finalRenderLocations.Add(new Tuple<int, int, int>(x + 1, y, wallIndex));
+                    }
+                }
+                else
+                {
+                    obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].SouthWestWallModified;
+                    obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.SouthWestWallModified;
+                    if (y - 1 > 0 && obstacleGrid.GetGridObject(x + 1, y - 1) != null)
+                    {
+                        finalRenderLocations.Add(new Tuple<int, int, int>(x + 1, y, wallIndex));
+                    }
+                }
+                break;
+            case 6:
+                if (obstacleGrid.GetGridObject(x - 1, y + 1) != null)
+                {
+                    obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].SouthEastWall;
+                    obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.SouthEastWall;
+                    if (y - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
+                    {
+                        finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
+                    }
+
+                }
+                else
+                {
+                    obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].SouthEastWallModified;
+                    obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.SouthEastWallModified;
+                    if (y - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
+                    {
+                        finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
+                    }
+                }
+                break;
+            case 7:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].SouthWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.SouthWall;
+                if (y - 1 < 0)
+                {
+                    break;
+                }
+                if (obstacleGrid.GetGridObject(x + 1, y - 1) != null)
+                {
+                    finalRenderLocations.Add(new Tuple<int, int, int>(x + 1, y, wallIndex));
+                }
+                if (y + 1 < mapHeight && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
+                {
+                    finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
+                }
+                break;
+            case 8:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].UpperVerticalWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.UpperVerticalWall;
+                finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                break;
+            case 9:
+                if (obstacleGrid.GetGridObject(x + 1, y - 1) != null)
+                {
+                    obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].NorthWestWall;
+                    obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.NorthWestWall;
+                    if (x - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
+                    {
+                        finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                    }
+                }
+                else
+                {
+                    obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].NorthWestWallModified;
+                    obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.NorthWestWallModified;
+                    if (x - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
+                    {
+                        finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                    }
+                }
+                break;
+            case 10:
+                if (obstacleGrid.GetGridObject(x - 1, y - 1) != null)
+                {
+                    obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].NorthEastWall;
+                    obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.NorthEastWall;
+                    if (obstacleGrid.GetGridObject(x + 1, y - 1) == null)
+                    {
+                        finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                    }
+                    if (y + 1 < mapHeight && obstacleGrid.GetGridObject(x - 1, y + 1) != null)
+                    {
+                        finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
+                    }
+                }
+                else
+                {
+                    obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].NorthEastWallModified;
+                    obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.NorthEastWallModified;
+                    if (x + 1 < mapWidth  && obstacleGrid.GetGridObject(x + 1, y - 1) != null)
+                    {
+                        finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                    }
+                }
+                break;
+            case 11:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].NorthWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.NorthWall;
+                break;
+            case 12:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterVerticalWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.CenterVerticalWall;
+                if (x + 1 >= mapWidth  || x - 1 < 0)
+                {
+                    break;
+                }
+                if (obstacleGrid.GetGridObject(x - 1, y + 1) != null &&
+                    obstacleGrid.GetGridObject(x + 1, y + 1) != null)
+                {
+                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y + 1, wallIndex));
+                }
+                if (obstacleGrid.GetGridObject(x - 1, y - 1) != null &&
+                    obstacleGrid.GetGridObject(x + 1, y - 1) != null)
+                {
+                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                }
+                break;
+            case 13:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].WestWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.WestWall;
+                if (x - 1 > 0 && y - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
+                {
+                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                }
+                if (obstacleGrid.GetGridObject(x + 1, y + 1) == null)
+                {
+                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y, wallIndex));
+                }
+                break;
+            case 14:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].EastWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.EastWall;
+                if (x + 1 < mapWidth  && y - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
+                {
+                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                }
+                if (obstacleGrid.GetGridObject(x - 1, y + 1) == null)
+                {
+                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y, wallIndex));
+                }
+                break;
+            case 15:
+                obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterWall;
+                obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.CenterWall;
+                break;
+        }
     }
 }

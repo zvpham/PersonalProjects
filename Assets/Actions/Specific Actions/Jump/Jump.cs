@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 [CreateAssetMenu(menuName = "Action/Jump")]
-public class Jump : Action
+public class Jump : ChaseAction
 {
     public List<Vector3> pathAI;
     public override int CalculateWeight(Unit self)
@@ -74,5 +74,29 @@ public class Jump : Action
         affectedUnit.HandlePerformActions(actionType, actionName);
         affectedUnit.DeactivateTargeting();
         affectedUnit.TurnEnd();
+    }
+
+    public override void Activate(Unit self, Vector3 targetLocation)
+    {
+        Activate(self);
+    }
+
+    public override int CalculateWeight(Unit self, Vector3 targetLocation)
+    {
+        bool pathFound = false;
+        pathAI = LineOfSightAI.MakeLine(self.transform.position, targetLocation, range, true);
+        if (pathAI != null)
+        {
+            if (self.gameManager.flyingGrid.GetGridObject(pathAI[(int)(pathAI.Count / 2f)]) == null)
+            {
+                pathFound = true;
+            }
+        }
+
+        if (pathFound)
+        {
+            return weight;
+        }
+        return 0;
     }
 }

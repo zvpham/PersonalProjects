@@ -21,6 +21,13 @@ public class Wall : MonoBehaviour
     public event UnityAction OnDeath;
     public bool continueDeath;
 
+    public void Start()
+    {
+        int x = (int)(transform.position.x - gameManager.defaultGridPosition.x);
+        int y = (int)(transform.position.y - gameManager.defaultGridPosition.y);
+        gameManager.initalRenderLocations.Add(new Tuple<int, int, int>(x, y, wallIndex - 2));
+    }
+
     public void Death()
     {
         continueDeath = true;
@@ -31,14 +38,7 @@ public class Wall : MonoBehaviour
         }
 
         //gameManager.scripts.RemoveAt(index);
-        if (gameManager.grid.GetGridObject(gameObject.transform.position) != null)
-        {
-            gameManager.grid.SetGridObject(gameObject.transform.position, null);
-        }
-        else
-        {
-            gameManager.flyingGrid.SetGridObject(gameObject.transform.position, null);
-        }
+        gameManager.obstacleGrid.SetGridObject(gameObject.transform.position, null);
         Destroy(this);
         Destroy(gameObject);
 

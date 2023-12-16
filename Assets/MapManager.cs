@@ -26,10 +26,21 @@ public class MapManager : MonoBehaviour, IDataPersistence
     public TileData[] templateTiles;
     public TileData[] currentTiles;
 
-    public GameManager gameManager;
+    public GameManager mainGameManager;
+    public GameManager BLGameManager;
+    public GameManager BGameManager;
+    public GameManager BRGameManager;
+    public GameManager MLGameManager;
+    public GameManager MRGameManager;
+    public GameManager TLGameManager;
+    public GameManager TGameManager;
+    public GameManager TRGameManager;
+
+
     public DataPersistenceManager dataPersistenceManager;
     public ResourceManager resourceManager;
     public WorldMap worldMap;
+    public MapGenerator mapGenerator;
 
     public static MapManager Instance;
 
@@ -59,6 +70,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
         previousMapPositionsValues = mapData.mapPositionValue;
         hasVisitedLocationsaveData = mapData.hasVisitedLocations;
 
+        //Sets Start position for Player when first starting SaveSlot
         if (currentMapPosition == null)
         {
             currentMapPosition = new Vector2Int(0, 0);
@@ -82,10 +94,12 @@ public class MapManager : MonoBehaviour, IDataPersistence
             Debug.LogError("out of bounds. attempted to go to map position: " + currentMapPosition);
         }
 
+        //Attempting to get tileData for current Position
         TileData tileData = dataPersistenceManager.GetTileData(currentMapPosition);
         if (tileData == null)
         {
             int tileBaseIndex = worldMap.tilesInspectorUse[currentMapPosition.x + currentMapPosition.y * worldMap.width].z;
+            //For Prefab Tile Bases
             if(resourceManager.tilesBases[tileBaseIndex].tileType == TileType.Premade)
             {
                 TilePrefabBase tile =  (TilePrefabBase)resourceManager.tilesBases[tileBaseIndex];
@@ -99,30 +113,56 @@ public class MapManager : MonoBehaviour, IDataPersistence
 
                 }
             }
+            // Generate a NonPrefab Tilebase Map
             else
             {
-
+                mapGenerator.GenerateTile(resourceManager.tilesBases[tileBaseIndex], mainGameManager, extraDangerModifier);
             }
         }
         else
         {
-            gameManager.LoadData(tileData);
+            mainGameManager.LoadData(tileData);
         }
+        Vector2Int test = new Vector2Int(2, 2);
 
-        for (int i = -1; i <= 1; i++)
+        for(int i = 0; i < previousMapPositionsKeys.Count; i++)
         {
-            for (int j = -1; j <= 1; j++)
+            tileData = dataPersistenceManager.GetTileData(previousMapPositions[i]);
+            Vector2Int relativePosition = previousMapPositionsKeys[i] - currentMapPosition;
+            if(relativePosition == new Vector2Int(-1, -1))
             {
-                if (i == 0 && j == 0)
-                {
-                    continue;
-                }
-                else
-                {
-
-                }
+                BLGameManager.LoadData(tileData);
+            }
+            else if(relativePosition == new Vector2Int(0, -1))
+            {
+                BGameManager.LoadData(tileData);
+            }
+            else if (relativePosition == new Vector2Int(1, -1))
+            {
+                BRGameManager.LoadData(tileData);
+            }
+            else if (relativePosition == new Vector2Int(-1, 0))
+            {
+                MLGameManager.LoadData(tileData);
+            }
+            else if (relativePosition == new Vector2Int(1, 0))
+            {
+                MRGameManager.LoadData(tileData);
+            }
+            else if (relativePosition == new Vector2Int(-1, 1))
+            {
+                TLGameManager.LoadData(tileData);
+            }
+            else if (relativePosition == new Vector2Int(0, 1))
+            {
+                TGameManager.LoadData(tileData);
+            }
+            else if (relativePosition == new Vector2Int(1, 1))
+            {
+                TRGameManager.LoadData(tileData);
             }
         }
+
         changedMapPosition = false;
     }
 

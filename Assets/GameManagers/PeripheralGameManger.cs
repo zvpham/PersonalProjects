@@ -25,12 +25,17 @@ public class PeripheralGameManager : GameManager
         grid = new Grid<Unit>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, gridPosition, (Grid<Unit> g, int x, int y) => null);
         flyingGrid = new Grid<Unit>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, gridPosition, (Grid<Unit> g, int x, int y) => null);
         itemgrid = new Grid<List<Item>>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, gridPosition, (Grid<List<Item>> g, int x, int y) => null);
+
+        for(int i = 0; i < units.Count; i++)
+        {
+            units[i].inPeripheralGameManager = true;
+        }
     }
 
     // Update is called once per frame 
     void Update()
     {
-        if (CanContinue(scripts[index]))
+        if (CanContinue(units[index]))
         {
             // finds the lowest priority amongst all the units, statuses, worldtimer
             // if we are at the top of a turn
@@ -92,7 +97,7 @@ public class PeripheralGameManager : GameManager
                 {
                     index = i;
                     duringTurn = 1;
-                    scripts[i].enabled = true;
+                    units[i].enabled = true;
                     aUnitActed = true;
                     break;
                 }

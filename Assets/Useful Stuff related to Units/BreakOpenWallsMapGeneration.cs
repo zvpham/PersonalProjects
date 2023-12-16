@@ -59,15 +59,17 @@ public static class BreakOpenWallsMapGeneration
             }
         }
         structureStartLocation = initialStructureStartLocation;
+        unknownLocations = new List<Vector2> ();
         for(int i = 0; i < structureHeight; i++)
         {
-            for(int j = 0; j < structureHeight; j++)
+            for(int j = 0; j < structureWidth; j++)
             {
                 unknownLocations.Add(structureStartLocation + new Vector2(j, i));
             }
         }
 
         debugWord = "";
+
         openList = new List<Vector3>();
         closedList = new List<Vector3>();
         openListLocation = new List<Vector2>();
@@ -81,6 +83,7 @@ public static class BreakOpenWallsMapGeneration
         wallBreakLocations = FindPath();
         if (wallBreakLocations == null)
         {
+            Debug.LogError("There Should be Walls Broken but there Aren't");
             return null;
         }
         return wallBreakLocations;
@@ -137,12 +140,10 @@ public static class BreakOpenWallsMapGeneration
                         case NodeState.emptySpace:
                             openList.Add(neighborNode);
                             openListLocation.Add(new Vector2(neighborNode.x, neighborNode.y));
-                            unknownLocations.Remove(new Vector2(neighborNode.x, neighborNode.y));
                             break;
                         case NodeState.room:
                             openList.Add(neighborNode);
                             openListLocation.Add(new Vector2(neighborNode.x, neighborNode.y));
-                            unknownLocations.Remove(new Vector2(neighborNode.x, neighborNode.y));
                             break;
                         case NodeState.unit:
                             Debug.LogError("There Shouldn't be Units in structures Yet");
@@ -152,18 +153,26 @@ public static class BreakOpenWallsMapGeneration
             }
             if (unknownLocations.Count == 0) 
             {
-                return null;
+                return wallBreakLocations;
             }
             bool wallIsBroken = false;
-            for(int i = 0;i < wallLocations.Count; i++)
+
+            int wallIndex =  Random.Range(0, wallLocations.Count);
+            for(int i = 0; i < wallLocations.Count; i++)
             {
-                Vector3 wallPosition = new Vector3(wallLocations[i].x, wallLocations[i].y, 0);
+                Vector3 wallPosition = new Vector3(wallLocations[wallIndex].x, wallLocations[wallIndex].y, 0);
                 if (ShouldWallBeBroken(wallPosition))
                 {
                     openList.Add(wallPosition);
                     openListLocation.Add(wallPosition);
                     wallBreakLocations.Add(new Vector2Int((int) wallPosition.x , (int) wallPosition.y));
                     wallIsBroken = true;
+                    break;
+                }
+                wallIndex += 1;
+                if(wallIndex >= wallLocations.Count)
+                {
+                    wallIndex = 0;
                 }
             }
             if(!wallIsBroken)

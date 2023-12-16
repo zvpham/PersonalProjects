@@ -8,7 +8,7 @@ MonoImporter:
   - collisionTilemap: {instanceID: 0}
   - expectedLocationMarker: {fileID: 8882772987381676195, guid: 4beb833a62749e54187a4d865fc6ccfb,
       type: 3}
-  executionOrder: 0
+  executionOrder: 200
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 

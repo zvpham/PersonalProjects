@@ -74,7 +74,7 @@ public class Player : Unit
         {
             gameManager.speeds.Insert(0, this.quickness);
             gameManager.priority.Insert(0, (int)(this.quickness * gameManager.baseTurnTime));
-            gameManager.scripts.Insert(0, this);
+            gameManager.units.Insert(0, this);
 
             // Mainly For Debugging Purposes if trying new souls attached to prefab
             foreach (SoulItemSO physicalSoul in physicalSouls)

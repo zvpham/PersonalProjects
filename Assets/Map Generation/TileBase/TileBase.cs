@@ -22,12 +22,10 @@ public class TileBase : ScriptableObject
     private float twoStructureChance;
     [SerializeField]
     private float threeStructureChance;
-    [SerializeField]
-    private float fourStructureChance;
 
     public int FindNumberOfStructures()
     {
-        if(oneStructureChance + twoStructureChance + threeStructureChance + fourStructureChance > 1)
+        if(oneStructureChance + twoStructureChance + threeStructureChance > 1)
         {
             Debug.LogError("Redo Values");
             return 0;
@@ -45,10 +43,6 @@ public class TileBase : ScriptableObject
         else if(probability <= oneStructureChance + twoStructureChance + threeStructureChance)
         {
             return 3;
-        }
-        else if (probability <= oneStructureChance + twoStructureChance + threeStructureChance + fourStructureChance)
-        {
-            return 4;
         }
         else
         {
