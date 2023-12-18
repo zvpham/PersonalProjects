@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static UnityEditor.Progress;
 
 public class Move
@@ -38,9 +39,9 @@ public class Move
                     PickupIfItem(target, target.gameObject.transform.position, gameManager);
                 }
                 //gameManager.locations[0] = target.gameObject.transform.position;
-                gameManager.grid.SetGridObject(originalPosition, null);
+                gameManager.ChangeUnits(originalPosition, null);
                 target.CheckForStatusFields(target.gameObject.transform.position);
-                gameManager.grid.SetGridObject(target.gameObject.transform.position, target);
+                gameManager.ChangeUnits(target.gameObject.transform.position, target);
                 target.HandlePerformActions(momvementActions, ActionName.MoveNorth);
             }
         }
@@ -61,7 +62,7 @@ public class Move
     public static bool CanMove(Unit target, Vector3 newPosition, Vector2 direction, GameManager gameManager)
     {
         Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(newPosition);
-        if (!gameManager.groundTilemap.HasTile(gridPosition) || gameManager.collisionTilemap.HasTile(gridPosition))
+        if (!gameManager.groundTilemap.HasTile(gridPosition) || (gameManager.obstacleGrid.GetGridObject(newPosition) != null && gameManager.obstacleGrid.GetGridObject(newPosition).blockMovement == true))
         {
             target.gameObject.transform.position -= (Vector3)direction;
             return false;

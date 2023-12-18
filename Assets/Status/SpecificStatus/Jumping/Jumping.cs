@@ -18,14 +18,13 @@ public class Jumping : MovementStatus
 
             AddStatusPreset(target);
             AddUnusableStatuses(target);
-
-            target.gameManager.grid.SetGridObject(target.gameObject.transform.position, null);
+            target.gameManager.ChangeUnits(target.gameObject.transform.position, null);
             target.hasLocationChangeStatus += 1;
             target.gameManager.isLocationChangeStatus += 1;
         }
         else
         {
-            target.gameManager.flyingGrid.SetGridObject(target.gameObject.transform.position, null);
+            target.gameManager.ChangeUnits(target.gameObject.transform.position, null, true);
         }
 
         for (float i = 0; i < target.forcedMovementPathData.forcedMovementSpeed + target.forcedMovementPathData.excessForcedMovementSpeed;)
@@ -60,8 +59,7 @@ public class Jumping : MovementStatus
             RemoveEffect(target);
             return;
         }
-
-        target.gameManager.flyingGrid.SetGridObject(target.gameObject.transform.position, target);
+        target.gameManager.ChangeUnits(target.gameObject.transform.position, target, true);
 
         for (int i = 0; i < target.statuses.Count; i++)
         {
@@ -85,7 +83,7 @@ public class Jumping : MovementStatus
     {
         AddUnusableStatuses(target);
         AddStatusOnLoadPreset(target);
-        target.gameManager.flyingGrid.SetGridObject(target.gameObject.transform.position, target);
+        target.gameManager.ChangeUnits(target.gameObject.transform.position, target, true);
         target.hasLocationChangeStatus += 1;
         target.gameManager.isLocationChangeStatus += 1;
     }
@@ -99,7 +97,7 @@ public class Jumping : MovementStatus
             MeleeAttack.Attack(unit, target.toHitBonus, target.armorPenetration, target.strengthMod + 3);
             ForcedMovement.MoveUnit(unit);
         }
-        target.gameManager.grid.SetGridObject(target.gameObject.transform.position, target);
+        target.gameManager.ChangeUnits(target.gameObject.transform.position, target);
 
         RemoveStatusPreset(target);
         target.gameManager.isLocationChangeStatus -= 1;

@@ -20,7 +20,7 @@ MonoBehaviour:
   isUsable: 0
   actionType: 00000000
   isActiveAction: 0
-  isTurnActivated: 0
+  isChaseAction: 1
   affectedUnit: {fileID: 0}
   status:
   - {fileID: 11400000, guid: 33e766e1fbfca4a449a7e3e497c9e38b, type: 2}
@@ -29,6 +29,7 @@ MonoBehaviour:
   targetingSystem: {fileID: 0}
   createdField: {fileID: 0}
   createObject: {fileID: 0}
+  createObjectHolder: {fileID: 0}
   range: 24
   blastRadius: 0
   blastAngle: 0

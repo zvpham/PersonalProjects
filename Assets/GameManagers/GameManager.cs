@@ -14,6 +14,7 @@ using UnityEngine.Tilemaps;
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
+    public MainGameManger mainGameManger;
 
     public int mapWidth;
     public int mapHeight;
@@ -33,7 +34,6 @@ public class GameManager : MonoBehaviour
     public int worldPriority = 0;
 
     public Tilemap groundTilemap;
-    public Tilemap collisionTilemap;
 
     public MapGenerator mapGenerator;
 
@@ -102,6 +102,25 @@ public class GameManager : MonoBehaviour
         FinalRender();
         initalRenderLocations = null;
         finalRenderLocations = null;
+    }
+
+    public void ChangeUnits(Vector3 worldPosition, Unit unit, bool isFlying = false)
+    {
+        if(isFlying)
+        {
+            flyingGrid.SetGridObject(worldPosition, unit);
+        }
+        else
+        {
+            grid.SetGridObject(worldPosition, unit);
+        }
+        mainGameManger.UpdatePathFindingGrid(worldPosition, obstacleGrid, grid);
+    }
+
+    public void ChangeWalls(Vector3 worldPosition, Wall wall)
+    {
+        obstacleGrid.SetGridObject(worldPosition, wall);
+        mainGameManger.UpdatePathFindingGrid(worldPosition, obstacleGrid, grid);
     }
 
     public void ClearBoard()

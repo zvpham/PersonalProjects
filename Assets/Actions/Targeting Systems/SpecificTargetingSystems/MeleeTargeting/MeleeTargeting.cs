@@ -44,7 +44,7 @@ public class MeleeTargeting : MonoBehaviour
                 }
 
                 Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(endPosition);
-                if (gameManager.collisionTilemap.HasTile(gridPosition))
+                if (gameManager.obstacleGrid.GetGridObject(endPosition) != null)
                 {
                     hitWall?.Invoke(gridPosition);
                 }

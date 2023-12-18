@@ -4,6 +4,7 @@ using Inventory.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEditorInternal;
@@ -12,6 +13,7 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEngine.Tilemaps;
+using UnityEngine.UIElements;
 using static UnityEngine.GraphicsBuffer;
 using static UnityEngine.UI.CanvasScaler;
 
@@ -72,6 +74,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public List<ActionName> actionNames = new List<ActionName>();
     public List<int> actionCooldowns = new List<int>();
 
+    public bool chasingLastKnownLocation;
     public List<ChaseAction> chaseActions;
 
     public List<Sense> senses = new List<Sense>();
@@ -144,27 +147,25 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         onTurnStart?.Invoke();
     }
 
-    public void DetermineAllyOrEnemy()
+    public void UseSenses(bool usePeripheralManagerSenses)
     {
         allyList.Clear();
         enemyList.Clear();
-        foreach (Unit unit in gameManager.units)
+        if (usePeripheralManagerSenses)
         {
-            if (unit.faction == this.faction)
+            for(int i = 0; i < senses.Count; i++)
             {
-                allyList.Add(unit);
-            }
-            else
-            {
-                BresenhamsAlgorithm.PlotFunction plotFunction = CheckForBarriers;
-                clearLineOfSightToEnemy = true;
-                BresenhamsAlgorithm.Line((int) gameObject.transform.position.x, (int)gameObject.transform.position.y, (int) unit.gameObject.transform.position.x, (int) unit.gameObject.transform.position.y , plotFunction);
-                if (clearLineOfSightToEnemy)
-                {
-                    enemyList.Add(unit);
-                }
+                senses[i].PeripheralManagerDetectUnits(this);
             }
         }
+        else
+        {
+            for (int i = 0; i < senses.Count; i++)
+            {
+                senses[i].DetectNearbyUnits(this);
+            }
+        }
+        
     }
 
     // There Should be enemies in enemyList if called
@@ -205,10 +206,10 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         inMelee = false;
     }
 
-    private bool CheckForBarriers(int x, int y, int numberMarkers)
+    private bool isThereClearLineOfSight(int x, int y, int numberMarkers)
     {
-        Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(new Vector3(x, y, 0));
-        if (numberMarkers <= visionRadius && !gameManager.collisionTilemap.HasTile(gridPosition))
+        Vector3 position = new Vector3(x, y, 0) + gameManager.defaultGridPosition;
+        if (numberMarkers <= visionRadius && (gameManager.obstacleGrid.GetGridObject(position) == null && gameManager.obstacleGrid.GetGridObject(position).blockLineOfSight == true))
         {
             return true;
         }
@@ -636,11 +637,11 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         gameManager.isLocationChangeStatus -= hasLocationChangeStatus;
         if(gameManager.grid.GetGridObject(gameObject.transform.position) != null)
         {
-            gameManager.grid.SetGridObject(gameObject.transform.position, null);
+            gameManager.ChangeUnits(gameObject.transform.position, null);
         }
         else
         {
-            gameManager.flyingGrid.SetGridObject(gameObject.transform.position, null);
+            gameManager.ChangeUnits(gameObject.transform.position, null, true);
         }
         Destroy(this);
         Destroy(gameObject);

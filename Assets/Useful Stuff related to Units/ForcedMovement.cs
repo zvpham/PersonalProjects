@@ -143,9 +143,9 @@ public static class ForcedMovement
                     storedUnit = movingUnit.gameManager.grid.GetGridObject(movementPath[i].grid.GetWorldPosition(movementPath[i].x, movementPath[i].y));
                     nextUnit = movingUnit.gameManager.grid.GetGridObject(movementPath[i - 1].grid.GetWorldPosition(movementPath[i - 1].x, movementPath[i - 1].y));
                     prevNodePosition = movementPath[i - 1].grid.GetWorldPosition(movementPath[i - 1].x, movementPath[i - 1].y);
-                    movingUnit.gameManager.grid.SetGridObject(prevNodePosition, null);
+                    movingUnit.gameManager.ChangeUnits(prevNodePosition, null);
                     newNodePosition = movementPath[i].grid.GetWorldPosition(movementPath[i].x, movementPath[i].y);
-                    movingUnit.gameManager.grid.SetGridObject(newNodePosition, nextUnit);
+                    movingUnit.gameManager.ChangeUnits(newNodePosition, nextUnit);
                     movingUnit.gameObject.transform.position = newNodePosition;
                 }
                 else
@@ -153,7 +153,7 @@ public static class ForcedMovement
                     nextUnit = storedUnit;
                     storedUnit = movingUnit.gameManager.grid.GetGridObject(movementPath[i].grid.GetWorldPosition(movementPath[i].x, movementPath[i].y));
                     newNodePosition = movementPath[i].grid.GetWorldPosition(movementPath[i].x, movementPath[i].y);
-                    movingUnit.gameManager.grid.SetGridObject(newNodePosition, nextUnit);
+                    movingUnit.gameManager.ChangeUnits(newNodePosition, nextUnit);
                     nextUnit.gameObject.transform.position = newNodePosition;
                     nextUnit = storedUnit;
                 }
@@ -201,7 +201,7 @@ public static class ForcedMovement
     public static NodeState IsClearToMoveToPositionRadial(Vector3 position)
     {
         Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(position);
-        if (!gameManager.groundTilemap.HasTile(gridPosition) || gameManager.collisionTilemap.HasTile(gridPosition))
+        if (!gameManager.groundTilemap.HasTile(gridPosition) || (gameManager.obstacleGrid.GetGridObject(position) != null && gameManager.obstacleGrid.GetGridObject(position).blockMovement == true))
         {
             return NodeState.wall;
         }

@@ -11,7 +11,9 @@ public class Wall : MonoBehaviour
     public int health;
     public int maxHealth;
     public int durability;
-    public bool affectFlying;
+    public bool blockFlying;
+    public bool blockMovement = true;
+    public bool blockLineOfSight = true;
 
     public int spriteIndex = -1;
 
@@ -38,7 +40,7 @@ public class Wall : MonoBehaviour
         }
 
         //gameManager.scripts.RemoveAt(index);
-        gameManager.obstacleGrid.SetGridObject(gameObject.transform.position, null);
+        gameManager.ChangeWalls(gameObject.transform.position, null);
         Destroy(this);
         Destroy(gameObject);
 

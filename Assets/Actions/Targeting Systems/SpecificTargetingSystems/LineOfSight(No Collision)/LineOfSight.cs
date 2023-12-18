@@ -235,7 +235,7 @@ public class LineOfSight: MonoBehaviour
                 else
                 {
                     Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(position);
-                    if (gameManager.collisionTilemap.HasTile(gridPosition))
+                    if (gameManager.obstacleGrid.GetGridObject(position) != null && gameManager.obstacleGrid.GetGridObject(position).blockMovement == true)
                     {
                         Debug.Log("Hit WAll");
                         hitObstacle = true;

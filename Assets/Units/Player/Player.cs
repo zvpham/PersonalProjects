@@ -68,7 +68,7 @@ public class Player : Unit
         originalSprite = GetComponent<SpriteRenderer>().sprite;
 
         gameManager = GameManager.instance;
-        gameManager.grid.SetGridObject(gameObject.transform.position, this);
+        gameManager.ChangeUnits(gameObject.transform.position, this);
 
         if (gameManager.isNewSlate)
         {

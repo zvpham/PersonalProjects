@@ -37,14 +37,35 @@ public class AStarPathNode
         }
     }
 
-    public AStarPathNode(Grid<AStarPathNode> grid, int x, int y, Tilemap unWalkableSpaces, Grid<Unit> units)
+    public AStarPathNode(Grid<AStarPathNode> grid, int x, int y, Grid<Wall> walls, Grid<Unit> units)
     {
         this.grid = grid;
         this.x = x;
         this.y = y;
         Vector3 worldPosition = grid.GetWorldPosition(x, y);
-        Vector3Int gridPosition = unWalkableSpaces.WorldToCell(worldPosition);
-        if (unWalkableSpaces.HasTile(gridPosition) || units.GetGridObject(worldPosition) != null)
+        if ((walls.GetGridObject(worldPosition) != null && walls.GetGridObject(worldPosition).blockMovement == true) || units.GetGridObject(worldPosition) != null)
+        {
+            IsWalkable = false;
+        }
+        else
+        {
+            IsWalkable = true;
+        }
+    }
+
+    public AStarPathNode(Grid<AStarPathNode> grid, int x, int y, int mapWidth, int mapHeight, Grid<Wall>[,] walls, Grid<Unit>[,] units)
+    {
+        this.grid = grid;
+        this.x = x;
+        this.y = y;
+
+        Vector3 worldPosition = grid.GetWorldPosition(x, y);
+        int gridXIndex = (int)(worldPosition.x / mapWidth);
+        int gridYIndex = (int)(worldPosition.y / mapHeight);
+        Wall wall = walls[gridXIndex, gridYIndex].GetGridObject(worldPosition);
+        Unit unit = units[gridXIndex, gridYIndex].GetGridObject(worldPosition);
+
+        if ((wall != null && wall.blockMovement == true) || unit != null)
         {
             IsWalkable = false;
         }

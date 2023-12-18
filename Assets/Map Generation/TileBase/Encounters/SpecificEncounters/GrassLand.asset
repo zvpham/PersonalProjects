@@ -49,6 +49,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2854ecded16fc444780743a4232ce385, type: 2}
   - {fileID: 11400000, guid: 016e17063c42d7f4aab2a590d6aed430, type: 2}
   - {fileID: 11400000, guid: 4ee42574af86a07459fa65b883173090, type: 2}
-  easyDangerChance: 0.6
+  easyDangerChance: 0.65
   mediumDangerChance: 0.25
   hardDangerChance: 0.15

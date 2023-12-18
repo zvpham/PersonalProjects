@@ -118,7 +118,7 @@ public static class FindNearestOpenSpace
     public static NodeState IsClearToMoveToPositionRadial(Vector3 position)
     {
         Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(position);
-        if (!gameManager.groundTilemap.HasTile(gridPosition) || gameManager.collisionTilemap.HasTile(gridPosition))
+        if (!gameManager.groundTilemap.HasTile(gridPosition) || (gameManager.obstacleGrid.GetGridObject(position) != null && gameManager.obstacleGrid.GetGridObject(position).blockMovement == true))
         {
             return NodeState.wall;
         }

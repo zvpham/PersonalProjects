@@ -41,7 +41,7 @@ public class EnemyTest : Unit
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
         //gameManager = GameManager.instance;
-        gameManager.grid.SetGridObject(gameObject.transform.position, this);
+        gameManager.ChangeUnits(gameObject.transform.position, this);
         if (gameManager.isNewSlate)
         {
             gameManager.speeds.Add(this.quickness);
@@ -70,54 +70,60 @@ public class EnemyTest : Unit
     private void OnEnable()
     {
         OnTurnStart();
+        chasingLastKnownLocation = false;
         if (gameManager != null)
         {
             highestActionWeight = 0;
             highestPriorityActionIndex = -1;
-            DetermineAllyOrEnemy();
-
-            if (enemyList.Count == 0)
+            UseSenses(false);
+            if (inPeripheralGameManager)
             {
-                if(lastKnownEnemyLocation != null)
+                if (enemyList.Count == 0)
                 {
-                    highestActionWeight = 0;
-                    highestPriorityActionIndex = -1;
-                    for(int i = 0; i < chaseActions.Count; i++)
+                    UseSenses(true);
+                    if (enemyList.Count == 0)
                     {
-                        if (chaseActions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, false))
+                        if (lastKnownEnemyLocation != null)
                         {
-                            currentActionWeight = chaseActions[i].CalculateWeight(this, lastKnownEnemyLocation);
+                            chasingLastKnownLocation = true;
                         }
                         else
                         {
-                            currentActionWeight = 0;
-                        }
-
-                        if (currentActionWeight > highestActionWeight)
-                        {
-                            highestPriorityActionIndex = i;
-                            highestActionWeight = currentActionWeight;
+                            Wander();
+                            TurnEnd();
                         }
                     }
-
-                    if (highestPriorityActionIndex != -1)
+                    // enemy was found in a different Tile/Map
+                    else
                     {
-                        chaseActions[highestPriorityActionIndex].StartActionPresetAI(this);
-                        chaseActions[highestPriorityActionIndex].Activate(this, lastKnownEnemyLocation);
-                        highestActionWeight = 0;
-                        highestPriorityActionIndex = -1;
+
                     }
                 }
-                else if (ableToWander && !unusableActionTypes.Keys.Contains(ActionTypes.movement))
+                else
                 {
-                    Wander();
+                    IsInMelee();
+                    FindClosestEnemy();
                 }
-                TurnEnd();
             }
             else
             {
-                IsInMelee();
-                FindClosestEnemy();
+                if (enemyList.Count == 0)
+                {
+                    if (lastKnownEnemyLocation != null)
+                    {
+                        chasingLastKnownLocation = true;
+                    }
+                    else if (ableToWander && !unusableActionTypes.Keys.Contains(ActionTypes.movement))
+                    {
+                        Wander();
+                        TurnEnd();
+                    }
+                }
+                else
+                {
+                    IsInMelee();
+                    FindClosestEnemy();
+                }
             }
         }
     }
@@ -127,38 +133,13 @@ public class EnemyTest : Unit
     {
         if (notOnHold)
         {
-            for (int i = 0; i < actions.Count; i++)
+            if (chasingLastKnownLocation)
             {
-                if (actions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, false))
+                for (int i = 0; i < chaseActions.Count; i++)
                 {
-                    currentActionWeight = actions[i].CalculateWeight(this);
-                }
-                else
-                {
-                    currentActionWeight = 0;
-                }
-
-                if (currentActionWeight > highestActionWeight)
-                {
-                    highestPriorityActionIndex = i;
-                    highestActionWeight = currentActionWeight;
-                }
-            }
-
-            if (highestPriorityActionIndex != -1)
-            {
-                actions[highestPriorityActionIndex].StartActionPresetAI(this);
-                actions[highestPriorityActionIndex].Activate(this);
-                highestActionWeight = 0;
-                highestPriorityActionIndex = -1;
-            }
-            else
-            {
-                for (int i = 0; i < baseActions.Count; i++)
-                {
-                    if (baseActions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, false))
+                    if (chaseActions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, false))
                     {
-                        currentActionWeight = baseActions[i].CalculateWeight(this);
+                        currentActionWeight = chaseActions[i].CalculateWeight(this, lastKnownEnemyLocation);
                     }
                     else
                     {
@@ -174,12 +155,72 @@ public class EnemyTest : Unit
 
                 if (highestPriorityActionIndex != -1)
                 {
-                    baseActions[highestPriorityActionIndex].StartActionPresetAI(this);
-                    baseActions[highestPriorityActionIndex].Activate(this);
+                    chaseActions[highestPriorityActionIndex].StartActionPresetAI(this);
+                    chaseActions[highestPriorityActionIndex].Activate(this, lastKnownEnemyLocation);
                     highestActionWeight = 0;
                     highestPriorityActionIndex = -1;
                 }
-                TurnEnd();
+                else
+                {
+                    TurnEnd();
+                }
+            }
+            else
+            {
+                for (int i = 0; i < actions.Count; i++)
+                {
+                    if (actions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, false))
+                    {
+                        currentActionWeight = actions[i].CalculateWeight(this);
+                    }
+                    else
+                    {
+                        currentActionWeight = 0;
+                    }
+
+                    if (currentActionWeight > highestActionWeight)
+                    {
+                        highestPriorityActionIndex = i;
+                        highestActionWeight = currentActionWeight;
+                    }
+                }
+
+                if (highestPriorityActionIndex != -1)
+                {
+                    actions[highestPriorityActionIndex].StartActionPresetAI(this);
+                    actions[highestPriorityActionIndex].Activate(this);
+                    highestActionWeight = 0;
+                    highestPriorityActionIndex = -1;
+                }
+                else
+                {
+                    for (int i = 0; i < baseActions.Count; i++)
+                    {
+                        if (baseActions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, false))
+                        {
+                            currentActionWeight = baseActions[i].CalculateWeight(this);
+                        }
+                        else
+                        {
+                            currentActionWeight = 0;
+                        }
+
+                        if (currentActionWeight > highestActionWeight)
+                        {
+                            highestPriorityActionIndex = i;
+                            highestActionWeight = currentActionWeight;
+                        }
+                    }
+
+                    if (highestPriorityActionIndex != -1)
+                    {
+                        baseActions[highestPriorityActionIndex].StartActionPresetAI(this);
+                        baseActions[highestPriorityActionIndex].Activate(this);
+                        highestActionWeight = 0;
+                        highestPriorityActionIndex = -1;
+                    }
+                    TurnEnd();
+                }
             }
         }
     }
@@ -194,10 +235,11 @@ public class EnemyTest : Unit
         {
             for (int j = -1; j <= 1; j++)
             {
+                Vector3 position = gameObject.transform.position + new Vector3(j, i, 0);
                 gridPosition = gameManager.groundTilemap.WorldToCell(gameObject.transform.position + new Vector3(j, i, 0));
                 unit = gameManager.grid.GetGridObject((int)gameObject.transform.position.x + j, (int)gameObject.transform.position.y + i);
 
-                if (!(!gameManager.groundTilemap.HasTile(gridPosition) || gameManager.collisionTilemap.HasTile(gridPosition) || unit != null))
+                if (!(!gameManager.groundTilemap.HasTile(gridPosition) || gameManager.obstacleGrid.GetGridObject(position) != null || unit != null))
                 {
                     possiblePositions.Add(new Vector3(j, i, 0));
                 }

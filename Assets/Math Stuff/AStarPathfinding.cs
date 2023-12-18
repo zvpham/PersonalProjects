@@ -23,9 +23,14 @@ public class AStarPathfinding
         grid = new Grid<AStarPathNode> (width, height, 1f, orginPosition, (Grid<AStarPathNode> g, int x, int y ) => new AStarPathNode(g, x, y, walkableSpacesV2));
     }
 
-    public AStarPathfinding(int width, int height, Tilemap unWalkableSpaces,Grid<Unit> units, Vector3 orginPosition)
+    public AStarPathfinding(int width, int height, Grid<Wall> walls, Grid<Unit> units, Vector3 orginPosition)
     {
-        grid = new Grid<AStarPathNode>(width, height, 1f, orginPosition, (Grid<AStarPathNode> g, int x, int y) => new AStarPathNode(g, x, y, unWalkableSpaces, units));
+        grid = new Grid<AStarPathNode>(width, height, 1f, orginPosition, (Grid<AStarPathNode> g, int x, int y) => new AStarPathNode(g, x, y, walls, units));
+    }
+
+    public AStarPathfinding(int width, int height, int mapWidth, int mapHeight, Grid<Wall>[,] walls, Grid<Unit>[,] units, Vector3 orginPosition)
+    {
+        grid = new Grid<AStarPathNode>(width, height, 1f, orginPosition, (Grid<AStarPathNode> g, int x, int y) => new AStarPathNode(g, x, y, mapWidth, mapHeight, walls, units));
     }
 
     public Grid<AStarPathNode> GetGrid() 
