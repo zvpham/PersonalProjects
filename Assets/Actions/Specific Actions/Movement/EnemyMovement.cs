@@ -7,7 +7,7 @@ public class EnemyMovement : ChaseAction
 {
     public override void Activate(Unit self)
     {
-        AStarPathfinding path = new AStarPathfinding(self.gameManager.grid.GetWidth(), self.gameManager.grid.GetHeight(), self.gameManager.obstacleGrid, self.gameManager.grid, Vector3.zero);
+        AStarPathfinding path = self.gameManager.mainGameManger.path;
         List<AStarPathNode> movementPath = path.FindPath((int)self.transform.position.x, (int)self.transform.position.y, (int)self.enemyList[self.closestEnemyIndex].transform.position.x, (int)self.enemyList[self.closestEnemyIndex].transform.position.y, true);
         if (movementPath != null && movementPath.Count > 1)
         {
@@ -28,7 +28,7 @@ public class EnemyMovement : ChaseAction
 
     public override void Activate(Unit self, Vector3 targetLocation)
     {
-        AStarPathfinding path = new AStarPathfinding(self.gameManager.grid.GetWidth(), self.gameManager.grid.GetHeight(), self.gameManager.obstacleGrid, self.gameManager.grid, Vector3.zero);
+        AStarPathfinding path = self.gameManager.mainGameManger.path;
         List<AStarPathNode> movementPath = path.FindPath((int)self.transform.position.x, (int)self.transform.position.y, (int)targetLocation.x, (int)targetLocation.y, true);
         if (movementPath != null && movementPath.Count > 1)
         {

@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
     public MainGameManger mainGameManger;
 
+    public bool activeGameManager = false;
     public int mapWidth;
     public int mapHeight;
     public Vector3 defaultGridPosition;
@@ -147,6 +148,7 @@ public class GameManager : MonoBehaviour
         {
             isNewSlate = false;
         }
+        activeGameManager = true;
         // Load Game Manager Data
         this.numberOfStatusRemoved = data.numberOfStatusRemoved;
         this.least = data.least;

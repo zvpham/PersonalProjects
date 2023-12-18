@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class MainGameManger : MonoBehaviour
 {
@@ -9,6 +11,17 @@ public class MainGameManger : MonoBehaviour
     public Grid<Unit>[,] units;
     public int mapWidth;
     public int mapHeight;
+    public List<GameManager> gameMangers;
+    public List<GameManager> activeGameManagers;
+    public GameManager gameManager;
+    public GameManager BLGameManager;
+    public GameManager BGameManager;
+    public GameManager BRGameManager;
+    public GameManager MLGameManager;
+    public GameManager MRGameManager;
+    public GameManager TLGameManager;
+    public GameManager TGameManager;
+    public GameManager TRGameManager;
 
     public static MainGameManger Instance;
 
@@ -22,14 +35,66 @@ public class MainGameManger : MonoBehaviour
         }
         Instance = this;
     }
-    
-    public void CreateAStarPathing(int width, int height, int initialMapWidth, int initialMapHeight, Grid<Wall>[,] initialWalls, Grid<Unit>[,] initialUnits)
+
+    public void Start()
+    {
+        activeGameManagers = new List<GameManager>();
+        for (int i = 0; i < gameMangers.Count; i++)
+        {
+            Vector3 worldPosition = gameMangers[i].defaultGridPosition;
+            int gridXIndex = (int)(worldPosition.x / mapWidth);
+            int gridYIndex = (int)(worldPosition.y / mapHeight);
+            if (gameMangers[i].activeGameManager)
+            {
+                activeGameManagers.Add(gameMangers[i]);
+                units[gridXIndex, gridYIndex] = gameMangers[i].grid;
+                walls[gridXIndex, gridYIndex] = gameMangers[i].obstacleGrid;
+            }
+            else
+            {
+                units[gridXIndex, gridYIndex] = null;
+                walls[gridXIndex, gridYIndex] = null;
+            }
+        }
+
+        int leftMostPoint = (int) activeGameManagers[0].defaultGridPosition.x;
+        int rightMostPoint = (int)activeGameManagers[0].defaultGridPosition.x;
+        int topMostPoint = (int)activeGameManagers[0].defaultGridPosition.y;
+        int bottomMostPoint = (int)activeGameManagers[0].defaultGridPosition.y;
+
+        for(int i = 0; i < activeGameManagers.Count; i++)
+        {
+            if (activeGameManagers[i].defaultGridPosition.x < leftMostPoint)
+            {
+                leftMostPoint = (int)activeGameManagers[i].defaultGridPosition.x;
+            }
+
+            if (activeGameManagers[i].defaultGridPosition.x + mapWidth > rightMostPoint)
+            {
+                rightMostPoint = (int)activeGameManagers[i].defaultGridPosition.x + mapWidth;
+            }
+
+            if (activeGameManagers[i].defaultGridPosition.y < bottomMostPoint)
+            {
+                bottomMostPoint = (int)activeGameManagers[i].defaultGridPosition.y;
+            }
+
+            if (activeGameManagers[i].defaultGridPosition.y + mapHeight < leftMostPoint)
+            {
+                topMostPoint = (int)activeGameManagers[i].defaultGridPosition.y + mapHeight;
+            }
+        }
+
+        CreateAStarPathing(rightMostPoint - leftMostPoint, topMostPoint - bottomMostPoint, walls, units, new Vector3(leftMostPoint, bottomMostPoint, 0));
+
+        
+    }
+
+    public void CreateAStarPathing(int width, int height, Grid<Wall>[,] initialWalls, Grid<Unit>[,] initialUnits, Vector3 initalPosition)
     {
         walls = initialWalls;
         units = initialUnits;
-        mapWidth = initialMapWidth;
-        mapHeight = initialMapHeight;
-        path = new AStarPathfinding(width, height, mapWidth, mapHeight, walls, units, Vector3.zero);
+        path = new AStarPathfinding(width, height, mapWidth, mapHeight, walls, units, initalPosition);
     }
 
     public void UpdatePathFindingGrid(Vector3 worldPosition, Grid<Wall> wall, Grid<Unit> unit)
@@ -44,5 +109,66 @@ public class MainGameManger : MonoBehaviour
         AStarGrid.GetXY(worldPosition, out x, out y);
         AStarPathNode node = new AStarPathNode(AStarGrid, x, y, mapWidth, mapHeight, walls, units);
         AStarGrid.SetGridObject(worldPosition, node);
+    }
+
+    // Assumption is that space unit is going to is empty, Should be resolved by chase action not by this
+    public void TransferGameManagers(Vector3 worldPosition, Unit unit)
+    {
+        int gridXIndex = (int)(worldPosition.x / mapWidth);
+        int gridYIndex = (int)(worldPosition.y / mapHeight);
+        GameManager newGameManager = gameMangers[gridXIndex + gridYIndex * 3];
+        if (newGameManager ==  unit.gameManager)
+        {
+            return;
+        }
+
+        if(gridXIndex + gridYIndex * 3 == 4)
+        {
+            unit.inPeripheralGameManager = false;
+            int index = gameManager.units.IndexOf(unit);
+
+            for(int i = 0; i < unit.statuses.Count; i++)
+            {
+                unit.gameManager.numberOfStatusRemoved += 1;
+                int statusindex = unit.gameManager.allStatuses.IndexOf(unit.statuses[i]);
+
+                newGameManager.statusPriority.Add(unit.gameManager.statusPriority[statusindex]);
+                newGameManager.allStatuses.Add(unit.gameManager.allStatuses[statusindex]);
+                newGameManager.statusDuration.Add(unit.gameManager.statusDuration[statusindex]);
+
+                unit.gameManager.statusPriority.RemoveAt(statusindex);
+                unit.gameManager.allStatuses.RemoveAt(statusindex);
+                unit.gameManager.statusDuration.RemoveAt(statusindex);
+            }
+
+            newGameManager.speeds.Add(unit.gameManager.speeds[index]);
+            newGameManager.priority.Add(unit.gameManager.priority[index]);
+            newGameManager.units.Add(unit.gameManager.units[index]);
+            newGameManager.isLocationChangeStatus += unit.hasLocationChangeStatus;
+
+            unit.gameManager.speeds.RemoveAt(index);
+            unit.gameManager.priority.RemoveAt(index);
+            unit.gameManager.units.RemoveAt(index);
+            unit.gameManager.isLocationChangeStatus -= unit.hasLocationChangeStatus;
+
+            unit.gameManager = newGameManager;        
+        }
+        else
+        {
+
+            Debug.LogError("This Really shouldn't be happening. This unit left Central GameManager: " + unit.name);
+        }
+    }
+
+    public GameManager GetGameManger(Vector3 worldPosition)
+    {
+        int gridXIndex = (int)(worldPosition.x / mapWidth);
+        int gridYIndex = (int)(worldPosition.y / mapHeight);
+        GameManager requestedGameManager = gameMangers[gridXIndex + gridYIndex * 3];
+        if(activeGameManagers.IndexOf(requestedGameManager) == -1)
+        {
+            Debug.LogError("Tried to enter a nonActiveGameManager");
+        }
+        return requestedGameManager;
     }
 }

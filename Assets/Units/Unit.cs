@@ -58,8 +58,6 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public List<Unit> enemyList = new List<Unit>();
     public List<Unit> allyList = new List<Unit>();
 
-    public Vector3 lastKnownEnemyLocation;
-
     public bool inPeripheralGameManager = false;
 
     public GameManager gameManager;
@@ -74,8 +72,10 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public List<ActionName> actionNames = new List<ActionName>();
     public List<int> actionCooldowns = new List<int>();
 
-    public bool chasingLastKnownLocation;
+    public bool chasing;
     public List<ChaseAction> chaseActions;
+    public Vector3 lastKnownEnemyLocation;
+    public Vector3 locationUnitIsChasing;
 
     public List<Sense> senses = new List<Sense>();
     
@@ -204,17 +204,6 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             }
         }
         inMelee = false;
-    }
-
-    private bool isThereClearLineOfSight(int x, int y, int numberMarkers)
-    {
-        Vector3 position = new Vector3(x, y, 0) + gameManager.defaultGridPosition;
-        if (numberMarkers <= visionRadius && (gameManager.obstacleGrid.GetGridObject(position) == null && gameManager.obstacleGrid.GetGridObject(position).blockLineOfSight == true))
-        {
-            return true;
-        }
-        clearLineOfSightToEnemy = false;
-        return false;
     }
 
     public void TurnEnd()

@@ -88,7 +88,7 @@ public static class FindNearestEmptySpaceWithPath
 
     private static List<Vector3> isPath(Vector3 endNode, Unit originUnit)
     {
-        AStarPathfinding path = new AStarPathfinding(gameManager.grid.GetWidth(), gameManager.grid.GetHeight(), gameManager.obstacleGrid, gameManager.grid, Vector3.zero);
+        AStarPathfinding path = originUnit.gameManager.mainGameManger.path;
         List<AStarPathNode> movementPath = path.FindPath((int)originUnit.gameObject.transform.position.x, (int)originUnit.gameObject.transform.position.y, (int)endNode.x, (int)endNode.y, true);
         if(movementPath != null )
         {

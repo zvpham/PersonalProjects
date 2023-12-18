@@ -28,6 +28,7 @@ public class Wall : MonoBehaviour
         int x = (int)(transform.position.x - gameManager.defaultGridPosition.x);
         int y = (int)(transform.position.y - gameManager.defaultGridPosition.y);
         gameManager.initalRenderLocations.Add(new Tuple<int, int, int>(x, y, wallIndex - 2));
+        gameManager.ChangeWalls(transform.position, this);
     }
 
     public void Death()

@@ -12,6 +12,7 @@ using static UnityEngine.GraphicsBuffer;
 public class EnemyTest : Unit
 {
     public bool ableToWander = true;
+    public bool possibleToTransferGameMangers = false;
 
     public int highestPriorityActionIndex;
 
@@ -70,7 +71,8 @@ public class EnemyTest : Unit
     private void OnEnable()
     {
         OnTurnStart();
-        chasingLastKnownLocation = false;
+        chasing = false;
+        possibleToTransferGameMangers = false;
         if (gameManager != null)
         {
             highestActionWeight = 0;
@@ -85,7 +87,8 @@ public class EnemyTest : Unit
                     {
                         if (lastKnownEnemyLocation != null)
                         {
-                            chasingLastKnownLocation = true;
+                            chasing = true;
+                            locationUnitIsChasing = lastKnownEnemyLocation;
                         }
                         else
                         {
@@ -96,7 +99,10 @@ public class EnemyTest : Unit
                     // enemy was found in a different Tile/Map
                     else
                     {
-
+                        chasing = true;
+                        FindClosestEnemy();
+                        locationUnitIsChasing = enemyList[closestEnemyIndex].transform.position;
+                        possibleToTransferGameMangers = true;
                     }
                 }
                 else
@@ -111,7 +117,8 @@ public class EnemyTest : Unit
                 {
                     if (lastKnownEnemyLocation != null)
                     {
-                        chasingLastKnownLocation = true;
+                        chasing = true;
+                        locationUnitIsChasing = lastKnownEnemyLocation;
                     }
                     else if (ableToWander && !unusableActionTypes.Keys.Contains(ActionTypes.movement))
                     {
@@ -133,13 +140,13 @@ public class EnemyTest : Unit
     {
         if (notOnHold)
         {
-            if (chasingLastKnownLocation)
+            if (chasing)
             {
                 for (int i = 0; i < chaseActions.Count; i++)
                 {
                     if (chaseActions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, false))
                     {
-                        currentActionWeight = chaseActions[i].CalculateWeight(this, lastKnownEnemyLocation);
+                        currentActionWeight = chaseActions[i].CalculateWeight(this, locationUnitIsChasing);
                     }
                     else
                     {
@@ -156,13 +163,18 @@ public class EnemyTest : Unit
                 if (highestPriorityActionIndex != -1)
                 {
                     chaseActions[highestPriorityActionIndex].StartActionPresetAI(this);
-                    chaseActions[highestPriorityActionIndex].Activate(this, lastKnownEnemyLocation);
+                    chaseActions[highestPriorityActionIndex].Activate(this, locationUnitIsChasing);
                     highestActionWeight = 0;
                     highestPriorityActionIndex = -1;
+
                 }
                 else
                 {
                     TurnEnd();
+                }
+                if (possibleToTransferGameMangers)
+                {
+                    gameManager.mainGameManger.TransferGameManagers(transform.position, this); 
                 }
             }
             else
