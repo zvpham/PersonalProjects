@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
@@ -76,6 +77,8 @@ public class GameManager : MonoBehaviour
 
     public List<Tuple<int, int, int>> initalRenderLocations;
     public List<Tuple<int, int, int>> finalRenderLocations;
+
+    public UnityAction<int> PlayerWent;
 
     void Awake()
     {
@@ -381,6 +384,11 @@ public class GameManager : MonoBehaviour
         data.animatedFields = animatedFieldDataList;
     }
 
+    public void PlayerTookTurn(int playerPriority)
+    {
+        PlayerWent?.Invoke(playerPriority);
+    }
+
     public void FreezeTile()
     {
         for (int i = 0; i < allStatuses.Count; i++)
@@ -514,7 +522,7 @@ public class GameManager : MonoBehaviour
                         priority[i] = (int)(baseTurnTime * speeds[i]);
                     }
                 }
-
+                PlayerTookTurn(priority[0]);
                 if (allStatuses.Count > 0)
                 {
                     numberOfStatusRemoved = 0;

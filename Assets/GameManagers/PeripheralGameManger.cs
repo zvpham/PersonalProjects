@@ -14,14 +14,11 @@ public class PeripheralGameManager : GameManager
 {
     public Vector3 gridPosition;
     private bool aUnitActed = false;
+    private bool waitForPlayer = false;
     // during turn 0 = no; 1 = yes
     private int duringTurn = 0;
-
-    public GameManager mainGameManger;
-
     public void Start()
     {
-        mainGameManger = GameManager.instance;
         grid = new Grid<Unit>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, gridPosition, (Grid<Unit> g, int x, int y) => null);
         flyingGrid = new Grid<Unit>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, gridPosition, (Grid<Unit> g, int x, int y) => null);
         itemgrid = new Grid<List<Item>>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, gridPosition, (Grid<List<Item>> g, int x, int y) => null);
@@ -30,12 +27,13 @@ public class PeripheralGameManager : GameManager
         {
             units[i].inPeripheralGameManager = true;
         }
+        PlayerWent += PlayerMoved;
     }
 
     // Update is called once per frame 
     void Update()
     {
-        if (CanContinue(units[index]))
+        if (CanContinue(units[index]) && !waitForPlayer)
         {
             // finds the lowest priority amongst all the units, statuses, worldtimer
             // if we are at the top of a turn
@@ -95,11 +93,21 @@ public class PeripheralGameManager : GameManager
 
                 if ((int)priority[i] == 0)
                 {
-                    index = i;
-                    duringTurn = 1;
-                    units[i].enabled = true;
-                    aUnitActed = true;
-                    break;
+                    if (i == 0)
+                    {
+                        index = i;
+                        duringTurn = 1;
+                        aUnitActed = true;
+                        waitForPlayer = true;
+                    }
+                    else
+                    {
+                        index = i;
+                        duringTurn = 1;
+                        units[i].enabled = true;
+                        aUnitActed = true;
+                        break;
+                    }
                 }
                 else if (i == 0)
                 {
@@ -227,5 +235,11 @@ public class PeripheralGameManager : GameManager
     private bool CanContinue(MonoBehaviour script)
     {
         return !script.isActiveAndEnabled;
+    }
+
+    private void PlayerMoved(int playerPriority)
+    {
+        priority[0] = playerPriority;
+        waitForPlayer = false;
     }
 }

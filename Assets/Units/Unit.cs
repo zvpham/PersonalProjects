@@ -351,7 +351,10 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             {
                 actions[i].currentCooldown = 0;
             }
-            actions[i].currentCooldown = actionCooldowns[actionIndex];
+            else
+            {
+                actions[i].currentCooldown = actionCooldowns[actionIndex];
+            }
         }
 
         for(int i = 0; i < actions.Count; i++)

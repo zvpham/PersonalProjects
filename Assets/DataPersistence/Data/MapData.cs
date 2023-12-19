@@ -14,4 +14,23 @@ public class MapData
     public List<Vector2Int> mapPositionsKey;
     public List<int> mapPositionValue;
     public List<Vector3Int> hasVisitedLocations;
+
+    // Player Data
+
+    // Unit Data
+    public unitPrefabData unitPrefabDatas;
+    public int priority;
+
+    // Player Specific Data
+    public List<int> soulSlotIndexes;
+    public List<int> soulIndexes;
+
+    // Status Data
+    public List<int> statusPriority;
+    public List<int> statusDuration;
+    public List<int> statusPrefabIndex;
+    public List<int> indexOfUnitThatHasStatus;
+    public List<int> statusIntData;
+    public List<string> statusStringData;
+    public List<bool> statusBoolData;
 }
