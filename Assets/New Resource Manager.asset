@@ -39,6 +39,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 95d63f15d3e4935448338db572412d73, type: 2}
   createdObjectHoldersPrefabs:
   - {fileID: 2828790863296621109, guid: 4236afa84b24ca2498f88e6924107f37, type: 3}
+  setPiecies:
+  - {fileID: 2135971780629767742, guid: b5a03bc0397de2b41a074406bdb6f7be, type: 3}
   walls:
   - {fileID: 2527387851303890164, guid: c92366727666422448a099501d0ca668, type: 3}
   - {fileID: 2527387851303890164, guid: 7f434878fc16e4b46a43818c1c2cc5ac, type: 3}

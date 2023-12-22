@@ -27,7 +27,7 @@ public class Grid<TGridObject> {
     private int width;
     private int height;
     private float cellSize;
-    private Vector3 originPosition;
+    public Vector3 originPosition;
     private TGridObject[,] gridArray;
 
     public Grid(int width, int height, float cellSize, Vector3 originPosition, Func<Grid<TGridObject>, int, int, TGridObject> createGridObject) {

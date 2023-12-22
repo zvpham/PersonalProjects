@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 [System.Serializable]
 public class TileData
 {
-    public long lastUpdated;
+    //public long lastUpdated;
 
     // Save Data
     public string saveToDelete;
@@ -19,21 +19,27 @@ public class TileData
     public int index;
     public bool aUnitActed;
     public int duringTurn;
+    public bool notNewTile = false;
 
-    // Unit Data
-    public int numberOfUnits;
-    public List<unitPrefabData> unitPrefabDatas;
-    public List<double> speeds;
-    public List<int> priority;
+    // Wall Data
+    public List<int> wallIndexes;
+    public List<int> wallHealths;
+    public List<Vector2> wallPositions;
 
-    // Player Specific Data
-    public List<int> soulSlotIndexes;
-    public List<int> soulIndexes;
+    // SetPiece Data
+    public List<int> setPieceIndexes;
+    public List<int> setPieceHealths;
+    public List<Vector2> setPiecePositions;
 
     // Item Data
     public List<int> itemIndexes;
     public List<int> itemQuantities;
-    public List<Vector3> itemLocations;
+    public List<Vector2> itemLocations;
+
+    // Unit Data
+    public int numberOfUnits;
+    public List<unitPrefabData> unitPrefabDatas;
+    public List<int> priority;
 
     // Status Data
     public List<int> statusPriority;
@@ -57,14 +63,14 @@ public class TileData
 [System.Serializable]
 public struct unitForcedMovementPathData
 {
-    public List<Vector3> forcedMovementPath;
+    public List<Vector2> forcedMovementPath;
     public float forcedMovementSpeed;
     public float excessForcedMovementSpeed;
     public float previousForcedMovementIterrationRate;
     public int forcedPathIndex;
     public int currentPathIndex;
 
-    public unitForcedMovementPathData(List<Vector3> forcedMovementPath, float forcedMovementSpeed, float excessForcedMovementSpeed,
+    public unitForcedMovementPathData(List<Vector2> forcedMovementPath, float forcedMovementSpeed, float excessForcedMovementSpeed,
         float previousForcedMovementIterrationRate, int forcedPathIndex, int currentPathIndex)
     {
         this.forcedMovementPath = forcedMovementPath;
@@ -79,14 +85,14 @@ public struct unitForcedMovementPathData
 [System.Serializable]
 public struct unitPrefabData
 {
-    public Vector3 position;
+    public Vector2 position;
     public int unitPrefabIndex;
     public int health;
     public List<int> actionCooldowns;
     public List<ActionName> actionNames;
     public unitForcedMovementPathData forcedMovementPathData;
 
-    public unitPrefabData(Vector3 position, int unitPrefabIndex, int health, List<int> actionCooldowns, List<ActionName> actionNames,
+    public unitPrefabData(Vector2 position, int unitPrefabIndex, int health, List<int> actionCooldowns, List<ActionName> actionNames,
         unitForcedMovementPathData forcedMovementPathData)
     {
         this.position = position;
@@ -110,12 +116,12 @@ public struct createdFieldData
     public bool fromAnimatedField;
     public bool createdWithBlastRadius;
 
-    public Vector3 originPosition;
+    public Vector2 originPosition;
     public int fieldRadius;
-    public List<Vector3> createdObjectPositions;
+    public List<Vector2> createdObjectPositions;
 
     public createdFieldData(int createdFieldTypeIndex, float createdFieldQuickness, bool nonStandardDuration,
-        bool fromAnimatedField, bool createdWithBlastRadius, Vector3 originPosition, int fieldRadius, List<Vector3> createdObjectPositions)
+        bool fromAnimatedField, bool createdWithBlastRadius, Vector2 originPosition, int fieldRadius, List<Vector2> createdObjectPositions)
     {
         this.createdFieldTypeIndex = createdFieldTypeIndex;
         this.createdFieldQuickness = createdFieldQuickness;
@@ -140,8 +146,8 @@ public struct animatedFieldData
 
     public List<animatedFieldNodeData> slowedNodeList;
 
-    public Vector3 startPosition;
-    public Vector3 initialDirection;
+    public Vector2 startPosition;
+    public Vector2 initialDirection;
     public int range;
     public float angle;
 
@@ -154,7 +160,7 @@ public struct animatedFieldData
     public bool IsSlowInTimeFlow;
 
     public animatedFieldData(int animatedFieldTypeIndex, int animatedCreatedFieldTypeIndex, int createdObjectIndex, int createdObjectHolderIndex, float createdFieldQuickness, List<animatedFieldNodeData> slowedNodeList,
-        Vector3 startPosition, Vector3 initialDirection, int range, float angle, int maxUnitBlastValueAbsorbtion,
+        Vector2 startPosition, Vector2 initialDirection, int range, float angle, int maxUnitBlastValueAbsorbtion,
         int maxObstacleBlastValueAbsorbtion, bool affectFlying, bool ignoreWalls, bool isSlowInTimeFlow)
     {
         this.animatedFieldTypeIndex = animatedFieldTypeIndex;
@@ -178,14 +184,14 @@ public struct animatedFieldData
 [System.Serializable]
 public struct animatedFieldNodeData
 {
-    public Vector3 position;
-    public Vector3 direction;
+    public Vector2 position;
+    public Vector2 direction;
     public int priority;
     public int blastValue;
     public float blastSpeed;
     public float affectedTimeFlow;
 
-    public animatedFieldNodeData(Vector3 position, Vector3 direction, int priority, int blastValue, float blastSpeed, float affectedTimeFlow)
+    public animatedFieldNodeData(Vector2 position, Vector2 direction, int priority, int blastValue, float blastSpeed, float affectedTimeFlow)
     {
         this.position = position;
         this.direction = direction;

@@ -54,7 +54,7 @@ public class Jumping : MovementStatus
         target.forcedMovementPathData.excessForcedMovementSpeed += this.Ivalue - target.forcedMovementPathData.forcedMovementSpeed;
         target.forcedMovementPathData.currentPathIndex = target.forcedMovementPathData.forcedPathIndex - 1;
 
-        if (target.gameObject.transform.position == target.forcedMovementPathData.forcedMovementPath[target.forcedMovementPathData.forcedMovementPath.Count - 1])
+        if ((Vector2)target.gameObject.transform.position == target.forcedMovementPathData.forcedMovementPath[target.forcedMovementPathData.forcedMovementPath.Count - 1])
         {
             RemoveEffect(target);
             return;
@@ -103,10 +103,10 @@ public class Jumping : MovementStatus
         target.gameManager.isLocationChangeStatus -= 1;
         target.hasLocationChangeStatus -= 1;
 
-        if (target.gameObject.transform.position == target.forcedMovementPathData.forcedMovementPath
+        if ((Vector2)target.gameObject.transform.position == target.forcedMovementPathData.forcedMovementPath
             [target.forcedMovementPathData.forcedMovementPath.Count - 1])
         {
-            target.forcedMovementPathData.forcedMovementPath = new List<Vector3>();
+            target.forcedMovementPathData.forcedMovementPath = new List<Vector2>();
             target.forcedMovementPathData.forcedMovementSpeed = 0;
             target.forcedMovementPathData.excessForcedMovementSpeed = 0;
             target.forcedMovementPathData.previousForcedMovementIterrationRate = 0;

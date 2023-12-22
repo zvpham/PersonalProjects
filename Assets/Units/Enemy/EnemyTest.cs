@@ -85,7 +85,7 @@ public class EnemyTest : Unit
                     UseSenses(true);
                     if (enemyList.Count == 0)
                     {
-                        if (lastKnownEnemyLocation != null)
+                        if (hasSeenEnemy)
                         {
                             chasing = true;
                             locationUnitIsChasing = lastKnownEnemyLocation;
@@ -107,6 +107,7 @@ public class EnemyTest : Unit
                 }
                 else
                 {
+                    hasSeenEnemy = true;
                     IsInMelee();
                     FindClosestEnemy();
                 }
@@ -115,7 +116,7 @@ public class EnemyTest : Unit
             {
                 if (enemyList.Count == 0)
                 {
-                    if (lastKnownEnemyLocation != null)
+                    if (hasSeenEnemy)
                     {
                         chasing = true;
                         locationUnitIsChasing = lastKnownEnemyLocation;
@@ -128,6 +129,7 @@ public class EnemyTest : Unit
                 }
                 else
                 {
+                    hasSeenEnemy = true;
                     IsInMelee();
                     FindClosestEnemy();
                 }

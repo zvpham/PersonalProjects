@@ -309,7 +309,7 @@ public class WorldMapTilePainter : MonoBehaviour
         {
             debugWord = "";
             for(int j = 0; j < width; j++)
-            {;
+            {
                 tilesBases.Add(new Vector3Int(j, i, tileobs[j, i].GetComponent<WorldMapTile>().Tile.tileIndex));
                 debugWord += tileobs[j, i].GetComponent<WorldMapTile>().Tile.tileNameAbbreviation + " ";
             }

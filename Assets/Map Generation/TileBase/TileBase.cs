@@ -23,14 +23,14 @@ public class TileBase : ScriptableObject
     [SerializeField]
     private float threeStructureChance;
 
-    public int FindNumberOfStructures()
+    public int FindNumberOfStructures(int seed)
     {
         if(oneStructureChance + twoStructureChance + threeStructureChance > 1)
         {
             Debug.LogError("Redo Values");
             return 0;
         }
-        Random.InitState(System.DateTime.Now.Millisecond);
+        Random.InitState(seed);
         float probability = Random.Range(0f, 1f);
         if(probability <= oneStructureChance)
         {
@@ -51,13 +51,13 @@ public class TileBase : ScriptableObject
     }
 
     //For percentage of map taken up by setpieces like trees and cacti
-    public float FindSetPieceFactor()
+    public float FindSetPieceFactor(int seed)
     {
         if(setPieceFactorMax < setPieceFactorMin)
         {
             Debug.LogError("Redo Setpiece Max and Min numbers for: " + this.name);
         }
-        Random.InitState(System.DateTime.Now.Millisecond);
+        Random.InitState(seed);
         float probability = Random.Range(setPieceFactorMin, setPieceFactorMax);
         return probability;
     }

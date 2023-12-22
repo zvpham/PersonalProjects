@@ -9,9 +9,9 @@ public class NumberRanges : ScriptableObject
     public int minNumber;
     public int maxNumber;
 
-    public int GetRandomNumberInRange()
+    public int GetRandomNumberInRange(int seed)
     {
-        Random.InitState(System.DateTime.Now.Millisecond);
+        Random.InitState(seed);
         return Random.Range(minNumber, maxNumber + 1);
     }
 }

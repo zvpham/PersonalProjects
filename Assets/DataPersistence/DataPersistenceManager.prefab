@@ -24,7 +24,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6874525872198249663}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -44,5 +44,43 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2ff0f1864b60a4aaeddadd1f27a77e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disableDataPersistence: 0
+  initializeDataIfNull: 0
+  overrideSelectedProfileId: 0
+  testSelectedProfileId: test
   fileName: data.game
+  mapFileName: mapData.game
+  worldMapFileName: worldMap.game
   useEncryption: 0
+  gameData:
+    lastUpdated: 0
+    saveToDelete: 
+    numberOfStatusRemoved: 0
+    least: 0
+    index: 0
+    aUnitActed: 0
+    duringTurn: 0
+    numberOfUnits: 0
+    unitPrefabDatas: []
+    priority: 
+    itemIndexes: 
+    itemQuantities: 
+    itemLocations: []
+    statusPriority: 
+    statusDuration: 
+    statusPrefabIndex: 
+    indexOfUnitThatHasStatus: 
+    statusIntData: 
+    statusStringData: []
+    statusBoolData: 
+    createdFieldsData: []
+    createdFieldPriority: 
+    createdFieldDuration: 
+    animatedFields: []
+    animatedFieldPriority: 
+  worldMapData:
+    tileDataPosition: []
+    tileSeedData: 
+  playerID: Player
+  autoSaveID: AutoSave
+  MostRecentIntegerTimeID: 0

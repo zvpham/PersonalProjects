@@ -9,7 +9,7 @@ public abstract class CreatedField : ScriptableObject
     public float createdFieldQuickness = 1;
     public Vector3 originPosition;
     public int fieldRadius;
-    public List<Vector3> createdObjectPositions = new List<Vector3>();
+    public List<Vector2> createdObjectPositions = new List<Vector2>();
 
     public bool nonStandardDuration = false;
     public bool fromAnimatedField = false;

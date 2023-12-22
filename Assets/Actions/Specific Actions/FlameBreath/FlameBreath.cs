@@ -21,8 +21,8 @@ public class FlameBreath : Action
 
         for (int i = 0; i < self.enemyList.Count; i++)
         {
-            List<Vector3> pathAI = LineOfSightAI.MakeLine(self.transform.position, self.enemyList[i].transform.position, blastRadius, true);
-            if (pathAI[pathAI.Count - 1] == self.enemyList[i].transform.position)
+            List<Vector2> pathAI = LineOfSightAI.MakeLine(self.transform.position, self.enemyList[i].transform.position, blastRadius, true);
+            if (pathAI[pathAI.Count - 1] == (Vector2)self.enemyList[i].transform.position)
             {
                 Tuple<List<Vector3>, Vector3> temp = ConeAttackAI.GetCone(self.transform.position, self.enemyList[i].transform.position, blastRadius, blastAngle);
                 blastLocations = temp.Item1;

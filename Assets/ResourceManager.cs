@@ -18,6 +18,7 @@ public class ResourceManager : ScriptableObject
     public List<CreatedObject> createdObjects = new List<CreatedObject>();
     public List<GameObject> createdObjectHoldersPrefabs = new List<GameObject>();
 
+    public List<GameObject> setPiecies;
     public List<GameObject> walls;
     public List<WallSpriteStruct> wallSprites;
 

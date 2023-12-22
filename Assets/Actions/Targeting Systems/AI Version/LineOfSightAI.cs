@@ -15,13 +15,13 @@ public static class LineOfSightAI
     public static bool careAboutRange;  
     public static int range;
 
-    public static List<Vector3> path = new List<Vector3>();
-    public static Vector3 position;
+    public static List<Vector2> path = new List<Vector2>();
+    public static Vector2 position;
 
 
-    public static List<Vector3> MakeLine(Vector3 startPosition, Vector3 endPosition, int projectileRange = 0, bool careAboutRangeGiven = true)
+    public static List<Vector2> MakeLine(Vector2 startPosition, Vector2 endPosition, int projectileRange = 0, bool careAboutRangeGiven = true)
     {
-        path = new List<Vector3>();
+        path = new List<Vector2>();
         range = projectileRange;
         careAboutRange = careAboutRangeGiven;
         BresenhamsAlgorithm.PlotFunction plotFunction = CheckSpaceAI;
@@ -34,7 +34,7 @@ public static class LineOfSightAI
     {
         if (careAboutRange)
         {
-            position.Set((float)x, (float)y, 0);
+            position.Set((float)x, (float)y);
             path.Add(position);
             return true;
         }
@@ -42,7 +42,7 @@ public static class LineOfSightAI
         {
             if (numberMarkers < range)
             {
-                position.Set((float)x, (float)y, 0);
+                position.Set((float)x, (float)y);
                 path.Add(position);
                 return true;
             }

@@ -28,12 +28,6 @@ public class Player : Unit
 
     public void Awake() 
     {
-        if (Instance != null)
-        {
-            Debug.LogWarning("Found more than One Player in the Scence");
-            Destroy(this.gameObject);
-            return;
-        }
         Instance = this;
     }
     void Start()
@@ -66,16 +60,10 @@ public class Player : Unit
         }
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
-
-        gameManager = GameManager.instance;
         gameManager.ChangeUnits(gameObject.transform.position, this);
 
         if (gameManager.isNewSlate)
         {
-            gameManager.speeds.Insert(0, this.quickness);
-            gameManager.priority.Insert(0, (int)(this.quickness * gameManager.baseTurnTime));
-            gameManager.units.Insert(0, this);
-
             // Mainly For Debugging Purposes if trying new souls attached to prefab
             foreach (SoulItemSO physicalSoul in physicalSouls)
             {
@@ -268,5 +256,6 @@ public class Player : Unit
             actionBar.UpdateCoolDowns(actions[i].actionName, actions[i].currentCooldown);
         }
         actionBar.UpdateActionsDisplay();
+        gameManager.mainGameManger.mapManager.UpdatePreviousPositions();
     }
 }

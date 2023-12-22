@@ -8,21 +8,40 @@ using static UnityEditor.Progress;
 
 public class Move
 {
-    public static ActionTypes[] momvementActions = { ActionTypes.movement};
+    public static ActionTypes[] movementActions = { ActionTypes.movement};
     public static ActionTypes[] meleeActions = {ActionTypes.attack, ActionTypes.meleeAttack};
     public static void Movement(Unit target, Vector2 direction, GameManager gameManager, bool isPlayer = true)
     {
         Vector3 originalPosition = target.gameObject.transform.position;
         target.gameObject.transform.position += (Vector3)direction;
         Vector3 newPosition = target.gameObject.transform.position;
-
-        if(target.inMiddleMap && isPlayer)
+        MainGameManger mainGameManger = gameManager.mainGameManger;
+        //Checks to see if player is attempting to leave main play area
+        if (isPlayer && (newPosition.x >= mainGameManger.mapWidth * 2 || newPosition.x < mainGameManger.mapWidth
+            || newPosition.y >= mainGameManger.mapHeight * 2 || newPosition.y < mainGameManger.mapHeight))
         {
-            int x = (int) (newPosition.x / gameManager.mapWidth);
-            int y = (int)(newPosition.y / gameManager.mapWidth);
-            if (x != 1 || y != 1)
+            int x = (int) (newPosition.x / gameManager.mainGameManger.mapWidth);
+            int y = (int)(newPosition.y / gameManager.mainGameManger.mapHeight);
+            if ((x != 1 || y != 1))
             {
-                
+                if(mainGameManger.walls[x, y] != null)
+                {
+                    // Check if space is open in a tile that already exists
+                    if (CanMove(target, newPosition, direction, mainGameManger.GetGameManger(newPosition)))
+                    {
+                        mainGameManger.mapManager.AttemptToMoveMapPosition(new Vector2Int(x - 1, y - 1), 
+                            new Vector2Int((int) newPosition.x, (int) newPosition.y));
+                        target.gameObject.transform.position -= (Vector3)direction;
+                        return;
+                    }
+                }
+                else
+                {
+                    mainGameManger.mapManager.AttemptToMoveMapPosition(new Vector2Int(x - 1, y - 1), 
+                        new Vector2Int((int)newPosition.x, (int)newPosition.y));
+                    target.gameObject.transform.position -= (Vector3)direction;
+                    return;
+                }
             }
         }
 
@@ -42,7 +61,7 @@ public class Move
                 gameManager.ChangeUnits(originalPosition, null);
                 target.CheckForStatusFields(target.gameObject.transform.position);
                 gameManager.ChangeUnits(target.gameObject.transform.position, target);
-                target.HandlePerformActions(momvementActions, ActionName.MoveNorth);
+                target.HandlePerformActions(movementActions, ActionName.MoveNorth);
             }
         }
     }

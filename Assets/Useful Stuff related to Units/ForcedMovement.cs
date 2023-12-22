@@ -129,7 +129,7 @@ public static class ForcedMovement
     {
         closedList.Add(endNode);
         AStarPathfinding path = new AStarPathfinding(gameManager.grid.GetWidth(), gameManager.grid.GetHeight(), closedList, Vector3.zero);
-        List<AStarPathNode> movementPath = path.FindPath((int)movingUnit.gameObject.transform.position.x, (int)movingUnit.gameObject.transform.position.y, (int)endNode.x, (int)endNode.y);
+        List<AStarPathNode> movementPath = path.FindPath(movingUnit.gameObject.transform.position, endNode);
         if (movementPath != null)
         {
             storedUnit = null;

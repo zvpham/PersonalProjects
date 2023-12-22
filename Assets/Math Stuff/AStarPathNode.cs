@@ -59,7 +59,7 @@ public class AStarPathNode
         this.x = x;
         this.y = y;
 
-        Vector3 worldPosition = grid.GetWorldPosition(x, y);
+        Vector3 worldPosition = grid.GetWorldPosition(x, y) + new Vector3 (0.5f, 0.5f, 0);
         int gridXIndex = (int)(worldPosition.x / mapWidth);
         int gridYIndex = (int)(worldPosition.y / mapHeight);
         Grid<Wall> wallGrid = walls[gridXIndex, gridYIndex];
@@ -83,6 +83,6 @@ public class AStarPathNode
 
     public override string ToString()
     {
-        return x + "," + y;
+        return "A* " + x + "," + y;
     }
 }

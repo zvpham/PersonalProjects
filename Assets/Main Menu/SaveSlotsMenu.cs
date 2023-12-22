@@ -57,8 +57,10 @@ public class SaveSlotsMenu : Menu
         else
         {
             DataPersistenceManager.Instance.ChangeSelectedProfileID(saveSlot.GetProfileId());
-            DataPersistenceManager.Instance.SaveGame(0, DataPersistenceManager.Instance.playerID);
             DataPersistenceManager.Instance.NewGame();
+            DataPersistenceManager.Instance.SaveGame(0, DataPersistenceManager.Instance.playerID);
+            DataPersistenceManager.Instance.SaveGame(DataPersistenceManager.Instance.autoSaveID, DataPersistenceManager.Instance.playerID);
+            DataPersistenceManager.Instance.SaveWorldMapData();
             SaveGameAndLoadScene();
         }
     }
@@ -108,7 +110,7 @@ public class SaveSlotsMenu : Menu
         this.isLoadingGame = isLoadingGame;
 
         // Load alll of the profiles that exist
-        Dictionary<string, MapData> profilesGameData = DataPersistenceManager.Instance.GetAllProfilesGameData();
+        Dictionary<string, MapData> profilesGameData = DataPersistenceManager.Instance.GetAllProfilesMapData();
 
         //ensures the back button is enabled when we activate the menu
         BackButton.interactable = true;

@@ -18,7 +18,10 @@ public class MapGenerator : MonoBehaviour
     public int mapWidth;
     public int mapHeight;
     public int gridSize = 1;
+    public int seed;
+    public int initialSeed;
 
+    public bool UsePresetSeed = false;
     public TileBase TileBaseTest;
     public GameManager testingGameManager;
 
@@ -44,6 +47,12 @@ public class MapGenerator : MonoBehaviour
         gameManager = GameManager.instance;
     }
 
+    public int UseSeed()
+    {
+        seed += 1;
+        return seed;
+    }
+
     public void WaveFunctionCollapse(WFCTemplate structureTemplate, Structure structure, Vector3 structureStartLocation)
     {
         int WFCTemplateTrainerIndex = Random.Range(0, structure.validWFCTrainerTemplates.Count);
@@ -51,7 +60,7 @@ public class MapGenerator : MonoBehaviour
             structure.validWFCTrainerTemplates[WFCTemplateTrainerIndex]].GetComponent<Training>();
         WFCGenerator.width = structureTemplate.width + 1;
         WFCGenerator.depth = structureTemplate.height + 1;
-        WFCGenerator.seed = System.DateTime.Now.Millisecond;
+        WFCGenerator.seed = UseSeed();
         WFCGenerator.N = 2;
         WFCGenerator.symmetry = 8;
         WFCGenerator.foundation = 0;
@@ -61,7 +70,7 @@ public class MapGenerator : MonoBehaviour
 
     public void RandomizeNoiseMap()
     {
-        Random.InitState(System.DateTime.Now.Millisecond);
+        Random.InitState(UseSeed());
         /*
         float randomXPosition = Random.Range(0, 99999f);
         float randomYPosition = Random.Range(0, 99999f);
@@ -84,31 +93,21 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    public void ResetTesting()
-    {
-        for (int i = 0; i < unitHolderForTesting.Count; i++)
-        {
-            DestroyImmediate(unitHolderForTesting[i]);
-        }
-        unitHolderForTesting = new List<GameObject> { };
-
-        for (int i = 0; i < structureWallHolderFortesting.Count; i++)
-        {
-            DestroyImmediate(structureWallHolderFortesting[i]);
-        }
-        structureWallHolderFortesting = new List<GameObject> { };
-
-        for (int i = 0; i < setPieceHolderForTesting.Count; i++)
-        {
-            DestroyImmediate(setPieceHolderForTesting[i]);
-        }
-        setPieceHolderForTesting = new List<GameObject> { };
-    }
-
+    // Set UsePresetSeed and initial Seed before calling Function
     public void GeneratePrefabTile(TilePrefabBase prefabTileBase, GameManager gameManager)
     {
+        if (UsePresetSeed)
+        {
+            seed = initialSeed;
+        }
+        else
+        {
+            initialSeed = System.DateTime.Now.Millisecond;
+            seed = initialSeed;
+        }
+
         GameObject o;
-        // TIleINfO - <x, y, WallIndex>
+        // Generating Walls TIleINfO - <x, y, WallIndex>
         Vector3Int tileInfo;
         for (int i = 0; i < prefabTileBase.mapTiles.Count; i++)
         {
@@ -119,11 +118,10 @@ public class MapGenerator : MonoBehaviour
             }
             o = Instantiate(resourceManager.walls[tileInfo.z], new Vector3(), new Quaternion(0, 0, 0, 1f));
             o.GetComponent<Wall>().gameManager = gameManager;
-            o.transform.position = gameManager.defaultGridPosition;
-            o.transform.position += (new Vector3(tileInfo.x, tileInfo.y, 0) * gridSize);
+            o.transform.position = gameManager.defaultGridPosition + (new Vector3(tileInfo.x, tileInfo.y, 0) * gridSize);
         }
-
-        // TIleINfO - <x, y, unitIndex>
+        gameManager.StartRender();
+        // Generating Units TIleINfO - <x, y, unitIndex>
         for (int i = 0; i < prefabTileBase.units.Count; i++)
         {
             tileInfo = prefabTileBase.units[i];
@@ -133,8 +131,7 @@ public class MapGenerator : MonoBehaviour
             }
             o = Instantiate(resourceManager.unitPrefabs[tileInfo.z], new Vector3(), new Quaternion(0, 0, 0, 1f));
             o.GetComponent<Unit>().gameManager = gameManager;
-            o.transform.position = gameManager.defaultGridPosition;
-            o.transform.position += (new Vector3(tileInfo.x, tileInfo.y, 0) * gridSize);
+            o.transform.position = gameManager.defaultGridPosition + (new Vector3(tileInfo.x, tileInfo.y, 0) * gridSize);
         }
 
         if (prefabTileBase.haveMapGenerateEncounters)
@@ -148,7 +145,8 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    public void GenerateTile(TileBase initialTileBase, GameManager initialGameManager, float extraDangerModifier,
+    // Set UsePresetSeed and initial Seed before calling Function
+    public void GenerateTile(TileBase initialTileBase, GameManager initialGameManager, float extraDangerModifier, 
         bool isTesting = false)
     {
         TileBase tileBase;
@@ -163,6 +161,17 @@ public class MapGenerator : MonoBehaviour
             tileBase = initialTileBase;
             gameManager = initialGameManager;
         }
+
+        if (UsePresetSeed)
+        {
+            seed = initialSeed;
+        }
+        else
+        {
+            initialSeed = System.DateTime.Now.Millisecond;
+            seed = initialSeed;
+        }
+
         unitHolderForTesting = new List<GameObject>();
         structureWallHolderFortesting = new List<GameObject>();
         setPieceHolderForTesting = new List<GameObject>();
@@ -178,12 +187,12 @@ public class MapGenerator : MonoBehaviour
                 availableLocations.Add(new Vector3(j, i, 0));
             }
         }
-        int numStructures = tileBase.FindNumberOfStructures();
+        int numStructures = tileBase.FindNumberOfStructures(UseSeed());
         int actualStructures = 0;
         availableTiles = new int[mapWidth, mapHeight];
         for (int i = 0; i < numStructures; i++)
         {
-            Random.InitState(System.DateTime.Now.Millisecond);
+            Random.InitState(UseSeed());
             int structureIndex = Random.Range(0, tileBase.structures.Count);
             int WFCTemplateIndex = Random.Range(0, tileBase.structures[structureIndex].WFCTemplates.Count);
             Structure structure = tileBase.structures[structureIndex];
@@ -352,12 +361,13 @@ public class MapGenerator : MonoBehaviour
                 structureWallHolderFortesting.Add(wall);
             }
 
-            Danger structureDangerRating = structure.encounter.GetDangerRating(extraDangerModifier);
-            CreateEncounter(structure.encounter, availableTiles, gameManager.defaultGridPosition, structureDangerRating);
+            Danger structureDangerRating = structure.encounter.GetDangerRating(extraDangerModifier, UseSeed());
+            CreateEncounter(structure.encounter, availableTiles, gameManager.defaultGridPosition, structureDangerRating,
+                gameManager);
         }
 
         //DangerRating is for spawning units outside of structures
-        Danger dangerRating = tileBase.encounter.GetDangerRating(extraDangerModifier);
+        Danger dangerRating = tileBase.encounter.GetDangerRating(extraDangerModifier, UseSeed());
         if (actualStructures >= 2)
         {
             if (dangerRating == Danger.Hard)
@@ -375,7 +385,7 @@ public class MapGenerator : MonoBehaviour
         }
         RandomizeNoiseMap();
 
-        float setPieceFactor = tileBase.FindSetPieceFactor();
+        float setPieceFactor = tileBase.FindSetPieceFactor(UseSeed());
         List<Vector3> tempLocationList = new List<Vector3>();
 
         for (int i = 0; i < availableLocations.Count; i++)
@@ -385,9 +395,11 @@ public class MapGenerator : MonoBehaviour
             {
                 ;
                 int setPieceChoice = Random.Range(0, tileBase.setPieces.Count);
-                setPieceHolderForTesting.Add(Instantiate(tileBase.setPieces[setPieceChoice],
+                GameObject setPiece = Instantiate(tileBase.setPieces[setPieceChoice],
                     gameManager.defaultGridPosition + new Vector3((int)location.x, (int)location.y),
-                    new Quaternion(0, 0, 0, 1f)));
+                    new Quaternion(0, 0, 0, 1f));
+                setPieceHolderForTesting.Add(setPiece);
+                setPiece.GetComponent<Wall>().gameManager = gameManager;
                 tempLocationList.Add(location);
             }
         }
@@ -406,10 +418,11 @@ public class MapGenerator : MonoBehaviour
             availableTiles[(int)location.x, (int)location.y] = 1;
         }
 
-        CreateEncounter(tileBase.encounter, availableTiles, gameManager.defaultGridPosition, dangerRating);
+        CreateEncounter(tileBase.encounter, availableTiles, gameManager.defaultGridPosition, dangerRating, gameManager);
     }
 
-    public void CreateEncounter(Encounter encounter, int[,] Tiles, Vector3 startingLocation, Danger dangerRating)
+    public void CreateEncounter(Encounter encounter, int[,] Tiles, Vector3 startingLocation, Danger dangerRating, 
+        GameManager gameManager)
     {
         List<Vector2Int> availableTiles = new List<Vector2Int>();
         for (int h = 0; h < Tiles.GetLength(1); h++)
@@ -430,17 +443,17 @@ public class MapGenerator : MonoBehaviour
             case (Danger.Easy):
                 compositionChoice = Random.Range(0, encounter.easyCompositions.Count);
                 encounterComposition = encounter.easyCompositions[compositionChoice];
-                PickEncounterComposition(encounter, encounterComposition, availableTiles, Tiles, startingLocation);
+                PickEncounterComposition(encounter, encounterComposition, availableTiles, Tiles, startingLocation, gameManager);
                 break;
             case (Danger.Medium):
                 compositionChoice = Random.Range(0, encounter.mediumCompositions.Count);
                 encounterComposition = encounter.mediumCompositions[compositionChoice];
-                PickEncounterComposition(encounter, encounterComposition, availableTiles, Tiles, startingLocation);
+                PickEncounterComposition(encounter, encounterComposition, availableTiles, Tiles, startingLocation, gameManager);
                 break;
             case (Danger.Hard):
                 compositionChoice = Random.Range(0, encounter.hardCompositions.Count);
                 encounterComposition = encounter.hardCompositions[compositionChoice];
-                PickEncounterComposition(encounter, encounterComposition, availableTiles, Tiles, startingLocation);
+                PickEncounterComposition(encounter, encounterComposition, availableTiles, Tiles, startingLocation, gameManager);
                 break;
             case (Danger.None):
                 break;
@@ -448,7 +461,7 @@ public class MapGenerator : MonoBehaviour
     }
 
     public void PickEncounterComposition(Encounter encounter, EncounterComposition encounterComposition,
-        List<Vector2Int> initialAvailableTiles, int[,] FirstTiles, Vector3 startingLocation)
+        List<Vector2Int> initialAvailableTiles, int[,] FirstTiles, Vector3 startingLocation, GameManager gameManager)
     {
         int[,] tiles = FirstTiles;
         int RandomUnitCompositionIndex;
@@ -473,9 +486,10 @@ public class MapGenerator : MonoBehaviour
                         RandomUnitComposition = encounter.easyUnitEncounters[RandomUnitCompositionIndex];
                         for (int u = 0; u < RandomUnitComposition.units.Count; u++)
                         {
-                            numberOfUnits = RandomUnitComposition.numberOfUnits[u].GetRandomNumberInRange();
+                            numberOfUnits = RandomUnitComposition.numberOfUnits[u].GetRandomNumberInRange(UseSeed());
                             unit = RandomUnitComposition.units[u];
-                            updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation);
+                            updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation,
+                                gameManager);
                             tiles = updatedTileInfo.Item1;
                             availableTiles = updatedTileInfo.Item2;
                         }
@@ -488,9 +502,10 @@ public class MapGenerator : MonoBehaviour
                         RandomUnitComposition = encounter.mediumUnitEncounters[RandomUnitCompositionIndex];
                         for (int u = 0; u < RandomUnitComposition.units.Count; u++)
                         {
-                            numberOfUnits = RandomUnitComposition.numberOfUnits[u].GetRandomNumberInRange();
+                            numberOfUnits = RandomUnitComposition.numberOfUnits[u].GetRandomNumberInRange(UseSeed());
                             unit = RandomUnitComposition.units[u];
-                            updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation);
+                            updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation,
+                                gameManager);
                             tiles = updatedTileInfo.Item1;
                             availableTiles = updatedTileInfo.Item2;
                         }
@@ -503,9 +518,10 @@ public class MapGenerator : MonoBehaviour
                         RandomUnitComposition = encounter.hardUnitEncounters[RandomUnitCompositionIndex];
                         for (int u = 0; u < RandomUnitComposition.units.Count; u++)
                         {
-                            numberOfUnits = RandomUnitComposition.numberOfUnits[u].GetRandomNumberInRange();
+                            numberOfUnits = RandomUnitComposition.numberOfUnits[u].GetRandomNumberInRange(UseSeed());
                             unit = RandomUnitComposition.units[u];
-                            updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation);
+                            updatedTileInfo = PlaceUnits(numberOfUnits, availableTiles, tiles, unit, startingLocation,
+                                gameManager);
                             tiles = updatedTileInfo.Item1;
                             availableTiles = updatedTileInfo.Item2;
                         }
@@ -516,7 +532,7 @@ public class MapGenerator : MonoBehaviour
     }
 
     public Tuple<int[,], List<Vector2Int>> PlaceUnits(int numberOfUnits, List<Vector2Int> availableTiles, int[,] Tiles
-        , GameObject unit, Vector3 startingLocation)
+        , GameObject unitPrefab, Vector3 startingLocation, GameManager gameManager)
     {
         int[,] modifiedTiles = Tiles;
         Vector2Int firstUnitSpawnLocation;
@@ -539,7 +555,9 @@ public class MapGenerator : MonoBehaviour
             Vector3 unitSpawnLocation = startingLocation + new Vector3(unitPlacements[i].x, unitPlacements[i].y, 0);
             modifiedTiles[unitPlacements[i].x, unitPlacements[i].y] = 3;
             modifiedAvailableTiles.Remove(unitPlacements[i]);
-            unitHolderForTesting.Add(Instantiate(unit, unitSpawnLocation, new Quaternion(0, 0, 0, 1f)));
+            GameObject unit = Instantiate(unitPrefab, unitSpawnLocation, new Quaternion(0, 0, 0, 1f));
+            unitHolderForTesting.Add(unit);
+            unit.GetComponent<Unit>().gameManager = gameManager;
         }
         return new Tuple<int[,], List<Vector2Int>>(modifiedTiles, modifiedAvailableTiles);
     }
@@ -562,10 +580,9 @@ public class MapGenerator : MonoBehaviour
         {
             int x = (int)(structureWallHolderFortesting[i].transform.position.x - testingGameManager.defaultGridPosition.x);
             int y = (int)(structureWallHolderFortesting[i].transform.position.y - testingGameManager.defaultGridPosition.y);
-            Debug.Log(x + " " + y);
             testingGameManager.obstacleGrid.SetGridObject(x, y, structureWallHolderFortesting[i].GetComponent<Wall>());
         }
-        testingGameManager.finalRenderLocations = new List<Tuple<int, int, int>>();
+        testingGameManager.finalRenderLocations = new List<Vector3>();
         for(int i = 0; i < structureWallHolderFortesting.Count; i++)
         {
             int x = (int)(structureWallHolderFortesting[i].transform.position.x - testingGameManager.defaultGridPosition.x);
@@ -573,6 +590,27 @@ public class MapGenerator : MonoBehaviour
             testingGameManager.RenderWall(x, y, 0);
         }
         testingGameManager.FinalRender();
+    }
+
+    public void ResetTesting()
+    {
+        for (int i = 0; i < unitHolderForTesting.Count; i++)
+        {
+            DestroyImmediate(unitHolderForTesting[i]);
+        }
+        unitHolderForTesting = new List<GameObject> { };
+
+        for (int i = 0; i < structureWallHolderFortesting.Count; i++)
+        {
+            DestroyImmediate(structureWallHolderFortesting[i]);
+        }
+        structureWallHolderFortesting = new List<GameObject> { };
+
+        for (int i = 0; i < setPieceHolderForTesting.Count; i++)
+        {
+            DestroyImmediate(setPieceHolderForTesting[i]);
+        }
+        setPieceHolderForTesting = new List<GameObject> { };
     }
 }
 

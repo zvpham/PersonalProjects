@@ -5,7 +5,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Action/SeeTheFuture")]
 public class SeeTheFuture : Action
 {
-    public List<Vector3> pathAI;
+    public List<Vector2> pathAI;
     public override void Activate(Unit self)
     {
         self.HandlePerformActions(actionType, actionName);

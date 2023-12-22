@@ -72,6 +72,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public List<ActionName> actionNames = new List<ActionName>();
     public List<int> actionCooldowns = new List<int>();
 
+    public bool hasSeenEnemy = false;
     public bool chasing;
     public List<ChaseAction> chaseActions;
     public Vector3 lastKnownEnemyLocation;
@@ -103,7 +104,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public List<GameObject> drops;
 
     public unitForcedMovementPathData forcedMovementPathData = new unitForcedMovementPathData(
-        new List<Vector3>(), 0, 0, 0, 0, 0);
+        new List<Vector2>(), 0, 0, 0, 0, 0);
 
     public bool notOnHold = true;
     public bool inMiddleMap = true;
@@ -223,6 +224,10 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             }
         }
         onTurnEndPlayer();
+        if (chasing && transform.position == locationUnitIsChasing)
+        {
+            hasSeenEnemy = false;
+        }
         enabled = false;
     }
 

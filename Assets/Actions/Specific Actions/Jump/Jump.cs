@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 [CreateAssetMenu(menuName = "Action/Jump")]
 public class Jump : ChaseAction
 {
-    public List<Vector3> pathAI;
+    public List<Vector2> pathAI;
     public override int CalculateWeight(Unit self)
     {
         bool pathFound = false;
@@ -60,7 +60,7 @@ public class Jump : ChaseAction
     }
 
 
-    private void foundTarget(List<Vector3> path)
+    private void foundTarget(List<Vector2> path)
     {
         targetingSystem.GetComponent<LineOfSight>().DestroySelf();
         Destroy(targetingSystem);

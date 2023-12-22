@@ -18,8 +18,7 @@ public class GameManager : MonoBehaviour
     public MainGameManger mainGameManger;
 
     public bool activeGameManager = false;
-    public int mapWidth;
-    public int mapHeight;
+    public Vector2Int gameManagerDirection;
     public Vector3 defaultGridPosition;
 
     public List<double> speeds;
@@ -37,8 +36,6 @@ public class GameManager : MonoBehaviour
 
     public Tilemap groundTilemap;
 
-    public MapGenerator mapGenerator;
-
     public ResourceManager resourceManager;
 
     public Grid<Unit> grid;
@@ -46,17 +43,20 @@ public class GameManager : MonoBehaviour
     public Grid<List<Item>> itemgrid;
     public Grid<Wall> obstacleGrid;
 
-    public List<Unit> units;
+    public List<Wall> walls;
+    public List<SetPiece> setPieces;
     public List<Item> items;
+
+    public List<Unit> units;
     public List<Status> allStatuses;
     public List<CreatedField> createdFields = new List<CreatedField>();
     public List<AnimatedField> animatedFields = new List<AnimatedField>();
 
     public int least;
     public int index = 0;
-    private bool aUnitActed = false;
+    public bool aUnitActed = false;
     // during turn 0 = no; 1 = yes
-    private int duringTurn = 0;
+    public int duringTurn = 0;
 
     public int numberOfStatusRemoved = 0;
 
@@ -75,8 +75,8 @@ public class GameManager : MonoBehaviour
 
     public bool isNewSlate = true;
 
-    public List<Tuple<int, int, int>> initalRenderLocations;
-    public List<Tuple<int, int, int>> finalRenderLocations;
+    public List<Vector3> initalRenderLocations;
+    public List<Vector3> finalRenderLocations;
 
     public UnityAction<int> PlayerWent;
 
@@ -86,27 +86,20 @@ public class GameManager : MonoBehaviour
         {
             instance = this;
         }
-        grid = new Grid<Unit>(mapWidth, mapHeight, 1f, defaultGridPosition, (Grid<Unit> g, int x, int y) => null);
-        flyingGrid = new Grid<Unit>(mapWidth, mapHeight, 1f, defaultGridPosition, (Grid<Unit> g, int x, int y) => null);
-        itemgrid = new Grid<List<Item>>(mapWidth, mapHeight, 1f, defaultGridPosition, (Grid<List<Item>> g, int x, int y) => null);
-        obstacleGrid = new Grid<Wall>(mapWidth, mapHeight, 1f, defaultGridPosition, (Grid<Wall> g, int x, int y) => null);
+        grid = new Grid<Unit>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<Unit> g, int x, int y) => null);
+        flyingGrid = new Grid<Unit>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<Unit> g, int x, int y) => null);
+        itemgrid = new Grid<List<Item>>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<List<Item>> g, int x, int y) => null);
+        obstacleGrid = new Grid<Wall>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<Wall> g, int x, int y) => null);
+        initalRenderLocations = new List<Vector3>();
+        finalRenderLocations = new List<Vector3>();
     }
 
-    void Start()
+     public virtual void Start()
     {
         currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
         expectedLocationMarker.selfDestructionTimer = expectedLocationChangeSpeed;
-        for(int i = 0; i < initalRenderLocations.Count; i++)
-        {
-            int x = initalRenderLocations[i].Item1;
-            int y = initalRenderLocations[i].Item2;
-            int wallIndex = initalRenderLocations[i].Item3;
-            RenderWall(x, y, wallIndex);
-        }
-        FinalRender();
-        initalRenderLocations = null;
-        finalRenderLocations = null;
     }
+
 
     public void ChangeUnits(Vector3 worldPosition, Unit unit, bool isFlying = false)
     {
@@ -134,24 +127,27 @@ public class GameManager : MonoBehaviour
 
     public void LoadData(TileData data)
     {
-        currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
-        expectedLocationMarker.selfDestructionTimer = expectedLocationChangeSpeed;
         if (data == null)
         {
             Debug.LogError("current Tile Data Not Found HELP PLEASE");
             return;
         }
-        if (data.unitPrefabDatas.Count == 0)
-        {
-            isNewSlate = true;
-            GameObject temp = Instantiate(resourceManager.unitPrefabs[0], new Vector3(100, 45, 0), new Quaternion(0, 0, 0, 1f));
-            return;
-        }
-        else
+
+        Debug.LogWarning(data.notNewTile);
+        if (data.notNewTile)
         {
             isNewSlate = false;
         }
+        else
+        {
+            Debug.Log("New Tile GameManager");
+            isNewSlate = true;
+            return;
+        }
         activeGameManager = true;
+
+        Vector2 newDefaultGridPosition = defaultGridPosition - mainGameManger.centralGameManager.defaultGridPosition;
+
         // Load Game Manager Data
         this.numberOfStatusRemoved = data.numberOfStatusRemoved;
         this.least = data.least;
@@ -159,11 +155,38 @@ public class GameManager : MonoBehaviour
         this.aUnitActed = data.aUnitActed;
         this.duringTurn = data.duringTurn;
 
+        // Load Wall Data
+        for (int i = 0; i < data.wallIndexes.Count; i++)
+        {
+            GameObject tempWall = Instantiate(resourceManager.walls[data.wallIndexes[i]], data.wallPositions[i] + newDefaultGridPosition, new Quaternion(0, 0, 0, 1f));
+            Wall wall = tempWall.GetComponent<Wall>();
+            wall.health = data.wallHealths[i];
+            wall.gameManager = this;
+        }
+
+        // Load Wall Data
+        for (int i = 0; i < data.setPieceIndexes.Count; i++)
+        {
+            GameObject tempWall = Instantiate(resourceManager.setPiecies[data.setPieceIndexes[i]], data.setPiecePositions[i] + newDefaultGridPosition, new Quaternion(0, 0, 0, 1f));
+            SetPiece setPiece = tempWall.GetComponent<SetPiece>();
+            setPiece.health = data.setPieceHealths[i];
+            setPiece.gameManager = this;
+        }
+
+        // Load Item Data
+        for (int i = 0; i < data.itemIndexes.Count; i++)
+        {
+            GameObject tempItem = Instantiate(resourceManager.genericItemPrefab, data.itemLocations[i] + newDefaultGridPosition, new Quaternion(0, 0, 0, 1f));
+            Item item = tempItem.GetComponent<Item>();
+            item.inventoryItem = resourceManager.items[data.itemIndexes[i]];
+            item.quantity = data.itemQuantities[i];
+        }
+
         // Load Unit Data
         for (int i = 0; i < data.numberOfUnits; i++)
         {
             unitPrefabData tempData = data.unitPrefabDatas[i];
-            GameObject temp = Instantiate(resourceManager.unitPrefabs[tempData.unitPrefabIndex], tempData.position, new Quaternion(0, 0, 0, 1f));
+            GameObject temp = Instantiate(resourceManager.unitPrefabs[tempData.unitPrefabIndex], tempData.position + newDefaultGridPosition, new Quaternion(0, 0, 0, 1f));
             Unit unit = temp.GetComponent<Unit>();
             unit.gameManager = this;
             this.units.Add(unit);
@@ -171,29 +194,9 @@ public class GameManager : MonoBehaviour
             unit.actionNamesForCoolDownOnLoad = tempData.actionNames;
             unit.currentCooldownOnLoad = tempData.actionCooldowns;
             unit.forcedMovementPathData = tempData.forcedMovementPathData;
+            this.speeds.Add(1);
         }
-        this.speeds = data.speeds;
         this.priority = data.priority;
-
-        // Load Player Specific Data
-        Player playerTemp = (Player)this.units[0];
-        playerTemp.soulSlotIndexes = data.soulSlotIndexes;
-
-        List<SoulItemSO> souls = new List<SoulItemSO>();
-        foreach (int soulIndex in data.soulIndexes)
-        {
-            souls.Add(resourceManager.souls[soulIndex]);
-        }
-        playerTemp.onLoadSouls = souls;
-
-        // Load Item Data
-        for (int i = 0; i < data.itemIndexes.Count; i++)
-        {
-            GameObject tempItem = Instantiate(resourceManager.genericItemPrefab, data.itemLocations[i], new Quaternion(0, 0, 0, 1f));
-            Item item = tempItem.GetComponent<Item>();
-            item.inventoryItem = resourceManager.items[data.itemIndexes[i]];
-            item.quantity = data.itemQuantities[i];
-        }
 
         // Load Status Data
         this.statusPriority = data.statusPriority;
@@ -222,7 +225,7 @@ public class GameManager : MonoBehaviour
 
             if (data.createdFieldsData[i].createdWithBlastRadius)
             {
-                tempCreatedField.CreateGridOfObjects(this, data.createdFieldsData[i].originPosition, data.createdFieldsData[i].fieldRadius, 20, true);
+                tempCreatedField.CreateGridOfObjects(this, data.createdFieldsData[i].originPosition + newDefaultGridPosition, data.createdFieldsData[i].fieldRadius, 20, true);
             }
         }
 
@@ -248,20 +251,69 @@ public class GameManager : MonoBehaviour
     public void SaveData(TileData data)
     {
         Debug.Log("Saving Game");
+        Vector3 newDefaultGridPosition = defaultGridPosition - mainGameManger.centralGameManager.defaultGridPosition;
+
         // Game Manager Data
         data.numberOfStatusRemoved = this.numberOfStatusRemoved;
         data.least = least;
         data.index = index;
         data.aUnitActed = aUnitActed;
         data.duringTurn = duringTurn;
+        data.notNewTile = true;
+
+        // Wall Data
+        List<int> wallIndexes = new List<int>();
+        List<int> wallhealths = new List<int>();
+        List<Vector2> wallPositions = new List<Vector2>();
+        foreach (Wall wall in walls)
+        {
+            wallIndexes.Add(wall.wallIndex);
+            wallhealths.Add(wall.health);
+            wallPositions.Add(wall.gameObject.transform.position - newDefaultGridPosition);
+        }
+        data.wallIndexes = wallIndexes;
+        data.wallHealths = wallhealths;
+        data.wallPositions = wallPositions;
+
+
+        // Set Piece Data
+        List<int> setPieceIndexes = new List<int>();
+        List<int> setPieceHealths = new List<int>();
+        List<Vector2> setPiecePositions = new List<Vector2>();
+        foreach (SetPiece setPiece in setPieces)
+        {
+            setPieceIndexes.Add(setPiece.setPieceIndex);
+            setPieceHealths.Add(setPiece.health);
+            setPiecePositions.Add(setPiece.gameObject.transform.position - newDefaultGridPosition);
+        }
+        data.setPieceIndexes = setPieceIndexes;
+        data.setPieceHealths = setPieceHealths;
+        data.setPiecePositions = setPiecePositions;
+
+
+        // Item Data
+        List<int> itemIndexes = new List<int>();
+        List<int> itemQuantities = new List<int>();
+        List<Vector2> itemPositions = new List<Vector2>();
+        foreach (Item item in items)
+        {
+            itemIndexes.Add(resourceManager.items.IndexOf(item.inventoryItem));
+            itemQuantities.Add(item.quantity);
+            itemPositions.Add(item.gameObject.transform.position - newDefaultGridPosition);
+        }
+        data.itemIndexes = itemIndexes;
+        data.itemQuantities = itemQuantities;
+        data.itemLocations = itemPositions;
 
         // Unit data
-        data.numberOfUnits = this.units.Count;
-        data.speeds = this.speeds;
+        data.numberOfUnits = this.units.Count - 1;
+        this.priority.RemoveAt(0);
         data.priority = this.priority;
         List<unitPrefabData> tempUnitPrefabData = new List<unitPrefabData>();
-        foreach (Unit unit in this.units)
+
+        for(int i = 1; i < units.Count; i++)
         {
+            Unit unit = units[i];
             List<int> actionCooldowns = new List<int>();
             List<ActionName> actionNames = new List<ActionName>();
             foreach (Action action in unit.actions)
@@ -269,35 +321,11 @@ public class GameManager : MonoBehaviour
                 actionCooldowns.Add(action.currentCooldown);
                 actionNames.Add(action.actionName);
             }
-            unitPrefabData temp = new unitPrefabData(unit.gameObject.transform.position, unit.unitResourceManagerIndex, unit.health,
+            unitPrefabData temp = new unitPrefabData(unit.gameObject.transform.position - newDefaultGridPosition, unit.unitResourceManagerIndex, unit.health,
                 actionCooldowns, actionNames, unit.forcedMovementPathData);
             tempUnitPrefabData.Add(temp);
         }
         data.unitPrefabDatas = tempUnitPrefabData;
-
-        // Player Specific Data
-        Player player = (Player)units[0];
-        List<int> tempOnLoadSouls = new List<int>();
-        foreach (SoulItemSO soul in player.onLoadSouls)
-        {
-            tempOnLoadSouls.Add(resourceManager.souls.IndexOf(soul));
-        }
-        data.soulSlotIndexes = player.soulSlotIndexes;
-        data.soulIndexes = tempOnLoadSouls;
-
-        // Item Data
-        List<int> itemIndexes = new List<int>();
-        List<int> itemQuantities = new List<int>();
-        List<Vector3> itemPositions = new List<Vector3>();
-        foreach (Item item in items)
-        {
-            itemIndexes.Add(resourceManager.items.IndexOf(item.inventoryItem));
-            itemQuantities.Add(item.quantity);
-            itemPositions.Add(item.gameObject.transform.position);
-        }
-        data.itemIndexes = itemIndexes;
-        data.itemQuantities = itemQuantities;
-        data.itemLocations = itemPositions;
 
         // Status Data
         List<int> statusIndexList = new List<int>();
@@ -305,18 +333,28 @@ public class GameManager : MonoBehaviour
         List<int> statusIntData = new List<int>();
         List<string> statusStringData = new List<string>();
         List<bool> statusBoolData = new List<bool>();
-        foreach (Status status in allStatuses)
+        List<int> newStatusPriority = new List<int>();
+        List<int> newStatusDuration = new List<int>();
+        for (int i = 0; i < allStatuses.Count; i++)
         {
+            Status status = allStatuses[i];
+            if (status.targetUnit == units[0])
+            {
+                continue;
+            }
             statusIndexList.Add(status.statusPrefabIndex);
             indexOfUnitThatHasStatus.Add(this.units.IndexOf(status.targetUnit));
             statusIntData.Add(status.statusIntData);
             statusStringData.Add(status.statusStringData);
             statusBoolData.Add(status.statusBoolData);
+            newStatusPriority.Add(statusPriority[i]);
+            newStatusDuration.Add(statusDuration[i]);
         }
+
         data.statusPrefabIndex = statusIndexList;
         data.indexOfUnitThatHasStatus = indexOfUnitThatHasStatus;
-        data.statusPriority = this.statusPriority;
-        data.statusDuration = this.statusDuration;
+        data.statusPriority = newStatusPriority;
+        data.statusDuration = newStatusDuration;
         data.statusIntData = statusIntData;
         data.statusStringData = statusStringData;
         data.statusBoolData = statusBoolData;
@@ -334,7 +372,7 @@ public class GameManager : MonoBehaviour
             tempCreatedField.fromAnimatedField = createdField.fromAnimatedField;
             tempCreatedField.nonStandardDuration = createdField.nonStandardDuration;
 
-            tempCreatedField.originPosition = createdField.originPosition;
+            tempCreatedField.originPosition = createdField.originPosition - newDefaultGridPosition;
             tempCreatedField.fieldRadius = createdField.fieldRadius;
 
             createdFieldLists.Add(tempCreatedField);
@@ -356,7 +394,7 @@ public class GameManager : MonoBehaviour
             tempAnimatedField.createdObjectIndex = resourceManager.createdObjects.IndexOf(animatedField.createdObject);
             tempAnimatedField.createdObjectHolderIndex = animatedField.createdObjectHolder.GetComponent<CreatedObjectHolder>().CreatedObjectIndex;
             tempAnimatedField.createdFieldQuickness = animatedField.createdFieldQuickness;
-            tempAnimatedField.startPosition = animatedField.startPosition;
+            tempAnimatedField.startPosition = animatedField.startPosition - newDefaultGridPosition;
             tempAnimatedField.initialDirection = animatedField.initialDirection;
             tempAnimatedField.range = animatedField.range;
             tempAnimatedField.angle = animatedField.angle;
@@ -370,7 +408,7 @@ public class GameManager : MonoBehaviour
             foreach (AnimatedField.Node node in animatedField.slowedNodeList)
             {
                 animatedFieldNodeData tempNode = new animatedFieldNodeData();
-                tempNode.position = node.position;
+                tempNode.position = node.position - newDefaultGridPosition;
                 tempNode.direction = node.direction;
                 tempNode.priority = node.priority;
                 tempNode.blastValue = node.blastValue;
@@ -706,6 +744,20 @@ public class GameManager : MonoBehaviour
         currentTime = 0;
     }
 
+    public void StartRender()
+    {
+        for (int i = 0; i < initalRenderLocations.Count; i++)
+        {
+            int x = (int)initalRenderLocations[i].x;
+            int y = (int)initalRenderLocations[i].y;
+            int wallIndex = (int)initalRenderLocations[i].z;
+            RenderWall(x, y, wallIndex);
+        }
+        FinalRender();
+        initalRenderLocations = new List<Vector3>();
+        finalRenderLocations = new List<Vector3>();
+    }
+
     public void FinalRender()
     {
         int x = -1;
@@ -713,9 +765,9 @@ public class GameManager : MonoBehaviour
         int wallIndex = -1;
         for (int i = 0; i < finalRenderLocations.Count; i++)
         {
-            x = finalRenderLocations[i].Item1;
-            y = finalRenderLocations[i].Item2;
-            wallIndex = finalRenderLocations[i].Item3;
+            x = (int)finalRenderLocations[i].x;
+            y = (int)finalRenderLocations[i].y;
+            wallIndex = (int)finalRenderLocations[i].z;
             switch (obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState)
             {
                 case (WallStates.EastWall):
@@ -869,7 +921,7 @@ public class GameManager : MonoBehaviour
     public void RenderWall(int x, int y, int wallIndex)
     {
         int numWallConnections = 0;
-        if (x + 1 < mapWidth && obstacleGrid.GetGridObject(x + 1, y) != null)
+        if (x + 1 < mainGameManger.mapWidth && obstacleGrid.GetGridObject(x + 1, y) != null)
         {
             //East Wall
             numWallConnections += 1;
@@ -879,7 +931,7 @@ public class GameManager : MonoBehaviour
             //West Wall
             numWallConnections += 2;
         }
-        if (y + 1 < mapHeight && obstacleGrid.GetGridObject(x, y + 1) != null)
+        if (y + 1 < mainGameManger.mapHeight && obstacleGrid.GetGridObject(x, y + 1) != null)
         {
             //is NorthWall
             numWallConnections += 4;
@@ -899,23 +951,24 @@ public class GameManager : MonoBehaviour
             case 1:
                 obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].LeftHorzontalWall;
                 obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.LeftHorzontalWall;
-                finalRenderLocations.Add(new Tuple<int, int, int>(x + 1, y, wallIndex));
+
+                finalRenderLocations.Add(new Vector3(x + 1, y, wallIndex));
                 break;
             case 2:
                 obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].RightHorzontalWall;
                 obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.RightHorzontalWall;
-                finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
+                finalRenderLocations.Add(new Vector3(x - 1, y, wallIndex));
                 break;
             case 3:
                 obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterHorzontalWall;
                 obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.CenterHorzontalWall;
-                finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
-                finalRenderLocations.Add(new Tuple<int, int, int>(x + 1, y, wallIndex));
+                finalRenderLocations.Add(new Vector3(x - 1, y, wallIndex));
+                finalRenderLocations.Add(new Vector3(x + 1, y, wallIndex));
                 break;
             case 4:
                 obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].LowerVerticalWall;
                 obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.LowerVerticalWall;
-                finalRenderLocations.Add(new Tuple<int, int, int>(x, y + 1, wallIndex));
+                finalRenderLocations.Add(new Vector3(x, y + 1, wallIndex));
                 break;
             case 5:
                 if (obstacleGrid.GetGridObject(x + 1, y + 1) != null)
@@ -924,7 +977,7 @@ public class GameManager : MonoBehaviour
                     obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.SouthWestWall;
                     if (y - 1 > 0 && obstacleGrid.GetGridObject(x + 1, y - 1) != null)
                     {
-                        finalRenderLocations.Add(new Tuple<int, int, int>(x + 1, y, wallIndex));
+                        finalRenderLocations.Add(new Vector3(x + 1, y, wallIndex));
                     }
                 }
                 else
@@ -933,7 +986,7 @@ public class GameManager : MonoBehaviour
                     obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.SouthWestWallModified;
                     if (y - 1 > 0 && obstacleGrid.GetGridObject(x + 1, y - 1) != null)
                     {
-                        finalRenderLocations.Add(new Tuple<int, int, int>(x + 1, y, wallIndex));
+                        finalRenderLocations.Add(new Vector3(x + 1, y, wallIndex));
                     }
                 }
                 break;
@@ -944,7 +997,7 @@ public class GameManager : MonoBehaviour
                     obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.SouthEastWall;
                     if (y - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
                     {
-                        finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
+                        finalRenderLocations.Add(new Vector3(x - 1, y, wallIndex));
                     }
 
                 }
@@ -954,7 +1007,7 @@ public class GameManager : MonoBehaviour
                     obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.SouthEastWallModified;
                     if (y - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
                     {
-                        finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
+                        finalRenderLocations.Add(new Vector3(x - 1, y, wallIndex));
                     }
                 }
                 break;
@@ -967,17 +1020,17 @@ public class GameManager : MonoBehaviour
                 }
                 if (obstacleGrid.GetGridObject(x + 1, y - 1) != null)
                 {
-                    finalRenderLocations.Add(new Tuple<int, int, int>(x + 1, y, wallIndex));
+                    finalRenderLocations.Add(new Vector3(x + 1, y, wallIndex));
                 }
-                if (y + 1 < mapHeight && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
+                if (y + 1 < mainGameManger.mapHeight && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
                 {
-                    finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
+                    finalRenderLocations.Add(new Vector3(x - 1, y, wallIndex));
                 }
                 break;
             case 8:
                 obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].UpperVerticalWall;
                 obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.UpperVerticalWall;
-                finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                finalRenderLocations.Add(new Vector3(x, y - 1, wallIndex));
                 break;
             case 9:
                 if (obstacleGrid.GetGridObject(x + 1, y - 1) != null)
@@ -986,7 +1039,7 @@ public class GameManager : MonoBehaviour
                     obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.NorthWestWall;
                     if (x - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
                     {
-                        finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                        finalRenderLocations.Add(new Vector3(x, y - 1, wallIndex));
                     }
                 }
                 else
@@ -995,7 +1048,7 @@ public class GameManager : MonoBehaviour
                     obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.NorthWestWallModified;
                     if (x - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
                     {
-                        finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                        finalRenderLocations.Add(new Vector3(x, y - 1, wallIndex));
                     }
                 }
                 break;
@@ -1006,20 +1059,20 @@ public class GameManager : MonoBehaviour
                     obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.NorthEastWall;
                     if (obstacleGrid.GetGridObject(x + 1, y - 1) == null)
                     {
-                        finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                        finalRenderLocations.Add(new Vector3(x, y - 1, wallIndex));
                     }
-                    if (y + 1 < mapHeight && obstacleGrid.GetGridObject(x - 1, y + 1) != null)
+                    if (y + 1 < mainGameManger.mapHeight && obstacleGrid.GetGridObject(x - 1, y + 1) != null)
                     {
-                        finalRenderLocations.Add(new Tuple<int, int, int>(x - 1, y, wallIndex));
+                        finalRenderLocations.Add(new Vector3(x - 1, y, wallIndex));
                     }
                 }
                 else
                 {
                     obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].NorthEastWallModified;
                     obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.NorthEastWallModified;
-                    if (x + 1 < mapWidth  && obstacleGrid.GetGridObject(x + 1, y - 1) != null)
+                    if (x + 1 < mainGameManger.mapWidth  && obstacleGrid.GetGridObject(x + 1, y - 1) != null)
                     {
-                        finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                        finalRenderLocations.Add(new Vector3(x, y - 1, wallIndex));
                     }
                 }
                 break;
@@ -1030,19 +1083,19 @@ public class GameManager : MonoBehaviour
             case 12:
                 obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].CenterVerticalWall;
                 obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.CenterVerticalWall;
-                if (x + 1 >= mapWidth  || x - 1 < 0)
+                if (x + 1 >= mainGameManger.mapWidth  || x - 1 < 0)
                 {
                     break;
                 }
                 if (obstacleGrid.GetGridObject(x - 1, y + 1) != null &&
                     obstacleGrid.GetGridObject(x + 1, y + 1) != null)
                 {
-                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y + 1, wallIndex));
+                    finalRenderLocations.Add(new Vector3(x, y + 1, wallIndex));
                 }
                 if (obstacleGrid.GetGridObject(x - 1, y - 1) != null &&
                     obstacleGrid.GetGridObject(x + 1, y - 1) != null)
                 {
-                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                    finalRenderLocations.Add(new Vector3(x, y - 1, wallIndex));
                 }
                 break;
             case 13:
@@ -1050,23 +1103,23 @@ public class GameManager : MonoBehaviour
                 obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.WestWall;
                 if (x - 1 > 0 && y - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
                 {
-                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                    finalRenderLocations.Add(new Vector3(x, y - 1, wallIndex));
                 }
                 if (obstacleGrid.GetGridObject(x + 1, y + 1) == null)
                 {
-                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y, wallIndex));
+                    finalRenderLocations.Add(new Vector3(x, y, wallIndex));
                 }
                 break;
             case 14:
                 obstacleGrid.GetGridObject(x, y).GetComponent<SpriteRenderer>().sprite = resourceManager.wallSprites[wallIndex].EastWall;
                 obstacleGrid.GetGridObject(x, y).GetComponent<PrefabMapTile>().wallState = WallStates.EastWall;
-                if (x + 1 < mapWidth  && y - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
+                if (x + 1 < mainGameManger.mapWidth  && y - 1 > 0 && obstacleGrid.GetGridObject(x - 1, y - 1) != null)
                 {
-                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y - 1, wallIndex));
+                    finalRenderLocations.Add(new Vector3(x, y - 1, wallIndex));
                 }
                 if (obstacleGrid.GetGridObject(x - 1, y + 1) == null)
                 {
-                    finalRenderLocations.Add(new Tuple<int, int, int>(x, y, wallIndex));
+                    finalRenderLocations.Add(new Vector3(x, y, wallIndex));
                 }
                 break;
             case 15:

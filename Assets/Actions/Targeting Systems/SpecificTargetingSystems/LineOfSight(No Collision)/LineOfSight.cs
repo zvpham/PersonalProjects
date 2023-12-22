@@ -41,14 +41,14 @@ public class LineOfSight: MonoBehaviour
     private Vector3 position = new Vector3();
     private Quaternion rotation = new Quaternion(0, 0, 0, 1f);
 
-    public List<Vector3> path = new List<Vector3>();
+    public List<Vector2> path = new List<Vector2>();
 
     public AllDirections allDirections;
 
     public GameManager gameManager;
     public InputManager inputManager;
 
-    public event Action<List<Vector3>> lineMade;
+    public event Action<List<Vector2>> lineMade;
 
     public Vector3 prevMousePosition;
     public Vector3 mousePosition;

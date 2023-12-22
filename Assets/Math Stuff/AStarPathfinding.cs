@@ -38,9 +38,12 @@ public class AStarPathfinding
         return grid;
     }
 
-    public List<AStarPathNode> FindPath(int startX, int startY, int endX, int endY, bool endNodeisWalkable = false)
+    public List<AStarPathNode> FindPath(Vector3 startPosition, Vector3 endPosition, bool endNodeisWalkable = false)
     {
-        if(grid.GetGridObject(endX, endY) == null)
+        int startX, startY, endX, endY;
+        grid.GetXY(startPosition, out startX, out startY);
+        grid.GetXY(endPosition, out endX, out endY);
+        if (grid.GetGridObject(endX, endY) == null)
         {
             Debug.Log("Testing " + endX + " " + endY);
             return null;
@@ -49,6 +52,7 @@ public class AStarPathfinding
         {
             grid.GetGridObject(endX, endY).IsWalkable = true;
         }
+        Debug.Log(startX + ", " + startY);
         AStarPathNode startNode = grid.GetGridObject(startX, startY);
         AStarPathNode endNode = grid.GetGridObject(endX, endY);
 

@@ -129,12 +129,19 @@ MonoBehaviour:
   faction: 0
   enemyList: []
   allyList: []
+  inPeripheralGameManager: 0
   gameManager: {fileID: 0}
   index: 0
   statusDuration: 
   baseActionTemplate: {fileID: 11400000, guid: dbfb033e35fa74f94b5b29a198fb5385, type: 2}
   baseActions: []
   actions: []
+  actionNames: 
+  actionCooldowns: 
+  chasing: 0
+  chaseActions: []
+  lastKnownEnemyLocation: {x: 0, y: 0, z: 0}
+  locationUnitIsChasing: {x: 0, y: 0, z: 0}
   senses: []
   actionNamesForCoolDownOnLoad: 
   currentCooldownOnLoad: 

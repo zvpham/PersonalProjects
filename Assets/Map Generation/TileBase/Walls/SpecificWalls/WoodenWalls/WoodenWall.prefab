@@ -98,12 +98,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb988f84d9e22143999f098ea552246, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wallIndex: 0
+  wallIndex: 2
   wallState: 0
   health: 0
   maxHealth: 0
   durability: 0
-  affectFlying: 0
+  blockFlying: 0
+  blockMovement: 1
+  blockLineOfSight: 1
   spriteIndex: -1
   gameManager: {fileID: 0}
   continueDeath: 0
