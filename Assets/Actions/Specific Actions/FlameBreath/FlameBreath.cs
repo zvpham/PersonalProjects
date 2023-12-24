@@ -65,7 +65,7 @@ public class FlameBreath : Action
         affectedUnit.ActivateTargeting();
         affectedUnit.HandlePerformActions(actionType, actionName);
         activeAnimation = Instantiate(animation);
-        activeAnimation.GetComponent<EmenateFromCenterField>().SetParameters(affectedUnit.transform.position, finalDirection, blastAngle, createObject, createObjectHolder, createdField, blastRadius, 30, 30, 20, ignoreWalls: false);
+        activeAnimation.GetComponent<EmenateFromCenterField>().SetParameters(affectedUnit.gameManager, affectedUnit.transform.position, finalDirection, blastAngle, createObject, createObjectHolder, createdField, blastRadius, 30, 30, 20, ignoreWalls: false);
         activeAnimation.GetComponent<EmenateFromCenterField>().enabled = true;
         activeAnimation.GetComponent<EmenateFromCenterField>().animationEnd += AnimationEnd;
     }
@@ -93,7 +93,7 @@ public class FlameBreath : Action
 
         affectedUnit.HandlePerformActions(actionType, actionName);
         activeAnimation = Instantiate(animation);
-        activeAnimation.GetComponent<EmenateFromCenterField>().SetParameters(affectedUnit.transform.position, Direction, blastAngle, createObject, createObjectHolder, createdField, blastRadius, 30, 30, 20, ignoreWalls: false);
+        activeAnimation.GetComponent<EmenateFromCenterField>().SetParameters(affectedUnit.gameManager, affectedUnit.transform.position, Direction, blastAngle, createObject, createObjectHolder, createdField, blastRadius, 30, 30, 20, ignoreWalls: false);
         activeAnimation.GetComponent<EmenateFromCenterField>().enabled = true;
         activeAnimation.GetComponent<EmenateFromCenterField>().animationEnd += AnimationEnd;
     }

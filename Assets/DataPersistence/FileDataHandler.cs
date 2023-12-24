@@ -458,17 +458,17 @@ public class FileDataHandler
         }
     }
 
-    public void Save(TileData data, string profileId, string subFolder, string dataFileName)
+    public void Save(TileData data, string profileId, string dirName, string dataFileName)
     {
 
         // base Case - if the profileId is null, return right away
-        if (profileId == null || subFolder == null)
+        if (profileId == null || dirName == null)
         {
             return;
         }
 
         // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
-        string fullPath = Path.Combine(dataDirPath, profileId, DataPersistenceManager.Instance.autoSaveID, subFolder, dataFileName + fileExtension);
+        string fullPath = Path.Combine(dataDirPath, profileId, dirName, dataFileName + fileExtension);
         string backupFilePAth = fullPath + backupExtension;
         try
         {
@@ -494,7 +494,7 @@ public class FileDataHandler
             }
 
             // verify the newly saved file can be loaded successfully
-            TileData verifiedGameDatya = Load(profileId, DataPersistenceManager.Instance.autoSaveID, subFolder, dataFileName);
+            TileData verifiedGameDatya = Load(profileId, dirName, dataFileName);
             //if the data can be verified, back it up;
             if (verifiedGameDatya != null)
             {
@@ -650,6 +650,51 @@ public class FileDataHandler
         {
             Debug.LogError("Failed to delete Profile data for profileID: "
                 + profileId + " at path: " + fullpath + "\n" + e);  
+        }
+    }
+
+    public void Delete(string profileId, string timeId, string subFolder, string fileName)
+    {
+        // base case - if the profileId is null return right away
+        if (profileId == null || timeId == null || subFolder == null || fileName == null)
+        {
+            return;
+        }
+
+        string fullpath = Path.Combine(dataDirPath, profileId, timeId, subFolder, fileName + fileExtension);
+        string backUpPath = fullpath + backupExtension;
+        Debug.Log(fullpath);
+        try
+        {
+            // ensure the data file exists at this path before deleting the directory
+
+            if (File.Exists(fullpath))
+            {
+                // delete the profile folder and everything within it
+                //use File.Delete() if you only want to delete a specific file
+                File.Delete(fullpath);
+            }
+            else
+            {
+                Debug.LogWarning("Tried to delete File, but data was not found at path: " + fullpath);
+            }
+
+            if (File.Exists(backUpPath))
+            {
+                // delete the profile folder and everything within it
+                //use File.Delete() if you only want to delete a specific file
+                File.Delete(backUpPath);
+            }
+            else
+            {
+                Debug.LogWarning("Tried to delete Backup File, but data was not found at path: " + backUpPath);
+            }
+
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Failed to delete Profile data for profileID: "
+                + profileId + " at path: " + fullpath + "\n" + e);
         }
     }
 

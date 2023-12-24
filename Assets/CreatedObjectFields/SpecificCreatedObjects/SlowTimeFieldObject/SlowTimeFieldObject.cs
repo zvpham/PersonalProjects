@@ -32,7 +32,7 @@ public class SlowTimeFieldObject : CreatedObjectStatus
             {
                 foreach (Status status in statuses)
                 {
-                    status.ApplyEffect(ground);
+                    status.ApplyEffect(ground, 1);
                 }
 
             }
@@ -42,7 +42,7 @@ public class SlowTimeFieldObject : CreatedObjectStatus
             {
                 foreach (Status status in statuses)
                 {
-                    status.ApplyEffect(flying);
+                    status.ApplyEffect(flying, 1);
                 }
             }
         }
@@ -57,7 +57,7 @@ public class SlowTimeFieldObject : CreatedObjectStatus
             {
                 foreach (Status status in statuses)
                 {
-                    status.ApplyEffect(ground);
+                    status.ApplyEffect(ground, 1);
                 }
 
             }
@@ -67,7 +67,7 @@ public class SlowTimeFieldObject : CreatedObjectStatus
             {
                 foreach (Status status in statuses)
                 {
-                    status.ApplyEffect(flying);
+                    status.ApplyEffect(flying, 1);
                 }
             }
         }

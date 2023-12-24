@@ -15,15 +15,20 @@ MonoBehaviour:
   statusPrefabIndex: 2
   targetUnit: {fileID: 0}
   statusQuickness: 1
-  statusDuration: 1
+  statusPriority: 500
+  currentStatusDuration: 1
+  MaxStatusDuration: 1
   nonStandardDuration: 1
   statusName: SlowedTIme
   statusImage: {fileID: 21300000, guid: acd877136f07d3d46bbd6e7887c72a38, type: 3}
   isFieldStatus: 1
   ApplyEveryTurn: 0
-  isFirstTurn: 1
+  isFirstTurn: 0
   isFirstWorldTurn: 1
   isMovementStatus: 0
+  statusIntData: 0
+  statusStringData: 
+  statusBoolData: 0
   actionTypesNotPermitted: 
   actionTypesThatCancelStatus: 
   actionTypesThatActionMustContain: 

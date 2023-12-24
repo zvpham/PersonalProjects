@@ -76,6 +76,14 @@ public class AStarPathNode
         }
     }
 
+    public AStarPathNode(Grid<AStarPathNode> grid, int x, int y, bool walkable)
+    {
+        this.grid = grid;
+        this.x = x;
+        this.y = y;
+        IsWalkable = walkable;
+    }
+
     public void CalculateFCost()
     {
         fCost = gCost + hCost;

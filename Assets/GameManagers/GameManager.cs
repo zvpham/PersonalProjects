@@ -21,16 +21,6 @@ public class GameManager : MonoBehaviour
     public Vector2Int gameManagerDirection;
     public Vector3 defaultGridPosition;
 
-    public List<double> speeds;
-    public List<int> priority;
-    public List<int> statusPriority;
-    public List<int> statusDuration;
-
-    public List<int> createdFieldPriority;
-    public List<int> createdFieldDuration;
-
-    public List<int> animatedFieldPriority;
-
     public int baseTurnTime = 500;
     public int worldPriority = 0;
 
@@ -51,12 +41,6 @@ public class GameManager : MonoBehaviour
     public List<Status> allStatuses;
     public List<CreatedField> createdFields = new List<CreatedField>();
     public List<AnimatedField> animatedFields = new List<AnimatedField>();
-
-    public int least;
-    public int index = 0;
-    public bool aUnitActed = false;
-    // during turn 0 = no; 1 = yes
-    public int duringTurn = 0;
 
     public int numberOfStatusRemoved = 0;
 
@@ -133,7 +117,6 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        Debug.LogWarning(data.notNewTile);
         if (data.notNewTile)
         {
             isNewSlate = false;
@@ -150,10 +133,6 @@ public class GameManager : MonoBehaviour
 
         // Load Game Manager Data
         this.numberOfStatusRemoved = data.numberOfStatusRemoved;
-        this.least = data.least;
-        this.index = data.index;
-        this.aUnitActed = data.aUnitActed;
-        this.duringTurn = data.duringTurn;
 
         // Load Wall Data
         for (int i = 0; i < data.wallIndexes.Count; i++)
@@ -176,10 +155,10 @@ public class GameManager : MonoBehaviour
         // Load Item Data
         for (int i = 0; i < data.itemIndexes.Count; i++)
         {
-            GameObject tempItem = Instantiate(resourceManager.genericItemPrefab, data.itemLocations[i] + newDefaultGridPosition, new Quaternion(0, 0, 0, 1f));
+            GameObject tempItem = Instantiate(resourceManager.itemsPrefabs[data.itemIndexes[i]], data.itemLocations[i] + newDefaultGridPosition, new Quaternion(0, 0, 0, 1f));
             Item item = tempItem.GetComponent<Item>();
-            item.inventoryItem = resourceManager.items[data.itemIndexes[i]];
             item.quantity = data.itemQuantities[i];
+            item.gameManager = this;
         }
 
         // Load Unit Data
@@ -190,20 +169,20 @@ public class GameManager : MonoBehaviour
             Unit unit = temp.GetComponent<Unit>();
             unit.gameManager = this;
             this.units.Add(unit);
+            mainGameManger.units.Add(unit);
             unit.health = tempData.health;
             unit.actionNamesForCoolDownOnLoad = tempData.actionNames;
             unit.currentCooldownOnLoad = tempData.actionCooldowns;
             unit.forcedMovementPathData = tempData.forcedMovementPathData;
-            this.speeds.Add(1);
+            unit.priority = tempData.priority;
         }
-        this.priority = data.priority;
 
         // Load Status Data
-        this.statusPriority = data.statusPriority;
-        this.statusDuration = data.statusDuration;
         for (int i = 0; i < data.statusPrefabIndex.Count; i++)
         {
             Status temp = Instantiate(resourceManager.statuses[data.statusPrefabIndex[i]]);
+            temp.statusPriority = data.statusPriority[i];
+            temp.currentStatusDuration = data.statusDuration[i];
             temp.statusIntData = data.statusIntData[i];
             temp.statusStringData = data.statusStringData[i];
             temp.statusBoolData = data.statusBoolData[i];
@@ -211,17 +190,18 @@ public class GameManager : MonoBehaviour
         }
 
         // Load Created Field Data;
-        this.createdFieldPriority = data.createdFieldPriority;
-        this.createdFieldDuration = data.createdFieldDuration;
         for (int i = 0; i < data.createdFieldsData.Count; i++)
         {
             if (data.createdFieldsData[i].fromAnimatedField)
             {
                 this.createdFields.Add(null);
+                mainGameManger.createdFields.Add(null);
                 continue;
             }
             CreatedField tempCreatedField = Instantiate(resourceManager.createdFields[data.createdFieldsData[i].createdFieldTypeIndex]);
+            tempCreatedField.createdFieldPriority = data.createdFieldPriority[i];
             tempCreatedField.nonStandardDuration = data.createdFieldsData[i].nonStandardDuration;
+            tempCreatedField.currentCreatedFieldDuration = data.createdFieldDuration[i];
 
             if (data.createdFieldsData[i].createdWithBlastRadius)
             {
@@ -230,10 +210,10 @@ public class GameManager : MonoBehaviour
         }
 
         // Load Animated Field data
-        this.animatedFieldPriority = data.animatedFieldPriority;
         for (int i = 0; i < data.animatedFields.Count; i++)
         {
             GameObject tempAnimatedField = Instantiate(resourceManager.animatedFields[data.animatedFields[i].animatedFieldTypeIndex]);
+            tempAnimatedField.GetComponent<AnimatedField>().animatedFieldPriority = data.animatedFieldPriority[i];
             tempAnimatedField.GetComponent<AnimatedField>().onLoad(data.animatedFields[i], resourceManager);
         }
 
@@ -248,17 +228,13 @@ public class GameManager : MonoBehaviour
 
     // Important Make sure you are assigning each value to GameData not adding to a list
     // will cause error in saves which will cause more entities than intended to be added
-    public void SaveData(TileData data)
+    public void SaveData(TileData data, bool isFrozenZone = false)
     {
         Debug.Log("Saving Game");
         Vector3 newDefaultGridPosition = defaultGridPosition - mainGameManger.centralGameManager.defaultGridPosition;
 
         // Game Manager Data
         data.numberOfStatusRemoved = this.numberOfStatusRemoved;
-        data.least = least;
-        data.index = index;
-        data.aUnitActed = aUnitActed;
-        data.duringTurn = duringTurn;
         data.notNewTile = true;
 
         // Wall Data
@@ -297,7 +273,7 @@ public class GameManager : MonoBehaviour
         List<Vector2> itemPositions = new List<Vector2>();
         foreach (Item item in items)
         {
-            itemIndexes.Add(resourceManager.items.IndexOf(item.inventoryItem));
+            itemIndexes.Add(item.inventoryItem.itemIndex);
             itemQuantities.Add(item.quantity);
             itemPositions.Add(item.gameObject.transform.position - newDefaultGridPosition);
         }
@@ -306,26 +282,48 @@ public class GameManager : MonoBehaviour
         data.itemLocations = itemPositions;
 
         // Unit data
-        data.numberOfUnits = this.units.Count - 1;
-        this.priority.RemoveAt(0);
-        data.priority = this.priority;
-        List<unitPrefabData> tempUnitPrefabData = new List<unitPrefabData>();
-
-        for(int i = 1; i < units.Count; i++)
+        if(isFrozenZone)
         {
-            Unit unit = units[i];
-            List<int> actionCooldowns = new List<int>();
-            List<ActionName> actionNames = new List<ActionName>();
-            foreach (Action action in unit.actions)
+            data.numberOfUnits = this.units.Count;
+            List<unitPrefabData> tempUnitPrefabData = new List<unitPrefabData>();
+
+            for (int i = 0; i < units.Count; i++)
             {
-                actionCooldowns.Add(action.currentCooldown);
-                actionNames.Add(action.actionName);
+                Unit unit = units[i];
+                List<int> actionCooldowns = new List<int>();
+                List<ActionName> actionNames = new List<ActionName>();
+                foreach (Action action in unit.actions)
+                {
+                    actionCooldowns.Add(action.currentCooldown);
+                    actionNames.Add(action.actionName);
+                }
+                unitPrefabData temp = new unitPrefabData(unit.gameObject.transform.position - newDefaultGridPosition, unit.priority,
+                    unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames, unit.forcedMovementPathData);
+                tempUnitPrefabData.Add(temp);
             }
-            unitPrefabData temp = new unitPrefabData(unit.gameObject.transform.position - newDefaultGridPosition, unit.unitResourceManagerIndex, unit.health,
-                actionCooldowns, actionNames, unit.forcedMovementPathData);
-            tempUnitPrefabData.Add(temp);
+            data.unitPrefabDatas = tempUnitPrefabData;
         }
-        data.unitPrefabDatas = tempUnitPrefabData;
+        else
+        {
+            data.numberOfUnits = this.units.Count - 1;
+            List<unitPrefabData> tempUnitPrefabData = new List<unitPrefabData>();
+
+            for (int i = 1; i < units.Count; i++)
+            {
+                Unit unit = units[i];
+                List<int> actionCooldowns = new List<int>();
+                List<ActionName> actionNames = new List<ActionName>();
+                foreach (Action action in unit.actions)
+                {
+                    actionCooldowns.Add(action.currentCooldown);
+                    actionNames.Add(action.actionName);
+                }
+                unitPrefabData temp = new unitPrefabData(unit.gameObject.transform.position - newDefaultGridPosition, unit.priority,
+                    unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames, unit.forcedMovementPathData);
+                tempUnitPrefabData.Add(temp);
+            }
+            data.unitPrefabDatas = tempUnitPrefabData;
+        }
 
         // Status Data
         List<int> statusIndexList = new List<int>();
@@ -335,20 +333,37 @@ public class GameManager : MonoBehaviour
         List<bool> statusBoolData = new List<bool>();
         List<int> newStatusPriority = new List<int>();
         List<int> newStatusDuration = new List<int>();
-        for (int i = 0; i < allStatuses.Count; i++)
+        if(isFrozenZone)
         {
-            Status status = allStatuses[i];
-            if (status.targetUnit == units[0])
+            for (int i = 0; i < allStatuses.Count; i++)
             {
-                continue;
+                Status status = allStatuses[i];
+                statusIndexList.Add(status.statusPrefabIndex);
+                indexOfUnitThatHasStatus.Add(this.units.IndexOf(status.targetUnit));
+                statusIntData.Add(status.statusIntData);
+                statusStringData.Add(status.statusStringData);
+                statusBoolData.Add(status.statusBoolData);
+                newStatusPriority.Add(allStatuses[i].statusPriority);
+                newStatusDuration.Add(allStatuses[i].currentStatusDuration);
             }
-            statusIndexList.Add(status.statusPrefabIndex);
-            indexOfUnitThatHasStatus.Add(this.units.IndexOf(status.targetUnit));
-            statusIntData.Add(status.statusIntData);
-            statusStringData.Add(status.statusStringData);
-            statusBoolData.Add(status.statusBoolData);
-            newStatusPriority.Add(statusPriority[i]);
-            newStatusDuration.Add(statusDuration[i]);
+        }
+        else
+        {
+            for (int i = 0; i < allStatuses.Count; i++)
+            {
+                Status status = allStatuses[i];
+                if (status.targetUnit == units[0])
+                {
+                    continue;
+                }
+                statusIndexList.Add(status.statusPrefabIndex);
+                indexOfUnitThatHasStatus.Add(this.units.IndexOf(status.targetUnit) - 1);
+                statusIntData.Add(status.statusIntData);
+                statusStringData.Add(status.statusStringData);
+                statusBoolData.Add(status.statusBoolData);
+                newStatusPriority.Add(allStatuses[i].statusPriority);
+                newStatusDuration.Add(allStatuses[i].currentStatusDuration);
+            }
         }
 
         data.statusPrefabIndex = statusIndexList;
@@ -361,6 +376,8 @@ public class GameManager : MonoBehaviour
 
         // Created Field Data
         List<createdFieldData> createdFieldLists = new List<createdFieldData>();
+        List<int> createdFieldDurations = new List<int>();
+        List<int> createdFieldPriorities = new List<int>();
         foreach (CreatedField createdField in createdFields)
         {
             createdFieldData tempCreatedField = new createdFieldData();
@@ -374,17 +391,18 @@ public class GameManager : MonoBehaviour
 
             tempCreatedField.originPosition = createdField.originPosition - newDefaultGridPosition;
             tempCreatedField.fieldRadius = createdField.fieldRadius;
-
+            createdFieldDurations.Add(createdField.currentCreatedFieldDuration);
+            createdFieldPriorities.Add(createdField.createdFieldPriority);
             createdFieldLists.Add(tempCreatedField);
         }
         data.createdFieldsData = createdFieldLists;
-        data.createdFieldPriority = this.createdFieldPriority;
-        data.createdFieldDuration = this.createdFieldDuration;
+        data.createdFieldPriority = createdFieldPriorities;
+        data.createdFieldDuration = createdFieldDurations;
 
 
         // Animated Field Data
-        data.animatedFieldPriority = animatedFieldPriority;
         List<animatedFieldData> animatedFieldDataList = new List<animatedFieldData>();
+        List<int> animatedFieldPriorities = new List<int>();
 
         foreach (AnimatedField animatedField in animatedFields)
         {
@@ -403,6 +421,7 @@ public class GameManager : MonoBehaviour
             tempAnimatedField.affectFlying = animatedField.affectFlying;
             tempAnimatedField.ignoreWalls = animatedField.ignoreWalls;
             tempAnimatedField.IsSlowInTimeFlow = animatedField.IsSlowInTimeFlow;
+            animatedFieldPriorities.Add(animatedField.animatedFieldPriority);
 
             List<animatedFieldNodeData> slowedNodeList = new List<animatedFieldNodeData>();
             foreach (AnimatedField.Node node in animatedField.slowedNodeList)
@@ -420,6 +439,7 @@ public class GameManager : MonoBehaviour
             animatedFieldDataList.Add(tempAnimatedField);
         }
         data.animatedFields = animatedFieldDataList;
+        data.animatedFieldPriority = animatedFieldPriorities;
     }
 
     public void PlayerTookTurn(int playerPriority)
@@ -429,19 +449,25 @@ public class GameManager : MonoBehaviour
 
     public void FreezeTile()
     {
-        for (int i = 0; i < allStatuses.Count; i++)
+        for(int i = animatedFields.Count - 1; i >= 0; i--)
         {
-            numberOfStatusRemoved = 0;
-            if (i < 0)
-            {
-                break;
-            }
-            Unit tempUnit = allStatuses[i].targetUnit;
-            int tempIndex = tempUnit.statusDuration.Count;
-            allStatuses[i].RemoveEffect(tempUnit);
-            i -= numberOfStatusRemoved;
-            numberOfStatusRemoved = 0;
+            animatedFields[i].DestroySelf();
         }
+
+        for(int i = createdFields.Count - 1; i >= 0; i--)
+        {
+            createdFields[i].RemoveStatusOnDeletion();
+        }
+
+        for (int i = allStatuses.Count -1 ; i >= 0; i--)
+        {
+            Unit tempUnit = allStatuses[i].targetUnit;
+            allStatuses[i].RemoveEffect(tempUnit);
+        }
+
+        createdFields = new List<CreatedField>();
+        animatedFields = new List<AnimatedField>();
+        allStatuses = new List<Status>();
     }
 
     // Update is called once per frame 
@@ -467,193 +493,6 @@ public class GameManager : MonoBehaviour
         if (currentTime >= secSpriteChangeSpeed)
         {
             SpriteChangeManager();
-        }
-
-        if (CanContinue(units[index]))
-        {
-            // finds the lowest priority amongst all the units, statuses, worldtimer
-            // if we are at the top of a turn
-            if (duringTurn == 0)
-            {
-                least = priority[0];
-                for (int i = 0; i < priority.Count; i++)
-                {
-                    if (priority[i] < least)
-                    {
-                        least = priority[i];
-                    }
-                }
-                if (allStatuses.Count > 0)
-                {
-                    for (int i = 0; i < statusPriority.Count; i++)
-                    {
-                        if (statusPriority[i] < least)
-                        {
-                            least = statusPriority[i];
-                        }
-                    }
-                }
-
-                if (createdFieldPriority.Count > 0)
-                {
-                    for (int i = 0; i < createdFieldPriority.Count; i++)
-                    {
-                        if (createdFieldPriority[i] < least)
-                        {
-                            least = createdFieldPriority[i];
-                        }
-
-                    }
-                }
-
-                if (animatedFieldPriority.Count > 0)
-                {
-                    for (int i = 0; i < animatedFieldPriority.Count; i++)
-                    {
-                        if (animatedFieldPriority[i] < least)
-                        {
-                            least = animatedFieldPriority[i];
-                        }
-
-                    }
-                }
-            }
-
-            //lowers priority of a unit by the least amount of priority 
-            // if priority is 0 activate unit and end loop
-            // if mid turn will resume list one more than unit that just went
-            aUnitActed = false;
-            for (int i = index + duringTurn; i < priority.Count;)
-            {
-                priority[i] = priority[i] - least;
-
-                if ((int)priority[i] == 0)
-                {
-                    index = i;
-                    duringTurn = 1;
-                    units[i].enabled = true;
-                    aUnitActed = true;
-                    break;
-                }
-                else if (i == 0)
-                {
-                    duringTurn = 1;
-                    i++;
-                }
-                else
-                {
-                    index = i;
-                    i++;
-                }
-            }
-
-
-            //end turn reset all turn variables and reset priority of units who acted
-            if (index + duringTurn == priority.Count && !aUnitActed)
-            {
-                index = 0;
-                duringTurn = 0;
-                for (int i = 0; i < priority.Count; i++)
-                {
-                    if (priority[i] <= 0)
-                    {
-                        priority[i] = (int)(baseTurnTime * speeds[i]);
-                    }
-                }
-                PlayerTookTurn(priority[0]);
-                if (allStatuses.Count > 0)
-                {
-                    numberOfStatusRemoved = 0;
-                    for (int i = 0; i < statusPriority.Count; i++)
-                    {
-                        if (i < 0)
-                        {
-                            break;
-                        }
-                        if (allStatuses[i].ApplyEveryTurn && allStatuses[i].isFirstWorldTurn)
-                        {
-                            allStatuses[i].isFirstWorldTurn = false;
-                        }
-                        else
-                        {
-                            statusPriority[i] -= least;
-                            if (statusPriority[i] <= 0)
-                            {
-                                statusPriority[i] = (int)(allStatuses[i].statusQuickness * baseTurnTime);
-                                Unit tempUnit = allStatuses[i].targetUnit;
-                                int tempIndex = tempUnit.statusDuration.Count;
-
-                                //reduces status duration of a status if it is supposed to go down at the end of a turn
-                                if (!allStatuses[i].nonStandardDuration)
-                                {
-                                    statusDuration[i] -= 1;
-                                }
-
-                                // if an affect applyies everyturn apply the affect if it isn't the  turn it was activated
-
-                                if (allStatuses[i].ApplyEveryTurn)
-                                {
-                                    allStatuses[i].ApplyEffect(tempUnit);
-                                }
-
-                                //if a status was removed in previous step reset sprite of unit otherwise if a status duration is 0 remove the status from the unit and reset the units sprite
-                                if (tempUnit.statusDuration.Count != tempIndex || statusDuration[i] <= 0)
-                                {
-                                    if (tempUnit.statusDuration.Count == tempIndex)
-                                    {
-                                        allStatuses[i].RemoveEffect(tempUnit);
-                                    }
-                                    tempUnit.ChangeSprite(tempUnit.originalSprite);
-                                    tempUnit.spriteIndex = -1;
-
-                                }
-                                i -= numberOfStatusRemoved;
-                                numberOfStatusRemoved = 0;
-                            }
-                        }
-                    }
-                }
-
-                // change Status Priority at top of turn
-                if (createdFieldPriority.Count > 0)
-                {
-                    for (int i = 0; i < createdFieldPriority.Count; i++)
-                    {
-                        createdFieldPriority[i] -= least;
-                        if (createdFieldPriority[i] <= 0)
-                        {
-                            createdFieldPriority[i] = (int)(createdFields[i].createdFieldQuickness * baseTurnTime);
-
-                            //reduces status duration of a status if it is supposed to go down at the end of a turn
-                            if (!createdFields[i].nonStandardDuration)
-                            {
-                                createdFieldDuration[i] -= 1;
-                            }
-
-                            //if a status was removed in previous step reset sprite of unit otherwise if a status duration is 0 remove the status from the unit and reset the units sprite
-                            if (createdFieldDuration[i] <= 0)
-                            {
-                                createdFields[i].RemoveStatusOnDeletion();
-                            }
-                        }
-                    }
-                }
-
-                if (animatedFieldPriority.Count > 0)
-                {
-                    for (int i = 0; i < animatedFieldPriority.Count; i++)
-                    {
-                        animatedFieldPriority[i] -= least;
-                        if (animatedFieldPriority[i] <= 0)
-                        {
-                            animatedFieldPriority[i] = (int)(animatedFields[i].createdFieldQuickness * baseTurnTime);
-
-                            animatedFields[i].Activate();
-                            //Animated Fields Handle thier Own Deletion
-                        }
-                    }
-                }
-            }
         }
     }
 

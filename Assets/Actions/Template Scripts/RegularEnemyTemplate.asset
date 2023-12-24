@@ -15,3 +15,5 @@ MonoBehaviour:
   Actions:
   - {fileID: 11400000, guid: 419ab55e6509f8b48bb5b94b388f6b4b, type: 2}
   - {fileID: 11400000, guid: dc92a9197b702104a96db33edd29d730, type: 2}
+  Senses:
+  - {fileID: 11400000, guid: cd8fe2c15815ff843a2b9cbce3d26212, type: 2}

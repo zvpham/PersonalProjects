@@ -33,7 +33,7 @@ public class EnemyMovement : ChaseAction
         if (movementPath != null && movementPath.Count > 1)
         {
             Vector2 newPosition = movementPath[1].grid.GetWorldPosition(movementPath[1].x, movementPath[1].y) - movementPath[0].grid.GetWorldPosition(movementPath[0].x, movementPath[0].y);
-            Move.Movement(self, newPosition, self.gameManager, false);
+            Move.Movement(self, newPosition, self.gameManager, false, true);
         }
         else if (movementPath == null)
         {
@@ -41,7 +41,7 @@ public class EnemyMovement : ChaseAction
             if (temp != null && temp.Count > 1)
             {
                 Vector2 newPosition = temp[1] - temp[0];
-                Move.Movement(self, newPosition, self.gameManager, false);
+                Move.Movement(self, newPosition, self.gameManager, false, true);
             }
         }
         self.TurnEnd();

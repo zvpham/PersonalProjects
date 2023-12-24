@@ -6,6 +6,7 @@ using UnityEngine;
 abstract public class AnimatedField : MonoBehaviour
 {
     public int animatedFieldTypeIndex;
+    public int animatedFieldPriority;
     public float createdFieldQuickness = 1;
 
     public List<Node> slowedNodeList = new List<Node>();
@@ -100,7 +101,7 @@ abstract public class AnimatedField : MonoBehaviour
         emptySpace
     }
 
-    abstract public void SetParameters(Vector3 startPosition, Vector3 direction, float angle, CreatedObject createdObject, GameObject createdObjectHolder, CreatedField createdField, int range,
+    abstract public void SetParameters(GameManager gameManager, Vector3 startPosition, Vector3 direction, float angle, CreatedObject createdObject, GameObject createdObjectHolder, CreatedField createdField, int range,
         int initialConeBlastValue, int maxObstacleBlastValueAbsorbtion, int maxUnitBlastValueAbsorbtion,
         float secEmenateSpeed = .035f, bool isAffectFlying = true, bool ignoreWalls = true);
 
@@ -138,4 +139,6 @@ abstract public class AnimatedField : MonoBehaviour
         }
         GetAnimation(true);
     }
+
+    abstract public void DestroySelf();
 }

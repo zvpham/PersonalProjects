@@ -12,13 +12,12 @@ public class SeeTheFuture : Action
         foreach (Status statuseffect in status)
         {
             Status temp = Instantiate(statuseffect);
-            temp.ApplyEffectEnemy(self);
+            temp.ApplyEffectEnemy(self, duration);
         }
     }
 
     public override int CalculateWeight(Unit self)
     {
-        duration = status[0].statusDuration;
         range = duration / 2;
         int index = self.closestEnemyIndex;
         pathAI = LineOfSightAI.MakeLine(self.transform.position, self.enemyList[index].transform.position, range, true);
@@ -35,7 +34,7 @@ public class SeeTheFuture : Action
         foreach (Status statuseffect in status)
         {
             Status temp = Instantiate(statuseffect);
-            temp.ApplyEffectPlayer(self);
+            temp.ApplyEffectPlayer(self, duration);
         }
     }
 }

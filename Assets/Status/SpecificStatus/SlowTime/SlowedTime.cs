@@ -6,24 +6,13 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Status/SlowedTime")]
 public class SlowedTime : Status
 {
-    override public void ApplyEffect(Unit target)
+    override public void ApplyEffect(Unit target, int newDuration)
     {
-        if (!(target.statuses.Count == 0))
+        if(AddStatusPreset(target, newDuration))
         {
-            for (int i = 0; i < target.statuses.Count; i++)
-            {
-                if (target.statuses[i].statusName.Equals(this.statusName))
-                {   
-                    if (target.statusDuration[i] < this.statusDuration)
-                    {
-                        target.statusDuration[i] = this.statusDuration;
-                    }
-                    return;
-                }
-            }
+            return;
         }
         target.ChangeTimeFlow(2f);
-        AddStatusPreset(target);
     }
 
     public override void ChangeQuicknessNonstandard(float value)

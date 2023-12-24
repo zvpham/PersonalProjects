@@ -18,11 +18,10 @@ public class Item : MonoBehaviour
     [SerializeField]
     private float duration = 0.3f;
 
-    private  GameManager gameManager;
+    public GameManager gameManager;
     // Start is called before the first frame update
     private void Start()
     {
-        gameManager = GameManager.instance; 
         if(gameManager.itemgrid.GetGridObject(gameObject.transform.position) == null)
         {
             gameManager.itemgrid.SetGridObject(gameObject.transform.position, new List<Item>() {this});

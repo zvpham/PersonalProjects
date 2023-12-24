@@ -7,8 +7,6 @@ using UnityEngine;
 public class NormalVision : Sense
 {
     public bool clearLineOfSightToEnemy;
-    public GameManager gameManager;
-    public MainGameManger mainGameManger;
     public override void DetectNearbyUnits(Unit self)
     {
         gameManager = self.gameManager;
@@ -57,7 +55,8 @@ public class NormalVision : Sense
     private bool isThereClearLineOfSight(int x, int y, int numberMarkers)
     {
         Vector3 position = new Vector3(x, y, 0);
-        if (numberMarkers <= range && (gameManager.obstacleGrid.GetGridObject(position) == null && gameManager.obstacleGrid.GetGridObject(position).blockLineOfSight == true))
+        if (numberMarkers <= range && (gameManager.obstacleGrid.GetGridObject(position) == null || 
+            gameManager.obstacleGrid.GetGridObject(position).blockLineOfSight == false))
         {
             return true;
         }
@@ -68,7 +67,8 @@ public class NormalVision : Sense
     {
         Vector3 position = new Vector3(x, y, 0);
         gameManager = mainGameManger.GetGameManger(position);
-        if (numberMarkers <= range && (gameManager.obstacleGrid.GetGridObject(position) == null && gameManager.obstacleGrid.GetGridObject(position).blockLineOfSight == true))
+        if (numberMarkers <= range && (gameManager.obstacleGrid.GetGridObject(position) == null || 
+            gameManager.obstacleGrid.GetGridObject(position).blockLineOfSight == false))
         {
             return true;
         }

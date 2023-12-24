@@ -6,4 +6,5 @@ using UnityEngine;
 public class TemplateHolder : ScriptableObject
 {
     public List<Action> Actions;
+    public List<Sense> Senses;
 }

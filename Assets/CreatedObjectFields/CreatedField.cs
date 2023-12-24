@@ -7,6 +7,9 @@ public abstract class CreatedField : ScriptableObject
 {
     public int createdFieldTypeIndex;
     public float createdFieldQuickness = 1;
+    public int createdFieldPriority;
+    public int currentCreatedFieldDuration;
+
     public Vector3 originPosition;
     public int fieldRadius;
     public List<Vector2> createdObjectPositions = new List<Vector2>();
@@ -36,8 +39,9 @@ public abstract class CreatedField : ScriptableObject
         if (!onLoad)
         {
             gameManager.createdFields.Add(this);
-            gameManager.createdFieldDuration.Add(fieldDuration);
-            gameManager.createdFieldPriority.Add((int)(gameManager.baseTurnTime * createdFieldQuickness) + gameManager.least);
+            gameManager.mainGameManger.createdFields.Add(this);
+            currentCreatedFieldDuration = fieldDuration;
+            createdFieldPriority = (int)(gameManager.baseTurnTime * createdFieldQuickness) + gameManager.mainGameManger.least;
         }
         else
         {
@@ -75,9 +79,10 @@ public abstract class CreatedField : ScriptableObject
         }
 
         int index = gameManager.createdFields.IndexOf(this);
-        gameManager.createdFields.Remove(this);
-        gameManager.createdFieldDuration.RemoveAt(index);
-        gameManager.createdFieldPriority.RemoveAt   (index);
+        gameManager.createdFields.RemoveAt(index);
+
+        index =  gameManager.mainGameManger.createdFields.IndexOf(this);
+        gameManager.mainGameManger.createdFields.RemoveAt(index);
     }
 }
 

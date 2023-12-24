@@ -12,9 +12,16 @@ public class TilePrefabBase: TileBase
     public bool haveMapGenerateWalls;
     [SerializeField]
     public bool haveMapGenerateEncounters;
+
+    //Needs To Be Implemented
+    [SerializeField]
+    public bool haveMapGenerateItems;
+
     [SerializeField]
     public List<Vector3Int> mapTiles;
     [SerializeField]
     public List<Vector3Int> units;
+    [SerializeField]
+    public List<Vector3Int> items;
 }
     

@@ -61,7 +61,7 @@ public abstract class Action : ScriptableObject
         foreach (Status statuseffect in status)
         {
             Status temp = Instantiate(statuseffect);
-            temp.ApplyEffect(self);
+            temp.ApplyEffect(self,duration);
         }
         return true;
     }

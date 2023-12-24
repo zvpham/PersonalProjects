@@ -59,6 +59,11 @@ public class Player : Unit
             baseActions.Add(Instantiate(templateAction));
         }
 
+        foreach (Sense templateSense in baseActionTemplate.Senses)
+        {
+            senses.Add(Instantiate(templateSense));
+        }
+
         originalSprite = GetComponent<SpriteRenderer>().sprite;
         gameManager.ChangeUnits(gameObject.transform.position, this);
 

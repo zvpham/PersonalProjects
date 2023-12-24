@@ -8,15 +8,11 @@ using UnityEngine.UIElements;
 
 public class EmenateFromCenterField : AnimatedField
 {
-    public void Start()
-    {
-        gameManager = GameManager.instance;
-    }
-
-    public override void SetParameters(Vector3 startPosition, Vector3 direction, float angle, CreatedObject createdObject,
+    public override void SetParameters(GameManager gameManager, Vector3 startPosition, Vector3 direction, float angle, CreatedObject createdObject,
         GameObject createdObjectHolder, CreatedField createdField, int range, int initialConeBlastValue, int maxObstacleBlastValueAbsorbtion,
         int maxUnitBlastValueAbsorbtion, float secEmenateSpeed = 0.035F, bool isAffectFlying = true, bool ignoreWalls = true)
     {
+        this.gameManager = gameManager;
         this.startPosition = startPosition;
         this.initialDirection = direction;
         this.angle = angle;
@@ -92,9 +88,10 @@ public class EmenateFromCenterField : AnimatedField
         {
             if (!isLoading)
             {
-                this.gameManager.animatedFieldPriority.Add((int)(createdFieldQuickness * gameManager.baseTurnTime) + gameManager.least);
+                animatedFieldPriority = (int)(createdFieldQuickness * gameManager.baseTurnTime) + gameManager.mainGameManger.least;
             }
             this.gameManager.animatedFields.Add(this);
+            this.gameManager.mainGameManger.animatedFields.Add(this);
             this.gameManager.expectedBlastPaths.Add(fullExpectedConePath);
             this.gameManager.expectedBlastRowNumber.Add(0);
         }
@@ -181,6 +178,8 @@ public class EmenateFromCenterField : AnimatedField
                 }
 
             }
+
+
         }
         return false;
     }
@@ -202,7 +201,10 @@ public class EmenateFromCenterField : AnimatedField
                     float dotProduct2 = Vector3.Dot(dirTowardsOtherObjectFromCurrentPosition, newNode.direction);
 
                     Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(newNode.position);
-                    if (!closedListLocation.Contains(newNode.position) && !openListLocation.Contains(newNode.position) && dotProduct >= this.angle && dotProduct2 >= .350f && Vector3.Distance(startPosition, newNode.position) < this.range && gameManager.groundTilemap.HasTile(gridPosition))
+                    if (!closedListLocation.Contains(newNode.position) && !openListLocation.Contains(newNode.position) &&
+                        dotProduct >= this.angle && dotProduct2 >= .350f 
+                        && Vector3.Distance(startPosition, newNode.position) < this.range &&
+                        gameManager.groundTilemap.HasTile(gridPosition))
                     {
                         neighborList.Add(newNode);
                     }
@@ -551,7 +553,7 @@ public class EmenateFromCenterField : AnimatedField
         return NodeState.emptySpace;
     }
 
-    public void DestroySelf()
+    public override void DestroySelf()
     {
         bool isFinished = true;
         if (IsSlowInTimeFlow)
@@ -563,7 +565,6 @@ public class EmenateFromCenterField : AnimatedField
                 {
                     continue;
                 }
-
                 for (int i = -1; i <= 1; i++)
                 {
                     for (int j = -1; j <= 1; j++)
@@ -611,7 +612,8 @@ public class EmenateFromCenterField : AnimatedField
             {
                 int index = gameManager.animatedFields.IndexOf(this);
                 gameManager.animatedFields.RemoveAt(index);
-                gameManager.animatedFieldPriority.RemoveAt(index);
+                index = gameManager.mainGameManger.animatedFields.IndexOf(this);
+                gameManager.mainGameManger.animatedFields.RemoveAt(index);
                 gameManager.expectedBlastPaths.RemoveAt(index);
                 gameManager.expectedBlastRowNumber.RemoveAt(index);
 

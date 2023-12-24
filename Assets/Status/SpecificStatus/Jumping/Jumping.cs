@@ -7,7 +7,7 @@ using static UnityEngine.GraphicsBuffer;
 [CreateAssetMenu(menuName = "Status/Jumping")]
 public class Jumping : MovementStatus
 {
-    override public void ApplyEffect(Unit target)
+    override public void ApplyEffect(Unit target, int newDuration)
     {
         if (this.isFirstTurn)
         {
@@ -16,7 +16,7 @@ public class Jumping : MovementStatus
                 target.forcedMovementPathData.forcedMovementSpeed = target.forcedMovementPathData.forcedMovementPath.Count / 2f;
             }
 
-            AddStatusPreset(target);
+            AddStatusPreset(target, newDuration);
             AddUnusableStatuses(target);
             target.gameManager.ChangeUnits(target.gameObject.transform.position, null);
             target.hasLocationChangeStatus += 1;
@@ -44,7 +44,7 @@ public class Jumping : MovementStatus
                 break;
             }
 
-            target.CheckForStatusFields(target.gameObject.transform.position);
+            target.CheckForStatusFields(target.gameObject.transform.position, target.gameManager);
 
             target.forcedMovementPathData.forcedPathIndex += 1;
             i += 1 * target.timeFlow;
@@ -60,18 +60,6 @@ public class Jumping : MovementStatus
             return;
         }
         target.gameManager.ChangeUnits(target.gameObject.transform.position, target, true);
-
-        for (int i = 0; i < target.statuses.Count; i++)
-        {
-            if (target.statuses[i].statusName.Equals(this.statusName))
-            {
-                if (target.statusDuration[i] < this.statusDuration)
-                {
-                    target.statusDuration[i] = this.statusDuration;
-                }
-                return;
-            }
-        }
     }
 
     public override void ChangeQuicknessNonstandard(float value)

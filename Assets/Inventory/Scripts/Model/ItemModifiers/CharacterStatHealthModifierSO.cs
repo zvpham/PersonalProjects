@@ -9,7 +9,7 @@ public class CharacterStatHealthModifierSO : CharacterStatModifierSO
     {
         Debug.Log(character);
         Debug.Log("THIS IS THE HEALTH" + value);
-        if (character.GetComponent<Unit>().health != null)
+        if (character.GetComponent<Unit>().health != -1)
         {
             character.GetComponent<Unit>().health += (int)value;
         }

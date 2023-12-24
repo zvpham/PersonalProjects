@@ -10,7 +10,8 @@ public class Move
 {
     public static ActionTypes[] movementActions = { ActionTypes.movement};
     public static ActionTypes[] meleeActions = {ActionTypes.attack, ActionTypes.meleeAttack};
-    public static void Movement(Unit target, Vector2 direction, GameManager gameManager, bool isPlayer = true)
+    public static void Movement(Unit target, Vector2 direction, GameManager gameManager, bool isPlayer = true,
+        bool isMoveGameManagers = false)
     {
         Vector3 originalPosition = target.gameObject.transform.position;
         target.gameObject.transform.position += (Vector3)direction;
@@ -24,7 +25,7 @@ public class Move
             int y = (int)(newPosition.y / gameManager.mainGameManger.mapHeight);
             if ((x != 1 || y != 1))
             {
-                if(mainGameManger.walls[x, y] != null)
+                if(mainGameManger.wallGrid[x, y] != null)
                 {
                     // Check if space is open in a tile that already exists
                     if (CanMove(target, newPosition, direction, mainGameManger.GetGameManger(newPosition)))
@@ -45,6 +46,24 @@ public class Move
             }
         }
 
+        if (isMoveGameManagers && CanMoveMapManagers(target, newPosition, direction, mainGameManger.GetGameManger(newPosition)))
+        {
+            if(IsEnemy(target, newPosition, mainGameManger.GetGameManger(newPosition)))
+            {
+                target.gameObject.transform.position -= (Vector3)direction;
+            }
+            else
+            {
+                gameManager.ChangeUnits(originalPosition, null);
+                target.CheckForStatusFields(target.gameObject.transform.position, mainGameManger.GetGameManger(newPosition));
+                mainGameManger.GetGameManger(newPosition).ChangeUnits(newPosition, target);
+                target.HandlePerformActions(movementActions, ActionName.MoveNorth);
+            }
+            return;
+        }
+
+
+
         if (CanMove(target, target.gameObject.transform.position, direction, gameManager))
         {
             if (IsEnemy(target, target.gameObject.transform.position, gameManager))
@@ -59,7 +78,7 @@ public class Move
                 }
                 //gameManager.locations[0] = target.gameObject.transform.position;
                 gameManager.ChangeUnits(originalPosition, null);
-                target.CheckForStatusFields(target.gameObject.transform.position);
+                target.CheckForStatusFields(target.gameObject.transform.position, gameManager);
                 gameManager.ChangeUnits(target.gameObject.transform.position, target);
                 target.HandlePerformActions(movementActions, ActionName.MoveNorth);
             }
@@ -89,11 +108,23 @@ public class Move
         return true;
     }
 
+    public static bool CanMoveMapManagers(Unit target, Vector3 newPosition, Vector2 direction, GameManager gameManager)
+    {
+        if ((gameManager.obstacleGrid.GetGridObject(newPosition) != null && 
+            gameManager.obstacleGrid.GetGridObject(newPosition).blockMovement == true))
+        {
+            target.gameObject.transform.position -= (Vector3)direction;
+            return false;
+        }
+        return true;
+    }
+
     public static bool IsEnemy(Unit target, Vector3 newPosition, GameManager gameManager)
     {
-        Unit unit = gameManager.grid.GetGridObject((int)newPosition.x, (int)newPosition.y);
+        Unit unit = gameManager.grid.GetGridObject(newPosition);
         if (unit != null)
         {
+            Debug.Log(unit);
             MeleeAttack.Attack(unit, target.toHitBonus, target.armorPenetration, target.strengthMod + 3);
             target.HandlePerformActions(meleeActions, ActionName.MeleeAttack);
             return true;

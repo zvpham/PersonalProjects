@@ -27,9 +27,10 @@ MonoBehaviour:
   - {fileID: 2527387851303890164, guid: 553bfb20872ef0a458e7b394829a2ab5, type: 3}
   genericItemPrefab: {fileID: 2351099714194458737, guid: b0cf2a572f768984d94b0ef6b7ffccc7,
     type: 3}
-  items:
-  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
-  - {fileID: 11400000, guid: ba13d70c7ffc14441a1a176eafab8390, type: 2}
+  itemsPrefabs:
+  - {fileID: 2351099714194458737, guid: 86ce87ff372526345b69401b89285254, type: 3}
+  - {fileID: 2351099714194458737, guid: d70767e48c070dd4f9f5152b0bc6a195, type: 3}
+  - {fileID: 2502280558011385712, guid: 13d08d135e148e94b942d2cd611da90e, type: 3}
   animatedFields:
   - {fileID: 1345715860651558412, guid: fc5a727f8330f2046ab78b1bb721dcfb, type: 3}
   createdFields:

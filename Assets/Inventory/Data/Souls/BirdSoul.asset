@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f909ece7b9a4d4d42b2966a7b77dc033, type: 3}
   m_Name: BirdSoul
   m_EditorClassIdentifier: 
+  <itemIndex>k__BackingField: 1
   <isStackable>k__BackingField: 1
   <maxStackSize>k__BackingField: 99
   <itemName>k__BackingField: BirdSoul

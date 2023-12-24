@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -38,6 +39,11 @@ public class EnemyTest : Unit
             baseActions.Add(Instantiate(templateAction));
         }
 
+        foreach(Sense templateSense in baseActionTemplate.Senses)
+        {
+            senses.Add(Instantiate(templateSense));
+        }
+
         UpdateActions();
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
@@ -45,9 +51,8 @@ public class EnemyTest : Unit
         gameManager.ChangeUnits(gameObject.transform.position, this);
         if (gameManager.isNewSlate)
         {
-            gameManager.speeds.Add(this.quickness);
-            gameManager.priority.Add((int)(this.quickness * gameManager.baseTurnTime));
             gameManager.units.Add(this);
+            gameManager.mainGameManger.units.Add(this);
         }
         //gameManger will be set  to instance on the onload function in GameManagerScript
         else

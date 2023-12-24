@@ -44,7 +44,7 @@ public class Jump : ChaseAction
         foreach (Status statuseffect in status)
         {
             Status temp = Instantiate(statuseffect);
-            temp.ApplyEffect(self);
+            temp.ApplyEffect(self, duration);
         }
         self.TurnEnd();
     }
@@ -68,7 +68,7 @@ public class Jump : ChaseAction
         foreach (Status statuseffect in status)
         {
             Status temp = Instantiate(statuseffect);
-            temp.ApplyEffect(affectedUnit);
+            temp.ApplyEffect(affectedUnit, duration);
         }
 
         affectedUnit.HandlePerformActions(actionType, actionName);

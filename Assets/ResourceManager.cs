@@ -11,7 +11,7 @@ public class ResourceManager : ScriptableObject
     public List<Status> statuses = new List<Status>();
     public List<GameObject> unitPrefabs = new List<GameObject>();
     public GameObject genericItemPrefab = null;
-    public List<ItemSO> items = new List<ItemSO>();
+    public List<GameObject> itemsPrefabs = new List<GameObject>();
 
     public List<GameObject> animatedFields = new List<GameObject>();
     public List<CreatedField> createdFields = new List<CreatedField>();

@@ -52,7 +52,7 @@ public abstract class CreatedObjectStatus : CreatedObject
     {
         foreach(Status status in statuses)
         {
-            status.ApplyEffect(unit);
+            status.ApplyEffect(unit, duration);
         }
     }
 

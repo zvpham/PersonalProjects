@@ -9,6 +9,9 @@ namespace Inventory.Model
     public abstract class ItemSO : ScriptableObject
     {
         [field: SerializeField]
+        public int itemIndex { get; set; }
+
+        [field: SerializeField]
         public bool isStackable { get; set; }
 
         public int iD => GetInstanceID();

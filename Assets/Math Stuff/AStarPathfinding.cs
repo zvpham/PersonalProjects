@@ -52,7 +52,7 @@ public class AStarPathfinding
         {
             grid.GetGridObject(endX, endY).IsWalkable = true;
         }
-        Debug.Log(startX + ", " + startY);
+       // Debug.Log(startPosition + ", " + startX + ", " + startY);
         AStarPathNode startNode = grid.GetGridObject(startX, startY);
         AStarPathNode endNode = grid.GetGridObject(endX, endY);
 

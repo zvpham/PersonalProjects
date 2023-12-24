@@ -121,6 +121,7 @@ public class MapGenerator : MonoBehaviour
             o.transform.position = gameManager.defaultGridPosition + (new Vector3(tileInfo.x, tileInfo.y, 0) * gridSize);
         }
         gameManager.StartRender();
+
         // Generating Units TIleINfO - <x, y, unitIndex>
         for (int i = 0; i < prefabTileBase.units.Count; i++)
         {
@@ -134,12 +135,30 @@ public class MapGenerator : MonoBehaviour
             o.transform.position = gameManager.defaultGridPosition + (new Vector3(tileInfo.x, tileInfo.y, 0) * gridSize);
         }
 
+        // Generating Items TIleINfO - <x, y, itemIndex>
+        for (int i = 0; i < prefabTileBase.items.Count; i++)
+        {
+            tileInfo = prefabTileBase.items[i];
+            if (tileInfo.z == 2)
+            {
+                continue;
+            }
+            o = Instantiate(resourceManager.itemsPrefabs[tileInfo.z], new Vector3(), new Quaternion(0, 0, 0, 1f));
+            o.GetComponent<Item>().gameManager = gameManager;
+            o.transform.position = gameManager.defaultGridPosition + (new Vector3(tileInfo.x, tileInfo.y, 0) * gridSize);
+        }
+
         if (prefabTileBase.haveMapGenerateEncounters)
         {
 
         }
 
         if (prefabTileBase.haveMapGenerateWalls)
+        {
+
+        }
+
+        if(prefabTileBase.haveMapGenerateItems)
         {
 
         }

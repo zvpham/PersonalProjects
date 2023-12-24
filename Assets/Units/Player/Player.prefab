@@ -102,6 +102,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unitResourceManagerIndex: 0
+  priority: 0
   quickness: 1
   timeFlow: 1
   strength: 16
@@ -132,12 +133,12 @@ MonoBehaviour:
   inPeripheralGameManager: 0
   gameManager: {fileID: 0}
   index: 0
-  statusDuration: 
   baseActionTemplate: {fileID: 11400000, guid: dbfb033e35fa74f94b5b29a198fb5385, type: 2}
   baseActions: []
   actions: []
   actionNames: 
   actionCooldowns: 
+  hasSeenEnemy: 0
   chasing: 0
   chaseActions: []
   lastKnownEnemyLocation: {x: 0, y: 0, z: 0}

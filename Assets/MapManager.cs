@@ -95,9 +95,8 @@ public class MapManager : MonoBehaviour, IDataPersistence
                 new Quaternion(0, 0, 0, 1f));
             unit = temp.GetComponent<Unit>();
             unit.gameManager = centerGameManager;
-            unit.gameManager.speeds.Insert(0, unit.quickness);
-            unit.gameManager.priority.Insert(0, (int)(unit.quickness * unit.gameManager.baseTurnTime));
             unit.gameManager.units.Insert(0, unit);
+            unit.gameManager.mainGameManger.units.Insert(0, unit);
 
             worldMapData = dataPersistenceManager.worldMapData;
             worldMapData.tileDataPosition = new List<Vector2Int>();
@@ -111,9 +110,8 @@ public class MapManager : MonoBehaviour, IDataPersistence
                 playerPosition.y, 0), new Quaternion(0, 0, 0, 1f));
             unit = temp.GetComponent<Unit>();
             unit.gameManager = centerGameManager;
-            unit.gameManager.speeds.Insert(0, unit.quickness);
-            unit.gameManager.priority.Insert(0, (int)(unit.quickness * unit.gameManager.baseTurnTime));
             unit.gameManager.units.Insert(0, unit);
+            unit.gameManager.mainGameManger.units.Insert(0, unit);
             unit.health = tempData.health;
             unit.actionNamesForCoolDownOnLoad = tempData.actionNames;
             unit.currentCooldownOnLoad = tempData.actionCooldowns;
@@ -134,9 +132,9 @@ public class MapManager : MonoBehaviour, IDataPersistence
             // Load Status Data
             for (int i = 0; i < mapData.statusPrefabIndex.Count; i++)
             {
-                centerGameManager.statusPriority.Add(mapData.statusPriority[i]);
-                centerGameManager.statusDuration.Add(mapData.statusDuration[i]);
                 Status tempStatus = Instantiate(resourceManager.statuses[mapData.statusPrefabIndex[i]]);
+                tempStatus.statusPriority = mapData.statusPriority[i];
+                tempStatus.currentStatusDuration = mapData.statusDuration[i];
                 tempStatus.statusIntData = mapData.statusIntData[i];
                 tempStatus.statusStringData = mapData.statusStringData[i];
                 tempStatus.statusBoolData = mapData.statusBoolData[i];
@@ -233,46 +231,36 @@ public class MapManager : MonoBehaviour, IDataPersistence
             if(relativePosition == new Vector2Int(-1, -1))
             {
                 BLGameManager.LoadData(tileData);
-                unit.gameManager = BLGameManager;
             }
             else if(relativePosition == new Vector2Int(0, -1))
             {
                 BGameManager.LoadData(tileData);
-                unit.gameManager = BGameManager;
             }
             else if (relativePosition == new Vector2Int(1, -1))
             {
                 BRGameManager.LoadData(tileData);
-                unit.gameManager = BRGameManager;
             }
             else if (relativePosition == new Vector2Int(-1, 0))
             {
                 MLGameManager.LoadData(tileData);
-                unit.gameManager = MLGameManager;
             }
             else if (relativePosition == new Vector2Int(1, 0))
             {
                 MRGameManager.LoadData(tileData);
-                unit.gameManager = MRGameManager;
             }
             else if (relativePosition == new Vector2Int(-1, 1))
             {
                 TLGameManager.LoadData(tileData);
-                unit.gameManager = TLGameManager;
             }
             else if (relativePosition == new Vector2Int(0, 1))
             {
                 TGameManager.LoadData(tileData);
-                unit.gameManager = TGameManager;
             }
             else if (relativePosition == new Vector2Int(1, 1))
             {
                 TRGameManager.LoadData(tileData);
-                unit.gameManager = TRGameManager;
             }
-            unit.gameManager.speeds.Insert(0, unit.quickness);
-            unit.gameManager.priority.Insert(0, (int)(unit.quickness * unit.gameManager.baseTurnTime));
-            unit.gameManager.units.Insert(0, unit);
+
         }
         unit.gameManager = centerGameManager;
         changedMapPosition = false;
@@ -292,7 +280,6 @@ public class MapManager : MonoBehaviour, IDataPersistence
         mapData.hasVisitedLocations = hasVisitedLocationsaveData;
 
         // Unit data
-        mapData.priority = centerGameManager.priority[0];
         Unit unit = centerGameManager.units[0];
         List<int> actionCooldowns = new List<int>();
         List<ActionName> actionNames = new List<ActionName>();
@@ -301,7 +288,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
             actionCooldowns.Add(action.currentCooldown);
             actionNames.Add(action.actionName);
         }
-        unitPrefabData tempUnitData = new unitPrefabData(unit.gameObject.transform.position,
+        unitPrefabData tempUnitData = new unitPrefabData(unit.gameObject.transform.position, unit.priority,
             unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames, unit.forcedMovementPathData);
         
         mapData.unitPrefabDatas = tempUnitData;
@@ -334,8 +321,8 @@ public class MapManager : MonoBehaviour, IDataPersistence
                 statusIntData.Add(status.statusIntData);
                 statusStringData.Add(status.statusStringData);
                 statusBoolData.Add(status.statusBoolData);
-                statusPriorities.Add(centerGameManager.statusPriority[i]);
-                statusDurations.Add(centerGameManager.statusDuration[i]);
+                statusPriorities.Add(status.statusPriority);
+                statusDurations.Add(status.currentStatusDuration);
             }
 
         }
@@ -362,9 +349,64 @@ public class MapManager : MonoBehaviour, IDataPersistence
         }
     }
 
-    public void FreezeZone(int x, int y)
+    public void FreezeZone(Vector2Int frozenPosition, Vector2Int relativeGameManagerDirection, bool isMovingPosition = true)
     {
-            
+        Debug.Log("Freezing Zone: " + frozenPosition);
+        TileData tileData = new TileData();
+        GameManager frozenGameManager;
+        if (relativeGameManagerDirection == new Vector2Int(-1, -1))
+        {
+            frozenGameManager = BLGameManager;
+        }
+        else if (relativeGameManagerDirection == new Vector2Int(0, -1))
+        {
+            frozenGameManager = BGameManager;
+        }
+        else if (relativeGameManagerDirection == new Vector2Int(1, -1))
+        {
+            frozenGameManager = BRGameManager;
+        }
+        else if (relativeGameManagerDirection == new Vector2Int(-1, 0))
+        {
+            frozenGameManager = MLGameManager;
+        }
+        else if (relativeGameManagerDirection == new Vector2Int(1, 0))
+        {
+            frozenGameManager = MRGameManager;
+        }
+        else if (relativeGameManagerDirection == new Vector2Int(-1, 1))
+        {
+            frozenGameManager = TLGameManager;
+        }
+        else if (relativeGameManagerDirection == new Vector2Int(0, 1))
+        {
+            frozenGameManager = TGameManager;
+        }
+        else if (relativeGameManagerDirection == new Vector2Int(1, 1))
+        {
+            frozenGameManager = TRGameManager;
+        }
+        else
+        {
+            frozenGameManager = null;
+        }
+
+        if(frozenGameManager == null)
+        {
+            Debug.LogError("Can't Find GameManager to freeze");
+        }
+        else
+        {
+            frozenGameManager.FreezeTile();
+            frozenGameManager.SaveData(tileData, true);
+            dataPersistenceManager.SaveTileData(tileData, dataPersistenceManager.autoSaveID, frozenPosition);
+            dataPersistenceManager.DeleteTileData(frozenPosition);
+            if(isMovingPosition)
+            {
+                return;
+            }
+            mainGameManger.FreezeGameManager(relativeGameManagerDirection);
+        }
     }
 
     public void AttemptToMoveMapPosition(Vector2Int direction, Vector2Int newPlayerPosition)
@@ -383,6 +425,16 @@ public class MapManager : MonoBehaviour, IDataPersistence
         currentMapPosition -= direction;
         UpdatePreviousPositions();
         currentMapPosition += direction;
+
+        Vector2 newDirection = direction;
+        for(int i = 0; i < mainGameManger.activeGameManagers.Count; i++)
+        {
+            Vector2 gameManagerDirection = mainGameManger.activeGameManagers[i].gameManagerDirection;
+            if(Vector2.Dot(gameManagerDirection, newDirection) == -1f)
+            {
+                FreezeZone(currentMapPosition - direction, mainGameManger.activeGameManagers[i].gameManagerDirection);
+            }
+        }
 
         playerPosition = newPlayerPosition - new Vector2Int(mapGenerator.mapWidth * direction.x, 
             mapGenerator.mapHeight * direction.y);
@@ -417,7 +469,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
             {
                 previousMapPositionsKeys.RemoveAt(oldPositionIndex);
                 previousMapPositionsValues.RemoveAt(oldPositionIndex);
-                FreezeZone(oldPosition.x, oldPosition.y);
+                FreezeZone(oldPosition, oldPosition - currentMapPosition, false);
             }
         }
     }

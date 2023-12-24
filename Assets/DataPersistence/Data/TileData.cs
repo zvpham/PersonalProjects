@@ -39,7 +39,6 @@ public class TileData
     // Unit Data
     public int numberOfUnits;
     public List<unitPrefabData> unitPrefabDatas;
-    public List<int> priority;
 
     // Status Data
     public List<int> statusPriority;
@@ -86,16 +85,18 @@ public struct unitForcedMovementPathData
 public struct unitPrefabData
 {
     public Vector2 position;
+    public int priority;
     public int unitPrefabIndex;
     public int health;
     public List<int> actionCooldowns;
     public List<ActionName> actionNames;
     public unitForcedMovementPathData forcedMovementPathData;
 
-    public unitPrefabData(Vector2 position, int unitPrefabIndex, int health, List<int> actionCooldowns, List<ActionName> actionNames,
+    public unitPrefabData(Vector2 position, int priority, int unitPrefabIndex, int health, List<int> actionCooldowns, List<ActionName> actionNames,
         unitForcedMovementPathData forcedMovementPathData)
     {
         this.position = position;
+        this.priority = priority;
         this.unitPrefabIndex = unitPrefabIndex;
         this.health = health;
         this.actionCooldowns = actionCooldowns;

@@ -5,23 +5,12 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Status/Sprinting", order = 1)]
 public class Sprinting : Status
 {
-    override public void ApplyEffect(Unit target)
+    override public void ApplyEffect(Unit target, int newDuration)
     {
-        if(!(target.statuses.Count == 0))
+        if(AddStatusPreset(target, newDuration))
         {
-            for (int i = 0; i < target.statuses.Count; i++)
-            {
-                if (target.statuses[i].statusName.Equals(this.statusName))
-                {
-                    if (target.statusDuration[i] < this.statusDuration)
-                    {
-                        target.statusDuration[i] = this.statusDuration;
-                    }
-                    return;
-                }
-            }
+            return;
         }
-        AddStatusPreset(target);
         target.ChangeQuickness(0.5);
         target.PerformedAction += CancelStatusIfActionNotContainMatchingType;
     }

@@ -21,6 +21,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 {
     public int unitResourceManagerIndex;
 
+    public int priority;
     public double quickness = 1;
     public float timeFlow = 1f;
 
@@ -63,8 +64,6 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public GameManager gameManager;
     public int index;
 
-    public List<int> statusDuration;
-
     public TemplateHolder baseActionTemplate;
     public List<Action> baseActions;
 
@@ -87,7 +86,6 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
     public List<Status> statuses;
     public int hasLocationChangeStatus = 0;
-
 
     public Sprite originalSprite;
     public int spriteIndex = -1;
@@ -246,11 +244,11 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         notOnHold = true;
     }
 
-    public void CheckForStatusFields(Vector3 newPosition)
+    public void CheckForStatusFields(Vector3 newPosition, GameManager currentGameManager)
     {
-        if (gameManager.createdFields.Count > 0)
+        if (currentGameManager.createdFields.Count > 0)
         {
-            foreach (CreatedField field in gameManager.createdFields)
+            foreach (CreatedField field in currentGameManager.createdFields)
             {
                 try
                 {
@@ -271,9 +269,9 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
                     bool foundMatchingStatus = false;
                     if (status.isFieldStatus)
                     {
-                        if (gameManager.createdFields.Count > 0)
+                        if (currentGameManager.createdFields.Count > 0)
                         {
-                            foreach (CreatedField statusField in gameManager.createdFields)
+                            foreach (CreatedField statusField in currentGameManager.createdFields)
                             {
                                 try
                                 {
@@ -493,13 +491,8 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public void ChangeQuickness(double value)
     {
         index = gameManager.units.IndexOf(this);
-        gameManager.speeds[index] *= value;
-        /*
-        Debug.Log("Value: " + value);
-        Debug.Log("Speed: " + gameManager.speeds[index]);
-        Debug.Log("Priority: " + (int)(gameManager.priority[index] * value));
-        */
-        gameManager.priority[index] = (int) (gameManager.priority[index] * value);
+        quickness *= value;
+        priority = (int)(priority * value);
     }
 
     public void ChangeTimeFlow(float value)
@@ -624,13 +617,19 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         }
 
         index = gameManager.units.IndexOf(this);
-        if(index < gameManager.index)
+        if(index < gameManager.mainGameManger.index)
         {
-            gameManager.index -= 1;
+            gameManager.mainGameManger.index -= 1;
         }
-        gameManager.speeds.RemoveAt(index);
-        gameManager.priority.RemoveAt(index);
         gameManager.units.RemoveAt(index);
+
+        index = gameManager.mainGameManger.units.IndexOf(this);
+        if(index < gameManager.mainGameManger.index)
+        {
+            gameManager.mainGameManger.index -= 1;
+        }
+        gameManager.mainGameManger.units.RemoveAt(index);
+
         gameManager.isLocationChangeStatus -= hasLocationChangeStatus;
         if(gameManager.grid.GetGridObject(gameObject.transform.position) != null)
         {

@@ -13,7 +13,7 @@ public class Precognition : Status
 
     public DataPersistenceManager dataPersistenceManager;
     public ConfirmationPopupMenu confirmationPopupMenu;
-    public override void ApplyEffect(Unit target)
+    public override void ApplyEffect(Unit target, int maxDuration)
     {
 
     }
@@ -71,7 +71,7 @@ public class Precognition : Status
         });
     }
 
-    public override void ApplyEffectEnemy(Unit target)
+    public override void ApplyEffectEnemy(Unit target, int maxDuration)
     {
         confirmationPopupMenu = ConfirmationPopupMenu.instance;
         dataPersistenceManager = DataPersistenceManager.Instance;
@@ -81,10 +81,10 @@ public class Precognition : Status
         dataPersistenceManager.SaveGame(statusStringData);
         dataPersistenceManager.ChangeGameData(null);
         target.OnDeath += OnDeath;
-        AddStatusPreset(target);
+        AddStatusPreset(target, maxDuration);
     }
 
-    public override void ApplyEffectPlayer(Unit target)
+    public override void ApplyEffectPlayer(Unit target, int maxDuration)
     {
         confirmationPopupMenu = ConfirmationPopupMenu.instance;
         dataPersistenceManager = DataPersistenceManager.Instance;
@@ -94,7 +94,7 @@ public class Precognition : Status
         dataPersistenceManager.SaveGame(statusStringData);
         dataPersistenceManager.ChangeGameData(null);
         target.OnDeath += OnDeath;
-        AddStatusPreset(target);
+        AddStatusPreset(target, maxDuration);
     }
 
     public void OnDeath()

@@ -120,6 +120,12 @@ public class DataPersistenceManager : MonoBehaviour
         mapDataHandler.Delete(fullerPath);
     }
 
+    public void DeleteTileData(Vector2Int tileLocation)
+    {
+        string fileName = tileLocation.x.ToString() + "-" + tileLocation.y.ToString();
+        mapDataHandler.Delete(selectedProfileId, autoSaveID, playerID, fileName);
+    }
+
     private void InitializeSelectedProfileId()
     {
         
@@ -271,7 +277,7 @@ public class DataPersistenceManager : MonoBehaviour
         mapDataHandler.Save(worldMapData, selectedProfileId, worldMapFileName);
     }
 
-    private void SaveTileDataBase()
+    private void SaveTileDataBase(TileData gameData)
     {
         //return right away if data persistence is disabled
         if (disableDataPersistence)
@@ -280,7 +286,7 @@ public class DataPersistenceManager : MonoBehaviour
         }
 
         //if we don't have any data to save, log a warning here
-        if (this.gameData == null)
+        if (gameData == null)
         {
             Debug.Log("No TileData, Should Probably load that");
             return;
@@ -289,7 +295,7 @@ public class DataPersistenceManager : MonoBehaviour
 
     public void SaveTileData(int timeID, string subFolder, Vector2Int mapPosition)
     {
-        SaveTileDataBase();
+        SaveTileDataBase(gameData);
         string tilePosition =  mapPosition.x.ToString() + "-" + mapPosition.y.ToString();
         mapDataHandler.Save(gameData, selectedProfileId, timeID.ToString(), subFolder, tilePosition);
     }
@@ -298,18 +304,18 @@ public class DataPersistenceManager : MonoBehaviour
     // Note - AutoSave right after any manual save EX - Story events, Maybe for manuel saves
     public void SaveTileData(TileData gameData, string dirName, string subFolder, Vector2Int mapPosition)
     {
-        SaveTileDataBase();
+        SaveTileDataBase(gameData);
         string tilePosition = mapPosition.x.ToString() + "-" + mapPosition.y.ToString();
         mapDataHandler.Save(gameData, selectedProfileId, dirName, subFolder, tilePosition);
     }
 
     // For Manuel Saves like Precognition
     // Automatically sets TimeID to AUtoSave
-    public void SaveTileData(string subFolder, Vector2Int mapPosition)
+    public void SaveTileData(TileData gameData, string dirName, Vector2Int mapPosition)
     {
-        SaveTileDataBase();
+        SaveTileDataBase(gameData);
         string tilePosition = mapPosition.x.ToString() + "-" + mapPosition.y.ToString();
-        mapDataHandler.Save(gameData, selectedProfileId, subFolder, tilePosition);
+        mapDataHandler.Save(gameData, selectedProfileId, dirName, tilePosition);
     }
 
     private void SaveGameBase()
