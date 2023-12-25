@@ -410,7 +410,6 @@ public class GameManager : MonoBehaviour
             tempAnimatedField.animatedFieldTypeIndex = animatedField.animatedFieldTypeIndex;
             tempAnimatedField.animatedCreatedFieldTypeIndex = resourceManager.createdFields.IndexOf(animatedField.createdFieldType);
             tempAnimatedField.createdObjectIndex = resourceManager.createdObjects.IndexOf(animatedField.createdObject);
-            tempAnimatedField.createdObjectHolderIndex = animatedField.createdObjectHolder.GetComponent<CreatedObjectHolder>().CreatedObjectIndex;
             tempAnimatedField.createdFieldQuickness = animatedField.createdFieldQuickness;
             tempAnimatedField.startPosition = animatedField.startPosition - newDefaultGridPosition;
             tempAnimatedField.initialDirection = animatedField.initialDirection;
@@ -543,7 +542,7 @@ public class GameManager : MonoBehaviour
             {
                 AnimatedField.Node node = expectedBlastPaths[individualBlastIndex][rowIndex][markerIndex];
                 GameObject temp = Instantiate(expectedLocationMarker.gameObject);
-                temp.GetComponent<SpriteRenderer>().sprite = node.createdObject.createdObjectSpritePrefab.GetComponent<SpriteRenderer>().sprite;
+                temp.GetComponent<SpriteRenderer>().sprite = node.createdObjectSprite;
                 temp.transform.position = node.position;
             }
             expectedBlastRowNumber[individualBlastIndex] += 1;

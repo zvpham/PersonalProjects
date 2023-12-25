@@ -33,7 +33,6 @@ abstract public class AnimatedField : MonoBehaviour
     public CreatedField createdField;
     public CreatedField createdFieldType;
     public CreatedObject createdObject;
-    public GameObject createdObjectHolder;
 
     public List<GameObject> markerList = new List<GameObject>();
     public List<Node> currentRow = new List<Node>();
@@ -65,8 +64,9 @@ abstract public class AnimatedField : MonoBehaviour
         public float blastSpeed;
         public float affectedTimeFlow;
         public CreatedObject createdObject;
+        public Sprite createdObjectSprite;
 
-        public Node(Vector3 position, Vector3 direction, int priority, int blastValue, float blastSpeed, float affectedTimeFlow, CreatedObject createdobject)
+        public Node(Vector3 position, Vector3 direction, int priority, int blastValue, float blastSpeed, float affectedTimeFlow, CreatedObject createdobject, Sprite createdObjectSprite)
         {
             this.position = position;
             this.direction = direction;
@@ -75,9 +75,11 @@ abstract public class AnimatedField : MonoBehaviour
             this.blastSpeed = blastSpeed;
             this.affectedTimeFlow = affectedTimeFlow;
             this.createdObject = createdobject;
+            this.createdObjectSprite = createdObjectSprite;
+
         }
 
-        public Node(animatedFieldNodeData node, CreatedObject createdobject)
+        public Node(animatedFieldNodeData node, CreatedObject createdobject, Sprite createdObjectSprite)
         {
             this.position = node.position;
             this.direction = node.direction;
@@ -85,6 +87,7 @@ abstract public class AnimatedField : MonoBehaviour
             this.blastValue = node.blastValue;
             this.blastSpeed = node.blastSpeed;
             this.affectedTimeFlow = node.affectedTimeFlow;
+            this.createdObjectSprite = createdObjectSprite;
             this.createdObject = createdobject;
         }
 
@@ -101,7 +104,7 @@ abstract public class AnimatedField : MonoBehaviour
         emptySpace
     }
 
-    abstract public void SetParameters(GameManager gameManager, Vector3 startPosition, Vector3 direction, float angle, CreatedObject createdObject, GameObject createdObjectHolder, CreatedField createdField, int range,
+    abstract public void SetParameters(GameManager gameManager, Vector3 startPosition, Vector3 direction, float angle, CreatedObject createdObject, CreatedField createdField, int range,
         int initialConeBlastValue, int maxObstacleBlastValueAbsorbtion, int maxUnitBlastValueAbsorbtion,
         float secEmenateSpeed = .035f, bool isAffectFlying = true, bool ignoreWalls = true);
 
@@ -122,7 +125,6 @@ abstract public class AnimatedField : MonoBehaviour
         this.angle = animatedFieldData.angle;
         this.range = animatedFieldData.range;
         this.createdObject = resourceManager.createdObjects[animatedFieldData.createdObjectIndex];
-        this.createdObjectHolder = resourceManager.createdObjectHoldersPrefabs[animatedFieldData.createdObjectHolderIndex];
         this.createdFieldType = resourceManager.createdFields[animatedFieldData.animatedCreatedFieldTypeIndex];
         this.createdField = Instantiate(createdFieldType);
         this.affectFlying = animatedFieldData.affectFlying;
@@ -134,7 +136,7 @@ abstract public class AnimatedField : MonoBehaviour
         gameManager = GameManager.instance;
         foreach(animatedFieldNodeData node in animatedFieldData.slowedNodeList)
         {
-            Node slowedNode = new Node(node, createdObject);
+            Node slowedNode = new Node(node, createdObject, this.createdField.createdObjectPrefab.GetComponent<SpriteRenderer>().sprite);
             slowedNodeList.Add(slowedNode);
         }
         GetAnimation(true);

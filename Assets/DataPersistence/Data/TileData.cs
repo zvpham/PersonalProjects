@@ -141,7 +141,6 @@ public struct animatedFieldData
     public int animatedFieldTypeIndex;
     public int animatedCreatedFieldTypeIndex;
     public int createdObjectIndex;
-    public int createdObjectHolderIndex;
 
     public float createdFieldQuickness;
 
@@ -160,14 +159,13 @@ public struct animatedFieldData
 
     public bool IsSlowInTimeFlow;
 
-    public animatedFieldData(int animatedFieldTypeIndex, int animatedCreatedFieldTypeIndex, int createdObjectIndex, int createdObjectHolderIndex, float createdFieldQuickness, List<animatedFieldNodeData> slowedNodeList,
+    public animatedFieldData(int animatedFieldTypeIndex, int animatedCreatedFieldTypeIndex, int createdObjectIndex, float createdFieldQuickness, List<animatedFieldNodeData> slowedNodeList,
         Vector2 startPosition, Vector2 initialDirection, int range, float angle, int maxUnitBlastValueAbsorbtion,
         int maxObstacleBlastValueAbsorbtion, bool affectFlying, bool ignoreWalls, bool isSlowInTimeFlow)
     {
         this.animatedFieldTypeIndex = animatedFieldTypeIndex;
         this.animatedCreatedFieldTypeIndex = animatedCreatedFieldTypeIndex;
         this.createdObjectIndex = createdObjectIndex;
-        this.createdObjectHolderIndex = createdObjectHolderIndex;
         this.createdFieldQuickness = createdFieldQuickness;
         this.slowedNodeList = slowedNodeList;
         this.startPosition = startPosition;

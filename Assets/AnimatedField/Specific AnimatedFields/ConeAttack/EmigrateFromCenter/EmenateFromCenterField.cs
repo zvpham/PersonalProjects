@@ -5,11 +5,12 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SocialPlatforms;
 using UnityEngine.UIElements;
+using static UnityEditor.FilePathAttribute;
 
 public class EmenateFromCenterField : AnimatedField
 {
     public override void SetParameters(GameManager gameManager, Vector3 startPosition, Vector3 direction, float angle, CreatedObject createdObject,
-        GameObject createdObjectHolder, CreatedField createdField, int range, int initialConeBlastValue, int maxObstacleBlastValueAbsorbtion,
+        CreatedField createdField, int range, int initialConeBlastValue, int maxObstacleBlastValueAbsorbtion,
         int maxUnitBlastValueAbsorbtion, float secEmenateSpeed = 0.035F, bool isAffectFlying = true, bool ignoreWalls = true)
     {
         this.gameManager = gameManager;
@@ -17,16 +18,15 @@ public class EmenateFromCenterField : AnimatedField
         this.initialDirection = direction;
         this.angle = angle;
         this.range = range + 1;
-        this.createdObject = createdObject;
-        this.createdObjectHolder = createdObjectHolder;
         this.createdField = Instantiate(createdField);
+        this.createdObject = createdObject;
         this.createdFieldType = createdField;
         this.secEmenateSpeed = secEmenateSpeed;
         this.affectFlying = isAffectFlying;
         this.ignoreWalls = ignoreWalls;
         this.maxObstacleBlastValueAbsorbtion = maxObstacleBlastValueAbsorbtion;
         this.maxUnitBlastValueAbsorbtion = maxUnitBlastValueAbsorbtion;
-        this.openList.Add(new Node(startPosition, direction, 0, initialConeBlastValue, range + 1, 1, createdObject));
+        this.openList.Add(new Node(startPosition, direction, 0, initialConeBlastValue, range + 1, 1, createdObject, this.createdField.createdObjectPrefab.GetComponent<SpriteRenderer>().sprite));
         this.openListLocation.Add(startPosition);
         this.currentTime = 0;
     }
@@ -84,17 +84,6 @@ public class EmenateFromCenterField : AnimatedField
     public override void GetAnimation(bool isLoading = false)
     {
         enabled = false;
-        if(!gameManager.animatedFields.Contains(this))
-        {
-            if (!isLoading)
-            {
-                animatedFieldPriority = (int)(createdFieldQuickness * gameManager.baseTurnTime) + gameManager.mainGameManger.least;
-            }
-            this.gameManager.animatedFields.Add(this);
-            this.gameManager.mainGameManger.animatedFields.Add(this);
-            this.gameManager.expectedBlastPaths.Add(fullExpectedConePath);
-            this.gameManager.expectedBlastRowNumber.Add(0);
-        }
         List<Vector3> validLocations = new List<Vector3>();
         currentRowIndex = slowedNodeList[0].priority;
         List<Node> adjustedList = new List<Node>();
@@ -112,7 +101,9 @@ public class EmenateFromCenterField : AnimatedField
 
         this.openListLocation = validLocations;
         this.openList = adjustedList;
-        this.createdField.CreateGridOfObjects(gameManager, new Grid<CreatedObject>(range * 2 - 1, range * 2 - 1, 1f, startPosition + new Vector3(-range - 1, -range - 1, 0), (Grid<CreatedObject> g, int x, int y) => Instantiate(createdObject.CreateObject(g, x, y, validLocations))), 10, isLoading);
+        this.createdField.CreateGridOfObjects(gameManager, new Grid<CreatedObject>(range * 2 - 1, range * 2 - 1, 1f,
+            startPosition + new Vector3(-range - 1, -range - 1, 0), (Grid<CreatedObject> g, int x, int y) => 
+            this.createdField.CreateCreatedObject(g, x, y, validLocations)), 10, isLoading);
         this.createdField.fromAnimatedField = true;
         for (int i = currentRowIndex; i < range; i++)
         {
@@ -132,6 +123,18 @@ public class EmenateFromCenterField : AnimatedField
                 break;
             }
         }
+                if(!gameManager.animatedFields.Contains(this))
+        {
+            if (!isLoading)
+            {
+                animatedFieldPriority = (int)(createdFieldQuickness * gameManager.baseTurnTime) + gameManager.mainGameManger.least;
+            }
+            this.gameManager.animatedFields.Add(this);
+            this.gameManager.mainGameManger.animatedFields.Add(this);
+            this.gameManager.expectedBlastPaths.Add(fullExpectedConePath);
+            this.gameManager.expectedBlastRowNumber.Add(0);
+        }
+
     }
 
     private bool FindPath(bool ignoreWalls)
@@ -193,7 +196,7 @@ public class EmenateFromCenterField : AnimatedField
             {
                 if (!(i == 0 && j == 0))
                 {
-                    Node newNode = new Node(new Vector3(currentNode.position.x + j, currentNode.position.y + i, 0), currentNode.direction, currentNode.priority + 1, currentNode.blastValue, currentNode.blastSpeed, currentNode.affectedTimeFlow, currentNode.createdObject);
+                    Node newNode = new Node(new Vector3(currentNode.position.x + j, currentNode.position.y + i, 0), currentNode.direction, currentNode.priority + 1, currentNode.blastValue, currentNode.blastSpeed, currentNode.affectedTimeFlow, currentNode.createdObject, currentNode.createdObjectSprite);
                     Vector3 dirTowardsOtherObjectFromStartPosition = (newNode.position - this.startPosition).normalized;
                     float dotProduct = Vector3.Dot(dirTowardsOtherObjectFromStartPosition, newNode.direction);
 
@@ -453,18 +456,18 @@ public class EmenateFromCenterField : AnimatedField
 
     private void AddUnitSpace(Node neighborNode)
     {
-        GameObject marker = Instantiate(createdObjectHolder, neighborNode.position, new Quaternion(0, 0, 0, 1f));
-
+        GameObject marker = Instantiate(createdField.createdObjectPrefab, neighborNode.position, new Quaternion(0, 0, 0, 1f));
+        Debug.Log("Fire Damage Unit: " + neighborNode.position);
         if (neighborNode.blastValue - maxUnitBlastValueAbsorbtion > 0)
         {
             neighborNode.blastValue -= maxUnitBlastValueAbsorbtion;
-            marker.GetComponent<CreatedObjectHolder>().createdObject.ApplyObject(1, gameManager, neighborNode.position);
+            createdField.ApplyObject(1, gameManager, neighborNode.position);
             openList.Add(neighborNode);
             openListLocation.Add(neighborNode.position);
         }
         else
         {
-            marker.GetComponent<CreatedObjectHolder>().createdObject.ApplyObject(((float)neighborNode.blastValue / (float)maxUnitBlastValueAbsorbtion), gameManager, neighborNode.position);
+            createdField.ApplyObject(((float)neighborNode.blastValue / (float)maxUnitBlastValueAbsorbtion), gameManager, neighborNode.position);
             neighborNode.blastValue = 0;
             closedList.Add(neighborNode);
             closedListLocation.Add(neighborNode.position);
@@ -474,7 +477,8 @@ public class EmenateFromCenterField : AnimatedField
 
     private void AddEmptySpace(Node neighborNode)
     {
-        GameObject marker = Instantiate(createdObjectHolder, neighborNode.position, new Quaternion(0, 0, 0, 1f));
+        Debug.Log("Fire Damage Empty: " + neighborNode.position);
+        GameObject marker = Instantiate(createdField.createdObjectPrefab, neighborNode.position, new Quaternion(0, 0, 0, 1f));
         openList.Add(neighborNode);
         openListLocation.Add(neighborNode.position);
         markerList.Add(marker);
@@ -482,18 +486,18 @@ public class EmenateFromCenterField : AnimatedField
 
     private void AddWallSpace(Node neighborNode)
     {
-        GameObject marker = Instantiate(createdObjectHolder, neighborNode.position, new Quaternion(0, 0, 0, 1f));
-
+        GameObject marker =  Instantiate(createdField.createdObjectPrefab, neighborNode.position, new Quaternion(0, 0, 0, 1f));
+        Debug.Log("Fire Damage Wall: " + neighborNode.position);
         if (neighborNode.blastValue - maxObstacleBlastValueAbsorbtion > 0)
         {
             neighborNode.blastValue -= maxObstacleBlastValueAbsorbtion;
-            marker.GetComponent<CreatedObjectHolder>().createdObject.ApplyObject(1, gameManager, neighborNode.position);
+            createdField.ApplyObject(1, gameManager, neighborNode.position);
             openList.Add(neighborNode);
             openListLocation.Add(neighborNode.position);
         }
         else
         {
-            marker.GetComponent<CreatedObjectHolder>().createdObject.ApplyObject(((float)neighborNode.blastValue / (float)maxObstacleBlastValueAbsorbtion), gameManager, neighborNode.position);
+            createdField.ApplyObject(((float)neighborNode.blastValue / (float)maxObstacleBlastValueAbsorbtion), gameManager, neighborNode.position);
             neighborNode.blastValue = 0;
             closedList.Add(neighborNode);
             closedListLocation.Add(neighborNode.position);
@@ -509,7 +513,7 @@ public class EmenateFromCenterField : AnimatedField
             return NodeState.wall;
         }
 
-        Unit unit = gameManager.grid.GetGridObject((int)position.x, (int)position.y);
+        Unit unit = gameManager.grid.GetGridObject(position);
         if (unit != null)
         {
             return NodeState.unit;
@@ -517,7 +521,7 @@ public class EmenateFromCenterField : AnimatedField
 
         if (affectFlying)
         {
-            unit = gameManager.flyingGrid.GetGridObject((int)position.x, (int)position.y);
+            unit = gameManager.flyingGrid.GetGridObject(position);
             if (unit != null)
             {
                 return NodeState.unit;
@@ -535,7 +539,7 @@ public class EmenateFromCenterField : AnimatedField
             return NodeState.wall;
         }
 
-        Unit unit = gameManager.grid.GetGridObject((int)position.x, (int)position.y);
+        Unit unit = gameManager.grid.GetGridObject(position);
         if (unit != null)
         {
             return NodeState.unit;
@@ -543,7 +547,7 @@ public class EmenateFromCenterField : AnimatedField
 
         if (affectFlying)
         {
-            unit = gameManager.flyingGrid.GetGridObject((int)position.x, (int)position.y);
+            unit = gameManager.flyingGrid.GetGridObject(position);
             if (unit != null)
             {
                 return NodeState.unit;
@@ -571,7 +575,7 @@ public class EmenateFromCenterField : AnimatedField
                     {
                         if (!(i == 0 && j == 0))
                         {
-                            Node newNode = new Node(new Vector3(node.position.x + j, node.position.y + i, 0), node.direction, node.priority + 1, node.blastValue, node.blastSpeed, node.affectedTimeFlow, node.createdObject);
+                            Node newNode = new Node(new Vector3(node.position.x + j, node.position.y + i, 0), node.direction, node.priority + 1, node.blastValue, node.blastSpeed, node.affectedTimeFlow, node.createdObject, node.createdObjectSprite);
                             
                             Vector3 dirTowardsOtherObject = (newNode.position - this.startPosition).normalized;
                             float dotProduct = Vector3.Dot(dirTowardsOtherObject, newNode.direction);

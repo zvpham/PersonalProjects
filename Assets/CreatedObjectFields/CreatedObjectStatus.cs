@@ -9,7 +9,6 @@ public abstract class CreatedObjectStatus : CreatedObject
     public int duration;
     public Status[] statuses;
     public GameObject spriteObject;
-    public float blastRadius;
 
     public override void RemoveObject(GameManager gameManager, bool affectFlying)
     {
@@ -45,7 +44,7 @@ public abstract class CreatedObjectStatus : CreatedObject
                 }
             }
         }
-        Destroy(spriteObject);
+        GameObject.Destroy(spriteObject);
     }
 
     public override void ApplyObject(Unit unit)

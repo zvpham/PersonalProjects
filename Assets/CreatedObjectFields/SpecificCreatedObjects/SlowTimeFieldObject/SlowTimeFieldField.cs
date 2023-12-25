@@ -30,4 +30,14 @@ public class SlowTimeFieldField : CreatedField
     {
         CreateGridofObjectsUsingGridPreset(gameManager,grid, fieldDuration, onLoad);
     }
+
+    public override CreatedObject CreateCreatedObject(Grid<CreatedObject> g, int x, int y, List<Vector3> validLocations)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void ApplyObject(float applyPercentage, GameManager gameManager, Vector3 Location)
+    {
+        throw new System.NotImplementedException();
+    }
 }

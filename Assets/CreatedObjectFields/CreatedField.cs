@@ -21,6 +21,7 @@ public abstract class CreatedField : ScriptableObject
     // Assigned in Scriptable Object Thus does not need to be saved
     public GameObject createdObjectPrefab;
     public Status[] createdObjectStatuses;
+    public FullDamage damageCalculation;
 
     public Grid<CreatedObject> grid;
 
@@ -84,5 +85,9 @@ public abstract class CreatedField : ScriptableObject
         index =  gameManager.mainGameManger.createdFields.IndexOf(this);
         gameManager.mainGameManger.createdFields.RemoveAt(index);
     }
+
+    abstract public CreatedObject CreateCreatedObject(Grid<CreatedObject> g, int x, int y, List<Vector3> validLocations);
+
+    abstract public void ApplyObject(float applyPercentage, GameManager gameManager, Vector3 Location);
 }
 

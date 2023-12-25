@@ -14,13 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   createdFieldTypeIndex: 1
   createdFieldQuickness: 1
+  createdFieldPriority: 0
+  currentCreatedFieldDuration: 0
   originPosition: {x: 0, y: 0, z: 0}
   fieldRadius: 0
   createdObjectPositions: []
   nonStandardDuration: 1
   fromAnimatedField: 0
   createdWithBlastRadius: 0
-  createdObjectPrefab: {fileID: 0}
+  createdObjectPrefab: {fileID: 2828790863296621109, guid: 7b7f9bc463aab454b916bd817e88a8b7,
+    type: 3}
   createdObjectStatuses: []
   affectFlying: 1
   gameManager: {fileID: 0}
