@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Action/EnemyMovement")]
-public class EnemyMovement : ChaseAction
+public class EnemyMovement : Action
 {
     public override void Activate(Unit self)
     {

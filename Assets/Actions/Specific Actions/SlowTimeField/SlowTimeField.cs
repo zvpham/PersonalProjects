@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Action/SlowTimeField")]
-public class SlowTimeField : Action
+public class SlowTimeField : StatusAOETargetingAction
 {
     public override int CalculateWeight(Unit self)
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Action/SeeTheFuture")]
-public class SeeTheFuture : Action
+public class SeeTheFuture : SelfStatusAction
 {
     public List<Vector2> pathAI;
     public override void Activate(Unit self)
@@ -18,7 +18,7 @@ public class SeeTheFuture : Action
 
     public override int CalculateWeight(Unit self)
     {
-        range = duration / 2;
+        int range = duration / 2;
         int index = self.closestEnemyIndex;
         pathAI = LineOfSightAI.MakeLine(self.transform.position, self.enemyList[index].transform.position, range, true);
         if (pathAI != null)

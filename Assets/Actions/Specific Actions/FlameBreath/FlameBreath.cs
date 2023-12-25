@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Action/FlameBreath")]
-public class FlameBreath : Action
+public class FlameBreath : AOETargetingAction
 {
 
     public GameObject animation;

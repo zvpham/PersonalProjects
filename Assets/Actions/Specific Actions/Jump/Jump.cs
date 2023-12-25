@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 [CreateAssetMenu(menuName = "Action/Jump")]
-public class Jump : ChaseAction
+public class Jump : StatusTargetAction
 {
     public List<Vector2> pathAI;
     public override int CalculateWeight(Unit self)
@@ -41,11 +41,7 @@ public class Jump : ChaseAction
     public override void Activate(Unit self)
     {
         self.forcedMovementPathData.forcedMovementPath = pathAI;
-        foreach (Status statuseffect in status)
-        {
-            Status temp = Instantiate(statuseffect);
-            temp.ApplyEffect(self, duration);
-        }
+        startStatusPresets(self);
         self.TurnEnd();
     }
 
@@ -65,11 +61,7 @@ public class Jump : ChaseAction
         targetingSystem.GetComponent<LineOfSight>().DestroySelf();
         Destroy(targetingSystem);
         affectedUnit.forcedMovementPathData.forcedMovementPath = path;
-        foreach (Status statuseffect in status)
-        {
-            Status temp = Instantiate(statuseffect);
-            temp.ApplyEffect(affectedUnit, duration);
-        }
+        startStatusPresets(affectedUnit);
 
         affectedUnit.HandlePerformActions(actionType, actionName);
         affectedUnit.DeactivateTargeting();

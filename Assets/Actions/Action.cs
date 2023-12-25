@@ -10,7 +10,6 @@ public abstract class Action : ScriptableObject
     public int weight;
     public int maxCooldown;
     public int currentCooldown;
-    public int duration;
     public bool isUsable;
     public ActionTypes[] actionType;
     public bool isActiveAction;
@@ -18,24 +17,20 @@ public abstract class Action : ScriptableObject
     //public bool isTurnActivated;
 
     public Unit affectedUnit;
-
-    public Status[] status;
-
-    public GameObject targetingPrefab;
-    public GameObject targetingSystem;
-
-    public CreatedField createdField;
-    public CreatedObject createObject;
-    public GameObject createObjectHolder;
-    
-    public int range;
-    public int blastRadius;
-    public float blastAngle;
     abstract public void Activate(Unit self);
 
     abstract public void PlayerActivate(Unit self);
 
     abstract public int CalculateWeight(Unit self);
+
+    virtual public void Activate(Unit self, Vector3 targetLocation)
+    {
+
+    }
+    virtual public int CalculateWeight(Unit self, Vector3 targetLocation)
+    {
+        return -1;
+    }
 
     public void StartActionPresetAI(Unit self)
     {
@@ -55,15 +50,4 @@ public abstract class Action : ScriptableObject
         }
         return false;
     }
-
-    public bool startStatusPresets(Unit self)
-    {
-        foreach (Status statuseffect in status)
-        {
-            Status temp = Instantiate(statuseffect);
-            temp.ApplyEffect(self,duration);
-        }
-        return true;
-    }
-
 }

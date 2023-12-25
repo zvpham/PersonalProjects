@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Action/Conk")]
-public class Conk : Action
+public class Conk : StatusTargetAction
 {
     public override void Activate(Unit self)
     {

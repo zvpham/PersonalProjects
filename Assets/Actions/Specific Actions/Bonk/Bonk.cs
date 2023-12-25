@@ -4,7 +4,7 @@ using UnityEngine;
 using static UnityEditor.Experimental.GraphView.GraphView;
 
 [CreateAssetMenu(menuName = "Action/Bonk")]
-public class Bonk : Action
+public class Bonk : StatusTargetAction
 {
     public override void Activate(Unit self)
     {

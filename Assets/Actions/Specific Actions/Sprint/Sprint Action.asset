@@ -16,18 +16,11 @@ MonoBehaviour:
   weight: 99
   maxCooldown: 10
   currentCooldown: 0
-  duration: 0
   isUsable: 1
   actionType: 04000000
   isActiveAction: 1
-  isTurnActivated: 0
+  isChaseAction: 1
   affectedUnit: {fileID: 0}
+  duration: 4
   status:
   - {fileID: 11400000, guid: 2d0e5a8f0dd42a1448d680e1961e33cf, type: 2}
-  targetingPrefab: {fileID: 0}
-  targetingSystem: {fileID: 0}
-  createdField: {fileID: 0}
-  createObject: {fileID: 0}
-  range: 0
-  blastRadius: 0
-  blastAngle: 0

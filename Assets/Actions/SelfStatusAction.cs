@@ -4,15 +4,15 @@ using UnityEngine;
 
 public abstract class SelfStatusAction : Action
 {
-    // Start is called before the first frame update
-    void Start()
+    public int duration;
+    public Status[] status;
+    public bool startStatusPresets(Unit self)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        foreach (Status statuseffect in status)
+        {
+            Status temp = Instantiate(statuseffect);
+            temp.ApplyEffect(self, duration);
+        }
+        return true;
     }
 }

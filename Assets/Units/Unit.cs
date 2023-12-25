@@ -73,7 +73,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
     public bool hasSeenEnemy = false;
     public bool chasing;
-    public List<ChaseAction> chaseActions;
+    public List<Action> chaseActions;
     public Vector3 lastKnownEnemyLocation;
     public Vector3 locationUnitIsChasing;
 
@@ -213,7 +213,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             {
                 if(action.currentCooldown > 0)
                 {
-                    if(action.isActiveAction && IsMatchingStatus(action.status[0]))
+                    if(action.isActiveAction)
                     {
                         continue;
                     }
@@ -329,7 +329,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
         actions.Clear();
         chaseActions.Clear();
-        chaseActions = new List<ChaseAction> ();
+        chaseActions = new List<Action> ();
         actions = new List<Action>();
         foreach(SoulItemSO phyiscalSoul in physicalSouls)
         {
@@ -364,7 +364,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         {
             if (actions[i].isChaseAction)
             {
-                chaseActions.Add((ChaseAction) actions[i]);
+                chaseActions.Add(actions[i]);
             }
         }
 
@@ -372,7 +372,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         {
             if (baseActions[i].isChaseAction)
             {
-                chaseActions.Add((ChaseAction) baseActions[i]);
+                chaseActions.Add(baseActions[i]);
             }
         }
 

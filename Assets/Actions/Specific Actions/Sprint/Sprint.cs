@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 [CreateAssetMenu(menuName = "Action/Sprint")]
-public class Sprint : Action
+public class Sprint : SelfStatusAction
 {
     public override int CalculateWeight(Unit self)
     {
