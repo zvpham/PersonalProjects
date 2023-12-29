@@ -5,13 +5,14 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Status/Sprinting", order = 1)]
 public class Sprinting : Status
 {
+    public float speedValue;
     override public void ApplyEffect(Unit target, int newDuration)
     {
         if(AddStatusPreset(target, newDuration))
         {
             return;
         }
-        target.ChangeQuickness(0.5);
+        target.ChangeQuickness(speedValue);
         target.PerformedAction += CancelStatusIfActionNotContainMatchingType;
     }
 
@@ -23,7 +24,7 @@ public class Sprinting : Status
     public override void onLoadApply(Unit target)
     {
         AddStatusOnLoadPreset(target);
-        target.ChangeQuickness(0.5);
+        target.ChangeQuickness(speedValue);
         target.PerformedAction += CancelStatusIfActionNotContainMatchingType;
     }
 
@@ -31,7 +32,7 @@ public class Sprinting : Status
     override public void RemoveEffect(Unit target)
     {
         target.PerformedAction -= CancelStatusIfActionNotContainMatchingType;
-        target.ChangeQuickness(1 / 0.5);
+        target.ChangeQuickness(1 / speedValue);
         RemoveStatusPreset(target);
     }
 }

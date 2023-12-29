@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEditor.Profiling.Memory.Experimental;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static UnityEditor.Progress;
 
 public class MapManager : MonoBehaviour, IDataPersistence
 {
@@ -42,7 +43,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
     public GameManager TGameManager;
     public GameManager TRGameManager;
 
-    public int initialPlayerPriority;
+    //public int initialPlayerPriority;
 
     public DataPersistenceManager dataPersistenceManager;
     public ResourceManager resourceManager;
@@ -56,7 +57,6 @@ public class MapManager : MonoBehaviour, IDataPersistence
     public void Awake()
     {
         Instance = this;
-        hasVisitedLocation = new bool[worldMap.width, worldMap.height];
     }
 
 
@@ -70,7 +70,6 @@ public class MapManager : MonoBehaviour, IDataPersistence
         previousMapPositions = mapData.previousMapPositions;
         previousMapPositionsKeys = mapData.mapPositionsKey;
         previousMapPositionsValues = mapData.mapPositionValue;
-        hasVisitedLocationsaveData = mapData.hasVisitedLocations;
         Unit unit;
 
         //Sets Start position for Player when first starting SaveSlot
@@ -81,15 +80,6 @@ public class MapManager : MonoBehaviour, IDataPersistence
             previousMapPositions = new List<Vector2Int>() { new Vector2Int(0, 0) };
             previousMapPositionsKeys = new List<Vector2Int>() { new Vector2Int(0, 0) };
             previousMapPositionsValues = new List<int>() {1};
-
-            hasVisitedLocationsaveData = new List<Vector3Int>();
-            for(int i = 0; i < worldMap.height; i++) 
-            {
-                for(int j = 0; j < worldMap.width; j++)
-                {
-                    hasVisitedLocationsaveData.Add(new Vector3Int(j, i, 0));
-                }
-            }
 
             GameObject temp = Instantiate(resourceManager.unitPrefabs[0], new Vector3(100, 45, 0), 
                 new Quaternion(0, 0, 0, 1f));
@@ -116,7 +106,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
             unit.actionNamesForCoolDownOnLoad = tempData.actionNames;
             unit.currentCooldownOnLoad = tempData.actionCooldowns;
             unit.forcedMovementPathData = tempData.forcedMovementPathData;
-            initialPlayerPriority = mapData.priority;
+            unit.priority = (int)(mainGameManger.baseTurnTime * 1f);
 
             // Load Player Specific Data
             Player playerTemp = (Player)unit;
@@ -128,6 +118,18 @@ public class MapManager : MonoBehaviour, IDataPersistence
                 souls.Add(resourceManager.souls[soulIndex]);
             }
             playerTemp.onLoadSouls = souls;
+
+            // Load Inventory Data
+            InventorySystem inventory = playerTemp.inventorySystem;
+            List<InventoryItem> initialItems = new List<InventoryItem>();
+            for (int i = 0; i < mapData.itemQuantities.Count; i++)
+            {
+                InventoryItem newItem = new InventoryItem();
+                newItem.quantity = mapData.itemQuantities[i];
+                newItem.item = resourceManager.itemRefrences[mapData.itemSOIndexes[i]];
+                initialItems.Add(newItem);
+            }
+            inventory.initialItems = initialItems;
 
             // Load Status Data
             for (int i = 0; i < mapData.statusPrefabIndex.Count; i++)
@@ -143,6 +145,16 @@ public class MapManager : MonoBehaviour, IDataPersistence
 
             // Loading WorldMapTemplateData
             worldMapData = dataPersistenceManager.GetWorldMapData();
+        }
+
+        // Loading MainGameManagerData
+        if (!changedMapPosition)
+        {
+            mainGameManger.least = mapData.least;
+            mainGameManger.index = mapData.index;
+            mainGameManger.aUnitActed = mapData.aUnitActed;
+            mainGameManger.duringTurn = mapData.duringTurn;
+            mainGameManger.units[mapData.index].enabled = true;
         }
 
         if (currentMapPosition.x >= worldMap.width || currentMapPosition.y >= worldMap.height || 
@@ -271,13 +283,24 @@ public class MapManager : MonoBehaviour, IDataPersistence
         dataPersistenceManager.SaveWorldMapData();
 
         mapData.extraDangerModifier = extraDangerModifier;
-        mapData.playerPosition = playerPosition;
+        if(changedMapPosition)
+        {
+            mapData.playerPosition = playerPosition;
+        }
+        else
+        {
+            Vector3 newPlayerPosition = mainGameManger.units[0].transform.position;
+            mapData.playerPosition = new Vector2Int((int)newPlayerPosition.x, (int)newPlayerPosition.y);
+            mapData.least = mainGameManger.least;
+            mapData.index = mainGameManger.index;
+            mapData.aUnitActed = mainGameManger.aUnitActed;
+            mapData.duringTurn = mainGameManger.duringTurn;
+        }
         mapData.currentMapPosition = currentMapPosition;
         mapData.changedMapPosition = changedMapPosition;
         mapData.previousMapPositions = previousMapPositions;
         mapData.mapPositionsKey = previousMapPositionsKeys;
         mapData.mapPositionValue = previousMapPositionsValues;
-        mapData.hasVisitedLocations = hasVisitedLocationsaveData;
 
         // Unit data
         Unit unit = centerGameManager.units[0];
@@ -302,6 +325,19 @@ public class MapManager : MonoBehaviour, IDataPersistence
         }
         mapData.soulSlotIndexes = player.soulSlotIndexes;
         mapData.soulIndexes = tempOnLoadSouls;
+
+        // Inventory Data
+        List<int> itemQuantities = new List<int>();
+        List<int> itemSOIndexes = new List<int>();
+        InventorySO inventory = player.inventorySystem.inventoryData;
+        for (int i = 0; i < inventory.inventoryItems.Count; i++)
+        {
+            itemQuantities.Add(inventory.inventoryItems[i].quantity);
+            itemSOIndexes.Add(resourceManager.itemRefrences.IndexOf(inventory.inventoryItems[i].item));
+        }
+
+        mapData.itemQuantities = itemQuantities;
+        mapData.itemSOIndexes = itemSOIndexes;
 
         // Status Data
         List<int> statusIndexList = new List<int>();

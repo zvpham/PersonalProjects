@@ -25,5 +25,6 @@ MonoBehaviour:
   createdObjectPrefab: {fileID: 2828790863296621109, guid: 7b7f9bc463aab454b916bd817e88a8b7,
     type: 3}
   createdObjectStatuses: []
+  damageCalculation: {fileID: 11400000, guid: 427ab6803a6b38d4d9145bbdd2301668, type: 2}
   affectFlying: 1
   gameManager: {fileID: 0}

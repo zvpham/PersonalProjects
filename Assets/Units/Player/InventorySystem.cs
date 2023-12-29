@@ -53,8 +53,10 @@ public class InventorySystem : MonoBehaviour
         }
     }
 
-    private void PrepareInventoryData()
+    public void PrepareInventoryData()
     {
+        player = Player.Instance;
+        inventoryUI = UIInventoryPage.Instance;
         inventoryData.Initialize();
         inventoryData.OnInventoryUpdated += UpdateInventoryUI;
         foreach (InventoryItem item in initialItems)

@@ -12,18 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a6e5a6b3d66c524a85b01566031a8a6, type: 3}
   m_Name: SprintingStatus
   m_EditorClassIdentifier: 
+  statusPrefabIndex: 0
   targetUnit: {fileID: 0}
   statusQuickness: 1
-  statusDuration: 4
+  statusPriority: 0
+  currentStatusDuration: 0
   nonStandardDuration: 0
   statusName: Sprinting
   statusImage: {fileID: 21300000, guid: 2ad4705d69a8f6248a12f204a17e3da2, type: 3}
   isFieldStatus: 0
   ApplyEveryTurn: 0
+  isFirstApply: 1
   isFirstTurn: 1
   isFirstWorldTurn: 1
+  isMovementStatus: 0
+  statusIntData: 0
+  statusStringData: 
+  statusBoolData: 0
   actionTypesNotPermitted: 
   actionTypesThatCancelStatus: 
   actionTypesThatActionMustContain: 00000000
-  path: []
-  currentProgress: 0
+  speedValue: 0.5

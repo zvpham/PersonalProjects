@@ -18,7 +18,8 @@ public class Player : Unit
 
     private InputManager inputManager;
     private KeyBindings keybindings;
-    private InventorySystem inventorySystem;
+    public InventorySystem inventorySystem;
+    public List<InventoryItem> initialInventoryItemsForMapManager = new List<InventoryItem>();
 
     //For use in On Load Function Only
     public List<int> soulSlotIndexes = new List<int>();
@@ -38,6 +39,8 @@ public class Player : Unit
         inventorySystem = InventorySystem.Instance;
         actionBar = ActionBar.Instance;
 
+        //inventorySystem.initialItems = initialInventoryItemsForMapManager;
+        //inventorySystem.PrepareInventoryData();
         ChangeStr(0);
         ChangeAgi(0);
         ChangeEnd(0);
@@ -100,13 +103,6 @@ public class Player : Unit
                 actions[i].currentCooldown = currentCooldownOnLoad[index];
             }
         }
-
-        if (inventorySystem.initialItems.Count != 0)
-        {
-            UpdatePlayerActions();
-        }
-
-
         enabled = false;
     }
 
@@ -126,7 +122,6 @@ public class Player : Unit
         }
         keybindings.actionkeyBinds.Clear();
 
-        Debug.Log("Player Action Update");
         foreach (Action action in actions)
         {
             if (action.actionName == ActionName.Sprint)

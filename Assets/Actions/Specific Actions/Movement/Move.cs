@@ -122,7 +122,7 @@ public class Move
     public static bool IsEnemy(Unit target, Vector3 newPosition, GameManager gameManager)
     {
         Unit unit = gameManager.grid.GetGridObject(newPosition);
-        if (unit != null)
+        if (unit != null && target.faction != unit.faction)
         {
             Debug.Log(unit);
             MeleeAttack.Attack(unit, target.toHitBonus, target.armorPenetration, target.strengthMod + 3);

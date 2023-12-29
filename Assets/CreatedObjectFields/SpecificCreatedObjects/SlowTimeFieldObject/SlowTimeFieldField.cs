@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
     
 [CreateAssetMenu(menuName = "CreatedField/SlowTimeField")]
@@ -8,13 +9,17 @@ public class SlowTimeFieldField : CreatedField
     public override void CreateGridOfObjects(GameManager gameManager, Vector3 originPosition, int fieldRadius,
         int fieldDuration, bool onLoad)
     {
+        for(int i = 0; i < createdObjectStatuses.Count(); i++)
+        {
+            createdObjectStatuses[i].isFieldStatus = true;
+        }
         this.createdWithBlastRadius = true;
         this.originPosition = originPosition;
         this.fieldRadius = fieldRadius; 
         this.gameManager = gameManager;
         this.grid = new Grid<CreatedObject>(fieldRadius * 2 + 1, fieldRadius * 2 + 1, 1f, originPosition +
             new Vector3(-fieldRadius, -fieldRadius, 0), (Grid<CreatedObject> g, int x, int y) => 
-            new SlowTimeFieldObject(g, x, y, createdObjectPrefab, originPosition + new Vector3(-fieldRadius, -fieldRadius, 0),
+            new SlowTimeFieldObject(g, x, y, gameManager, createdObjectPrefab, originPosition + new Vector3(-fieldRadius, -fieldRadius, 0),
             createdObjectStatuses, fieldDuration, fieldRadius));
         gameManager.createdFields.Add(this);
         gameManager.mainGameManger.createdFields.Add(this);

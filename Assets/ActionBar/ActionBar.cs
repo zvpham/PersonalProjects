@@ -292,7 +292,6 @@ public class ActionBar : MonoBehaviour
     { 
         if(actionBarlevelList.Count == 0)
         {
-            Debug.LogWarning("THERE ARE NO ACTIONS INSTANTIATED WHY ARE YOU CALLING THIS????");
             return null;
         }
 
@@ -306,8 +305,6 @@ public class ActionBar : MonoBehaviour
                 }
             }
         }
-
-        Debug.LogWarning("Action Not Found: " +  actionName.ToString());
         return null;
     }
 }

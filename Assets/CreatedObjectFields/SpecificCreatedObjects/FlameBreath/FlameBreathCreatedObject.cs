@@ -26,7 +26,6 @@ public class FlameBreathCreatedObject : CreatedObjectDamage
     {
         Unit unit = gameManager.grid.GetGridObject(Location);
         Unit flyingUnit = gameManager.flyingGrid.GetGridObject(Location);
-        Debug.Log("Fire Damage: " + Location);
         if (unit != null)
         {
             unit.TakeDamage(damageCalculation, applyPercentage);

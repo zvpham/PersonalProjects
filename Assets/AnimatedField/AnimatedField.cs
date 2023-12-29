@@ -32,7 +32,6 @@ abstract public class AnimatedField : MonoBehaviour
 
     public CreatedField createdField;
     public CreatedField createdFieldType;
-    public CreatedObject createdObject;
 
     public List<GameObject> markerList = new List<GameObject>();
     public List<Node> currentRow = new List<Node>();
@@ -63,10 +62,9 @@ abstract public class AnimatedField : MonoBehaviour
         public int blastValue;
         public float blastSpeed;
         public float affectedTimeFlow;
-        public CreatedObject createdObject;
         public Sprite createdObjectSprite;
 
-        public Node(Vector3 position, Vector3 direction, int priority, int blastValue, float blastSpeed, float affectedTimeFlow, CreatedObject createdobject, Sprite createdObjectSprite)
+        public Node(Vector3 position, Vector3 direction, int priority, int blastValue, float blastSpeed, float affectedTimeFlow, Sprite createdObjectSprite)
         {
             this.position = position;
             this.direction = direction;
@@ -74,12 +72,11 @@ abstract public class AnimatedField : MonoBehaviour
             this.blastValue = blastValue;
             this.blastSpeed = blastSpeed;
             this.affectedTimeFlow = affectedTimeFlow;
-            this.createdObject = createdobject;
             this.createdObjectSprite = createdObjectSprite;
 
         }
 
-        public Node(animatedFieldNodeData node, CreatedObject createdobject, Sprite createdObjectSprite)
+        public Node(animatedFieldNodeData node, Sprite createdObjectSprite)
         {
             this.position = node.position;
             this.direction = node.direction;
@@ -88,7 +85,6 @@ abstract public class AnimatedField : MonoBehaviour
             this.blastSpeed = node.blastSpeed;
             this.affectedTimeFlow = node.affectedTimeFlow;
             this.createdObjectSprite = createdObjectSprite;
-            this.createdObject = createdobject;
         }
 
         public override string ToString()
@@ -104,7 +100,7 @@ abstract public class AnimatedField : MonoBehaviour
         emptySpace
     }
 
-    abstract public void SetParameters(GameManager gameManager, Vector3 startPosition, Vector3 direction, float angle, CreatedObject createdObject, CreatedField createdField, int range,
+    abstract public void SetParameters(GameManager gameManager, Vector3 startPosition, Vector3 direction, float angle, CreatedField createdField, int range,
         int initialConeBlastValue, int maxObstacleBlastValueAbsorbtion, int maxUnitBlastValueAbsorbtion,
         float secEmenateSpeed = .035f, bool isAffectFlying = true, bool ignoreWalls = true);
 
@@ -117,14 +113,14 @@ abstract public class AnimatedField : MonoBehaviour
         animationEnd?.Invoke(0);
     }
 
-    public void onLoad(animatedFieldData animatedFieldData, ResourceManager resourceManager)
+    public void onLoad(animatedFieldData animatedFieldData, ResourceManager resourceManager, GameManager gameManager, Vector3 newDefaultGridPosition)
     {
         this.createdFieldQuickness = animatedFieldData.createdFieldQuickness;
-        this.startPosition = animatedFieldData.startPosition;
+        Debug.LogError(animatedFieldData.startPosition);
+        this.startPosition = animatedFieldData.startPosition + (Vector2)newDefaultGridPosition;
         this.initialDirection = animatedFieldData.initialDirection;
         this.angle = animatedFieldData.angle;
         this.range = animatedFieldData.range;
-        this.createdObject = resourceManager.createdObjects[animatedFieldData.createdObjectIndex];
         this.createdFieldType = resourceManager.createdFields[animatedFieldData.animatedCreatedFieldTypeIndex];
         this.createdField = Instantiate(createdFieldType);
         this.affectFlying = animatedFieldData.affectFlying;
@@ -133,10 +129,11 @@ abstract public class AnimatedField : MonoBehaviour
         this.maxUnitBlastValueAbsorbtion = animatedFieldData.maxUnitBlastValueAbsorbtion;
         this.IsSlowInTimeFlow = animatedFieldData.IsSlowInTimeFlow;
         this.currentTime = 0;
-        gameManager = GameManager.instance;
+        this.gameManager = gameManager;
         foreach(animatedFieldNodeData node in animatedFieldData.slowedNodeList)
         {
-            Node slowedNode = new Node(node, createdObject, this.createdField.createdObjectPrefab.GetComponent<SpriteRenderer>().sprite);
+            Node slowedNode = new Node(node, this.createdField.createdObjectPrefab.GetComponent<SpriteRenderer>().sprite);
+            slowedNode.position = slowedNode.position + newDefaultGridPosition;
             slowedNodeList.Add(slowedNode);
         }
         GetAnimation(true);

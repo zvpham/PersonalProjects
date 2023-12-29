@@ -21,7 +21,7 @@ namespace Inventory.UI
         [SerializeField]
         private MouseFollower mouseFollower;
 
-        List<UIInventoryItem> listOfUIItems = new List<UIInventoryItem>();
+        public List<UIInventoryItem> listOfUIItems = new List<UIInventoryItem>();
 
         public List<SoulSlot> soulSlots = new List<SoulSlot>();
 
@@ -65,7 +65,6 @@ namespace Inventory.UI
                 UIInventoryItem uiItem = Instantiate(itemPrefab, Vector3.zero, Quaternion.identity);
                 uiItem.transform.SetParent(contentPanel);
                 listOfUIItems.Add(uiItem);
-
                 uiItem.OnItemClicked += HandleItemSelection;
                 uiItem.OnItemBeginDrag += HandleBeginDrag;
                 uiItem.OnItemDroppedOn += HandleSwap;
@@ -116,13 +115,11 @@ namespace Inventory.UI
 
         private void HandleSoulEquip(SoulSlot soulSlot)
         {
-            Debug.Log(currentlyDraggedItemIndex);
             if(currentlyDraggedItemIndex == -1 || mouseFollower.item == null)
             {
                 return;
             }
 
-            Debug.Log("Drop");
             soulSlot.contentImage.gameObject.SetActive(true);
             soulSlot.contentImage.sprite = listOfUIItems[currentlyDraggedItemIndex].itemImage.sprite;
             OnEquipSoul?.Invoke(currentlyDraggedItemIndex, soulSlot);
@@ -204,6 +201,12 @@ namespace Inventory.UI
 
         internal void ResetAllItems()
         {
+            if (listOfUIItems[0] == null)
+            {
+                int inventorySize = listOfUIItems.Count;
+                listOfUIItems = new List<UIInventoryItem>();
+                InitializeInventoryUI(inventorySize);
+            }
             foreach (var item in listOfUIItems)
             {   
                 item.ResetData();

@@ -51,10 +51,19 @@ public abstract class CreatedField : ScriptableObject
                 if (gameManager.createdFields[i] == null)
                 {
                     gameManager.createdFields[i] = this;
+                    break;
+                }
+            }
+
+            for (int i = 0; i < gameManager.mainGameManger.createdFields.Count; i++)
+            {
+                if (gameManager.mainGameManger.createdFields[i] == null)
+                {
+                    gameManager.mainGameManger.createdFields[i] = this;
                     return;
                 }
             }
-            Debug.LogError("Didn't find an open createdFields SLot");
+            Debug.LogError("Didn't find an open createdFields SLot for Animated Field: " + this.name);
         }
     }
 

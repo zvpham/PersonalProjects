@@ -22,6 +22,7 @@ public abstract class Status : ScriptableObject
 
     public bool isFieldStatus;
     public bool ApplyEveryTurn;
+    public bool isFirstApply;
     public bool isFirstTurn = true;
     public bool isFirstWorldTurn = true;
     public bool isMovementStatus = false;
@@ -76,6 +77,7 @@ public abstract class Status : ScriptableObject
         {
             if (target.statuses[i].statusName.Equals(this.statusName))
             {
+                this.isFirstApply = false;
                 if (currentStatusDuration < newDuration && newDuration > 0)
                 {
                     currentStatusDuration = newDuration;
@@ -92,6 +94,7 @@ public abstract class Status : ScriptableObject
             }
         }
 
+        this.isFirstApply = true;
         this.isFirstTurn = false;
         statusPriority = (int)(target.gameManager.baseTurnTime * this.statusQuickness);
         currentStatusDuration = newDuration;
@@ -105,6 +108,7 @@ public abstract class Status : ScriptableObject
 
     public void AddStatusOnLoadPreset(Unit target)
     {
+        this.isFirstApply = false;
         this.isFirstTurn = false;
         this.targetUnit = target;
         target.statuses.Add(this);
@@ -115,7 +119,6 @@ public abstract class Status : ScriptableObject
 
     public void RemoveStatusPreset(Unit target)
     {
-        Debug.Log(this);
         target.gameManager.numberOfStatusRemoved += 1;
         target.gameManager.mainGameManger.numberOfStatusRemoved += 1;
         int index = target.statuses.IndexOf(this);

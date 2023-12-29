@@ -104,15 +104,11 @@ public class MainGameManger : MonoBehaviour
         }
         CreateAStarPathing(rightMostPoint - leftMostPoint, topMostPoint - bottomMostPoint, wallGrid, unitGrid,
             new Vector3(leftMostPoint, bottomMostPoint, 0));
-
-        Debug.LogWarning("Width: " + (rightMostPoint - leftMostPoint) + "\n Height: " + (topMostPoint - bottomMostPoint)
-            + "\n OriginPositon: " + new Vector3(leftMostPoint, bottomMostPoint, 0));
     }
 
     // Update is called once per frame 
     void Update()
     {
-
         if (CanContinue(units[index]))
         {
             // finds the lowest priority amongst all the units, statuses, worldtimer
@@ -142,7 +138,7 @@ public class MainGameManger : MonoBehaviour
                 {
                     for (int i = 0; i < createdFields.Count; i++)
                     {
-                        if (createdFields[i].createdFieldPriority < least)
+                        if (createdFields[i].createdFieldPriority < least && !createdFields[i].fromAnimatedField)
                         {
                             least = createdFields[i].createdFieldPriority;
                         }
@@ -263,6 +259,10 @@ public class MainGameManger : MonoBehaviour
                 {
                     for (int i = 0; i < createdFields.Count; i++)
                     {
+                        if (createdFields[i].fromAnimatedField)
+                        {
+                            continue;
+                        }
                         createdFields[i].createdFieldPriority -= least;
                         if (createdFields[i].createdFieldPriority <= 0)
                         {
@@ -377,6 +377,16 @@ public class MainGameManger : MonoBehaviour
             }
             frozenGameManager.walls[i].Death();
         }
+
+        for(int i = frozenGameManager.items.Count - 1; i >= 0; i--)
+        {
+            if (frozenGameManager.items.Count == 0)
+            {
+                break;
+            }
+            Destroy(frozenGameManager.items[i].gameObject);
+        }
+        frozenGameManager.items = new List<Item>();
 
         Vector3 worldPosition;
         AStarPathNode node;

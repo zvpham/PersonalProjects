@@ -214,7 +214,7 @@ public class GameManager : MonoBehaviour
         {
             GameObject tempAnimatedField = Instantiate(resourceManager.animatedFields[data.animatedFields[i].animatedFieldTypeIndex]);
             tempAnimatedField.GetComponent<AnimatedField>().animatedFieldPriority = data.animatedFieldPriority[i];
-            tempAnimatedField.GetComponent<AnimatedField>().onLoad(data.animatedFields[i], resourceManager);
+            tempAnimatedField.GetComponent<AnimatedField>().onLoad(data.animatedFields[i], resourceManager, this, newDefaultGridPosition);
         }
 
         // Load Save Data Changes
@@ -409,7 +409,6 @@ public class GameManager : MonoBehaviour
             animatedFieldData tempAnimatedField = new animatedFieldData();
             tempAnimatedField.animatedFieldTypeIndex = animatedField.animatedFieldTypeIndex;
             tempAnimatedField.animatedCreatedFieldTypeIndex = resourceManager.createdFields.IndexOf(animatedField.createdFieldType);
-            tempAnimatedField.createdObjectIndex = resourceManager.createdObjects.IndexOf(animatedField.createdObject);
             tempAnimatedField.createdFieldQuickness = animatedField.createdFieldQuickness;
             tempAnimatedField.startPosition = animatedField.startPosition - newDefaultGridPosition;
             tempAnimatedField.initialDirection = animatedField.initialDirection;
@@ -463,6 +462,7 @@ public class GameManager : MonoBehaviour
             Unit tempUnit = allStatuses[i].targetUnit;
             allStatuses[i].RemoveEffect(tempUnit);
         }
+
 
         createdFields = new List<CreatedField>();
         animatedFields = new List<AnimatedField>();

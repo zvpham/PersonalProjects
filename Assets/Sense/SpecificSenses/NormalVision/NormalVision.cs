@@ -10,11 +10,12 @@ public class NormalVision : Sense
     public override void DetectNearbyUnits(Unit self)
     {
         gameManager = self.gameManager;
+        
         foreach (Unit unit in self.gameManager.units)
         {
+            clearLineOfSightToEnemy = true;
             BresenhamsAlgorithm.PlotFunction plotFunction = isThereClearLineOfSight;
             BresenhamsAlgorithm.Line((int)self.transform.position.x, (int)self.transform.position.y, (int)unit.transform.position.x, (int)unit.transform.position.y, plotFunction);
-            clearLineOfSightToEnemy = true;
             if (clearLineOfSightToEnemy && unit.faction == self.faction)
             {
                 self.allyList.Add(unit);
@@ -37,9 +38,9 @@ public class NormalVision : Sense
                 {
                     continue;
                 }
+                clearLineOfSightToEnemy = true;
                 BresenhamsAlgorithm.PlotFunction plotFunction = isThereClearLineOfSightPeripheral;
                 BresenhamsAlgorithm.Line((int)self.transform.position.x, (int)self.transform.position.y, (int)unit.transform.position.x, (int)unit.transform.position.y, plotFunction);
-                clearLineOfSightToEnemy = true;
                 if (clearLineOfSightToEnemy && unit.faction == self.faction)
                 {
                     self.allyList.Add(unit);

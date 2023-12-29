@@ -99,6 +99,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unitResourceManagerIndex: 1
+  priority: 0
   quickness: 1
   timeFlow: 1
   strength: 16
@@ -126,12 +127,19 @@ MonoBehaviour:
   faction: 2
   enemyList: []
   allyList: []
+  inPeripheralGameManager: 0
   gameManager: {fileID: 0}
   index: 0
-  statusDuration: 
   baseActionTemplate: {fileID: 11400000, guid: fff8b30047d67314883a3273f082f15a, type: 2}
   baseActions: []
   actions: []
+  actionNames: 
+  actionCooldowns: 
+  hasSeenEnemy: 0
+  chasing: 0
+  chaseActions: []
+  lastKnownEnemyLocation: {x: 0, y: 0, z: 0}
+  locationUnitIsChasing: {x: 0, y: 0, z: 0}
   senses: []
   actionNamesForCoolDownOnLoad: 
   currentCooldownOnLoad: 
@@ -150,7 +158,7 @@ MonoBehaviour:
   _keysUnusableActionTypes: 
   _valuesUnusableActionTypes: 
   drops:
-  - {fileID: 6784984918314032300, guid: 80956f5d3212a094788d2002a850e114, type: 3}
+  - {fileID: 2351099714194458737, guid: 86ce87ff372526345b69401b89285254, type: 3}
   forcedMovementPathData:
     forcedMovementPath: []
     forcedMovementSpeed: 0
@@ -163,9 +171,12 @@ MonoBehaviour:
   inMelee: 0
   continueDeath: 1
   ableToWander: 1
+  possibleToTransferGameMangers: 0
   highestPriorityActionIndex: 0
   currentActionWeight: 0
   highestActionWeight: 0
+  currentInterestLevel: 0
+  maxInterestLevel: 10
 --- !u!114 &7366917989401958428
 MonoBehaviour:
   m_ObjectHideFlags: 0

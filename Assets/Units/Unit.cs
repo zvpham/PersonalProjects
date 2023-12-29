@@ -595,7 +595,8 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
                 {
                     continue;
                 }
-                Instantiate(drop, this.transform.position, this.transform.rotation);
+                GameObject item  = Instantiate(drop, this.transform.position, this.transform.rotation);
+                item.GetComponent<Item>().gameManager = this.gameManager;
             }
         }
 

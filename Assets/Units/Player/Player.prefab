@@ -166,6 +166,8 @@ MonoBehaviour:
   inMiddleMap: 1
   inMelee: 0
   continueDeath: 1
+  inventorySystem: {fileID: 393510028513838877}
+  initialInventoryItemsForMapManager: []
   soulSlotIndexes: 
   onLoadSouls: []
   actionBar: {fileID: 0}

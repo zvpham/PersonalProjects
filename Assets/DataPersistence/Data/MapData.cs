@@ -14,17 +14,24 @@ public class MapData
     public List<Vector2Int> previousMapPositions;
     public List<Vector2Int> mapPositionsKey;
     public List<int> mapPositionValue;
-    public List<Vector3Int> hasVisitedLocations;
 
-    // Player Data
-
-    // Unit Data
-    public unitPrefabData unitPrefabDatas;
-    public int priority;
+    // MainGameManager Data
+    public int least;
+    public int index;
+    public bool aUnitActed = false;
+    public int duringTurn;
 
     // Player Specific Data
     public List<int> soulSlotIndexes;
     public List<int> soulIndexes;
+
+    // Inventory Data
+    public List<int> itemQuantities;
+    public List<int> itemSOIndexes;
+
+    // Unit Data
+    public unitPrefabData unitPrefabDatas;
+    public int priority;
 
     // Status Data
     public List<int> statusPriority;

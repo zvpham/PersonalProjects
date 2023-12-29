@@ -17,12 +17,12 @@ MonoBehaviour:
   statusQuickness: 1
   statusPriority: 500
   currentStatusDuration: 1
-  MaxStatusDuration: 1
   nonStandardDuration: 1
   statusName: SlowedTIme
   statusImage: {fileID: 21300000, guid: acd877136f07d3d46bbd6e7887c72a38, type: 3}
   isFieldStatus: 1
   ApplyEveryTurn: 0
+  isFirstApply: 1
   isFirstTurn: 0
   isFirstWorldTurn: 1
   isMovementStatus: 0
@@ -32,3 +32,4 @@ MonoBehaviour:
   actionTypesNotPermitted: 
   actionTypesThatCancelStatus: 
   actionTypesThatActionMustContain: 
+  ChangeTimeFlowValue: 2
