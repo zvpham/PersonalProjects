@@ -223,6 +223,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
                     mapGenerator.GenerateTile(resourceManager.tilesBases[tileBaseIndex], centerGameManager, extraDangerModifier);
                 }
             }
+            centerGameManager.gameManagerPosition = currentMapPosition;
         }
         else
         {
@@ -463,12 +464,27 @@ public class MapManager : MonoBehaviour, IDataPersistence
         currentMapPosition += direction;
 
         Vector2 newDirection = direction;
+        List<Vector2> directions = new List<Vector2> { new Vector2(1,1), new Vector2(1, 0), new Vector2(1, -1), new Vector2(0, 1),
+            new Vector2(0, 0), new Vector2(0, -1), new Vector2(-1, 1), new Vector2(-1, 0), new Vector2(-1, -1)};
         for(int i = 0; i < mainGameManger.activeGameManagers.Count; i++)
         {
-            Vector2 gameManagerDirection = mainGameManger.activeGameManagers[i].gameManagerDirection;
-            if(Vector2.Dot(gameManagerDirection, newDirection) == -1f)
+            if(directions.IndexOf(mainGameManger.activeGameManagers[i].gameManagerPosition -  currentMapPosition) == -1)
             {
-                FreezeZone(currentMapPosition - direction, mainGameManger.activeGameManagers[i].gameManagerDirection);
+                Debug.Log("attempting to Freeze Tile: " + (mainGameManger.activeGameManagers[i].gameManagerPosition));
+                FreezeZone(mainGameManger.activeGameManagers[i].gameManagerPosition, 
+                    mainGameManger.activeGameManagers[i].gameManagerDirection);
+                for(int j = previousMapPositions.Count - 1; j >= 0; j--)
+                {
+                    if (previousMapPositions[j] == mainGameManger.activeGameManagers[i].gameManagerPosition)
+                    {
+                        previousMapPositions.RemoveAt(j);
+                    }
+                }
+                int previousPositionIndex = previousMapPositionsKeys.IndexOf(mainGameManger.activeGameManagers[i].gameManagerPosition);
+                previousMapPositionsKeys.RemoveAt(previousPositionIndex);
+                previousMapPositionsValues.RemoveAt(previousPositionIndex);
+                mainGameManger.activeGameManagers.RemoveAt(i);
+                i--;
             }
         }
 

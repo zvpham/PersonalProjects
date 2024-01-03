@@ -141,10 +141,6 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             GUILayout.Label("Key: " + kvp.Key + " value: " + kvp.Value);
     }
 
-    public void OnTurnStart()
-    {
-        onTurnStart?.Invoke();
-    }
 
     public void UseSenses(bool usePeripheralManagerSenses)
     {
@@ -205,7 +201,19 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         inMelee = false;
     }
 
-    public void TurnEnd()
+    public virtual void UnitMovement(Vector3 originalPosition, Vector3 newPosition, bool FlyAtOrigin, bool FlyAtDestination)
+    {
+        gameManager.mainGameManger.GetGameManger(originalPosition).ChangeUnits(originalPosition, this, FlyAtDestination);
+        CheckForStatusFields(gameObject.transform.position, gameManager.mainGameManger.GetGameManger(newPosition));
+        gameManager.mainGameManger.GetGameManger(newPosition).ChangeUnits(newPosition, this, FlyAtDestination);
+    }
+
+    public virtual void OnTurnStart()
+    {
+        onTurnStart?.Invoke();
+    }
+
+    public virtual void TurnEnd()
     {
         if(actions.Count != 0)
         {
@@ -221,17 +229,11 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
                 }
             }
         }
-        onTurnEndPlayer();
         if (chasing && transform.position == locationUnitIsChasing)
         {
             hasSeenEnemy = false;
         }
         enabled = false;
-    }
-
-    public virtual void onTurnEndPlayer()
-    {
-
     }
 
     public virtual void ActivateTargeting()

@@ -73,9 +73,9 @@ public class EnemyTest : Unit
         
     }
 
-    private void OnEnable()
+    public override void OnTurnStart()
     {
-        OnTurnStart();
+        base.OnTurnStart();
         chasing = false;
         possibleToTransferGameMangers = false;
         if (gameManager != null)

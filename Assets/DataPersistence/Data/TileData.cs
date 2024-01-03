@@ -20,6 +20,10 @@ public class TileData
     public bool aUnitActed;
     public int duringTurn;
     public bool notNewTile = false;
+    public Vector2Int gameManagerPosition;
+
+    // Visibilty Data
+    public List<int> visibilityStates;
 
     // Wall Data
     public List<int> wallIndexes;

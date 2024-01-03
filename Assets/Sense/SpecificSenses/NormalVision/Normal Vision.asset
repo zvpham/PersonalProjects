@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   senseName: 0
   senseTypes: 00000000
-  range: 6
+  range: 100
   gameManager: {fileID: 0}
   mainGameManger: {fileID: 0}
   clearLineOfSightToEnemy: 0

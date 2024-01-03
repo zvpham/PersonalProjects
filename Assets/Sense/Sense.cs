@@ -6,11 +6,13 @@ public abstract class Sense : ScriptableObject
 {
     public SenseNames senseName;
     public List<SenseTypes> senseTypes;
-    public int range;
+    public float range;
     public GameManager gameManager;
     public MainGameManger mainGameManger;
 
     public abstract void DetectNearbyUnits(Unit self);
 
     public abstract void PeripheralManagerDetectUnits(Unit self);
+
+    public abstract void PlayerUseSense(Player player);
 }

@@ -106,9 +106,10 @@ public class Player : Unit
         enabled = false;
     }
 
-    public void OnEnable()
+    public override void OnTurnStart()
     {
-        OnTurnStart(); 
+        base.OnTurnStart();
+        PlayerUseSenses();
     }
 
     public void UpdatePlayerActions(Dictionary<int, InventoryItem> inventoryState = null)
@@ -211,6 +212,25 @@ public class Player : Unit
             }
         }
     }
+
+    public void PlayerUseSenses()
+    {
+        List<Vector2Int> tempTilesBeingActivelySeen = gameManager.tilesBeingActivelySeen;
+        for(int i = 0; i < tempTilesBeingActivelySeen.Count; i++)
+        {
+            gameManager.tileVisibilityStates[(int) (tempTilesBeingActivelySeen[i].x - gameManager.defaultGridPosition.x),
+                (int)(tempTilesBeingActivelySeen[i].y - gameManager.defaultGridPosition.y)] = 1;
+            gameManager.spriteGrid.GetGridObject(new Vector3(tempTilesBeingActivelySeen[i].x, tempTilesBeingActivelySeen[i].y, 0))
+                .sprites[0].color =  new Color(0, 0, 0, gameManager.VisitedSpaceAlpha);
+        }
+        gameManager.tilesBeingActivelySeen = new List<Vector2Int>();
+
+        for(int i = 0; i < senses.Count; i++)
+        {
+            senses[i].PlayerUseSense(this);
+        }
+    }
+
     public override void ActivateTargeting()
     {
         base.ActivateTargeting();
@@ -249,13 +269,15 @@ public class Player : Unit
         actionBar.UpdateActionsDisplay();
     }
 
-    public override void onTurnEndPlayer()
+    public override void TurnEnd()
     {
+        base.TurnEnd();
         for (int i = 0; i < actions.Count; i++)
         {
             actionBar.UpdateCoolDowns(actions[i].actionName, actions[i].currentCooldown);
         }
         actionBar.UpdateActionsDisplay();
         gameManager.mainGameManger.mapManager.UpdatePreviousPositions();
+        PlayerUseSenses();
     }
 }

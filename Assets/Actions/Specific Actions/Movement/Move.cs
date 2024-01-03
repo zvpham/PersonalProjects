@@ -54,9 +54,7 @@ public class Move
             }
             else
             {
-                gameManager.ChangeUnits(originalPosition, null);
-                target.CheckForStatusFields(target.gameObject.transform.position, mainGameManger.GetGameManger(newPosition));
-                mainGameManger.GetGameManger(newPosition).ChangeUnits(newPosition, target);
+                target.UnitMovement(originalPosition, newPosition, false, false);
                 target.HandlePerformActions(movementActions, ActionName.MoveNorth);
             }
             return;
@@ -76,10 +74,8 @@ public class Move
                 {
                     PickupIfItem(target, target.gameObject.transform.position, gameManager);
                 }
-                //gameManager.locations[0] = target.gameObject.transform.position;
-                gameManager.ChangeUnits(originalPosition, null);
-                target.CheckForStatusFields(target.gameObject.transform.position, gameManager);
-                gameManager.ChangeUnits(target.gameObject.transform.position, target);
+
+                target.UnitMovement(originalPosition, target.gameObject.transform.position, false, false);
                 target.HandlePerformActions(movementActions, ActionName.MoveNorth);
             }
         }
@@ -124,7 +120,6 @@ public class Move
         Unit unit = gameManager.grid.GetGridObject(newPosition);
         if (unit != null && target.faction != unit.faction)
         {
-            Debug.Log(unit);
             MeleeAttack.Attack(unit, target.toHitBonus, target.armorPenetration, target.strengthMod + 3);
             target.HandlePerformActions(meleeActions, ActionName.MeleeAttack);
             return true;

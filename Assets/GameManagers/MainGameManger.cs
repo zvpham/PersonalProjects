@@ -172,6 +172,7 @@ public class MainGameManger : MonoBehaviour
                     index = i;
                     duringTurn = 1;
                     units[i].enabled = true;
+                    units[i].OnTurnStart();
                     aUnitActed = true;
                     break;
                 }

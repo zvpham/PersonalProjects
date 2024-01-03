@@ -51,11 +51,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7fbdce591e6947246b7ff2076d1d93a0, type: 2}
   - {fileID: 11400000, guid: f03e1a567ad19eb429bcefdc63523639, type: 2}
   - {fileID: 11400000, guid: 2653de1a9dbcc974ab784b2ca8786018, type: 2}
+  - {fileID: 11400000, guid: 657da0517441e8240b582487fbb5d931, type: 2}
   tileBasePrefabs:
   - {fileID: 1689565927711930161, guid: dbaa5543ba2b26e4f8dbc19ea2e7bdba, type: 3}
   - {fileID: 1689565927711930161, guid: 35cc8a19c9cb7544f91864b8893e5e94, type: 3}
   - {fileID: 1689565927711930161, guid: 982409dabd9d4a747b469ac9aba23ea8, type: 3}
   - {fileID: 1689565927711930161, guid: 663a08c37de305c4fbdd7c71db983444, type: 3}
+  - {fileID: 1689565927711930161, guid: 861241c5729a02b459f72ebe82e4cc57, type: 3}
   WFCTrainerTemplates:
   - {fileID: 6673060735310548668, guid: ff7b12151337fdd41990b58af146d42b, type: 3}
   - {fileID: 5237512561074942730, guid: 97bed6a851c0fa943ac486e707ea852a, type: 3}

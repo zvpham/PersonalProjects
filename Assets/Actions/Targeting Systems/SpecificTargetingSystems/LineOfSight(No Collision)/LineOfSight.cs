@@ -121,7 +121,6 @@ public class LineOfSight: MonoBehaviour
 
         if (mousePosition != prevMousePosition && new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0) != targetPosition)
         {
-            Debug.Log("MOUSE MOVING");
             targetPosition = new Vector3((int)(mousePosition.x + xOffSet), (int)(mousePosition.y + yOffSet), 0);
             ClearMarkers();
             if (Input.GetMouseButtonDown(0))

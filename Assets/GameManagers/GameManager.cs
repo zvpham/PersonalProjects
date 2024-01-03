@@ -11,14 +11,14 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
 
-
 public class GameManager : MonoBehaviour
 {
-    public static GameManager instance;
+    public static GameManager instance; 
     public MainGameManger mainGameManger;
 
     public bool activeGameManager = false;
     public Vector2Int gameManagerDirection;
+    public Vector2Int gameManagerPosition;
     public Vector3 defaultGridPosition;
 
     public int baseTurnTime = 500;
@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
     public Grid<Unit> flyingGrid;
     public Grid<List<Item>> itemgrid;
     public Grid<Wall> obstacleGrid;
+    public Grid<SpriteNode> spriteGrid;
 
     public List<Wall> walls;
     public List<SetPiece> setPieces;
@@ -41,6 +42,15 @@ public class GameManager : MonoBehaviour
     public List<Status> allStatuses;
     public List<CreatedField> createdFields = new List<CreatedField>();
     public List<AnimatedField> animatedFields = new List<AnimatedField>();
+
+    // 0 = has never Seen Tile, 1 = Has Seen Tile, 2 = Currently Seeing Tile
+    public int[,] tileVisibilityStates;
+    public List<Vector2Int> tilesBeingActivelySeen = new List<Vector2Int>();
+
+    public GameObject darknessSprite;
+    public float UnknownSpaceAlpha;
+    public float VisitedSpaceAlpha;
+    public float KnownSpaceAlpha;
 
     public int numberOfStatusRemoved = 0;
 
@@ -74,8 +84,10 @@ public class GameManager : MonoBehaviour
         flyingGrid = new Grid<Unit>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<Unit> g, int x, int y) => null);
         itemgrid = new Grid<List<Item>>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<List<Item>> g, int x, int y) => null);
         obstacleGrid = new Grid<Wall>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<Wall> g, int x, int y) => null);
+        spriteGrid = new Grid<SpriteNode>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<SpriteNode> g, int x, int y) => new SpriteNode(g, x, y));
         initalRenderLocations = new List<Vector3>();
         finalRenderLocations = new List<Vector3>();
+        tileVisibilityStates = new int[mainGameManger.mapWidth, mainGameManger.mapHeight];
     }
 
      public virtual void Start()
@@ -125,6 +137,7 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("New Tile GameManager");
             isNewSlate = true;
+            tileVisibilityStates = new int[mainGameManger.mapWidth, mainGameManger.mapHeight];
             return;
         }
         activeGameManager = true;
@@ -133,6 +146,13 @@ public class GameManager : MonoBehaviour
 
         // Load Game Manager Data
         this.numberOfStatusRemoved = data.numberOfStatusRemoved;
+        this.gameManagerPosition = data.gameManagerPosition;
+
+        // Load Visibility Data
+        for(int i = 0; i < data.visibilityStates.Count; i++)
+        {
+            tileVisibilityStates[i % mainGameManger.mapWidth, i / mainGameManger.mapWidth] = data.visibilityStates[i];
+        }
 
         // Load Wall Data
         for (int i = 0; i < data.wallIndexes.Count; i++)
@@ -236,6 +256,18 @@ public class GameManager : MonoBehaviour
         // Game Manager Data
         data.numberOfStatusRemoved = this.numberOfStatusRemoved;
         data.notNewTile = true;
+        data.gameManagerPosition = this.gameManagerPosition;
+
+        // Visibility Data
+        List<int> visibilityStates = new List<int>();
+        for(int i = 0; i < tileVisibilityStates.GetLength(1); i++)
+        {
+            for (int j = 0; j < tileVisibilityStates.GetLength(0); j++)
+            {
+                visibilityStates.Add(tileVisibilityStates[j, i]);
+            }
+        }
+        data.visibilityStates = visibilityStates;
 
         // Wall Data
         List<int> wallIndexes = new List<int>();
@@ -966,4 +998,50 @@ public class GameManager : MonoBehaviour
                 break;
         }
     }
+
+    public void CreateDarkness()
+    {
+        GameObject darkness;
+        for(int i = 0; i < mainGameManger.mapHeight; i++)
+        {
+            for(int j = 0;  j < mainGameManger.mapWidth; j++)
+            {
+                darkness = Instantiate(darknessSprite, defaultGridPosition + new Vector3(j, i, 0), new Quaternion(0, 0, 0, 1f));
+            }
+        }
+    }
+
+    public void ChangeDarknessTest()
+    {
+        for (int i = 0; i < mainGameManger.mapHeight; i++)
+        {
+            for (int j = 0; j < mainGameManger.mapWidth; j++)
+            {
+            }
+        }
+
+    }
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(GameManager))]
+public class GameManagerEditor : Editor
+{
+    public enum TileOperation { None, Drawing, Erasing, Sampling };
+    private TileOperation operation;
+
+    public override void OnInspectorGUI()
+    {
+        GameManager me = (GameManager)target;
+        if (GUILayout.Button("Create Darkness"))
+        {
+            me.CreateDarkness();
+        }
+        if (GUILayout.Button("Change Darkness"))
+        {
+            me.ChangeDarknessTest();
+        }
+        DrawDefaultInspector();
+    }
+}
+#endif
