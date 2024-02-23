@@ -116,17 +116,12 @@ public class SaveSlotsMenu : Menu
         BackButton.interactable = true;
 
         Dictionary<string, MapData>.KeyCollection temp = profilesGameData.Keys;
-        foreach(string key in temp)
-        {
-            Debug.Log("1 " + key);
-        }
 
         // Loop throguh each save slot in the UI and set the content Appropiately
         GameObject firstSelected =  BackButton.gameObject;
         foreach(SaveSlot saveSlot in saveSlots)
         {
             MapData profileData = null;
-            Debug.Log(saveSlot.GetProfileId() + DataPersistenceManager.Instance.autoSaveID + DataPersistenceManager.Instance.playerID);
             profilesGameData.TryGetValue(saveSlot.GetProfileId() + " " + DataPersistenceManager.Instance.autoSaveID + " " +
                 DataPersistenceManager.Instance.playerID, out profileData);
             saveSlot.SetData(profileData);

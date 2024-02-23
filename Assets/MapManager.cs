@@ -31,6 +31,8 @@ public class MapManager : MonoBehaviour, IDataPersistence
     public TileData[] templateTiles;
     public TileData[] currentTiles;
 
+    public PostMapGenerationStart postMapGenerationStart;
+
     public MainGameManger mainGameManger;
 
     public GameManager centerGameManager;
@@ -75,10 +77,10 @@ public class MapManager : MonoBehaviour, IDataPersistence
         //Sets Start position for Player when first starting SaveSlot
         if (previousMapPositionsKeys.Count == 0)
         {
-            currentMapPosition = new Vector2Int(0, 0);
+            currentMapPosition = new Vector2Int(1, 1);
 
-            previousMapPositions = new List<Vector2Int>() { new Vector2Int(0, 0) };
-            previousMapPositionsKeys = new List<Vector2Int>() { new Vector2Int(0, 0) };
+            previousMapPositions = new List<Vector2Int>() { new Vector2Int(1, 1) };
+            previousMapPositionsKeys = new List<Vector2Int>() { new Vector2Int(1, 1) };
             previousMapPositionsValues = new List<int>() {1};
 
             GameObject temp = Instantiate(resourceManager.unitPrefabs[0], new Vector3(100, 45, 0), 
@@ -105,7 +107,6 @@ public class MapManager : MonoBehaviour, IDataPersistence
             unit.health = tempData.health;
             unit.actionNamesForCoolDownOnLoad = tempData.actionNames;
             unit.currentCooldownOnLoad = tempData.actionCooldowns;
-            unit.forcedMovementPathData = tempData.forcedMovementPathData;
             unit.priority = (int)(mainGameManger.baseTurnTime * 1f);
 
             // Load Player Specific Data
@@ -143,6 +144,15 @@ public class MapManager : MonoBehaviour, IDataPersistence
                 tempStatus.onLoadApply(unit);
             }
 
+            // Load ForcedMovementData
+            if(mapData.indexofUnitWithForcedMovement != -1)
+            {
+                GameObject tempGameObject = Instantiate(resourceManager.forcedMovementPrefab);
+                ForcedMovement tempForcedMovement = tempGameObject.GetComponent<ForcedMovement>();
+                tempForcedMovement.Load(mapData.forcedMovementData, unit,
+                    (MovementStatus)  centerGameManager.allStatuses[mapData.indexofStatusWithForcedMovement]);
+            }
+
             // Loading WorldMapTemplateData
             worldMapData = dataPersistenceManager.GetWorldMapData();
         }
@@ -152,9 +162,9 @@ public class MapManager : MonoBehaviour, IDataPersistence
         {
             mainGameManger.least = mapData.least;
             mainGameManger.index = mapData.index;
-            mainGameManger.aUnitActed = mapData.aUnitActed;
+            mainGameManger.aUnitIsActing = mapData.aUnitActed;
             mainGameManger.duringTurn = mapData.duringTurn;
-            mainGameManger.units[mapData.index].enabled = true;
+            postMapGenerationStart.indexofUnitEnabled = mapData.index;
         }
 
         if (currentMapPosition.x >= worldMap.width || currentMapPosition.y >= worldMap.height || 
@@ -294,7 +304,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
             mapData.playerPosition = new Vector2Int((int)newPlayerPosition.x, (int)newPlayerPosition.y);
             mapData.least = mainGameManger.least;
             mapData.index = mainGameManger.index;
-            mapData.aUnitActed = mainGameManger.aUnitActed;
+            mapData.aUnitActed = mainGameManger.aUnitIsActing;
             mapData.duringTurn = mainGameManger.duringTurn;
         }
         mapData.currentMapPosition = currentMapPosition;
@@ -313,7 +323,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
             actionNames.Add(action.actionName);
         }
         unitPrefabData tempUnitData = new unitPrefabData(unit.gameObject.transform.position, unit.priority,
-            unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames, unit.forcedMovementPathData);
+            unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames);
         
         mapData.unitPrefabDatas = tempUnitData;
 
@@ -360,6 +370,11 @@ public class MapManager : MonoBehaviour, IDataPersistence
                 statusBoolData.Add(status.statusBoolData);
                 statusPriorities.Add(status.statusPriority);
                 statusDurations.Add(status.currentStatusDuration);
+
+                if(status.isMovementStatus == true)
+                {
+                    mapData.indexofStatusWithForcedMovement = statusIndexList.Count - 1;
+                }
             }
 
         }
@@ -370,6 +385,21 @@ public class MapManager : MonoBehaviour, IDataPersistence
         mapData.statusIntData = statusIntData;
         mapData.statusStringData = statusStringData;
         mapData.statusBoolData = statusBoolData;
+
+        // ForcedMovementData
+        mapData.indexofUnitWithForcedMovement = -1;
+        for (int i = 0; i < centerGameManager.forcedMovements.Count; i++)
+        {
+            if (centerGameManager.forcedMovements[i].unit == centerGameManager.units[0])
+            {
+                ForcedMovement forcedMovement = centerGameManager.forcedMovements[i];
+                mapData.forcedMovementData = new ForcedMovementPathData(forcedMovement.forcedMovementPath,
+                    forcedMovement.forcedMovementSpeed, forcedMovement.excessForcedMovementSpeed,
+                    forcedMovement.previousForcedMovementIterrationRate, forcedMovement.forcedPathIndex,
+                    forcedMovement.currentPathIndex, forcedMovement.forcedMovmentPriority, forcedMovement.isFlying);
+                mapData.indexofUnitWithForcedMovement = 0;
+            }
+        }
 
         // Reversing currentMapPosition Transformation applied during AttemptToMoveMapPosition if it succeeded
         Debug.Log(currentMapPosition + ", " + mapMovementDirection);

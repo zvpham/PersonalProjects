@@ -25,6 +25,8 @@ MonoBehaviour:
   - {fileID: 8096759470053534158, guid: 50497ed9059cccf4d8c0e2d69851928b, type: 3}
   - {fileID: 8096759470053534158, guid: e92e268034a0d264783d64aa2dc40030, type: 3}
   - {fileID: 2527387851303890164, guid: 553bfb20872ef0a458e7b394829a2ab5, type: 3}
+  forcedMovementPrefab: {fileID: 5536059698635866692, guid: a2589c2bf5d614044ab25ce1bfac9ba4,
+    type: 3}
   itemRefrences:
   - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
   - {fileID: 11400000, guid: ba13d70c7ffc14441a1a176eafab8390, type: 2}

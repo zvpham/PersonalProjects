@@ -17,6 +17,7 @@ public class LineOfSight: MonoBehaviour
     public int projectileRangeSections;
     public Sprite projectile;
 
+    public GameObject endPositionMarkerPrefab;
     public GameObject endPositionMarker;
     public GameObject linePrefab;
     private GameObject finalMarker;
@@ -159,7 +160,7 @@ public class LineOfSight: MonoBehaviour
     {
         BresenhamsAlgorithm.PlotFunction plotFunction = createDot;
         BresenhamsAlgorithm.Line(startingX, startingY, (int)targetPosition.x, (int)targetPosition.y, plotFunction);
-        markerList.Add(Instantiate(endPositionMarker, targetPosition, new Quaternion(0, 0, 0, 1f)));
+        endPositionMarker = Instantiate(endPositionMarkerPrefab, targetPosition, new Quaternion(0, 0, 0, 1f));
         if (careAboutRange)
         {
             if (projectileRangeSections != 1)
@@ -204,6 +205,7 @@ public class LineOfSight: MonoBehaviour
             {
                 Destroy(marker);
             }
+            Destroy(endPositionMarker);
         }
     }
 

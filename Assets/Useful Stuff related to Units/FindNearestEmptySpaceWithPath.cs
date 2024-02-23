@@ -40,13 +40,24 @@ public static class FindNearestEmptySpaceWithPath
         maxDebugTries = 100;
 
         gameManager = targetUnit.gameManager;
-        return FindPath(targetUnit, originUnit, !CareAboutWalls);
+        return FindPath(targetUnit.transform.position, originUnit, !CareAboutWalls);
     }
 
-    private static List<Vector3> FindPath(Unit targetUnit, Unit originUnit, bool ignoreWalls)
+    public static List<Vector3> FindEmptySpace(Vector3 targetPosition, Unit originUnit, bool CareAboutWalls)
+    {
+        debugWord = "";
+        openList = new List<Vector3>();
+        closedList = new List<Vector3>();
+        maxDebugTries = 100;
+
+        gameManager = originUnit.gameManager;
+        return FindPath(targetPosition, originUnit, !CareAboutWalls);
+    }
+
+    private static List<Vector3> FindPath(Vector3 targetPosition, Unit originUnit, bool ignoreWalls)
     {
         debugTries = 0;
-        openList.Add(targetUnit.gameObject.transform.position);
+        openList.Add(targetPosition);
         while (openList.Count > 0)
         {
             debugTries += 1;

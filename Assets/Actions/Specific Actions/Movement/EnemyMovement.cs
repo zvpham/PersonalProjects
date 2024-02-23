@@ -37,7 +37,7 @@ public class EnemyMovement : Action
         }
         else if (movementPath == null)
         {
-            List<Vector3> temp = FindNearestEmptySpaceWithPath.FindEmptySpace(self.enemyList[self.closestEnemyIndex], self, true);
+            List<Vector3> temp = FindNearestEmptySpaceWithPath.FindEmptySpace(targetLocation, self, true);
             if (temp != null && temp.Count > 1)
             {
                 Vector2 newPosition = temp[1] - temp[0];

@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
     public static GameManager instance; 
     public MainGameManger mainGameManger;
 
+    public bool isPeripheralGameManager;
     public bool activeGameManager = false;
     public Vector2Int gameManagerDirection;
     public Vector2Int gameManagerPosition;
@@ -39,6 +40,7 @@ public class GameManager : MonoBehaviour
     public List<Item> items;
 
     public List<Unit> units;
+    public List<ForcedMovement> forcedMovements = new List<ForcedMovement>();
     public List<Status> allStatuses;
     public List<CreatedField> createdFields = new List<CreatedField>();
     public List<AnimatedField> animatedFields = new List<AnimatedField>();
@@ -52,17 +54,13 @@ public class GameManager : MonoBehaviour
     public float VisitedSpaceAlpha;
     public float KnownSpaceAlpha;
 
-    public int numberOfStatusRemoved = 0;
-
     public float secSpriteChangeSpeed;
     private float currentTime = 0;
 
     public float expectedLocationChangeSpeed;
     public float currentExpectedLoactionChangeSpeed;
-    public int isLocationChangeStatus = 0;
     public ExpectedLocationMarker expectedLocationMarker;
     public List<int> expectedLocationChangeList = new List<int>();
-    public List<Unit> unitWhoHaveLocationChangeStatus = new List<Unit>();
 
     public List<List<List<AnimatedField.Node>>> expectedBlastPaths = new List<List<List<AnimatedField.Node>>>();
     public List<int> expectedBlastRowNumber = new List<int>();
@@ -95,6 +93,106 @@ public class GameManager : MonoBehaviour
         currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
         expectedLocationMarker.selfDestructionTimer = expectedLocationChangeSpeed;
     }
+
+    void Update()
+    {
+        // Adds a phantome image of things that have a set or predicted path
+        currentTime += Time.deltaTime;
+
+        if (currentTime >= currentExpectedLoactionChangeSpeed)
+        {
+            ExpectedLocationSpriteManager();
+
+            if (expectedBlastPaths.Count > 0)
+            {
+                ExpectedBlastManager();
+            }
+            currentExpectedLoactionChangeSpeed += expectedLocationChangeSpeed;
+        }
+        // Changes Sprites of all units based on statuses they have independent of Turns
+        if (currentTime >= secSpriteChangeSpeed)
+        {
+            SpriteChangeManager();
+        }
+    }
+
+
+    private bool CanContinue(MonoBehaviour script)
+    {
+        return !script.isActiveAndEnabled;
+    }
+
+    private void ExpectedLocationSpriteManager()
+    {
+        for(int i = 0; i < forcedMovements.Count; i++)
+        {
+            if (!(expectedLocationChangeList[i] + forcedMovements[i].currentPathIndex >
+                    forcedMovements[i].forcedMovementPath.Count - 1))
+            {
+                GameObject temp = Instantiate(expectedLocationMarker.gameObject);
+                temp.GetComponent<SpriteRenderer>().sprite = forcedMovements[i].unit.originalSprite;
+                temp.transform.position = forcedMovements[i].forcedMovementPath
+                    [forcedMovements[i].currentPathIndex + expectedLocationChangeList[i]];
+            }
+            expectedLocationChangeList[i] += 1;
+            if (expectedLocationChangeList[i] + forcedMovements[i].currentPathIndex
+               > forcedMovements[i].forcedMovementPath.Count)
+            {
+                expectedLocationChangeList[i] = 0;
+            }
+        }
+    }
+
+    private void ExpectedBlastManager()
+    {
+        for (int individualBlastIndex = 0; individualBlastIndex < expectedBlastPaths.Count; individualBlastIndex++)
+        {
+            int rowIndex = expectedBlastRowNumber[individualBlastIndex];
+            List<GameObject> blastmarkerList = new List<GameObject>();
+            for (int markerIndex = 0; markerIndex < expectedBlastPaths[individualBlastIndex][rowIndex].Count; markerIndex++)
+            {
+                AnimatedField.Node node = expectedBlastPaths[individualBlastIndex][rowIndex][markerIndex];
+                GameObject temp = Instantiate(expectedLocationMarker.gameObject);
+                temp.GetComponent<SpriteRenderer>().sprite = node.createdObjectSprite;
+                temp.transform.position = node.position;
+            }
+            expectedBlastRowNumber[individualBlastIndex] += 1;
+            if (expectedBlastRowNumber[individualBlastIndex] >= expectedBlastPaths[individualBlastIndex].Count())
+            {
+                expectedBlastRowNumber[individualBlastIndex] = 0;
+            }
+        }
+    }
+
+    private void SpriteChangeManager()
+    {
+        foreach (Unit unit in units)
+        {
+            currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
+            if (unit.statuses.Count != 0)
+            {
+                unit.spriteIndex += 1;
+                if (unit.spriteIndex == unit.statuses.Count)
+                {
+                    unit.spriteIndex = -1;
+                    unit.ChangeSprite(unit.originalSprite);
+                }
+                else
+                {
+                    if ((unit.spriteIndex < unit.statuses.Count))
+                    {
+                        unit.ChangeSprite(unit.statuses[unit.spriteIndex].statusImage);
+                    }
+                }
+            }
+            else
+            {
+                unit.ChangeSprite(unit.originalSprite);
+            }
+        }
+        currentTime = 0;
+    }
+
 
 
     public void ChangeUnits(Vector3 worldPosition, Unit unit, bool isFlying = false)
@@ -145,7 +243,6 @@ public class GameManager : MonoBehaviour
         Vector2 newDefaultGridPosition = defaultGridPosition - mainGameManger.centralGameManager.defaultGridPosition;
 
         // Load Game Manager Data
-        this.numberOfStatusRemoved = data.numberOfStatusRemoved;
         this.gameManagerPosition = data.gameManagerPosition;
 
         // Load Visibility Data
@@ -163,7 +260,7 @@ public class GameManager : MonoBehaviour
             wall.gameManager = this;
         }
 
-        // Load Wall Data
+        // Load SetPiece Data
         for (int i = 0; i < data.setPieceIndexes.Count; i++)
         {
             GameObject tempWall = Instantiate(resourceManager.setPiecies[data.setPieceIndexes[i]], data.setPiecePositions[i] + newDefaultGridPosition, new Quaternion(0, 0, 0, 1f));
@@ -193,7 +290,6 @@ public class GameManager : MonoBehaviour
             unit.health = tempData.health;
             unit.actionNamesForCoolDownOnLoad = tempData.actionNames;
             unit.currentCooldownOnLoad = tempData.actionCooldowns;
-            unit.forcedMovementPathData = tempData.forcedMovementPathData;
             unit.priority = tempData.priority;
         }
 
@@ -207,6 +303,15 @@ public class GameManager : MonoBehaviour
             temp.statusStringData = data.statusStringData[i];
             temp.statusBoolData = data.statusBoolData[i];
             temp.onLoadApply(this.units[data.indexOfUnitThatHasStatus[i]]);
+        }
+
+        // Load Forced Movement Data
+        for(int i = 0; i < data.forcedMovementDatas.Count; i++)
+        {
+            GameObject tempGameObject = Instantiate(resourceManager.forcedMovementPrefab);
+            ForcedMovement tempForcedMovement =  tempGameObject.GetComponent<ForcedMovement>();
+            tempForcedMovement.Load(data.forcedMovementDatas[i], units[data.indexofUnitWithForcedMovement[i]],
+                (MovementStatus) allStatuses[data.indexofStatusWithForcedMovement[i]]);
         }
 
         // Load Created Field Data;
@@ -254,7 +359,6 @@ public class GameManager : MonoBehaviour
         Vector3 newDefaultGridPosition = defaultGridPosition - mainGameManger.centralGameManager.defaultGridPosition;
 
         // Game Manager Data
-        data.numberOfStatusRemoved = this.numberOfStatusRemoved;
         data.notNewTile = true;
         data.gameManagerPosition = this.gameManagerPosition;
 
@@ -314,7 +418,7 @@ public class GameManager : MonoBehaviour
         data.itemLocations = itemPositions;
 
         // Unit data
-        if(isFrozenZone)
+        if(isPeripheralGameManager || isFrozenZone)
         {
             data.numberOfUnits = this.units.Count;
             List<unitPrefabData> tempUnitPrefabData = new List<unitPrefabData>();
@@ -330,7 +434,7 @@ public class GameManager : MonoBehaviour
                     actionNames.Add(action.actionName);
                 }
                 unitPrefabData temp = new unitPrefabData(unit.gameObject.transform.position - newDefaultGridPosition, unit.priority,
-                    unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames, unit.forcedMovementPathData);
+                    unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames);
                 tempUnitPrefabData.Add(temp);
             }
             data.unitPrefabDatas = tempUnitPrefabData;
@@ -351,11 +455,48 @@ public class GameManager : MonoBehaviour
                     actionNames.Add(action.actionName);
                 }
                 unitPrefabData temp = new unitPrefabData(unit.gameObject.transform.position - newDefaultGridPosition, unit.priority,
-                    unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames, unit.forcedMovementPathData);
+                    unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames);
                 tempUnitPrefabData.Add(temp);
             }
             data.unitPrefabDatas = tempUnitPrefabData;
         }
+
+        //Forced Movement Data
+        List<ForcedMovementPathData> forcedMovementPathDatas = new List<ForcedMovementPathData>();
+        List<int> indexofUnitWithForcedMovement = new List<int>();
+        List<int> indexofStatusWithForcedMovement = new List<int>();
+
+        if(isPeripheralGameManager || isFrozenZone)
+        {
+            for (int i = 0; i < forcedMovements.Count; i++)
+            {
+                ForcedMovementPathData tempMovementPathData = new ForcedMovementPathData(forcedMovements[i].forcedMovementPath,
+                    forcedMovements[i].forcedMovementSpeed, forcedMovements[i].excessForcedMovementSpeed,
+                    forcedMovements[i].previousForcedMovementIterrationRate, forcedMovements[i].forcedPathIndex,
+                    forcedMovements[i].currentPathIndex, forcedMovements[i].forcedMovmentPriority, forcedMovements[i].isFlying);
+                indexofUnitWithForcedMovement.Add(units.IndexOf(forcedMovements[i].unit));
+                indexofStatusWithForcedMovement.Add(allStatuses.IndexOf(forcedMovements[i].status));
+            }
+        }
+        else
+        {
+            for (int i = 0; i < forcedMovements.Count; i++)
+            {
+                if (forcedMovements[i].unit == units[0])
+                {
+                    continue;
+                }
+                ForcedMovementPathData tempMovementPathData = new ForcedMovementPathData(forcedMovements[i].forcedMovementPath,
+                    forcedMovements[i].forcedMovementSpeed, forcedMovements[i].excessForcedMovementSpeed,
+                    forcedMovements[i].previousForcedMovementIterrationRate, forcedMovements[i].forcedPathIndex,
+                    forcedMovements[i].currentPathIndex, forcedMovements[i].forcedMovmentPriority, forcedMovements[i].isFlying);
+                indexofUnitWithForcedMovement.Add(units.IndexOf(forcedMovements[i].unit));
+                indexofStatusWithForcedMovement.Add(allStatuses.IndexOf(forcedMovements[i].status));
+            }
+        }
+        data.forcedMovementDatas = forcedMovementPathDatas;
+        data.indexofUnitWithForcedMovement = indexofUnitWithForcedMovement;
+        data.indexofStatusWithForcedMovement = indexofStatusWithForcedMovement;
 
         // Status Data
         List<int> statusIndexList = new List<int>();
@@ -365,7 +506,7 @@ public class GameManager : MonoBehaviour
         List<bool> statusBoolData = new List<bool>();
         List<int> newStatusPriority = new List<int>();
         List<int> newStatusDuration = new List<int>();
-        if(isFrozenZone)
+        if(isPeripheralGameManager || isFrozenZone)
         {
             for (int i = 0; i < allStatuses.Count; i++)
             {
@@ -489,6 +630,19 @@ public class GameManager : MonoBehaviour
             createdFields[i].RemoveStatusOnDeletion();
         }
 
+        while(forcedMovements.Count > 0)
+        {
+            for(int i = 0; i < forcedMovements.Count; i++)
+            {
+                int forcedMovemenAmount = forcedMovements.Count;
+                forcedMovements[i].Activate();
+                if(forcedMovemenAmount != forcedMovements.Count)
+                {
+                    i--;
+                }
+            }
+        }
+
         for (int i = allStatuses.Count -1 ; i >= 0; i--)
         {
             Unit tempUnit = allStatuses[i].targetUnit;
@@ -501,119 +655,6 @@ public class GameManager : MonoBehaviour
         allStatuses = new List<Status>();
     }
 
-    // Update is called once per frame 
-    void Update()
-    {
-        // Adds a phantome image of things that have a set or predicted path
-        currentTime += Time.deltaTime;
-
-        if (currentTime >= currentExpectedLoactionChangeSpeed)
-        {
-            if (isLocationChangeStatus >= 1)
-            {
-                ExpectedLocationSpriteManager();
-            }
-
-            if (expectedBlastPaths.Count > 0)
-            {
-                ExpectedBlastManager();
-            }
-            currentExpectedLoactionChangeSpeed += expectedLocationChangeSpeed;
-        }
-        // Changes Sprites of all units based on statuses they have independent of Turns
-        if (currentTime >= secSpriteChangeSpeed)
-        {
-            SpriteChangeManager();
-        }
-    }
-
-
-    private bool CanContinue(MonoBehaviour script)
-    {
-        return !script.isActiveAndEnabled;
-    }
-
-    private void ExpectedLocationSpriteManager()
-    {
-        foreach (Unit unit in units)
-        {
-            if (unit.hasLocationChangeStatus >= 1)
-            {
-                if (!unitWhoHaveLocationChangeStatus.Contains<Unit>(unit))
-                {
-                    unitWhoHaveLocationChangeStatus.Add(unit);
-                    expectedLocationChangeList.Add(0);
-                }
-
-                int i = unitWhoHaveLocationChangeStatus.IndexOf(unit);
-                if (!(expectedLocationChangeList[i] + unit.forcedMovementPathData.currentPathIndex >
-                    unit.forcedMovementPathData.forcedMovementPath.Count - 1))
-                {
-                    GameObject temp = Instantiate(expectedLocationMarker.gameObject);
-                    temp.GetComponent<SpriteRenderer>().sprite = unit.originalSprite;
-                    temp.transform.position = unit.forcedMovementPathData.forcedMovementPath
-                        [unit.forcedMovementPathData.currentPathIndex + expectedLocationChangeList[i]];
-                }
-                expectedLocationChangeList[i] += 1;
-                if (expectedLocationChangeList[i] + unit.forcedMovementPathData.currentPathIndex
-                   > unit.forcedMovementPathData.forcedMovementPath.Count)
-                {
-                    expectedLocationChangeList[i] = 0;
-                }
-            }
-        }
-    }
-
-    private void ExpectedBlastManager()
-    {
-        for (int individualBlastIndex = 0; individualBlastIndex < expectedBlastPaths.Count; individualBlastIndex++)
-        {
-            int rowIndex = expectedBlastRowNumber[individualBlastIndex];
-            List<GameObject> blastmarkerList = new List<GameObject>();
-            for (int markerIndex = 0; markerIndex < expectedBlastPaths[individualBlastIndex][rowIndex].Count; markerIndex++)
-            {
-                AnimatedField.Node node = expectedBlastPaths[individualBlastIndex][rowIndex][markerIndex];
-                GameObject temp = Instantiate(expectedLocationMarker.gameObject);
-                temp.GetComponent<SpriteRenderer>().sprite = node.createdObjectSprite;
-                temp.transform.position = node.position;
-            }
-            expectedBlastRowNumber[individualBlastIndex] += 1;
-            if (expectedBlastRowNumber[individualBlastIndex] >= expectedBlastPaths[individualBlastIndex].Count())
-            {
-                expectedBlastRowNumber[individualBlastIndex] = 0;
-            }
-        }
-    }
-
-    private void SpriteChangeManager()
-    {
-        foreach (Unit unit in units)
-        {
-            currentExpectedLoactionChangeSpeed = expectedLocationChangeSpeed;
-            if (unit.statuses.Count != 0)
-            {
-                unit.spriteIndex += 1;
-                if (unit.spriteIndex == unit.statuses.Count)
-                {
-                    unit.spriteIndex = -1;
-                    unit.ChangeSprite(unit.originalSprite);
-                }
-                else
-                {
-                    if ((unit.spriteIndex < unit.statuses.Count))
-                    {
-                        unit.ChangeSprite(unit.statuses[unit.spriteIndex].statusImage);
-                    }
-                }
-            }
-            else
-            {
-                unit.ChangeSprite(unit.originalSprite);
-            }
-        }
-        currentTime = 0;
-    }
-
     public void StartRender()
     {
         for (int i = 0; i < initalRenderLocations.Count; i++)
@@ -623,7 +664,7 @@ public class GameManager : MonoBehaviour
             int wallIndex = (int)initalRenderLocations[i].z;
             RenderWall(x, y, wallIndex);
         }
-        FinalRender();
+        FinalRender();  
         initalRenderLocations = new List<Vector3>();
         finalRenderLocations = new List<Vector3>();
     }
@@ -791,22 +832,22 @@ public class GameManager : MonoBehaviour
     public void RenderWall(int x, int y, int wallIndex)
     {
         int numWallConnections = 0;
-        if (x + 1 < mainGameManger.mapWidth && obstacleGrid.GetGridObject(x + 1, y) != null)
+        if (x + 1 < mainGameManger.mapWidth && obstacleGrid.GetGridObject(x + 1, y) != null && obstacleGrid.GetGridObject(x + 1, y).wallIndex - 2 == wallIndex)
         {
             //East Wall
             numWallConnections += 1;
         }
-        if (x - 1 >= 0 && obstacleGrid.GetGridObject(x - 1, y) != null)
+        if (x - 1 >= 0 && obstacleGrid.GetGridObject(x - 1, y) != null && obstacleGrid.GetGridObject(x - 1, y).wallIndex - 2 == wallIndex)
         {
             //West Wall
             numWallConnections += 2;
         }
-        if (y + 1 < mainGameManger.mapHeight && obstacleGrid.GetGridObject(x, y + 1) != null)
+        if (y + 1 < mainGameManger.mapHeight && obstacleGrid.GetGridObject(x, y + 1) != null && obstacleGrid.GetGridObject(x, y + 1).wallIndex - 2 == wallIndex)
         {
             //is NorthWall
             numWallConnections += 4;
         }
-        if (y - 1 >= 0 && obstacleGrid.GetGridObject(x, y - 1) != null)
+        if (y - 1 >= 0 && obstacleGrid.GetGridObject(x, y - 1) != null && obstacleGrid.GetGridObject(x, y - 1).wallIndex - 2 == wallIndex)
         {
             //is SouthWall
             numWallConnections += 8;

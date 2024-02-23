@@ -85,7 +85,9 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public List<int> currentCooldownOnLoad;
 
     public List<Status> statuses;
-    public int hasLocationChangeStatus = 0;
+
+    public ForcedMovement forcedMovement;
+    public bool flyOnLoad = false;
 
     public Sprite originalSprite;
     public int spriteIndex = -1;
@@ -100,9 +102,6 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public Dictionary<ActionTypes, int> unusableActionTypes = new Dictionary<ActionTypes, int>();
 
     public List<GameObject> drops;
-
-    public unitForcedMovementPathData forcedMovementPathData = new unitForcedMovementPathData(
-        new List<Vector2>(), 0, 0, 0, 0, 0);
 
     public bool notOnHold = true;
     public bool inMiddleMap = true;
@@ -206,6 +205,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         gameManager.mainGameManger.GetGameManger(originalPosition).ChangeUnits(originalPosition, this, FlyAtDestination);
         CheckForStatusFields(gameObject.transform.position, gameManager.mainGameManger.GetGameManger(newPosition));
         gameManager.mainGameManger.GetGameManger(newPosition).ChangeUnits(newPosition, this, FlyAtDestination);
+        transform.position = newPosition;
     }
 
     public virtual void OnTurnStart()
@@ -233,6 +233,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         {
             hasSeenEnemy = false;
         }
+        gameManager.mainGameManger.aUnitIsActing = false;
         enabled = false;
     }
 
@@ -563,7 +564,6 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             Death();
         }
     }
-
     public void TakeDamage(FullDamage damageCalaculation, float damagePercentage = 1)
     {
         int value = 0;
@@ -611,30 +611,26 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             }
         }
 
-        int expectedLocationIndex = gameManager.unitWhoHaveLocationChangeStatus.IndexOf(this);
-        if (expectedLocationIndex != -1)
+        if(forcedMovement != null)
         {
-            gameManager.unitWhoHaveLocationChangeStatus.RemoveAt(expectedLocationIndex);
-            gameManager.expectedLocationChangeList.RemoveAt(expectedLocationIndex);
-
+            int forcedMovmentIndex = gameManager.forcedMovements.IndexOf(forcedMovement);
+            gameManager.forcedMovements.RemoveAt(forcedMovmentIndex);
+            gameManager.expectedLocationChangeList.RemoveAt(forcedMovmentIndex);
         }
-
-        index = gameManager.units.IndexOf(this);
-        if(index < gameManager.mainGameManger.index)
-        {
-            gameManager.mainGameManger.index -= 1;
-        }
-        gameManager.units.RemoveAt(index);
 
         index = gameManager.mainGameManger.units.IndexOf(this);
         if(index < gameManager.mainGameManger.index)
         {
             gameManager.mainGameManger.index -= 1;
         }
+        else if(index == gameManager.mainGameManger.index)
+        {
+            gameManager.mainGameManger.aUnitIsActing = false;
+        }
         gameManager.mainGameManger.units.RemoveAt(index);
+        gameManager.units.RemoveAt(gameManager.units.IndexOf(this));
 
-        gameManager.isLocationChangeStatus -= hasLocationChangeStatus;
-        if(gameManager.grid.GetGridObject(gameObject.transform.position) != null)
+        if (gameManager.grid.GetGridObject(gameObject.transform.position) != null)
         {
             gameManager.ChangeUnits(gameObject.transform.position, null);
         }

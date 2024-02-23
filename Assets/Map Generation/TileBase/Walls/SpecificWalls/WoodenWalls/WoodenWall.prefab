@@ -103,7 +103,7 @@ MonoBehaviour:
   health: 0
   maxHealth: 0
   durability: 0
-  blockFlying: 0
+  blockFlying: 1
   blockMovement: 1
   blockLineOfSight: 1
   spriteIndex: -1

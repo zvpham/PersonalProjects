@@ -14,8 +14,7 @@ public class Move
         bool isMoveGameManagers = false)
     {
         Vector3 originalPosition = target.gameObject.transform.position;
-        target.gameObject.transform.position += (Vector3)direction;
-        Vector3 newPosition = target.gameObject.transform.position;
+        Vector3 newPosition = target.gameObject.transform.position + (Vector3)direction;
         MainGameManger mainGameManger = gameManager.mainGameManger;
         //Checks to see if player is attempting to leave main play area
         if (isPlayer && (newPosition.x >= mainGameManger.mapWidth * 2 || newPosition.x < mainGameManger.mapWidth
@@ -32,7 +31,6 @@ public class Move
                     {
                         mainGameManger.mapManager.AttemptToMoveMapPosition(new Vector2Int(x - 1, y - 1), 
                             new Vector2Int((int) newPosition.x, (int) newPosition.y));
-                        target.gameObject.transform.position -= (Vector3)direction;
                         return;
                     }
                 }
@@ -40,7 +38,6 @@ public class Move
                 {
                     mainGameManger.mapManager.AttemptToMoveMapPosition(new Vector2Int(x - 1, y - 1), 
                         new Vector2Int((int)newPosition.x, (int)newPosition.y));
-                    target.gameObject.transform.position -= (Vector3)direction;
                     return;
                 }
             }
@@ -48,11 +45,7 @@ public class Move
 
         if (isMoveGameManagers && CanMoveMapManagers(target, newPosition, direction, mainGameManger.GetGameManger(newPosition)))
         {
-            if(IsEnemy(target, newPosition, mainGameManger.GetGameManger(newPosition)))
-            {
-                target.gameObject.transform.position -= (Vector3)direction;
-            }
-            else
+            if(!IsEnemy(target, newPosition, mainGameManger.GetGameManger(newPosition)))
             {
                 target.UnitMovement(originalPosition, newPosition, false, false);
                 target.HandlePerformActions(movementActions, ActionName.MoveNorth);
@@ -62,22 +55,19 @@ public class Move
 
 
 
-        if (CanMove(target, target.gameObject.transform.position, direction, gameManager))
+        if (CanMove(target, newPosition, direction, gameManager))
         {
-            if (IsEnemy(target, target.gameObject.transform.position, gameManager))
+            if (!IsEnemy(target, newPosition, gameManager))
             {
-                target.gameObject.transform.position -= (Vector3)direction;
-            }
-            else
-            {
-                if(target.index == 0 && isPlayer)
+                if (target.index == 0 && isPlayer)
                 {
-                    PickupIfItem(target, target.gameObject.transform.position, gameManager);
+                    PickupIfItem(target, newPosition, gameManager);
                 }
 
-                target.UnitMovement(originalPosition, target.gameObject.transform.position, false, false);
+                target.UnitMovement(originalPosition, newPosition, false, false);
                 target.HandlePerformActions(movementActions, ActionName.MoveNorth);
             }
+
         }
     }
 
@@ -96,9 +86,9 @@ public class Move
     public static bool CanMove(Unit target, Vector3 newPosition, Vector2 direction, GameManager gameManager)
     {
         Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(newPosition);
-        if (!gameManager.groundTilemap.HasTile(gridPosition) || (gameManager.obstacleGrid.GetGridObject(newPosition) != null && gameManager.obstacleGrid.GetGridObject(newPosition).blockMovement == true))
+        if (!gameManager.groundTilemap.HasTile(gridPosition) || (gameManager.obstacleGrid.GetGridObject(newPosition) != null && 
+            gameManager.obstacleGrid.GetGridObject(newPosition).blockMovement == true))
         {
-            target.gameObject.transform.position -= (Vector3)direction;
             return false;
         }
         return true;
@@ -109,7 +99,6 @@ public class Move
         if ((gameManager.obstacleGrid.GetGridObject(newPosition) != null && 
             gameManager.obstacleGrid.GetGridObject(newPosition).blockMovement == true))
         {
-            target.gameObject.transform.position -= (Vector3)direction;
             return false;
         }
         return true;
@@ -125,10 +114,5 @@ public class Move
             return true;
         }
         return false;
-    }
-
-    public static void ChangeScreens()
-    {
-
     }
 }

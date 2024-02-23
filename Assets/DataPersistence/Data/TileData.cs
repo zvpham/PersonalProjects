@@ -14,7 +14,6 @@ public class TileData
     public string saveToDelete;
 
     // Game Manager Data
-    public int numberOfStatusRemoved = 0;
     public int least;
     public int index;
     public bool aUnitActed;
@@ -44,6 +43,11 @@ public class TileData
     public int numberOfUnits;
     public List<unitPrefabData> unitPrefabDatas;
 
+    // Forced MovementData;
+    public List<ForcedMovementPathData> forcedMovementDatas;
+    public List<int> indexofUnitWithForcedMovement;
+    public List<int> indexofStatusWithForcedMovement;
+
     // Status Data
     public List<int> statusPriority;
     public List<int> statusDuration;
@@ -64,7 +68,7 @@ public class TileData
 }
 
 [System.Serializable]
-public struct unitForcedMovementPathData
+public struct ForcedMovementPathData
 {
     public List<Vector2> forcedMovementPath;
     public float forcedMovementSpeed;
@@ -72,9 +76,11 @@ public struct unitForcedMovementPathData
     public float previousForcedMovementIterrationRate;
     public int forcedPathIndex;
     public int currentPathIndex;
+    public int forcedPathPriority;
+    public bool isFlying;
 
-    public unitForcedMovementPathData(List<Vector2> forcedMovementPath, float forcedMovementSpeed, float excessForcedMovementSpeed,
-        float previousForcedMovementIterrationRate, int forcedPathIndex, int currentPathIndex)
+    public ForcedMovementPathData(List<Vector2> forcedMovementPath, float forcedMovementSpeed, float excessForcedMovementSpeed,
+        float previousForcedMovementIterrationRate, int forcedPathIndex, int currentPathIndex, int forcedPathPriority, bool isFlying)
     {
         this.forcedMovementPath = forcedMovementPath;
         this.forcedMovementSpeed = forcedMovementSpeed;
@@ -82,6 +88,8 @@ public struct unitForcedMovementPathData
         this.previousForcedMovementIterrationRate = previousForcedMovementIterrationRate;
         this.forcedPathIndex = forcedPathIndex;
         this.currentPathIndex = currentPathIndex;
+        this.forcedPathPriority = forcedPathPriority;
+        this.isFlying = isFlying;
     }
 }
 
@@ -94,10 +102,9 @@ public struct unitPrefabData
     public int health;
     public List<int> actionCooldowns;
     public List<ActionName> actionNames;
-    public unitForcedMovementPathData forcedMovementPathData;
 
-    public unitPrefabData(Vector2 position, int priority, int unitPrefabIndex, int health, List<int> actionCooldowns, List<ActionName> actionNames,
-        unitForcedMovementPathData forcedMovementPathData)
+    public unitPrefabData(Vector2 position, int priority, int unitPrefabIndex, int health,
+        List<int> actionCooldowns, List<ActionName> actionNames)
     {
         this.position = position;
         this.priority = priority;
@@ -105,7 +112,6 @@ public struct unitPrefabData
         this.health = health;
         this.actionCooldowns = actionCooldowns;
         this.actionNames = actionNames;
-        this.forcedMovementPathData = forcedMovementPathData;
     }
 
 }

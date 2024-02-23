@@ -40,8 +40,8 @@ public class Jump : StatusTargetAction
 
     public override void Activate(Unit self)
     {
-        self.forcedMovementPathData.forcedMovementPath = pathAI;
         startStatusPresets(self);
+        startMovementStatusPreset(self, pathAI);
         self.TurnEnd();
     }
 
@@ -60,9 +60,7 @@ public class Jump : StatusTargetAction
     {
         targetingSystem.GetComponent<LineOfSight>().DestroySelf();
         Destroy(targetingSystem);
-        affectedUnit.forcedMovementPathData.forcedMovementPath = path;
-        startStatusPresets(affectedUnit);
-
+        startMovementStatusPreset(affectedUnit, path);
         affectedUnit.HandlePerformActions(actionType, actionName);
         affectedUnit.DeactivateTargeting();
         affectedUnit.TurnEnd();

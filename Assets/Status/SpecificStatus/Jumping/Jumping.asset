@@ -15,16 +15,21 @@ MonoBehaviour:
   statusPrefabIndex: 1
   targetUnit: {fileID: 0}
   statusQuickness: 1
-  statusDuration: 10
+  statusPriority: 0
+  currentStatusDuration: 0
   nonStandardDuration: 1
   statusName: Jumping
   statusImage: {fileID: 21300092, guid: 29c9cded5e558164aaf8c9bf08aa1510, type: 3}
   isFieldStatus: 0
-  ApplyEveryTurn: 1
+  ApplyEveryTurn: 0
+  isFirstApply: 0
   isFirstTurn: 1
   isFirstWorldTurn: 1
   isMovementStatus: 1
+  statusIntData: 0
+  statusStringData: 
+  statusBoolData: 0
   actionTypesNotPermitted: 00000000
   actionTypesThatCancelStatus: 
   actionTypesThatActionMustContain: 
-  Ivalue: 0
+  forcedMovementPath: []

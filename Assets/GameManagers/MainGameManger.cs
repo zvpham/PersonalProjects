@@ -26,14 +26,16 @@ public class MainGameManger : MonoBehaviour
     public GameManager TGameManager;
     public GameManager TRGameManager;
 
-    public List<Unit> units;
-    public List<Status> allStatuses;
+    public List<Unit> units = new List<Unit>();
+    public List<ForcedMovement> forcedMovements = new List<ForcedMovement>();
+    public List<Status> allStatuses = new List<Status>();
     public List<CreatedField> createdFields = new List<CreatedField>();
     public List<AnimatedField> animatedFields = new List<AnimatedField>();
 
     public int least;
     public int index = 0;
-    public bool aUnitActed = false;
+    public bool aUnitIsActing = false;
+
     // during turn 0 = no; 1 = yes
     public int duringTurn = 0;
 
@@ -115,6 +117,7 @@ public class MainGameManger : MonoBehaviour
             // if we are at the top of a turn
             if (duringTurn == 0)
             {
+                aUnitIsActing = false;
                 least = units[0].priority;
                 for (int i = 0; i < units.Count; i++)
                 {
@@ -123,46 +126,45 @@ public class MainGameManger : MonoBehaviour
                         least = units[i].priority;
                     }
                 }
-                if (allStatuses.Count > 0)
+
+                for (int i = 0; i < allStatuses.Count; i++)
                 {
-                    for (int i = 0; i < allStatuses.Count; i++)
+                    if (allStatuses[i].statusPriority < least)
                     {
-                        if (allStatuses[i].statusPriority < least)
-                        {
-                            least = allStatuses[i].statusPriority;
-                        }
+                        least = allStatuses[i].statusPriority;
                     }
                 }
 
-                if (createdFields.Count > 0)
+                for (int i = 0; i < forcedMovements.Count; i++)
                 {
-                    for (int i = 0; i < createdFields.Count; i++)
+                    if (forcedMovements[i].forcedMovmentPriority < least)
                     {
-                        if (createdFields[i].createdFieldPriority < least && !createdFields[i].fromAnimatedField)
-                        {
-                            least = createdFields[i].createdFieldPriority;
-                        }
-
+                        least = forcedMovements[i].forcedMovmentPriority;
                     }
                 }
 
-                if (animatedFields.Count > 0)
+                for (int i = 0; i < createdFields.Count; i++)
                 {
-                    for (int i = 0; i < animatedFields.Count; i++)
+                    if (createdFields[i].createdFieldPriority < least && !createdFields[i].fromAnimatedField)
                     {
-                        if (animatedFields[i].animatedFieldPriority < least)
-                        {
-                            least = animatedFields[i].animatedFieldPriority;
-                        }
-
+                        least = createdFields[i].createdFieldPriority;
                     }
+
+                }
+
+                for (int i = 0; i < animatedFields.Count; i++)
+                {
+                    if (animatedFields[i].animatedFieldPriority < least)
+                    {
+                        least = animatedFields[i].animatedFieldPriority;
+                    }
+
                 }
             }
 
             //lowers priority of a unit by the least amount of priority 
             // if priority is 0 activate unit and end loop
             // if mid turn will resume list one more than unit that just went
-            aUnitActed = false;
             for (int i = index + duringTurn; i < units.Count;)
             {
                 units[i].priority = units[i].priority - least;
@@ -171,9 +173,9 @@ public class MainGameManger : MonoBehaviour
                 {
                     index = i;
                     duringTurn = 1;
+                    aUnitIsActing = true;
                     units[i].enabled = true;
                     units[i].OnTurnStart();
-                    aUnitActed = true;
                     break;
                 }
                 else if (i == 0)
@@ -190,7 +192,7 @@ public class MainGameManger : MonoBehaviour
 
 
             //end turn reset all turn variables and reset priority of units who acted
-            if (index + duringTurn == units.Count && !aUnitActed)
+            if (index + duringTurn == units.Count && !aUnitIsActing)
             {
                 index = 0;
                 duringTurn = 0;
@@ -255,7 +257,27 @@ public class MainGameManger : MonoBehaviour
                     }
                 }
 
-                // change Status Priority at top of turn
+                //Change Forcedmovements Priority at top of turn
+                if(forcedMovements.Count > 0)
+                {
+                    for (int i = 0; i < forcedMovements.Count; i++)
+                    {
+                        forcedMovements[i].forcedMovmentPriority -= least;
+                        if (forcedMovements[i].forcedMovmentPriority <= 0)
+                        {
+                            //Forced Movement Will handle its own deletion
+                            int forcedMovementAmount = forcedMovements.Count;
+                            forcedMovements[i].forcedMovmentPriority = (int)(forcedMovements[i].speed * baseTurnTime);
+                            forcedMovements[i].Activate();          
+                            if(forcedMovementAmount != forcedMovements.Count)
+                            {
+                                i--;
+                            }
+                        }
+                    }
+                }
+
+                // change Created Priority at top of turn
                 if (createdFields.Count > 0)
                 {
                     for (int i = 0; i < createdFields.Count; i++)
@@ -460,7 +482,6 @@ public class MainGameManger : MonoBehaviour
 
             for(int i = 0; i < unit.statuses.Count; i++)
             {
-                unit.gameManager.numberOfStatusRemoved += 1;
                 int statusindex = unit.gameManager.allStatuses.IndexOf(unit.statuses[i]);
 
                 newGameManager.allStatuses.Add(unit.gameManager.allStatuses[statusindex]);
@@ -468,11 +489,20 @@ public class MainGameManger : MonoBehaviour
                 unit.gameManager.allStatuses.RemoveAt(statusindex);
             }
 
+            for(int i = 0; i < unit.gameManager.forcedMovements.Count; i++)
+            {
+                if (unit.gameManager.forcedMovements[i].unit == unit)
+                {
+                    newGameManager.forcedMovements.Add(forcedMovements[i]);
+                    newGameManager.expectedLocationChangeList.Add(unit.gameManager.expectedLocationChangeList[i]);
+
+                    unit.gameManager.forcedMovements.RemoveAt(i);
+                }
+            }
+
             newGameManager.units.Add(unit.gameManager.units[index]);
-            newGameManager.isLocationChangeStatus += unit.hasLocationChangeStatus;
 
             unit.gameManager.units.RemoveAt(index);
-            unit.gameManager.isLocationChangeStatus -= unit.hasLocationChangeStatus;
 
             unit.gameManager = newGameManager;        
         }

@@ -33,6 +33,11 @@ public class MapData
     public unitPrefabData unitPrefabDatas;
     public int priority;
 
+    // Forced MovementData;
+    public ForcedMovementPathData forcedMovementData;
+    public int indexofUnitWithForcedMovement;
+    public int indexofStatusWithForcedMovement;
+
     // Status Data
     public List<int> statusPriority;
     public List<int> statusDuration;

@@ -39,8 +39,6 @@ public class Player : Unit
         inventorySystem = InventorySystem.Instance;
         actionBar = ActionBar.Instance;
 
-        //inventorySystem.initialItems = initialInventoryItemsForMapManager;
-        //inventorySystem.PrepareInventoryData();
         ChangeStr(0);
         ChangeAgi(0);
         ChangeEnd(0);
@@ -68,7 +66,7 @@ public class Player : Unit
         }
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
-        gameManager.ChangeUnits(gameObject.transform.position, this);
+        gameManager.ChangeUnits(gameObject.transform.position, this, flyOnLoad);
 
         if (gameManager.isNewSlate)
         {
@@ -211,6 +209,12 @@ public class Player : Unit
                 notOnHold = true;
             }
         }
+    }
+
+    public override void UnitMovement(Vector3 originalPosition, Vector3 newPosition, bool FlyAtOrigin, bool FlyAtDestination)
+    {
+        base.UnitMovement(originalPosition, newPosition, FlyAtOrigin, FlyAtDestination);
+        PlayerUseSenses();
     }
 
     public void PlayerUseSenses()

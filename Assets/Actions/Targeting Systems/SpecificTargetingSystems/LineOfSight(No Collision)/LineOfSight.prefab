@@ -51,8 +51,9 @@ MonoBehaviour:
   projectileSpeed: 0
   projectileRangeSections: 0
   projectile: {fileID: 0}
-  endPositionMarker: {fileID: 2363729580697148819, guid: 98882de8cadc30a4391edbe82481e1b8,
+  endPositionMarkerPrefab: {fileID: 2363729580697148819, guid: 98882de8cadc30a4391edbe82481e1b8,
     type: 3}
+  endPositionMarker: {fileID: 0}
   linePrefab: {fileID: 5584086906981062238, guid: 09602942c3f1f2e47a1a9a7e7f3adce7,
     type: 3}
   collisionMarkerSprite: {fileID: 21300000, guid: 371503aa5809b954a83cce39189bd7b9,
@@ -69,5 +70,7 @@ MonoBehaviour:
   path: []
   allDirections: {fileID: 11400000, guid: 7c1e5ae140c835b4097c2a7dbb13d47a, type: 2}
   gameManager: {fileID: 0}
+  inputManager: {fileID: 0}
   prevMousePosition: {x: 0, y: 0, z: 0}
   mousePosition: {x: 0, y: 0, z: 0}
+  targetPosition: {x: 0, y: 0, z: 0}

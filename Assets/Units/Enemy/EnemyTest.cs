@@ -48,11 +48,12 @@ public class EnemyTest : Unit
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
         //gameManager = GameManager.instance;
-        gameManager.ChangeUnits(gameObject.transform.position, this);
+        gameManager.ChangeUnits(gameObject.transform.position, this, flyOnLoad);
         if (gameManager.isNewSlate)
         {
             gameManager.units.Add(this);
             gameManager.mainGameManger.units.Add(this);
+            priority = (int)(gameManager.baseTurnTime * quickness);
         }
         //gameManger will be set  to instance on the onload function in GameManagerScript
         else
@@ -98,7 +99,6 @@ public class EnemyTest : Unit
                         else
                         {
                             Wander();
-                            TurnEnd();
                         }
                     }
                     // enemy was found in a different Tile/Map
@@ -129,7 +129,6 @@ public class EnemyTest : Unit
                     else if (ableToWander && !unusableActionTypes.Keys.Contains(ActionTypes.movement))
                     {
                         Wander();
-                        TurnEnd();
                     }
                 }
                 else

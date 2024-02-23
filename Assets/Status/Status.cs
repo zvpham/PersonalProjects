@@ -69,6 +69,16 @@ public abstract class Status : ScriptableObject
         }
     }
 
+    public void RemoveUnusableStatuses(Unit target)
+    {
+        foreach (ActionTypes actionType in actionTypesNotPermitted)
+        {
+            target.unusableActionTypes[actionType] = target.unusableActionTypes[actionType] - 1;
+            if (target.unusableActionTypes[actionType] <= 0) { }
+            target.unusableActionTypes.Remove(actionType);
+        }
+    }
+
     // bool is for whether to continue and apply the effects of the status
     // true - don't apply affects, false - Aplly effects
     public bool AddStatusPreset(Unit target, int newDuration)
@@ -83,7 +93,7 @@ public abstract class Status : ScriptableObject
                     currentStatusDuration = newDuration;
                 }
 
-                if (nonStandardDuration || ApplyEveryTurn)
+                if (ApplyEveryTurn)
                 {
                     return false;
                 }
@@ -103,6 +113,7 @@ public abstract class Status : ScriptableObject
         target.gameManager.mainGameManger.allStatuses.Add(this);
         this.targetUnit = target;
         ChangeQuickness(target.timeFlow);
+        AddUnusableStatuses(target);
         return false;
     }
 
@@ -115,11 +126,11 @@ public abstract class Status : ScriptableObject
         target.gameManager.allStatuses.Add(this);
         target.gameManager.mainGameManger.allStatuses.Add(this);
         ChangeQuickness(target.timeFlow);
+        AddUnusableStatuses(target);
     }
 
     public void RemoveStatusPreset(Unit target)
     {
-        target.gameManager.numberOfStatusRemoved += 1;
         target.gameManager.mainGameManger.numberOfStatusRemoved += 1;
         int index = target.statuses.IndexOf(this);
         target.statuses.RemoveAt(index);
@@ -128,6 +139,7 @@ public abstract class Status : ScriptableObject
 
         statusindex = target.gameManager.mainGameManger.allStatuses.IndexOf(this);
         target.gameManager.mainGameManger.allStatuses.RemoveAt(statusindex);
+        RemoveUnusableStatuses(target);
     }
 
     public void CancelStatusIfActionContainsMatchingType(ActionTypes[] actionTypes, ActionName actionName)

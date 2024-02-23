@@ -11,6 +11,8 @@ public class ResourceManager : ScriptableObject
     public List<Status> statuses = new List<Status>();
     public List<GameObject> unitPrefabs = new List<GameObject>();
 
+    public GameObject forcedMovementPrefab;
+
     public List<ItemSO> itemRefrences = new List<ItemSO>();
     public List<GameObject> itemsPrefabs = new List<GameObject>();
 

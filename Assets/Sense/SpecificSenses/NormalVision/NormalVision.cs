@@ -81,11 +81,11 @@ public class NormalVision : Sense
         int y = (int) player.transform.position.y;
 
         float currentDegree = 0;
-
-        for(int i = 0; i < 736; i++)
+        // 736, .049f
+        for(int i = 0; i < 750; i++)
         {
             float degree = currentDegree * Mathf.Deg2Rad;
-            currentDegree += 0.49f;
+            currentDegree += 0.48f;
             //Finds Endpoint of Line
             int nx = (int) math.round(math.cos(degree) * range) + x;
             int ny = (int) math.round(math.sin(degree) * range) + y;
