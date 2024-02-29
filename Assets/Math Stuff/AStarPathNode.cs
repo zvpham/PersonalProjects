@@ -63,10 +63,15 @@ public class AStarPathNode
         int gridXIndex = (int)(worldPosition.x / mapWidth);
         int gridYIndex = (int)(worldPosition.y / mapHeight);
         Grid<Wall> wallGrid = walls[gridXIndex, gridYIndex];
+        if(wallGrid == null)
+        {
+            IsWalkable = false;
+            return;
+        }
         Wall wall = walls[gridXIndex, gridYIndex].GetGridObject(worldPosition);
         Unit unit = units[gridXIndex, gridYIndex].GetGridObject(worldPosition);
 
-        if (wallGrid  == null|| (wall != null && wall.blockMovement == true) || unit != null)
+        if ((wall != null && wall.blockMovement == true) || unit != null)
         {
             IsWalkable = false;
         }
