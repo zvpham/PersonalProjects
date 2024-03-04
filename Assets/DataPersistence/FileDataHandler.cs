@@ -663,7 +663,7 @@ public class FileDataHandler
 
         string fullpath = Path.Combine(dataDirPath, profileId, timeId, subFolder, fileName + fileExtension);
         string backUpPath = fullpath + backupExtension;
-        Debug.Log(fullpath);
+        Debug.Log("Deleting: " + fullpath);
         try
         {
             // ensure the data file exists at this path before deleting the directory

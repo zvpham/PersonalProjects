@@ -30,7 +30,7 @@ public class Grid<TGridObject> {
     public Vector3 originPosition;
     private TGridObject[,] gridArray;
 
-    public Grid(int width, int height, float cellSize, Vector3 originPosition, Func<Grid<TGridObject>, int, int, TGridObject> createGridObject) {
+    public Grid(int width, int height, float cellSize, Vector3 originPosition, Func<Grid<TGridObject>, int, int, TGridObject> createGridObject, bool showthisSpecificGrid = false) {
         this.width = width;
         this.height = height;
         this.cellSize = cellSize;
@@ -44,8 +44,8 @@ public class Grid<TGridObject> {
             }
         }
 
-        bool showDebug = false;
-        if (showDebug) {
+        bool showDebug = true;
+        if (showDebug &&  showthisSpecificGrid) {
             TextMesh[,] debugTextArray = new TextMesh[width, height];
 
             for (int x = 0; x < gridArray.GetLength(0); x++) {

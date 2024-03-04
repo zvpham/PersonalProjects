@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class SetPiece : Wall
 {
@@ -16,5 +17,21 @@ public class SetPiece : Wall
     void Update()
     {
         
+    }
+
+    public override void Death()
+    {
+        continueDeath = true;
+        Died();
+        if (!continueDeath)
+        {
+            return;
+        }
+
+        //gameManager.scripts.RemoveAt(index);
+        gameManager.ChangeWalls(gameObject.transform.position, null);
+        gameManager.setPieces.Remove(this);
+        Destroy(this);
+        Destroy(gameObject);
     }
 }

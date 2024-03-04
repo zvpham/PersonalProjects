@@ -72,7 +72,12 @@ public class GameManager : MonoBehaviour
 
     public UnityAction<int> PlayerWent;
 
-    void Awake()
+    public void ChangeActiveGameManagerStatus(bool isActive)
+    {
+        //Debug.Log("Who Is Activating GameManager");
+        activeGameManager = isActive;
+    }
+    public virtual void Awake()
     {
         if (instance == null)
         {
@@ -114,12 +119,6 @@ public class GameManager : MonoBehaviour
         {
             SpriteChangeManager();
         }
-    }
-
-
-    private bool CanContinue(MonoBehaviour script)
-    {
-        return !script.isActiveAndEnabled;
     }
 
     private void ExpectedLocationSpriteManager()
@@ -216,7 +215,45 @@ public class GameManager : MonoBehaviour
 
     public void ClearBoard()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        initalRenderLocations = new List<Vector3>();
+        finalRenderLocations = new List<Vector3>();
+        tileVisibilityStates = new int[mainGameManger.mapWidth, mainGameManger.mapHeight];
+        for (int i = units.Count - 1; i >= 0; i--)
+        {
+            if (units.Count == 0)
+            {
+                break;
+            }
+            units[i].Death(true);
+        }
+
+        for (int i = walls.Count - 1; i >= 0; i--)
+        {
+            if (walls.Count == 0)
+            {
+                break;
+            }
+            walls[i].Death();
+        }
+
+        for (int i = setPieces.Count - 1; i >= 0; i--)
+        {
+            if (setPieces.Count ==  0)
+            {
+                break;
+            }
+            setPieces[i].Death();
+        }
+
+        for (int i = items.Count - 1; i >= 0; i--)
+        {
+            if (items.Count == 0)
+            {
+                break;
+            }
+            items[i].Death();
+        }
+        ChangeActiveGameManagerStatus(false);
     }
 
     public void LoadData(TileData data)
@@ -238,7 +275,7 @@ public class GameManager : MonoBehaviour
             tileVisibilityStates = new int[mainGameManger.mapWidth, mainGameManger.mapHeight];
             return;
         }
-        activeGameManager = true;
+        ChangeActiveGameManagerStatus(true);
 
         Vector2 newDefaultGridPosition = defaultGridPosition - mainGameManger.centralGameManager.defaultGridPosition;
 
@@ -355,7 +392,7 @@ public class GameManager : MonoBehaviour
     // will cause error in saves which will cause more entities than intended to be added
     public void SaveData(TileData data, bool isFrozenZone = false)
     {
-        Debug.Log("Saving Game");
+        Debug.Log("Saving Game for: " +  gameManagerPosition);
         Vector3 newDefaultGridPosition = defaultGridPosition - mainGameManger.centralGameManager.defaultGridPosition;
 
         // Game Manager Data

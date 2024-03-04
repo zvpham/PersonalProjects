@@ -12,6 +12,7 @@ public abstract class Action : ScriptableObject
     public int currentCooldown;
     public bool isUsable;
     public ActionTypes[] actionType;
+    public bool actionIsActive;
     public bool isActiveAction;
     public bool isChaseAction;
     //public bool isTurnActivated;

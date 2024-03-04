@@ -217,11 +217,11 @@ public class DataPersistenceManager : MonoBehaviour
 
         if (tileData == null)
         {
-            Debug.Log("No data was found in recent Data. Attempting to load Frozen Tile:" + tileLocation);
+            Debug.Log("No data was found in recent Data. Attempting to load Frozen Tile for Current Position:" + tileLocation);
             tileData = mapDataHandler.Load(selectedProfileId, dirName, fileName);
             if (tileData == null)
             {
-                tileData = null;
+                Debug.Log("Failed to Find Frozen TileData");
             }
         }
 

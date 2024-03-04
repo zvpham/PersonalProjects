@@ -33,13 +33,14 @@ public class PostMapGenerationStart : MonoBehaviour
                 }
             }
         }
-        Debug.Log(indexofUnitEnabled);
+        //Debug.Log(indexofUnitEnabled);
         if(indexofUnitEnabled != -1)
         {
             mainGameManger.units[indexofUnitEnabled].enabled = true;
             mainGameManger.units[indexofUnitEnabled].OnTurnStart();
         }
-        Destroy(this);
-        Destroy(gameObject);
+        Player player = (Player) mainGameManger.units[0];
+        player.PlayerUseSenses();
+        enabled = false;
     }
 }

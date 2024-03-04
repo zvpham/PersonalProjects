@@ -18,6 +18,7 @@ MonoBehaviour:
   currentCooldown: 0
   isUsable: 1
   actionType: 04000000
+  actionIsActive: 0
   isActiveAction: 1
   isChaseAction: 1
   affectedUnit: {fileID: 0}

@@ -24,6 +24,7 @@ public class KeyBindings : MonoBehaviour
         defaultActionKeyBinds.Add(ActionName.Wait, new List<KeyCode>() { KeyCode.W });
         defaultActionKeyBinds.Add(ActionName.Back, new List<KeyCode>() { KeyCode.Backspace });
         defaultActionKeyBinds.Add(ActionName.InventoryMenu, new List<KeyCode>() { KeyCode.I });
+        defaultActionKeyBinds.Add(ActionName.OpenWorldMap, new List<KeyCode>() {KeyCode.KeypadMinus});
 
         targetingKeyBinds.Add(DirectionName.NorthEast, new List<KeyCode> { KeyCode.Keypad9 });
         targetingKeyBinds.Add(DirectionName.North, new List<KeyCode> { KeyCode.Keypad8 });

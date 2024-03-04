@@ -6,8 +6,10 @@ using UnityEngine;
 public class CameraControllerPlayer : MonoBehaviour
 {
     public Camera mainCamera;
+    public GameObject target;
     public Bounds cameraBounds;
     public Vector3 targetPosition;
+
 
     public float dragSpeed;
     public bool draggingMouse = false;

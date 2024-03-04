@@ -100,6 +100,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
             unitPrefabData tempData = mapData.unitPrefabDatas;
             GameObject temp = Instantiate(resourceManager.unitPrefabs[0], new Vector3(playerPosition.x, 
                 playerPosition.y, 0), new Quaternion(0, 0, 0, 1f));
+
             unit = temp.GetComponent<Unit>();
             unit.gameManager = centerGameManager;
             unit.gameManager.units.Insert(0, unit);
@@ -198,7 +199,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
                 //For Prefab Tile Bases
                 if (resourceManager.tilesBases[tileBaseIndex].tileType == TileType.Premade)
                 {
-                    Debug.Log("Generate Prefab");
+                    Debug.Log("Generate Prefab for current tile: " + currentMapPosition);
                     TilePrefabBase tile = (TilePrefabBase)resourceManager.tilesBases[tileBaseIndex];
                     mapGenerator.GeneratePrefabTile(tile, centerGameManager);
                     worldMapData.tileDataPosition.Add(currentMapPosition);
@@ -207,7 +208,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
                 // Generate a NonPrefab Tilebase Map
                 else
                 {
-                    Debug.Log("Generate TileBase");
+                    Debug.Log("Generate Tilebase for current tile: " + currentMapPosition);
                     mapGenerator.GenerateTile(resourceManager.tilesBases[tileBaseIndex], centerGameManager, extraDangerModifier);
                     worldMapData.tileDataPosition.Add(currentMapPosition);
                     worldMapData.tileSeedData.Add(mapGenerator.initialSeed);
@@ -234,6 +235,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
                 }
             }
             centerGameManager.gameManagerPosition = currentMapPosition;
+            centerGameManager.ChangeActiveGameManagerStatus(true);
         }
         else
         {
@@ -244,44 +246,55 @@ public class MapManager : MonoBehaviour, IDataPersistence
         // Attempting to load Recent Tile Data into Peripheral GameManagers
         for(int i = 0; i < previousMapPositionsKeys.Count; i++)
         {
+            if (previousMapPositionsKeys[i] == currentMapPosition)
+            {
+                continue;
+            }
             tileData = dataPersistenceManager.GetTileData(dataPersistenceManager.autoSaveID, dataPersistenceManager.playerID, previousMapPositionsKeys[i]);
             Vector2Int relativePosition = previousMapPositionsKeys[i] - currentMapPosition;
             if(tileData == null)
             {
                 continue;
             }
-
-            if(relativePosition == new Vector2Int(-1, -1))
+            if (relativePosition == new Vector2Int(-1, -1))
             {
                 BLGameManager.LoadData(tileData);
+                Debug.Log("loading TileDate for BLGameManager: " + BLGameManager.gameManagerPosition);
             }
             else if(relativePosition == new Vector2Int(0, -1))
             {
                 BGameManager.LoadData(tileData);
+                Debug.Log("loading TileDate for BGameManager: " + BGameManager.gameManagerPosition);
             }
             else if (relativePosition == new Vector2Int(1, -1))
             {
                 BRGameManager.LoadData(tileData);
+                Debug.Log("loading TileDate for BRGameManager: " + BRGameManager.gameManagerPosition);
             }
             else if (relativePosition == new Vector2Int(-1, 0))
             {
                 MLGameManager.LoadData(tileData);
+                Debug.Log("loading TileDate for MLGameManager: " + MLGameManager.gameManagerPosition);
             }
             else if (relativePosition == new Vector2Int(1, 0))
             {
                 MRGameManager.LoadData(tileData);
+                Debug.Log("loading TileDate for MRGameManager: " + MRGameManager.gameManagerPosition);
             }
             else if (relativePosition == new Vector2Int(-1, 1))
             {
                 TLGameManager.LoadData(tileData);
+                Debug.Log("loading TileDate for TLGameManager: " + TLGameManager.gameManagerPosition);
             }
             else if (relativePosition == new Vector2Int(0, 1))
             {
                 TGameManager.LoadData(tileData);
+                Debug.Log("loading TileDate for TGameManager: " + TGameManager.gameManagerPosition);
             }
             else if (relativePosition == new Vector2Int(1, 1))
             {
                 TRGameManager.LoadData(tileData);
+                Debug.Log("loading TileDate for TRGameManager: " + TRGameManager.gameManagerPosition);
             }
 
         }
@@ -402,7 +415,6 @@ public class MapManager : MonoBehaviour, IDataPersistence
         }
 
         // Reversing currentMapPosition Transformation applied during AttemptToMoveMapPosition if it succeeded
-        Debug.Log(currentMapPosition + ", " + mapMovementDirection);
         currentMapPosition -= mapMovementDirection;
 
 
@@ -412,7 +424,6 @@ public class MapManager : MonoBehaviour, IDataPersistence
             mainGameManger.activeGameManagers[i].SaveData(tileData);
             dataPersistenceManager.SaveTileData(tileData, dataPersistenceManager.autoSaveID, dataPersistenceManager.playerID, 
                 currentMapPosition + mainGameManger.activeGameManagers[i].gameManagerDirection);
-            Debug.Log(mainGameManger.activeGameManagers[i].name + ". "  + currentMapPosition + mainGameManger.activeGameManagers[i].gameManagerDirection);
         }
     }
 
@@ -464,9 +475,13 @@ public class MapManager : MonoBehaviour, IDataPersistence
         }
         else
         {
+            // Removing temperary parts like status fields
             frozenGameManager.FreezeTile();
+            // Saving TileDate to Tile Date in parameter)
             frozenGameManager.SaveData(tileData, true);
+            // Moving TileData outside of User Specific save location
             dataPersistenceManager.SaveTileData(tileData, dataPersistenceManager.autoSaveID, frozenPosition);
+            // Deleting tile data in UserSpecific Location
             dataPersistenceManager.DeleteTileData(frozenPosition);
             if(isMovingPosition)
             {
@@ -493,7 +508,6 @@ public class MapManager : MonoBehaviour, IDataPersistence
         UpdatePreviousPositions();
         currentMapPosition += direction;
 
-        Vector2 newDirection = direction;
         List<Vector2> directions = new List<Vector2> { new Vector2(1,1), new Vector2(1, 0), new Vector2(1, -1), new Vector2(0, 1),
             new Vector2(0, 0), new Vector2(0, -1), new Vector2(-1, 1), new Vector2(-1, 0), new Vector2(-1, -1)};
         for(int i = 0; i < mainGameManger.activeGameManagers.Count; i++)
@@ -513,6 +527,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
                 int previousPositionIndex = previousMapPositionsKeys.IndexOf(mainGameManger.activeGameManagers[i].gameManagerPosition);
                 previousMapPositionsKeys.RemoveAt(previousPositionIndex);
                 previousMapPositionsValues.RemoveAt(previousPositionIndex);
+                mainGameManger.activeGameManagers[i].ClearBoard();
                 mainGameManger.activeGameManagers.RemoveAt(i);
                 i--;
             }
@@ -522,8 +537,12 @@ public class MapManager : MonoBehaviour, IDataPersistence
             mapGenerator.mapHeight * direction.y);
         changedMapPosition = true;
         mapMovementDirection = direction;
+        mainGameManger.enabled = false;
         dataPersistenceManager.SaveGame(dataPersistenceManager.autoSaveID, dataPersistenceManager.playerID);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        mainGameManger.ResetScene();
+        dataPersistenceManager.LoadGame();
+        mainGameManger.StartScene();
+        mainGameManger.enabled = true;
     }
 
     public void UpdatePreviousPositions()

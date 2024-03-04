@@ -29,7 +29,7 @@ public class InventorySystem : MonoBehaviour
     {
         if (Instance != null)
         {
-            Debug.LogWarning("Found more than ONe Data Persistence Manager in the Scence");
+            Debug.LogWarning("Found more than one Inventory System in the Scence");
             Destroy(this.gameObject);
             return;
         }

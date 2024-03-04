@@ -14,6 +14,7 @@ public enum ActionName
     Pause,
     Wait, 
     InventoryMenu,
+    OpenWorldMap,
     Back,
     SlowTimeField,
     FlameBreath,

@@ -20,10 +20,11 @@ MonoBehaviour:
   nonStandardDuration: 0
   statusName: Sprinting
   statusImage: {fileID: 21300000, guid: 2ad4705d69a8f6248a12f204a17e3da2, type: 3}
+  activeAction: {fileID: 0}
+  isActiveStatus: 1
   isFieldStatus: 0
   ApplyEveryTurn: 0
   isFirstApply: 1
-  isFirstTurn: 1
   isFirstWorldTurn: 1
   isMovementStatus: 0
   statusIntData: 0

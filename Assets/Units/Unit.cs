@@ -50,7 +50,6 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public int charismaMod;
 
     public int closestEnemyIndex;
-    public int visionRadius = 5;
     public bool clearLineOfSightToEnemy;
 
     public float friendlyFireMultiplier = 0.5f;
@@ -202,7 +201,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
     public virtual void UnitMovement(Vector3 originalPosition, Vector3 newPosition, bool FlyAtOrigin, bool FlyAtDestination)
     {
-        gameManager.mainGameManger.GetGameManger(originalPosition).ChangeUnits(originalPosition, this, FlyAtDestination);
+        gameManager.mainGameManger.GetGameManger(originalPosition).ChangeUnits(originalPosition, null, FlyAtDestination);
         CheckForStatusFields(gameObject.transform.position, gameManager.mainGameManger.GetGameManger(newPosition));
         gameManager.mainGameManger.GetGameManger(newPosition).ChangeUnits(newPosition, this, FlyAtDestination);
         transform.position = newPosition;
@@ -221,7 +220,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             {
                 if(action.currentCooldown > 0)
                 {
-                    if(action.isActiveAction)
+                    if(action.actionIsActive)
                     {
                         continue;
                     }
@@ -556,6 +555,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
     public void TakeDamage(DamageTypes damageType, int value)
     {
+
         OnDamage?.Invoke(damageType, value);
         health -= value;
         Instantiate(UtilsClass.CreateWorldText(value.ToString(), localPosition: gameObject.transform.position).gameObject.AddComponent<DamageText>());
@@ -580,7 +580,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         }
     }
 
-    public void Death()
+    public void Death(bool ChangeScreens = false)
     {
         continueDeath = true;
         OnDeath?.Invoke();
@@ -589,7 +589,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             return;
         }
 
-        if(drops.Count != 0)
+        if(!ChangeScreens && drops.Count != 0)
         {
             foreach (GameObject drop in drops)
             {

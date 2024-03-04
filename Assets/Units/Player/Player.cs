@@ -12,13 +12,12 @@ using System.Linq;
 
 public class Player : Unit
 {
-    private Vector2 newPosition = new Vector2(0.0f, 0.0f);
-
     public static Player Instance;
 
     private InputManager inputManager;
     private KeyBindings keybindings;
     public InventorySystem inventorySystem;
+    public CameraManager cameraManager;
     public List<InventoryItem> initialInventoryItemsForMapManager = new List<InventoryItem>();
 
     //For use in On Load Function Only
@@ -30,7 +29,9 @@ public class Player : Unit
     public void Awake() 
     {
         Instance = this;
+        OnDeath += OnPlayerDeath;
     }
+
     void Start()
     {
         index = 0;
@@ -38,6 +39,7 @@ public class Player : Unit
         keybindings = KeyBindings.instance;
         inventorySystem = InventorySystem.Instance;
         actionBar = ActionBar.Instance;
+        cameraManager = CameraManager.Instance;
 
         ChangeStr(0);
         ChangeAgi(0);
@@ -102,12 +104,6 @@ public class Player : Unit
             }
         }
         enabled = false;
-    }
-
-    public override void OnTurnStart()
-    {
-        base.OnTurnStart();
-        PlayerUseSenses();
     }
 
     public void UpdatePlayerActions(Dictionary<int, InventoryItem> inventoryState = null)
@@ -209,6 +205,25 @@ public class Player : Unit
                 notOnHold = true;
             }
         }
+
+        if (inputManager.GetKeyDown(ActionName.OpenWorldMap))
+        {
+            if (cameraManager.worldMapCamera.isActiveAndEnabled)
+            {
+                cameraManager.worldMapCamera.gameObject.SetActive(false);
+                cameraManager.gameCamera.gameObject.SetActive(true);
+                cameraManager.worldMapCamera.enabled = false;
+                notOnHold = false;
+            }
+            else
+            {
+                cameraManager.gameCamera.gameObject.SetActive(false);
+                cameraManager.worldMapCamera.gameObject.SetActive(true);
+                cameraManager.worldMapCamera.enabled = true;
+                notOnHold = true;
+            }
+
+        }
     }
 
     public override void UnitMovement(Vector3 originalPosition, Vector3 newPosition, bool FlyAtOrigin, bool FlyAtDestination)
@@ -282,6 +297,17 @@ public class Player : Unit
         }
         actionBar.UpdateActionsDisplay();
         gameManager.mainGameManger.mapManager.UpdatePreviousPositions();
-        PlayerUseSenses();
+    }
+
+    public override void OnTurnStart()
+    {
+        base.OnTurnStart();
+    }
+
+    public void OnPlayerDeath()
+    {
+        Instance = null;
+        InventorySystem.Instance = null;
+        OnDeath -= OnPlayerDeath;
     }
 }

@@ -44,6 +44,7 @@ public class MainGameManger : MonoBehaviour
     public int baseTurnTime = 500;
     public int worldPriority = 0;
 
+    public PostMapGenerationStart postMapGenerationStart;
     public static MainGameManger Instance;
 
     public void Awake()
@@ -53,59 +54,7 @@ public class MainGameManger : MonoBehaviour
 
     public void Start()
     {
-        wallGrid = new Grid<Wall>[3, 3];
-        unitGrid = new Grid<Unit>[3, 3];
-        activeGameManagers = new List<GameManager>();
-        for (int i = 0; i < gameMangers.Count; i++)
-        {
-            Vector3 worldPosition = gameMangers[i].defaultGridPosition;
-            int gridXIndex = (int)(worldPosition.x / mapWidth);
-            int gridYIndex = (int)(worldPosition.y / mapHeight);
-            if (gameMangers[i].activeGameManager)
-            {
-                activeGameManagers.Add(gameMangers[i]);
-                unitGrid[gridXIndex, gridYIndex] = gameMangers[i].grid;
-                wallGrid[gridXIndex, gridYIndex] = gameMangers[i].obstacleGrid;
-                wallsForInspector.Add(gameMangers[i].obstacleGrid);
-            }
-            else
-            {
-                unitGrid[gridXIndex, gridYIndex] = null;
-                wallGrid[gridXIndex, gridYIndex] = null;
-                gameMangers[i].enabled = false;
-                gameMangers[i].gameObject.SetActive(false);
-            }
-        }
-
-        int leftMostPoint = (int)activeGameManagers[0].defaultGridPosition.x;
-        int rightMostPoint = (int)activeGameManagers[0].defaultGridPosition.x;
-        int topMostPoint = (int)activeGameManagers[0].defaultGridPosition.y;
-        int bottomMostPoint = (int)activeGameManagers[0].defaultGridPosition.y;
-
-        for (int i = 0; i < activeGameManagers.Count; i++)
-        {
-            if (activeGameManagers[i].defaultGridPosition.x < leftMostPoint)
-            {
-                leftMostPoint = (int)activeGameManagers[i].defaultGridPosition.x;
-            }
-
-            if (activeGameManagers[i].defaultGridPosition.x + mapWidth > rightMostPoint)
-            {
-                rightMostPoint = (int)activeGameManagers[i].defaultGridPosition.x + mapWidth;
-            }
-
-            if (activeGameManagers[i].defaultGridPosition.y < bottomMostPoint)
-            {
-                bottomMostPoint = (int)activeGameManagers[i].defaultGridPosition.y;
-            }
-
-            if (activeGameManagers[i].defaultGridPosition.y + mapHeight > topMostPoint)
-            {
-                topMostPoint = (int)activeGameManagers[i].defaultGridPosition.y + mapHeight;
-            }
-        }
-        CreateAStarPathing(rightMostPoint - leftMostPoint, topMostPoint - bottomMostPoint, wallGrid, unitGrid,
-            new Vector3(leftMostPoint, bottomMostPoint, 0));
+        StartScene();
     }
 
     // Update is called once per frame 
@@ -324,6 +273,77 @@ public class MainGameManger : MonoBehaviour
         }
     }
 
+    public void ResetScene()
+    {
+        for (int i = 0; i < activeGameManagers.Count; i++)
+        {
+            activeGameManagers[i].ClearBoard();
+        }
+    }
+
+    public void StartScene()
+    {
+        wallGrid = new Grid<Wall>[3, 3];
+        unitGrid = new Grid<Unit>[3, 3];
+        activeGameManagers = new List<GameManager>();
+        for (int i = 0; i < gameMangers.Count; i++)
+        {
+            Vector3 worldPosition = gameMangers[i].defaultGridPosition;
+            int gridXIndex = (int)(worldPosition.x / mapWidth);
+            int gridYIndex = (int)(worldPosition.y / mapHeight);
+            if (gameMangers[i].activeGameManager)
+            {
+                activeGameManagers.Add(gameMangers[i]);
+                unitGrid[gridXIndex, gridYIndex] = gameMangers[i].grid;
+                wallGrid[gridXIndex, gridYIndex] = gameMangers[i].obstacleGrid;
+                wallsForInspector.Add(gameMangers[i].obstacleGrid);
+            }
+            else
+            {
+                unitGrid[gridXIndex, gridYIndex] = null;
+                wallGrid[gridXIndex, gridYIndex] = null;
+                gameMangers[i].enabled = false;
+                gameMangers[i].gameObject.SetActive(false);
+            }
+        }
+
+        int leftMostPoint = (int)activeGameManagers[0].defaultGridPosition.x;
+        int rightMostPoint = (int)activeGameManagers[0].defaultGridPosition.x;
+        int topMostPoint = (int)activeGameManagers[0].defaultGridPosition.y;
+        int bottomMostPoint = (int)activeGameManagers[0].defaultGridPosition.y;
+
+        for (int i = 0; i < activeGameManagers.Count; i++)
+        {
+            if (activeGameManagers[i].defaultGridPosition.x < leftMostPoint)
+            {
+                leftMostPoint = (int)activeGameManagers[i].defaultGridPosition.x;
+            }
+
+            if (activeGameManagers[i].defaultGridPosition.x + mapWidth > rightMostPoint)
+            {
+                rightMostPoint = (int)activeGameManagers[i].defaultGridPosition.x + mapWidth;
+            }
+
+            if (activeGameManagers[i].defaultGridPosition.y < bottomMostPoint)
+            {
+                bottomMostPoint = (int)activeGameManagers[i].defaultGridPosition.y;
+            }
+
+            if (activeGameManagers[i].defaultGridPosition.y + mapHeight > topMostPoint)
+            {
+                topMostPoint = (int)activeGameManagers[i].defaultGridPosition.y + mapHeight;
+            }
+
+            if (activeGameManagers[i].isPeripheralGameManager)
+            {
+                PeripheralGameManager peripheralGameManager = (PeripheralGameManager)activeGameManagers[i];
+                peripheralGameManager.StartPeripheral();
+            }
+        }
+        CreateAStarPathing(rightMostPoint - leftMostPoint, topMostPoint - bottomMostPoint, wallGrid, unitGrid,
+            new Vector3(leftMostPoint, bottomMostPoint, 0));
+        postMapGenerationStart.enabled = true;
+    }
 
     private bool CanContinue(MonoBehaviour script)
     {

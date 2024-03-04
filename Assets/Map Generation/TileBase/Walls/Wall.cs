@@ -32,7 +32,7 @@ public class Wall : MonoBehaviour
         gameManager.ChangeWalls(transform.position, this);
     }
 
-    public void Death()
+    public virtual void Death()
     {
         continueDeath = true;
         OnDeath?.Invoke();
@@ -43,8 +43,14 @@ public class Wall : MonoBehaviour
 
         //gameManager.scripts.RemoveAt(index);
         gameManager.ChangeWalls(gameObject.transform.position, null);
+        gameManager.walls.Remove(this);
         Destroy(this);
         Destroy(gameObject);
 
+    }
+
+    public void Died()
+    {
+        OnDeath?.Invoke();
     }
 }

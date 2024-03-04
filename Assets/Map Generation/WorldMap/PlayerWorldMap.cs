@@ -30,9 +30,18 @@ public class PlayerWorldMap : MonoBehaviour
             return;
         }
 
+        //For Full Map
+        int playerWorldMapLength = worldMap.width;
+        int playerWorldMapHeight = worldMap.height;
+        tileobs = new GameObject[playerWorldMapLength, playerWorldMapHeight];
+
+        /*
+
+        // For A Caves Of Qud Type Map
         int playerWorldMapLength = worldMap.width / 3;
         int playerWorldMapHeight = worldMap.height / 3;
         tileobs =  new GameObject[playerWorldMapLength, playerWorldMapHeight];
+        */
 
         Clear();
         GameObject o;
@@ -43,7 +52,30 @@ public class PlayerWorldMap : MonoBehaviour
             tiles.transform.localPosition = new Vector3();
         }
 
+        //For a full Map
+        Vector3Int tileInfo;
+        int xIndex = 0;
+        for (int i = 0; i < worldMap.tilesInspectorUse.Count; i++)
+        {
+            tileInfo = worldMap.tilesInspectorUse[i];
+            o = Instantiate(resourceManager.tileBasePrefabs[tileInfo.z], new Vector3(), new Quaternion(0, 0, 0, 1f));
+            o.transform.parent = tiles.transform;
+            o.transform.localPosition = (new Vector3(tileInfo.x, tileInfo.y, 0) * gridSize);
+            tileobs[tileInfo.x, tileInfo.y] = o;
+
+            if (xIndex == worldMap.width - 1)
+            {
+                xIndex = 0;
+            }
+            else
+            {
+                xIndex += 1;
+            }
+        }
+
+        // For A Caves Of Qud Type Map
         // TIleINfO - <x, y, TilePrefabIndex>
+        /*
         Vector3Int tileInfo;
         int xIndex = 0;
         for (int i = worldMap.width + 1; i < worldMap.tilesInspectorUse.Count; i += 3)
@@ -63,6 +95,7 @@ public class PlayerWorldMap : MonoBehaviour
                 xIndex += 1;
             }
         }
+        */
     }
 
 }

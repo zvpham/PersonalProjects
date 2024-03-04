@@ -29,6 +29,7 @@ public class Item : MonoBehaviour
         }
         else
         {
+            Debug.Log(gameManager.itemgrid.GetGridObject(gameObject.transform.position) + ", is this here");
             List<Item> tempItemList = gameManager.itemgrid.GetGridObject(gameObject.transform.position);
             tempItemList[tempItemList.Count - 1].gameObject.GetComponent<SpriteRenderer>().sprite = null;
             GetComponent<SpriteRenderer>().sprite = inventoryItem.itemImage;
@@ -36,7 +37,6 @@ public class Item : MonoBehaviour
             gameManager.itemgrid.SetGridObject(gameObject.transform.position, tempItemList);
         }
         gameManager.items.Add(this);
-
     }
 
     public void DestroyItem(int itemIndexInList)
@@ -64,6 +64,26 @@ public class Item : MonoBehaviour
                 gameManager.itemgrid.SetGridObject(gameObject.transform.position, null);
             }
         }
+    }
+
+    public void Death()
+    {
+        List<Item> tempItemList = gameManager.itemgrid.GetGridObject(gameObject.transform.position);
+        for(int i = 0; i < tempItemList.Count; i++)
+        {
+            if (tempItemList[i] == this)
+            {
+                tempItemList.RemoveAt(i);
+                if(tempItemList.Count == 0)
+                {
+                    tempItemList = null;
+                }
+                break;
+            }
+        }
+        gameManager.itemgrid.SetGridObject(gameObject.transform.position, tempItemList);
+        gameManager.items.Remove(this);
+        Destroy(gameObject);
     }
 
     private IEnumerator AnimateItemPickup()

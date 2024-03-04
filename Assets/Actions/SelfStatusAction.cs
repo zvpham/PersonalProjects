@@ -12,6 +12,11 @@ public abstract class SelfStatusAction : Action
         {
             Status temp = Instantiate(statuseffect);
             temp.ApplyEffect(self, duration);
+            if (isActiveAction && temp.isActiveStatus)
+            {
+                temp.activeAction = this;
+                actionIsActive = true;
+            }
         }
         return true;
     }
