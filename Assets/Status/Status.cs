@@ -132,16 +132,25 @@ public abstract class Status : ScriptableObject
     {
         if (isActiveStatus)
         {
-            activeAction.actionIsActive = false;
+            if(activeAction != null)
+            {
+                activeAction.actionIsActive = false;
+            }
         }
         target.gameManager.mainGameManger.numberOfStatusRemoved += 1;
         int index = target.statuses.IndexOf(this);
         target.statuses.RemoveAt(index);
         int statusindex = target.gameManager.allStatuses.IndexOf(this);
-        target.gameManager.allStatuses.RemoveAt(statusindex);
+        if(statusindex != -1)
+        {
+            target.gameManager.allStatuses.RemoveAt(statusindex);
+        }
 
         statusindex = target.gameManager.mainGameManger.allStatuses.IndexOf(this);
-        target.gameManager.mainGameManger.allStatuses.RemoveAt(statusindex);
+        if(statusindex != -1)
+        {
+            target.gameManager.mainGameManger.allStatuses.RemoveAt(statusindex);
+        }
         RemoveUnusableStatuses(target);
     }
 

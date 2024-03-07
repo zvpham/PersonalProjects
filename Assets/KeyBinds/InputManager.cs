@@ -123,6 +123,35 @@ public class InputManager : MonoBehaviour
         return false;
     }
 
+    public bool GetKeyDownWorldMapTravel(WorldMapTravelIntputName direction)
+    {
+        // detects if player is pressing button
+        if (!Input.anyKey)
+            return false;
+
+        foreach (WorldMapTravelIntputName key in keyBindings.worldMapTravelKeyBinds.Keys)
+        {
+            if (key == direction)
+            {
+                for (int i = 0; i < keyBindings.worldMapTravelKeyBinds[key].Count; i++)
+                {
+                    if (i == keyBindings.worldMapTravelKeyBinds[key].Count - 1)
+                    {
+                        return (Input.GetKeyDown(keyBindings.worldMapTravelKeyBinds[key][i]));
+                    }
+                    else
+                    {
+                        if (!Input.GetKey(keyBindings.worldMapTravelKeyBinds[key][i]))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public bool GetKey(ActionName action)
     {
         // detects if player is pressing button

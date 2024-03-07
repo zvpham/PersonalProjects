@@ -340,6 +340,9 @@ public class GameManager : MonoBehaviour
             temp.statusStringData = data.statusStringData[i];
             temp.statusBoolData = data.statusBoolData[i];
             temp.onLoadApply(this.units[data.indexOfUnitThatHasStatus[i]]);
+            Vector2 activeActionThatHasStatus = new Vector2(data.indexOfActionThatHasActiveStatus[i],
+                this.units[data.indexOfUnitThatHasStatus[i]].statuses.Count - 1);
+            this.units[data.indexOfUnitThatHasStatus[i]].actionsThatHaveActiveStatus.Add(activeActionThatHasStatus);
         }
 
         // Load Forced Movement Data
@@ -538,6 +541,7 @@ public class GameManager : MonoBehaviour
         // Status Data
         List<int> statusIndexList = new List<int>();
         List<int> indexOfUnitThatHasStatus = new List<int>();
+        List<int> indexOfActionThatHasActiveStatus = new List<int>();
         List<int> statusIntData = new List<int>();
         List<string> statusStringData = new List<string>();
         List<bool> statusBoolData = new List<bool>();
@@ -550,6 +554,7 @@ public class GameManager : MonoBehaviour
                 Status status = allStatuses[i];
                 statusIndexList.Add(status.statusPrefabIndex);
                 indexOfUnitThatHasStatus.Add(this.units.IndexOf(status.targetUnit));
+                indexOfActionThatHasActiveStatus.Add(status.targetUnit.actions.IndexOf(status.activeAction));
                 statusIntData.Add(status.statusIntData);
                 statusStringData.Add(status.statusStringData);
                 statusBoolData.Add(status.statusBoolData);
@@ -568,6 +573,7 @@ public class GameManager : MonoBehaviour
                 }
                 statusIndexList.Add(status.statusPrefabIndex);
                 indexOfUnitThatHasStatus.Add(this.units.IndexOf(status.targetUnit) - 1);
+                indexOfActionThatHasActiveStatus.Add(status.targetUnit.actions.IndexOf(status.activeAction));
                 statusIntData.Add(status.statusIntData);
                 statusStringData.Add(status.statusStringData);
                 statusBoolData.Add(status.statusBoolData);
@@ -578,6 +584,7 @@ public class GameManager : MonoBehaviour
 
         data.statusPrefabIndex = statusIndexList;
         data.indexOfUnitThatHasStatus = indexOfUnitThatHasStatus;
+        data.indexOfActionThatHasActiveStatus = indexOfActionThatHasActiveStatus;
         data.statusPriority = newStatusPriority;
         data.statusDuration = newStatusDuration;
         data.statusIntData = statusIntData;
@@ -657,7 +664,29 @@ public class GameManager : MonoBehaviour
 
     public void FreezeTile()
     {
-        for(int i = animatedFields.Count - 1; i >= 0; i--)
+        //This Section Of Code SHould Only Occur When moving Through the World Map (it removes Player and Player related stuff before Freeze)
+        if (!isPeripheralGameManager)
+        {
+            for (int i = 0; i < allStatuses.Count; i++)
+            {
+                if (allStatuses[i].targetUnit == units[0])
+                {
+                    allStatuses.RemoveAt(i);
+                    i--;
+                }
+            }
+            for (int i = 0; i < forcedMovements.Count; i++)
+            {
+                if (forcedMovements[i].unit == units[0])
+                {
+                    Debug.LogError("The Player Shoudln't be able to be forced move and Leave the Scene");
+                    return;
+                }
+            }
+            units.RemoveAt(0);
+        }
+
+        for (int i = animatedFields.Count - 1; i >= 0; i--)
         {
             animatedFields[i].DestroySelf();
         }

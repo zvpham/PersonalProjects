@@ -11,6 +11,24 @@ public class PlayerWorldMap : MonoBehaviour
     public int gridSize = 1;
     public GameObject tiles;
     public ResourceManager resourceManager;
+    public CameraBounds cameraBounds;
+
+    public void Awake()
+    {
+        float largerSide;
+        if(worldMap.width > worldMap.height)
+        {
+            largerSide = (worldMap.width * 2 + 1) * -1;
+        }
+        else 
+        {
+            largerSide = (worldMap.height * 2 + 1) * -1;
+        }
+        Vector3 centerPostion = transform.position + new Vector3(worldMap.width / 2, worldMap.height/2, largerSide);
+        Vector3 extent = new Vector3(worldMap.width / 2, worldMap.height / 2, 0);
+        cameraBounds.WorldBounds.center = centerPostion;
+        cameraBounds.WorldBounds.extents = extent;
+    }
     public void Clear()
     {
         DestroyImmediate(tiles);
@@ -36,7 +54,6 @@ public class PlayerWorldMap : MonoBehaviour
         tileobs = new GameObject[playerWorldMapLength, playerWorldMapHeight];
 
         /*
-
         // For A Caves Of Qud Type Map
         int playerWorldMapLength = worldMap.width / 3;
         int playerWorldMapHeight = worldMap.height / 3;

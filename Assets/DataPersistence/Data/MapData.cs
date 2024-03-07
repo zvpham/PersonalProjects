@@ -7,6 +7,7 @@ public class MapData
 {
     public long lastUpdated;
 
+    public bool newGame = true;
     public float extraDangerModifier;
     public Vector2Int playerPosition;
     public Vector2Int currentMapPosition;
@@ -43,6 +44,7 @@ public class MapData
     public List<int> statusDuration;
     public List<int> statusPrefabIndex;
     public List<int> indexOfUnitThatHasStatus;
+    public List<int> indexOfActionThatHasActiveStatus;
     public List<int> statusIntData;
     public List<string> statusStringData;
     public List<bool> statusBoolData;

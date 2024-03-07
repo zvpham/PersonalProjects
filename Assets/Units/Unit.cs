@@ -82,6 +82,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     // For Updating action cooldowns to be cooldowns in the saveData
     public List<ActionName> actionNamesForCoolDownOnLoad;
     public List<int> currentCooldownOnLoad;
+    public List<Vector2> actionsThatHaveActiveStatus;  
 
     public List<Status> statuses;
 

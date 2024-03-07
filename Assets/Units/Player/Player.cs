@@ -17,8 +17,12 @@ public class Player : Unit
     private InputManager inputManager;
     private KeyBindings keybindings;
     public InventorySystem inventorySystem;
+    public WorldMapTravel worldMapTravel;
     public CameraManager cameraManager;
+    public CameraControllerPlayer gameCamera;
     public List<InventoryItem> initialInventoryItemsForMapManager = new List<InventoryItem>();
+
+    public int amountOfMenusOpen;
 
     //For use in On Load Function Only
     public List<int> soulSlotIndexes = new List<int>();
@@ -38,8 +42,14 @@ public class Player : Unit
         inputManager = InputManager.instance;
         keybindings = KeyBindings.instance;
         inventorySystem = InventorySystem.Instance;
+        worldMapTravel = WorldMapTravel.Instance;
         actionBar = ActionBar.Instance;
         cameraManager = CameraManager.Instance;
+        gameCamera = cameraManager.gameCamera.GetComponent<CameraControllerPlayer>();
+        gameCamera.target = gameObject;
+        gameCamera.attachedToTarget = true;
+        PerformedAction += ResetCameraPosition;
+        ResetCameraPosition(null, ActionName.Wait);
 
         ChangeStr(0);
         ChangeAgi(0);
@@ -102,6 +112,16 @@ public class Player : Unit
                 }
                 actions[i].currentCooldown = currentCooldownOnLoad[index];
             }
+
+            for (int i = 0; i < actionsThatHaveActiveStatus.Count; i++)
+            {
+                if(actionsThatHaveActiveStatus[i].x == -1)
+                {
+                    continue;
+                }
+                actions[(int)actionsThatHaveActiveStatus[i].x].actionIsActive = true;
+                statuses[(int)actionsThatHaveActiveStatus[i].y].activeAction = actions[(int)actionsThatHaveActiveStatus[i].x];
+            }
         }
         enabled = false;
     }
@@ -121,7 +141,6 @@ public class Player : Unit
         {
             if (action.actionName == ActionName.Sprint)
             {
-                Debug.Log("Player Action Update SPRINGINT");
                 keybindings.actionkeyBinds.Add(action.actionName, new List<KeyCode>() { KeyCode.S});
             }
             if (action.actionName == ActionName.Jump)
@@ -198,31 +217,48 @@ public class Player : Unit
                         item.Value.quantity);
                 }
                 notOnHold = false;
+                amountOfMenusOpen += 1;
             }
             else
             {
                 inventorySystem.inventoryUI.Hide();
-                notOnHold = true;
+                if (amountOfMenusOpen == 0)
+                {
+                    notOnHold = true;
+                }
             }
         }
 
         if (inputManager.GetKeyDown(ActionName.OpenWorldMap))
         {
-            if (cameraManager.worldMapCamera.isActiveAndEnabled)
+            UseWorldMap();
+        }
+    }
+
+    public void UseWorldMap()
+    {
+        if (cameraManager.worldMapCamera.isActiveAndEnabled == false)
+        {
+            cameraManager.gameCamera.gameObject.SetActive(false);
+            cameraManager.worldMapCamera.gameObject.SetActive(true);
+            cameraManager.worldMapCamera.enabled = true;
+            Debug.Log("Open World Map");
+            worldMapTravel.StartWorldMapTravel(originalSprite);
+            notOnHold = false;
+            amountOfMenusOpen += 1;
+        }
+        else
+        {
+            cameraManager.worldMapCamera.gameObject.SetActive(false);
+            cameraManager.gameCamera.gameObject.SetActive(true);
+            cameraManager.worldMapCamera.enabled = false;
+            worldMapTravel.EndWorldMapTravel();
+            amountOfMenusOpen -= 1;
+            Debug.Log("Closed World Map");
+            if (amountOfMenusOpen == 0)
             {
-                cameraManager.worldMapCamera.gameObject.SetActive(false);
-                cameraManager.gameCamera.gameObject.SetActive(true);
-                cameraManager.worldMapCamera.enabled = false;
-                notOnHold = false;
-            }
-            else
-            {
-                cameraManager.gameCamera.gameObject.SetActive(false);
-                cameraManager.worldMapCamera.gameObject.SetActive(true);
-                cameraManager.worldMapCamera.enabled = true;
                 notOnHold = true;
             }
-
         }
     }
 
@@ -248,6 +284,11 @@ public class Player : Unit
         {
             senses[i].PlayerUseSense(this);
         }
+    }
+
+    public void ResetCameraPosition(ActionTypes[] actionTypes, ActionName actionName)
+    {
+        gameCamera.MoveCamera();
     }
 
     public override void ActivateTargeting()

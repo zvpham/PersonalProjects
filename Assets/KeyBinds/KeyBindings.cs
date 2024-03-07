@@ -8,6 +8,7 @@ public class KeyBindings : MonoBehaviour
     public GameObject keybindmanager;
     public Dictionary<ActionName, List<KeyCode>> defaultActionKeyBinds = new Dictionary<ActionName, List<KeyCode>>();
     public Dictionary<ActionName, List<KeyCode>> actionkeyBinds = new Dictionary<ActionName, List<KeyCode>>();
+    public Dictionary<WorldMapTravelIntputName, List<KeyCode>> worldMapTravelKeyBinds = new Dictionary<WorldMapTravelIntputName, List<KeyCode>>();
     public Dictionary<DirectionName, List<KeyCode>> targetingKeyBinds = new Dictionary<DirectionName, List<KeyCode>>();
     // Start is called before the first frame update
     void Awake()
@@ -25,6 +26,10 @@ public class KeyBindings : MonoBehaviour
         defaultActionKeyBinds.Add(ActionName.Back, new List<KeyCode>() { KeyCode.Backspace });
         defaultActionKeyBinds.Add(ActionName.InventoryMenu, new List<KeyCode>() { KeyCode.I });
         defaultActionKeyBinds.Add(ActionName.OpenWorldMap, new List<KeyCode>() {KeyCode.KeypadMinus});
+
+        worldMapTravelKeyBinds.Add(WorldMapTravelIntputName.CloseWorldMap, new List<KeyCode>() { KeyCode.KeypadMinus });
+        worldMapTravelKeyBinds.Add(WorldMapTravelIntputName.EnterTile, new List<KeyCode>() { KeyCode.KeypadPlus });
+
 
         targetingKeyBinds.Add(DirectionName.NorthEast, new List<KeyCode> { KeyCode.Keypad9 });
         targetingKeyBinds.Add(DirectionName.North, new List<KeyCode> { KeyCode.Keypad8 });

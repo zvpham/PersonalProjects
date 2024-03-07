@@ -69,6 +69,16 @@ public class EnemyTest : Unit
                 }
                 actions[i].currentCooldown = currentCooldownOnLoad[index];
             }
+
+            for (int i = 0; i < actionsThatHaveActiveStatus.Count; i++)
+            {
+                if (actionsThatHaveActiveStatus[i].x == -1)
+                {
+                    continue;
+                }
+                actions[(int)actionsThatHaveActiveStatus[i].x].actionIsActive = true;
+                statuses[(int)actionsThatHaveActiveStatus[i].y].activeAction = actions[(int)actionsThatHaveActiveStatus[i].x];
+            }
         }
         enabled = false;
         

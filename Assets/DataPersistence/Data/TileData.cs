@@ -53,6 +53,7 @@ public class TileData
     public List<int> statusDuration;
     public List<int> statusPrefabIndex;
     public List<int> indexOfUnitThatHasStatus;
+    public List<int> indexOfActionThatHasActiveStatus;
     public List<int> statusIntData;
     public List<string> statusStringData;
     public List<bool> statusBoolData;
