@@ -8,6 +8,7 @@ public class MapData
     public long lastUpdated;
 
     public bool newGame = true;
+    public bool enteredTileThroughWorldMap;
     public float extraDangerModifier;
     public Vector2Int playerPosition;
     public Vector2Int currentMapPosition;

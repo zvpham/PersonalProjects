@@ -29,15 +29,6 @@ public class WorldMapTravel : MonoBehaviour
         Instance = this;
     }
 
-    public void OnEnable()
-    {
-        Debug.Log("Who is enablikng me BRo");
-    }
-
-    public void OnDisable()
-    {
-        Debug.Log("Who is disabling me BRo");
-    }
     void Start()
     {
         inputManager = InputManager.instance;
@@ -91,7 +82,6 @@ public class WorldMapTravel : MonoBehaviour
 
     public void StartWorldMapTravel(Sprite playerSprite)
     {
-        Debug.Log("Starting World Map");
         playerMapModel.GetComponent<SpriteRenderer>().sprite = playerSprite;
         currentMapPosition = mapManager.currentMapPosition;
         startingMapPosition = currentMapPosition;

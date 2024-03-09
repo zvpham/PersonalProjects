@@ -78,6 +78,93 @@ public class Player : Unit
         }
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
+
+        if (gameManager.mainGameManger.mapManager.enteredTileThroughWorldMap)
+        {
+            int x = gameManager.mainGameManger.mapWidth / 2;
+            int y = 0;
+            Vector3 startPosition = new Vector3(0.5f, 0.5f, 0);
+            bool foundStartingPosition = false;
+
+            //Starting At Bottom Checking Places to right of bottom of screen for Empty Place
+            for(int i = x; i < gameManager.mainGameManger.mapWidth; i++)
+            {
+                if(gameManager.obstacleGrid.GetGridObject(x,y) == null)
+                {
+                    Debug.Log(new Vector3(x, y, 0));
+                    startPosition += gameManager.obstacleGrid.GetWorldPosition(x, y);
+                    Debug.Log(startPosition);
+                    foundStartingPosition = true;
+                    break;
+                }
+            }
+            //Starting At Bottom Checking Places to left of bottom of screen for Empty Place
+            if(!foundStartingPosition)
+            {
+                for (int i = (gameManager.mainGameManger.mapWidth / 2) - 1; i > 0; i--)
+                {
+                    if (gameManager.obstacleGrid.GetGridObject(x, y) == null)
+                    {
+                        startPosition += gameManager.obstacleGrid.GetWorldPosition(x, y);
+                        foundStartingPosition = true;
+                        break;
+                    }
+                }
+            }
+
+            //Checking Left Side for Empty Space
+            if (!foundStartingPosition)
+            {
+                for (int i = 0; i < gameManager.mainGameManger.mapHeight; i++)
+                {
+                    if (gameManager.obstacleGrid.GetGridObject(x, y) == null)
+                    {
+                        startPosition += gameManager.obstacleGrid.GetWorldPosition(x, y);
+                        foundStartingPosition = true;
+                        break;
+                    }
+                }
+            }
+
+            //Checking Top Side for Empty Space
+            if (!foundStartingPosition)
+            {
+                for (int i = 0; i < gameManager.mainGameManger.mapWidth; i++)
+                {
+                    if (gameManager.obstacleGrid.GetGridObject(x, y) == null)
+                    {
+                        startPosition += gameManager.obstacleGrid.GetWorldPosition(x, y);
+                        foundStartingPosition = true;
+                        break;
+                    }
+                }
+            }
+
+            //Checking Right Side for Empty Space
+            if (!foundStartingPosition)
+            {
+                for (int i = gameManager.mainGameManger.mapHeight - 1; i > 0; i--)
+                {
+                    if (gameManager.obstacleGrid.GetGridObject(x, y) == null)
+                    {
+                        startPosition += gameManager.obstacleGrid.GetWorldPosition(x, y);
+                        foundStartingPosition = true;
+                        break;
+                    }
+                }
+            }
+
+            if (foundStartingPosition)
+            {
+                gameObject.transform.position = startPosition;
+            }
+            else
+            {
+                Debug.LogError("Couldn't Find a start position");
+            }
+            gameManager.mainGameManger.mapManager.enteredTileThroughWorldMap = false;
+        }
+
         gameManager.ChangeUnits(gameObject.transform.position, this, flyOnLoad);
 
         if (gameManager.isNewSlate)
@@ -242,7 +329,6 @@ public class Player : Unit
             cameraManager.gameCamera.gameObject.SetActive(false);
             cameraManager.worldMapCamera.gameObject.SetActive(true);
             cameraManager.worldMapCamera.enabled = true;
-            Debug.Log("Open World Map");
             worldMapTravel.StartWorldMapTravel(originalSprite);
             notOnHold = false;
             amountOfMenusOpen += 1;
@@ -254,7 +340,6 @@ public class Player : Unit
             cameraManager.worldMapCamera.enabled = false;
             worldMapTravel.EndWorldMapTravel();
             amountOfMenusOpen -= 1;
-            Debug.Log("Closed World Map");
             if (amountOfMenusOpen == 0)
             {
                 notOnHold = true;

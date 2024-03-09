@@ -18,6 +18,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
     public float extraDangerModifier;
 
     private bool newGame;
+    public bool enteredTileThroughWorldMap;
 
     public Vector2Int playerPosition;
     public Vector2Int currentMapPosition;
@@ -69,6 +70,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
     public void LoadData(MapData mapData)
     {
         newGame = mapData.newGame;
+        enteredTileThroughWorldMap = mapData.enteredTileThroughWorldMap;
         dataPersistenceManager = DataPersistenceManager.Instance;
         extraDangerModifier = mapData.extraDangerModifier;
         playerPosition = mapData.playerPosition;
@@ -317,6 +319,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
 
         mapData.newGame = newGame;
         mapData.extraDangerModifier = extraDangerModifier;
+        mapData.enteredTileThroughWorldMap = enteredTileThroughWorldMap;
         if(changedMapPosition)
         {
             mapData.playerPosition = playerPosition;
@@ -660,6 +663,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
     
     public void EnterTile()
     {
+        enteredTileThroughWorldMap = true;
         dataPersistenceManager.SaveGame(dataPersistenceManager.autoSaveID, dataPersistenceManager.playerID);
         centerGameManager.ClearBoard();
         dataPersistenceManager.LoadGame();
