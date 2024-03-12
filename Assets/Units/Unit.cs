@@ -49,6 +49,9 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public int charisma = 16;
     public int charismaMod;
 
+    public int luck = 16;
+    public int luckMod;
+
     public int closestEnemyIndex;
     public bool clearLineOfSightToEnemy;
 
@@ -488,6 +491,23 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         else
         {
             charismaMod = (charisma - 16 + 1) / 2;
+        }
+    }
+
+    public void ChangeLuk(int value)
+    {
+        luck += value;
+        if (luck % 2 == 0)
+        {
+            luckMod = (luck - 16) / 2;
+        }
+        else if (luck % 2 == 1 && luck > 16)
+        {
+            luckMod = (luck - 16 - 1) / 2;
+        }
+        else
+        {
+            luckMod = (luck - 16 + 1) / 2;
         }
     }
 
