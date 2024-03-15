@@ -15,6 +15,7 @@ public abstract class Action : ScriptableObject
     public bool actionIsActive;
     public bool isActiveAction;
     public bool isChaseAction;
+    public string description;
     //public bool isTurnActivated;
 
     public Unit affectedUnit;

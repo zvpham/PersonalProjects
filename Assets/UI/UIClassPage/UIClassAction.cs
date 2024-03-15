@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class UIClassAction : MonoBehaviour
+public class UIClassAction : BaseGameUIObject
 {
     private string actionDescrtiption;
     public TMP_Text actionName;

@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class UIClassGroup : MonoBehaviour
+public class UIClassGroup : BaseGameUIObject
 {
-    public TMP_Text className;
+    [SerializeField]
+    private TMP_Text className;
+    public TMPHolder unlockedAbilities;
+    public TMPHolder lockedAbilities;
 
     public void SetClass(string className)
     {

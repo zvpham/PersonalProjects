@@ -20,3 +20,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0b7e8d0987206e24f8a075533f1d52ee, type: 2}
   currentLevel: 0
   description: 
+  className: 2
+  baseClass: 2
+  classRarity: 0

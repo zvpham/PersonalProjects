@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52597205d6cd02f44846cd147eb08d23, type: 3}
   m_Name: Bunny - Lvl 3
   m_EditorClassIdentifier: 
-  Strength: 0
+  Strength: 5
   Agility: 0
   Endurance: 0
-  Wisdom: 0
+  Wisdom: 3
   Intelligence: 0
   Charisma: 0
   Luck: 0
