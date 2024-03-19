@@ -6,7 +6,6 @@ using UnityEngine;
 public class UIClassAction : BaseGameUIObject
 {
     private string actionDescrtiption;
-    public TMP_Text actionName;
 
     public void SetActionDescription(string actionDescription)
     {

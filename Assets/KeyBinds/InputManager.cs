@@ -152,6 +152,35 @@ public class InputManager : MonoBehaviour
         return false;
     }
 
+    public bool GetKeyDownMenu(MenuInputNames direction)
+    {
+        // detects if player is pressing button
+        if (!Input.anyKey)
+            return false;
+
+        foreach (MenuInputNames key in keyBindings.menuKeyBinds.Keys)
+        {
+            if (key == direction)
+            {
+                for (int i = 0; i < keyBindings.menuKeyBinds[key].Count; i++)
+                {
+                    if (i == keyBindings.menuKeyBinds[key].Count - 1)
+                    {
+                        return (Input.GetKeyDown(keyBindings.menuKeyBinds[key][i]));
+                    }
+                    else
+                    {
+                        if (!Input.GetKey(keyBindings.menuKeyBinds[key][i]))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public bool GetKey(ActionName action)
     {
         // detects if player is pressing button
@@ -252,5 +281,10 @@ public class InputManager : MonoBehaviour
             }
         }
         return false;
+    }
+
+    public Dictionary<MenuInputNames, List<KeyCode>> GetMenuKeybinds()
+    {
+        return keyBindings.menuKeyBinds;
     }
 }

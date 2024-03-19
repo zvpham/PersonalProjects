@@ -15,13 +15,21 @@ public class UITesting : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.I))
+        if (Input.GetKeyDown(KeyCode.Alpha8))
         {
             classPage.AddClass(testClass);
         }
         if (Input.GetKeyDown(KeyCode.Return))
         {
             classPage.UseUI();
+        }
+        if(Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            classPage.IndexUp();
+        }
+        if(Input.GetKeyDown (KeyCode.DownArrow))
+        {
+            classPage.IndexDown();
         }
     }
 }

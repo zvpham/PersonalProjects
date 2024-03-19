@@ -1,48 +1,108 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
-public abstract class BaseGameUIObject : MonoBehaviour
+public class BaseGameUIObject : MonoBehaviour
 {
     public bool isHeadOfGroup;
-    public List<GameObject> groupHeaders;
     public List<BaseGameUIObject> groupMembers;
 
-    public void ExpandGroup()
-    {
-        this.gameObject.SetActive(true);
-    }
+    [SerializeField]
+    private TMP_Text text;
 
-    public void CollapseGroup()
-    {
-        this.gameObject.SetActive(false);
-    }
+    [SerializeField]
+    private string originalText;
+    [SerializeField]
+    private int numIndents;
 
-    public void GetBaseUIOBject(List<BaseGameUIObject> baseGameUIObjects)
+    private StaticUIMenuValues menuValues;
+
+    public string indent;
+
+    public void Awake()
     {
-        if (!isHeadOfGroup)
+        if(StaticUIMenuValues.Instance != null)
         {
-            baseGameUIObjects.Add(this);
-            return;
+            menuValues = StaticUIMenuValues.Instance;
+            indent = menuValues.indent;
         }
+    }
 
-        for(int i = 0; i < groupMembers.Count; i++)
+    public void Start()
+    {
+        menuValues = StaticUIMenuValues.Instance;
+        indent = menuValues.indent;
+    }
+
+    public void setAmountOfIndents(int indentAmount)
+    {
+        numIndents = indentAmount;
+    }
+    public void SetOriginalText(string newText)
+    {
+        originalText = newText;
+    }
+
+    public string GetOriginalText()
+    {
+        return originalText;
+    }
+
+    public string AddIndents(string unmodifiedText)
+    {
+        string indents = "";
+        for(int i = 0; i < numIndents; i++)
+        {
+            indents += indent;
+        }
+        indents += unmodifiedText;
+        return indents;
+    }
+
+    public void SetText(string newText)
+    {
+        text.text = newText;
+    }
+
+    public string GetText()
+    {
+        return text.text;
+    }
+
+    public void GetActiveBaseUIOBjects(List<BaseGameUIObject> baseGameUIObjects)
+    {
+        //Base Case - BaseGameUIObject has no GroupMembers
+        baseGameUIObjects.Add(this);
+        for (int i = 0; i < groupMembers.Count; i++)
         {
             if (groupMembers[i].gameObject.activeInHierarchy)
             {
-                groupMembers[i].GetBaseUIOBject(baseGameUIObjects);
+                groupMembers[i].GetActiveBaseUIOBjects(baseGameUIObjects);
             }
         }
-        baseGameUIObjects.Add(this);
     }
 
-
-    public List<bool> GroupsActive()
+    public void GetAllBaseUIOBjects(List<BaseGameUIObject> baseGameUIObjects)
     {
-        List<bool> activeGroups = new List<bool>();
-        for(int i = 0; i < groupHeaders.Count; i++)
+        //Base Case - BaseGameUIObject has no GroupMembers
+        baseGameUIObjects.Add(this);
+        if(!isHeadOfGroup)
         {
-                activeGroups.Add(groupHeaders[i].activeSelf);
+            return;
+        }
+        for (int i = 0; i < groupMembers.Count; i++)
+        {
+                groupMembers[i].GetAllBaseUIOBjects(baseGameUIObjects);
+        }
+    }
+
+    public List<bool> ActiveGroups()
+    {
+        List<bool> activeGroups = new List<bool>(); 
+        for(int i = 0;i < groupMembers.Count;i++)
+        {
+            activeGroups.Add(groupMembers[i].gameObject.activeInHierarchy);
         }
         return activeGroups;
     }

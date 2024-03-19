@@ -5,8 +5,7 @@ using UnityEngine;
 
 public class UIClassStats : BaseGameUIObject
 {
-    public TMP_Text stats;
-    
+    public string statline = "";
     public void ChangeStrength(int abiltyScore)
     {
         if(abiltyScore == 0)
@@ -16,11 +15,11 @@ public class UIClassStats : BaseGameUIObject
 
         if(abiltyScore < 0)
         {
-            stats.text += "-" + (abiltyScore * -1) + " STR";
+            statline += "-" + (abiltyScore * -1) + " STR";
         }
         else
         {
-            stats.text += "+" + (abiltyScore) + " STR";
+            statline += "+" + (abiltyScore) + " STR";
         }
     }
     public void ChangeAgility(int abiltyScore)
@@ -32,11 +31,11 @@ public class UIClassStats : BaseGameUIObject
 
         if (abiltyScore < 0)
         {
-            stats.text += "-" + (abiltyScore * -1) + " AGI";
+            statline += "-" + (abiltyScore * -1) + " AGI";
         }
         else
         {
-            stats.text += "+" + (abiltyScore) + " AGI";
+            statline += "+" + (abiltyScore) + " AGI";
         }
     }
     public void ChangeEndurance(int abiltyScore)
@@ -48,11 +47,11 @@ public class UIClassStats : BaseGameUIObject
 
         if (abiltyScore < 0)
         {
-            stats.text += "-" + (abiltyScore * -1) + " End";
+            statline += "-" + (abiltyScore * -1) + " End";
         }
         else
         {
-            stats.text += "+" + (abiltyScore) + " END";
+            statline += "+" + (abiltyScore) + " END";
         }
     }
     public void ChangeIntelligence(int abiltyScore)
@@ -64,11 +63,11 @@ public class UIClassStats : BaseGameUIObject
 
         if (abiltyScore < 0)
         {
-            stats.text += "-" + (abiltyScore * -1) + " INT";
+            statline += "-" + (abiltyScore * -1) + " INT";
         }
         else
         {
-            stats.text += "+" + (abiltyScore) + " INT";
+            statline += "+" + (abiltyScore) + " INT";
         }
     }
     public void ChangeWisdom(int abiltyScore)
@@ -80,11 +79,11 @@ public class UIClassStats : BaseGameUIObject
 
         if (abiltyScore < 0)
         {
-            stats.text += "-" + (abiltyScore * -1) + " WIS";
+            statline += "-" + (abiltyScore * -1) + " WIS";
         }
         else
         {
-            stats.text += "+" + (abiltyScore) + " WIS";
+            statline += "+" + (abiltyScore) + " WIS";
         }
     }
     public void ChangeCharisma(int abiltyScore)
@@ -96,11 +95,11 @@ public class UIClassStats : BaseGameUIObject
 
         if (abiltyScore < 0)
         {
-            stats.text += "-" + (abiltyScore * -1) + " CHA";
+            statline += "-" + (abiltyScore * -1) + " CHA";
         }
         else
         {
-            stats.text += "+" + (abiltyScore) + " CHA";
+            statline += "+" + (abiltyScore) + " CHA";
         }
     }
     public void ChangeLuck(int abiltyScore)
@@ -112,11 +111,11 @@ public class UIClassStats : BaseGameUIObject
 
         if (abiltyScore < 0)
         {
-            stats.text += "-" + (abiltyScore * -1) + " LUK";
+            statline += "-" + (abiltyScore * -1) + " LUK";
         }
         else
         {
-            stats.text += "+" + (abiltyScore) + " LUK";
+            statline += "+" + (abiltyScore) + " LUK";
         }
     }
 }
