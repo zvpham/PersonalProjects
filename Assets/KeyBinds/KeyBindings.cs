@@ -25,7 +25,7 @@ public class KeyBindings : MonoBehaviour
         defaultActionKeyBinds.Add(ActionName.Pause, new List<KeyCode>() { KeyCode.Escape });
         defaultActionKeyBinds.Add(ActionName.Wait, new List<KeyCode>() { KeyCode.W });
         defaultActionKeyBinds.Add(ActionName.Back, new List<KeyCode>() { KeyCode.Backspace });
-        defaultActionKeyBinds.Add(ActionName.InventoryMenu, new List<KeyCode>() { KeyCode.I });
+        defaultActionKeyBinds.Add(ActionName.ClassMenu, new List<KeyCode>() { KeyCode.I });
         defaultActionKeyBinds.Add(ActionName.OpenWorldMap, new List<KeyCode>() {KeyCode.KeypadMinus});
 
         worldMapTravelKeyBinds.Add(WorldMapTravelIntputName.CloseWorldMap, new List<KeyCode>() { KeyCode.KeypadMinus });
@@ -67,6 +67,10 @@ public class KeyBindings : MonoBehaviour
         menuKeyBinds.Add(MenuInputNames.UIItem24, new List<KeyCode> { KeyCode.X });
         menuKeyBinds.Add(MenuInputNames.UIItem25, new List<KeyCode> { KeyCode.Y });
         menuKeyBinds.Add(MenuInputNames.UIItem26, new List<KeyCode> { KeyCode.Z });
+        menuKeyBinds.Add(MenuInputNames.CloseMenu, new List<KeyCode> { KeyCode.Escape });
+        menuKeyBinds.Add(MenuInputNames.IndexUp, new List<KeyCode> { KeyCode.UpArrow });
+        menuKeyBinds.Add(MenuInputNames.IndexDown, new List<KeyCode> { KeyCode.DownArrow });
+        menuKeyBinds.Add(MenuInputNames.UseUi, new List<KeyCode> { KeyCode.Return });
 
         if (instance == null)
         {

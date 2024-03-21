@@ -17,6 +17,7 @@ public class Player : Unit
     private InputManager inputManager;
     private KeyBindings keybindings;
     public InventorySystem inventorySystem;
+    public GameMenu gameMenu;  
     public WorldMapTravel worldMapTravel;
     public CameraManager cameraManager;
     public CameraControllerPlayer gameCamera;
@@ -41,6 +42,7 @@ public class Player : Unit
         index = 0;
         inputManager = InputManager.instance;
         keybindings = KeyBindings.instance;
+        gameMenu = GameMenu.Instance;
         inventorySystem = InventorySystem.Instance;
         worldMapTravel = WorldMapTravel.Instance;
         actionBar = ActionBar.Instance;
@@ -291,34 +293,62 @@ public class Player : Unit
                 }
             }
         }
-
-        if (inputManager.GetKeyDown(ActionName.InventoryMenu))
+        if(!gameMenu.gameObject.activeInHierarchy)
         {
-            if (inventorySystem.inventoryUI.isActiveAndEnabled == false)
+            if (inputManager.GetKeyDown(ActionName.InventoryMenu))
             {
-                inventorySystem.inventoryUI.Show();
-                foreach (var item in inventorySystem.inventoryData.GetCurrentInventoryState())
+                if (inventorySystem.inventoryUI.isActiveAndEnabled == false)
                 {
-                    inventorySystem.inventoryUI.UpdateData(item.Key,
-                        item.Value.item.itemImage,
-                        item.Value.quantity);
+                    inventorySystem.inventoryUI.Show();
+                    foreach (var item in inventorySystem.inventoryData.GetCurrentInventoryState())
+                    {
+                        inventorySystem.inventoryUI.UpdateData(item.Key,
+                            item.Value.item.itemImage,
+                            item.Value.quantity);
+                    }
+                    notOnHold = false;
+                    amountOfMenusOpen += 1;
                 }
-                notOnHold = false;
-                amountOfMenusOpen += 1;
+                else
+                {
+                    inventorySystem.inventoryUI.Hide();
+                    if (amountOfMenusOpen == 0)
+                    {
+                        notOnHold = true;
+                    }
+                }
             }
-            else
+
+            if (inputManager.GetKeyDown(ActionName.ClassMenu))
             {
-                inventorySystem.inventoryUI.Hide();
-                if (amountOfMenusOpen == 0)
-                {
-                    notOnHold = true;
-                }
+                ChangeAmountOfScreensOpen(1);
+                gameMenu.OpenMenu(gameMenu.pages.IndexOf(gameMenu.classPage));
+                actionBar.gameObject.SetActive(false);
             }
         }
 
         if (inputManager.GetKeyDown(ActionName.OpenWorldMap))
         {
+            gameMenu.CloseMenu();
             UseWorldMap();
+        }
+    }
+
+    public void CloseGameMenu()
+    {
+        actionBar.gameObject.SetActive(true);
+    }
+
+    public void ChangeAmountOfScreensOpen(int screenChange)
+    {
+        amountOfMenusOpen += screenChange;
+        if (amountOfMenusOpen == 0)
+        {
+            notOnHold = true;
+        }
+        else
+        {
+            notOnHold = false;
         }
     }
 
@@ -331,7 +361,7 @@ public class Player : Unit
             cameraManager.worldMapCamera.enabled = true;
             worldMapTravel.StartWorldMapTravel(originalSprite);
             notOnHold = false;
-            amountOfMenusOpen += 1;
+            ChangeAmountOfScreensOpen(1);
         }
         else
         {
@@ -339,11 +369,7 @@ public class Player : Unit
             cameraManager.gameCamera.gameObject.SetActive(true);
             cameraManager.worldMapCamera.enabled = false;
             worldMapTravel.EndWorldMapTravel();
-            amountOfMenusOpen -= 1;
-            if (amountOfMenusOpen == 0)
-            {
-                notOnHold = true;
-            }
+            ChangeAmountOfScreensOpen(-1);
         }
     }
 

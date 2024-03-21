@@ -21,6 +21,7 @@ MonoBehaviour:
   actionIsActive: 0
   isActiveAction: 1
   isChaseAction: 1
+  description: Run Rabbit Run
   affectedUnit: {fileID: 0}
   duration: 4
   status:

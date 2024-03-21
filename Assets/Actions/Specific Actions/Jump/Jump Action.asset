@@ -18,8 +18,10 @@ MonoBehaviour:
   currentCooldown: 0
   isUsable: 0
   actionType: 00000000
+  actionIsActive: 0
   isActiveAction: 0
   isChaseAction: 1
+  description: Rabbit Goes HOP
   affectedUnit: {fileID: 0}
   targetingPrefab: {fileID: 5853872396689789250, guid: dd9a49b346f69804aa12d32a5df9e64f,
     type: 3}
