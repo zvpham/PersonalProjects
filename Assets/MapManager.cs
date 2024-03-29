@@ -98,7 +98,14 @@ public class MapManager : MonoBehaviour, IDataPersistence
             unit.gameManager.units.Insert(0, unit);
             unit.gameManager.mainGameManger.units.Insert(0, unit);
 
-            worldMapData = dataPersistenceManager.worldMapData;
+            for (int i = 0; i < mapData.classIndexes.Count; i++)
+            {
+                Class newClass = resourceManager.classes[mapData.classIndexes[i]];
+                newClass.AddClass(unit);
+                newClass.currentLevel = mapData.classLevels[i];
+            }
+
+            worldMapData = dataPersistenceManager.GetWorldMapData();
             worldMapData.tileDataPosition = new List<Vector2Int>();
             worldMapData.tileSeedData = new List<int> {};
         }
@@ -120,14 +127,13 @@ public class MapManager : MonoBehaviour, IDataPersistence
 
             // Load Player Specific Data
             Player playerTemp = (Player)unit;
-            playerTemp.soulSlotIndexes = mapData.soulSlotIndexes;
 
-            List<SoulItemSO> souls = new List<SoulItemSO>();
-            foreach (int soulIndex in mapData.soulIndexes)
+            for(int i = 0; i < mapData.classIndexes.Count; i++)
             {
-                souls.Add(resourceManager.souls[soulIndex]);
+                Class newClass = resourceManager.classes[mapData.classIndexes[i]];
+                newClass.AddClass(playerTemp);
+                newClass.currentLevel = mapData.classLevels[i];
             }
-            playerTemp.onLoadSouls = souls;
 
             // Load Inventory Data
             InventorySystem inventory = playerTemp.inventorySystem;
@@ -355,13 +361,18 @@ public class MapManager : MonoBehaviour, IDataPersistence
 
         // Player Specific Data
         Player player = (Player)mainGameManger.units[0];
-        List<int> tempOnLoadSouls = new List<int>();
-        foreach (SoulItemSO soul in player.onLoadSouls)
+
+        List<int> classIndexes = new List<int>();
+        List<int> classLevels = new List<int>();
+
+        for (int i = 0; i < player.classes.Count; i++)
         {
-            tempOnLoadSouls.Add(resourceManager.souls.IndexOf(soul));
+            classIndexes.Add(player.classes[i].classIndex);
+            classLevels.Add(player.classes[i].currentLevel);
         }
-        mapData.soulSlotIndexes = player.soulSlotIndexes;
-        mapData.soulIndexes = tempOnLoadSouls;
+
+        mapData.classIndexes = classIndexes;
+        mapData.classLevels = classLevels;
 
         // Inventory Data
         List<int> itemQuantities = new List<int>();

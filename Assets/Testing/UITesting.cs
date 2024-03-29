@@ -19,17 +19,5 @@ public class UITesting : MonoBehaviour
         {
             classPage.AddClass(testClass);
         }
-        if (Input.GetKeyDown(KeyCode.Return))
-        {
-            classPage.UseUI();
-        }
-        if(Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            classPage.IndexUp();
-        }
-        if(Input.GetKeyDown (KeyCode.DownArrow))
-        {
-            classPage.IndexDown();
-        }
     }
 }

@@ -24,8 +24,8 @@ public class MapData
     public int duringTurn;
 
     // Player Specific Data
-    public List<int> soulSlotIndexes;
-    public List<int> soulIndexes;
+    public List<int> classIndexes;
+    public List<int> classLevels;
 
     // Inventory Data
     public List<int> itemQuantities;

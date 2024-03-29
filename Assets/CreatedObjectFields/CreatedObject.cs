@@ -10,6 +10,7 @@ public abstract class CreatedObject
     public float timeflow = 1;
     public GameObject createdObjectSpritePrefab;
     public GameObject createdObjectSprite;
+    public Unit originUnit;
 
     abstract public void ApplyObject(float applyPercentage, GameManager gameManager);
 

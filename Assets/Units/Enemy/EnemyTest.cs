@@ -47,7 +47,6 @@ public class EnemyTest : Unit
         UpdateActions();
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
-        //gameManager = GameManager.instance;
         gameManager.ChangeUnits(gameObject.transform.position, this, flyOnLoad);
         if (gameManager.isNewSlate)
         {

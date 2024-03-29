@@ -6,8 +6,6 @@ using UnityEngine;
 
 public class FlameBreathCreatedObject : CreatedObjectDamage
 {
-    Unit unit;
-    Unit flyingUnit;
 
     public FlameBreathCreatedObject(Grid<CreatedObject> grid, int x, int y, GameObject createdObjectSpritePrefab, List<Vector3> validLocations)
     {
@@ -28,7 +26,7 @@ public class FlameBreathCreatedObject : CreatedObjectDamage
         Unit flyingUnit = gameManager.flyingGrid.GetGridObject(Location);
         if (unit != null)
         {
-            unit.TakeDamage(damageCalculation, applyPercentage);
+            unit.TakeDamage(originUnit, damageCalculation, applyPercentage);
         }
         if (flyingUnit != null)
         {

@@ -10,6 +10,9 @@ public class ResourceManager : ScriptableObject
     public List<SoulItemSO> souls = new List<SoulItemSO>();
     public List<Status> statuses = new List<Status>();
     public List<GameObject> unitPrefabs = new List<GameObject>();
+    public List<Class> classes = new List<Class>();
+    public List<Class> jobClasses = new List<Class>();
+    public List<Class> racialClasses = new List<Class>();
 
     public GameObject forcedMovementPrefab;
 

@@ -25,11 +25,13 @@ public class DataPersistenceManager : MonoBehaviour
     [SerializeField] private string fileName;
     [SerializeField] private string mapFileName; 
     [SerializeField] private string worldMapFileName;
+    [SerializeField] private string GameFileName;
     [SerializeField] private bool useEncryption;
 
-    public TileData gameData;
+    public TileData tileData;
     private MapData mapData;
-    public WorldMapData worldMapData;
+    private WorldMapData worldMapData;
+    private GameData gameData;
     private List<IDataPersistence> dataPersistenceObjects;
     private FileDataHandler mapDataHandler;
     public string playerID = "Player";
@@ -155,7 +157,7 @@ public class DataPersistenceManager : MonoBehaviour
 
     public void NewTile()
     {
-        this.gameData = new TileData();
+        this.tileData = new TileData();
     }
 
     public void LoadGame()
@@ -187,6 +189,27 @@ public class DataPersistenceManager : MonoBehaviour
         {
             dataPersistenceObj.LoadData(mapData);
         }
+    }
+
+    public MapData GetMapData()
+    {
+        if (mapData == null)
+        {
+            Debug.LogError("Need to Create MapData before Calling");
+            return null;
+        }
+
+        return mapData;
+    }
+
+    public void SetMapData(MapData newMapData)
+    {
+        if (newMapData == null)
+        {
+            Debug.LogError("NewMapdataIsNull");
+            return;
+        }
+        mapData = newMapData;
     }
 
     public TileData GetTileData(Vector2Int tileLocation)
@@ -242,9 +265,21 @@ public class DataPersistenceManager : MonoBehaviour
         return tileData;
     }
 
+    public GameData GetGameData()
+    {
+        gameData = mapDataHandler.LoadGameData(GameFileName);
+
+        if (gameData == null)
+        {
+            gameData = new GameData();
+        }
+
+        return gameData;
+    }
+
     public WorldMapData GetWorldMapData()
     {
-        WorldMapData worldMapData = mapDataHandler.LoadWorldMapData(selectedProfileId, worldMapFileName);
+        worldMapData = mapDataHandler.LoadWorldMapData(selectedProfileId, worldMapFileName);
 
         if (worldMapData == null)
         {
@@ -253,6 +288,28 @@ public class DataPersistenceManager : MonoBehaviour
         }
 
         return worldMapData;
+    }
+
+    private void SaveGameDataBase()
+    {
+        //return right away if data persistence is disabled
+        if (disableDataPersistence)
+        {
+            return;
+        }
+
+        //if we don't have any data to save, log a warning here
+        if (this.gameData == null)
+        {
+            Debug.Log("No data was found. A New Game needs to be started before data can be loaded.");
+            return;
+        }
+    }
+
+    public void SaveGameData()
+    {
+        SaveGameDataBase();
+        mapDataHandler.Save(gameData, worldMapFileName);
     }
 
     private void SaveWorldMapDataBase()
@@ -295,9 +352,9 @@ public class DataPersistenceManager : MonoBehaviour
 
     public void SaveTileData(int timeID, string subFolder, Vector2Int mapPosition)
     {
-        SaveTileDataBase(gameData);
+        SaveTileDataBase(tileData);
         string tilePosition =  mapPosition.x.ToString() + "-" + mapPosition.y.ToString();
-        mapDataHandler.Save(gameData, selectedProfileId, timeID.ToString(), subFolder, tilePosition);
+        mapDataHandler.Save(tileData, selectedProfileId, timeID.ToString(), subFolder, tilePosition);
     }
 
     // For AutoSaves
@@ -369,7 +426,7 @@ public class DataPersistenceManager : MonoBehaviour
 
     public void ChangeGameData(string subFolder)
     {
-        this.gameData.saveToDelete = subFolder;
+        this.tileData.saveToDelete = subFolder;
     }
 
     private List<IDataPersistence> FindAllDataPersistenceObjects()

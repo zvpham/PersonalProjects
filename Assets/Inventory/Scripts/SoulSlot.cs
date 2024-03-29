@@ -25,7 +25,7 @@ public class SoulSlot : MonoBehaviour, IDropHandler
     {
         OnItemDroppedOn?.Invoke(this);
     }
-
+     /*
     public void AddSoul(SoulItemSO soulItem, Player player, bool onLoad = false)
     {
         if (currentSoul != null)
@@ -115,7 +115,7 @@ public class SoulSlot : MonoBehaviour, IDropHandler
             player.onLoadSouls.RemoveAt(index);
         }
     }
-
+    */
     public enum SoulSlotType
     {
         physical,

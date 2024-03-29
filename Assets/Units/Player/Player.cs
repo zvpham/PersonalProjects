@@ -21,13 +21,15 @@ public class Player : Unit
     public WorldMapTravel worldMapTravel;
     public CameraManager cameraManager;
     public CameraControllerPlayer gameCamera;
+    public VirtualCursor virtualCursor;
     public List<InventoryItem> initialInventoryItemsForMapManager = new List<InventoryItem>();
 
     public int amountOfMenusOpen;
-
-    //For use in On Load Function Only
-    public List<int> soulSlotIndexes = new List<int>();
-    public List<SoulItemSO> onLoadSouls = new List<SoulItemSO>();
+    public LevelingSystem levelingSystem;
+    public int maxCommonClasses;
+    public int maxUncommonClasses;
+    public int maxRareClasses;
+    public int maxRacialClasses = 1;
 
     public ActionBar actionBar;
 
@@ -47,6 +49,10 @@ public class Player : Unit
         worldMapTravel = WorldMapTravel.Instance;
         actionBar = ActionBar.Instance;
         cameraManager = CameraManager.Instance;
+
+        virtualCursor = VirtualCursor.Instance;
+        virtualCursor.enabled = false;
+
         gameCamera = cameraManager.gameCamera.GetComponent<CameraControllerPlayer>();
         gameCamera.target = gameObject;
         gameCamera.attachedToTarget = true;
@@ -61,11 +67,21 @@ public class Player : Unit
         ChangeCha(0);
 
         health = 100;
-
+        /*
         // Equip all souls from stored in save data
         for(int i  = 0; i < soulSlotIndexes.Count; i++)
         {
             inventorySystem.OnLoadEquipSoul(soulSlotIndexes[i], onLoadSouls[i]);
+        }
+        */
+
+        for(int i = 0; i < classes.Count; i++)
+        {
+            gameMenu.classPage.AddClass(classes[i]);
+            for(int j = 0; j < classes[i].currentLevel; j++)
+            {
+                gameMenu.classPage.LevelUpClass(classes[i]);
+            }
         }
 
         baseActionTemplate = Instantiate(baseActionTemplate);
@@ -81,6 +97,7 @@ public class Player : Unit
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
 
+        //Placing Player on outer edge when entering map from world Map;
         if (gameManager.mainGameManger.mapManager.enteredTileThroughWorldMap)
         {
             int x = gameManager.mainGameManger.mapWidth / 2;
@@ -169,26 +186,7 @@ public class Player : Unit
 
         gameManager.ChangeUnits(gameObject.transform.position, this, flyOnLoad);
 
-        if (gameManager.isNewSlate)
-        {
-            // Mainly For Debugging Purposes if trying new souls attached to prefab
-            foreach (SoulItemSO physicalSoul in physicalSouls)
-            {
-                if (physicalSoul != null)
-                {
-                    physicalSoul.AddPhysicalSoul(this);
-                }
-            }
-
-            foreach (SoulItemSO mentalSoul in mentalSouls)
-            {
-                if (mentalSoul != null)
-                {
-                    mentalSoul.AddMentalSoul(this);
-                }
-            }
-        }
-        else
+        if (!gameManager.isNewSlate)
         {
             for (int i = 0; i < actions.Count; i++)
             {
@@ -204,7 +202,7 @@ public class Player : Unit
 
             for (int i = 0; i < actionsThatHaveActiveStatus.Count; i++)
             {
-                if(actionsThatHaveActiveStatus[i].x == -1)
+                if (actionsThatHaveActiveStatus[i].x == -1)
                 {
                     continue;
                 }
@@ -213,9 +211,10 @@ public class Player : Unit
             }
         }
         enabled = false;
+        UpdatePlayerActions();
     }
 
-    public void UpdatePlayerActions(Dictionary<int, InventoryItem> inventoryState = null)
+    public void UpdatePlayerActions()
     {
         foreach(SoulSlot soulSlot in inventorySystem.inventoryUI.soulSlots)
         {
@@ -322,6 +321,7 @@ public class Player : Unit
             if (inputManager.GetKeyDown(ActionName.ClassMenu))
             {
                 ChangeAmountOfScreensOpen(1);
+                virtualCursor.enabled = true;
                 gameMenu.OpenMenu(gameMenu.pages.IndexOf(gameMenu.classPage));
                 actionBar.gameObject.SetActive(false);
             }
@@ -438,6 +438,16 @@ public class Player : Unit
         }
         actionBar.UpdateCoolDowns(actionName, actions[actionUsedIndex].currentCooldown);
         actionBar.UpdateActionsDisplay();
+    }
+
+    public void AquireRandomRacialClass()
+    {
+
+    }
+
+    public void AquireRandomJobClass()
+    {
+
     }
 
     public override void TurnEnd()

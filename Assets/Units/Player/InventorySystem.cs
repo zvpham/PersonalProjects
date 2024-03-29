@@ -85,7 +85,7 @@ public class InventorySystem : MonoBehaviour
         this.inventoryUI.OnSwapItems += HandleSwapItems;
         this.inventoryUI.OnStartDragging += HandleDragging;
         this.inventoryUI.OnItemActionRequested += HandleItemActionRequest;
-        this.inventoryUI.OnEquipSoul += HandleEquipSoul;
+        //this.inventoryUI.OnEquipSoul += HandleEquipSoul;
     }
 
     private void HandleItemActionRequest(int itemIndex)
@@ -154,13 +154,16 @@ public class InventorySystem : MonoBehaviour
         inventoryData.SwapItems(itemIndex1, itemIndex2);
     }
 
+    /*
     private void HandleEquipSoul(int itemIndex, SoulSlot soulSlot)
     {
         soulSlot.AddSoul((SoulItemSO)inventoryData.GetItemAt(itemIndex).item, player);
         inventoryData.RemoveItem(itemIndex, 1);
         player.UpdatePlayerActions();
     }
+    */
 
+    /*
     public void OnLoadEquipSoul(int soulSlotIndex, SoulItemSO soul)
     {
         player = Player.Instance;
@@ -168,7 +171,7 @@ public class InventorySystem : MonoBehaviour
         inventoryUI.soulSlots[soulSlotIndex].AddSoul(soul, player, true);
         player.UpdatePlayerActions();
     }
-
+    */
     private void HandleDescriptionRequest(int itemIndex)
     {
         InventoryItem inventoryItem = inventoryData.GetItemAt(itemIndex);

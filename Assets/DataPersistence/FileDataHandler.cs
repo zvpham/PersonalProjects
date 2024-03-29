@@ -26,6 +26,79 @@ public class FileDataHandler
         this.useEncryption = useEncryption;
     }
 
+    public GameData LoadGameData(string fileName, bool allowedRestoreFromBackup = true)
+    {
+        // base Case - if the profileId is nll, return right away
+        if (fileName == null)
+        {
+            return null;
+        }
+
+        // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
+        string fullPath = Path.Combine(dataDirPath, fileName + fileExtension);
+        List<string> dataPath = new List<string>() {fileName};
+        return LoadGameDataBase(fullPath, dataPath, allowedRestoreFromBackup);
+    }
+
+    public GameData LoadGameDataBase(string fullPath, List<string> dataPath, bool allowedRestoreFromBackup = true)
+    {
+        GameData loadedData = null;
+        if (File.Exists(fullPath))
+        {
+            try
+            {
+                string dataToLoad = "";
+                using (FileStream stream = new FileStream(fullPath, FileMode.Open))
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        dataToLoad = reader.ReadToEnd();
+                    }
+                }
+
+                //Optionally Decrypt Data
+                if (useEncryption)
+                {
+                    dataToLoad = EncryptDecrypt(dataToLoad);
+                }
+
+                //Deserialize the data from Json back into the C# object
+                loadedData = JsonUtility.FromJson<GameData>(dataToLoad);
+            }
+            catch (Exception e)
+            {
+                //Since We're calling Load recursively, we need to account for the case wehre
+                // the Rollback succeseds, but data is still failing to load for some other reason
+                // which without this scheck may happen an infinite amount of tims
+                if (allowedRestoreFromBackup)
+                {
+                    Debug.LogWarning("Failed to Load data file. Attempting to roll back. \n" + e);
+                    bool rollbackSuccess = AttemptRollback(fullPath);
+                    if (rollbackSuccess)
+                    {
+                        // try to load again recursively for rollback\
+                        switch (dataPath.Count)
+                        {
+                            case 0:
+                                Debug.LogError("ROLLBACK SAVES ARE BROKEN HELP");
+                                return null;
+                            case 1:
+                                loadedData = LoadGameData(dataPath[0], false);
+                                break;
+                        }
+                    }
+                }
+                // if we hit this, one possibility is that the backup file is also corrupt
+                else
+                {
+                    Debug.LogError("error occured when trying to load file at path: " + fullPath
+                        + " and backup did not work.\n" + e);
+                }
+            }
+        }
+        return loadedData;
+    }
+
     public WorldMapData LoadWorldMapData(string profileId, string fileName, bool allowedRestoreFromBackup = true)
     {
         // base Case - if the profileId is nll, return right away
@@ -604,6 +677,60 @@ public class FileDataHandler
 
             // verify the newly saved file can be loaded successfully
             WorldMapData verifiedGameDatya = LoadWorldMapData(profileId, dataFileName);
+            //if the data can be verified, back it up;
+            if (verifiedGameDatya != null)
+            {
+                File.Copy(fullPath, backupFilePAth, true);
+            }
+            // otherwise, something went wrong and we should throw up an exception
+            else
+            {
+                Debug.LogError("Save file could not be verified a nd Backup could not be created.");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error occured whne trying to save data to file: " + fullPath + "\n" + e);
+        }
+    }
+
+    public void Save(GameData data, string dataFileName)
+    {
+
+        // base Case - if the profileId is null, return right away
+        if ( dataFileName == null)
+        {
+            return;
+        }
+
+        // Use Path.Combine to Accound for Differenct OS's having different Path Seperators
+        string fullPath = Path.Combine(dataDirPath, dataFileName + fileExtension);
+        string backupFilePAth = fullPath + backupExtension;
+        try
+        {
+            // Create the Directory the file will be written to if it doesn't alraeady exist
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+
+            // serialize the C# game data object into Json
+            string dataToStore = JsonUtility.ToJson(data, true);
+
+            //Optionally Encrypt Data
+            if (useEncryption)
+            {
+                dataToStore = EncryptDecrypt(dataToStore);
+            }
+
+            // write the serialized datea to the file
+            using (FileStream stream = new FileStream(fullPath, FileMode.Create))
+            {
+                using (StreamWriter writer = new StreamWriter(stream))
+                {
+                    writer.Write(dataToStore);
+                }
+            }
+
+            // verify the newly saved file can be loaded successfully
+            GameData verifiedGameDatya = LoadGameData(dataFileName);
             //if the data can be verified, back it up;
             if (verifiedGameDatya != null)
             {

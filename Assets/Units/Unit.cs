@@ -52,6 +52,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public int luck = 16;
     public int luckMod;
 
+    public FullDamage defaultMeleeDamage;
     public int closestEnemyIndex;
     public bool clearLineOfSightToEnemy;
 
@@ -60,6 +61,8 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public Faction faction;
     public List<Unit> enemyList = new List<Unit>();
     public List<Unit> allyList = new List<Unit>();
+    public bool affectedByPlayerFaction;
+    public int XPValue;
 
     public bool inPeripheralGameManager = false;
 
@@ -95,8 +98,10 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public Sprite originalSprite;
     public int spriteIndex = -1;
 
-    public List<SoulItemSO> physicalSouls = new List<SoulItemSO>();
-    public List<SoulItemSO> mentalSouls = new List<SoulItemSO>();
+    public List<Class> classes;
+    public List<Class> commonClasses;
+    public List<Class> uncommonClasses;
+    public List<Class> rareClasses;
 
 
     public List<ActionTypes> _keysUnusableActionTypes = new List<ActionTypes> ();
@@ -337,6 +342,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         chaseActions.Clear();
         chaseActions = new List<Action> ();
         actions = new List<Action>();
+        /*
         foreach(SoulItemSO phyiscalSoul in physicalSouls)
         {
             if(phyiscalSoul != null)
@@ -352,7 +358,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
                 mentalSoul.AddPhysicalSoul(this);
             }
         }
-
+        */
         for(int i  = 0; i < actions.Count; i++)
         {
             int actionIndex = actionNames.IndexOf(actions[i].actionName);
@@ -574,7 +580,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         }
     }
 
-    public void TakeDamage(DamageTypes damageType, int value)
+    public void TakeDamage(Unit fromUnit, DamageTypes damageType, int value)
     {
 
         OnDamage?.Invoke(damageType, value);
@@ -585,7 +591,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             Death();
         }
     }
-    public void TakeDamage(FullDamage damageCalaculation, float damagePercentage = 1)
+    public void TakeDamage(Unit fromUnit, FullDamage damageCalaculation, float damagePercentage = 1)
     {
         int value = 0;
         foreach (Tuple<DamageTypes, int> damage in damageCalaculation.RollForDamage())
@@ -661,6 +667,51 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         }
         Destroy(this);
         Destroy(gameObject);
+    }
 
+    public int CalculateXpValue()
+    {
+        int baseCommonXpValue = 20;
+        int baseUncommonXpValue = 20;
+        int baseRareXpValue = 20;
+
+        float commonClassLevelMultiplier = 1.5f;
+        float uncommonClassLevelMultiplier = 1.5f;
+        float rarelassLevelMultiplier = 1.5f;
+
+        int commonXP;
+        int uncommonXP;
+        int rarelassXP;
+        for(int i = 0; i < commonClasses.Count; i++)
+        {
+            commonXP = baseCommonXpValue;
+            for(int j = 1; i < commonClasses[i].currentLevel; j++)
+            {
+                commonXP = (int) (commonClassLevelMultiplier * commonXP);
+            }
+            XPValue += commonXP;
+        }
+
+        for (int i = 0; i < uncommonClasses.Count; i++)
+        {
+            uncommonXP = baseUncommonXpValue;
+            for (int j = 1; i < uncommonClasses[i].currentLevel; j++)
+            {
+                uncommonXP = (int)(uncommonClassLevelMultiplier * uncommonXP);
+            }
+            XPValue += uncommonXP;
+        }
+
+        for (int i = 0; i < rareClasses.Count; i++)
+        {
+            rarelassXP = baseRareXpValue;
+            for (int j = 1; i < rareClasses[i].currentLevel; j++)
+            {
+                rarelassXP = (int)(rarelassLevelMultiplier * rarelassXP);
+            }
+            XPValue += rarelassXP;
+        }
+
+        return XPValue;
     }
 }

@@ -13,11 +13,11 @@ public class MeleeAttack : Action
         throw new System.NotImplementedException();
     }
 
-    public static void Attack(Unit target, int toHitBonus, int armorPenetration, int damage)
+    public static void Attack(Unit target, Unit attacker)
     {
-        if (hit(target, toHitBonus))
+        if (hit(target, attacker.toHitBonus))
         {
-            Damage(target, Penetrate(target, armorPenetration), damage);
+            Damage(target, attacker, Penetrate(target, attacker.armorPenetration), attacker.defaultMeleeDamage);
         }
     }
 
@@ -85,7 +85,7 @@ public class MeleeAttack : Action
 
     }
 
-    public static void Damage(Unit target, int penAmount, int damage)
+    public static void Damage(Unit target, Unit attacker, int penAmount, FullDamage defaultMeleeDamage)
     {
         if(penAmount == 0)
         {
@@ -94,11 +94,11 @@ public class MeleeAttack : Action
 
         if (isCritical)
         {
-            target.TakeDamage(DamageTypes.physical, damage * 2 * penAmount);
+            target.TakeDamage(attacker, defaultMeleeDamage, penAmount * 2);
         }
         else
         {
-            target.TakeDamage(DamageTypes.physical, damage * penAmount);
+            target.TakeDamage(attacker, defaultMeleeDamage, penAmount);
         }
     }
 

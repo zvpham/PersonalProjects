@@ -16,7 +16,7 @@ public class EnemyMeleeAttack : Action
                 unit = self.gameManager.grid.GetGridObject((int)self.gameObject.transform.position.x + j, (int)self.gameObject.transform.position.y + i);
                 if (unit != null && self.enemyList.Contains(unit))
                 {
-                    MeleeAttack.Attack(unit, self.toHitBonus, self.armorPenetration, self.strengthMod + 3);
+                    MeleeAttack.Attack(unit, self);
                     self.HandlePerformActions(meleeActions, ActionName.MeleeAttack);
                     self.TurnEnd();
                 }
