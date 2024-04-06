@@ -96,10 +96,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 18
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -162,8 +162,8 @@ GameObject:
   - component: {fileID: 4874824758123358200}
   - component: {fileID: 3904972681936552657}
   - component: {fileID: 6013527643428122482}
-  - component: {fileID: 6661881201225942534}
   - component: {fileID: 2561564084294778988}
+  - component: {fileID: 1020709637062568518}
   m_Layer: 5
   m_Name: ClassLevelPrefab
   m_TagString: Untagged
@@ -256,25 +256,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &6661881201225942534
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7690287112828461837}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71b31b6855b134e46bb662c0862408ed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  UIPage: {fileID: 0}
-  isHeadOfGroup: 1
-  groupMembers: []
-  text: {fileID: 5193837765960776667}
-  originalText: 
-  numIndents: 0
-  indent: 
 --- !u!225 &2561564084294778988
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -287,3 +268,22 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 1
+--- !u!114 &1020709637062568518
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7690287112828461837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abf518058003a9b41bcdb645395d423d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UIPage: {fileID: 0}
+  isHeadOfGroup: 0
+  groupMembers: []
+  text: {fileID: 5193837765960776667}
+  originalText: 
+  numIndents: 0
+  indent: 

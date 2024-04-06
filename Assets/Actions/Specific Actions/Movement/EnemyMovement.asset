@@ -12,22 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d526778905989c44beab0882478dd24, type: 3}
   m_Name: EnemyMovement
   m_EditorClassIdentifier: 
-  actionName: 16
+  actionName: 18
   weight: 1
   maxCooldown: 0
   currentCooldown: 0
-  duration: 0
   isUsable: 0
   actionType: 00000000
+  actionIsActive: 0
   isActiveAction: 0
   isChaseAction: 1
+  description: 
   affectedUnit: {fileID: 0}
-  status: []
-  targetingPrefab: {fileID: 0}
-  targetingSystem: {fileID: 0}
-  createdField: {fileID: 0}
-  createObject: {fileID: 0}
-  createObjectHolder: {fileID: 0}
-  range: 0
-  blastRadius: 0
-  blastAngle: 0

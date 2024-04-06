@@ -4,6 +4,7 @@ using System.Resources;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class ChooseClassMenu : BaseUIPage
 {
@@ -74,10 +75,13 @@ public class ChooseClassMenu : BaseUIPage
             classIndexes.Add(chosenClassList[i].Class.classIndex);
             classLevels.Add(1);
         }
+
         // save the game anytime before Loading a new Scene
         MapData newMapData =  DataPersistenceManager.Instance.GetMapData();
-        newMapData.classIndexes = classIndexes;
-        newMapData.classLevels = classLevels;
+        unitPrefabData newPlayerData = new unitPrefabData();
+        newPlayerData.classIndexes = classIndexes;
+        newPlayerData.classLevels = classLevels;
+        newMapData.unitPrefabDatas = newPlayerData;
         DataPersistenceManager.Instance.SetMapData(newMapData);
 
         DataPersistenceManager.Instance.SaveGame(0, DataPersistenceManager.Instance.playerID);
@@ -174,7 +178,6 @@ public class ChooseClassMenu : BaseUIPage
         UIClass selectedClass = (UIClass)activeUIObjects[currentIndex];
         if (chosenClassList.Contains((UIClass) activeUIObjects[currentIndex]))
         {
-            Debug.Log("Hello");
             chosenClassList.Remove((UIClass)activeUIObjects[currentIndex]);
             //UnSelecting Class
             if (selectedClass.Class.jobClass)
@@ -182,17 +185,16 @@ public class ChooseClassMenu : BaseUIPage
                 for(int i  = 0; i < jobClasses.Count; i++)
                 {
                     jobClasses[i].Activate();
-                    maxJobClasses += 1;
                 }
+                maxJobClasses += 1;
             }
             else
             {
                 for (int i = 0; i < racialClasses.Count; i++)
                 {
-                    Debug.Log("Hello");
                     racialClasses[i].Activate();
-                    maxRaceClasses += 1;
                 }
+                maxRaceClasses += 1;
             }
         }
         else
@@ -266,11 +268,11 @@ public class ChooseClassMenu : BaseUIPage
             {
                 topIndex -= 1;
                 bottomIndex -= 1;
-                contentPanel.anchoredPosition = new Vector2(0, 41 * topIndex);
+                contentPanel.anchoredPosition = new Vector2(0, contentPanel.GetComponent<GridLayoutGroup>().cellSize.y * topIndex);
             }
             currentIndex -= 1;
             activeUIObjects[currentIndex].SetText(activeUIObjects[currentIndex].AddIndents(activeUIObjects[currentIndex].GetOriginalText()));
-            if (!activeUIObjects[currentIndex].isHeadOfGroup)
+            if (activeUIObjects[currentIndex].groupMembers.Count == 0)
             {
                 activeUIObjects[currentIndex].HoverUI();
             }
@@ -285,7 +287,7 @@ public class ChooseClassMenu : BaseUIPage
             classDescription.ResetDescription();
             activeUIObjects[currentIndex].SetText(activeUIObjects[currentIndex].AddIndents(activeUIObjects[currentIndex].GetOriginalText()));
             currentIndex += 1;
-            if (!activeUIObjects[currentIndex].isHeadOfGroup)
+            if (activeUIObjects[currentIndex].groupMembers.Count == 0)
             {
                 activeUIObjects[currentIndex].HoverUI();
             }
@@ -293,7 +295,7 @@ public class ChooseClassMenu : BaseUIPage
             {
                 topIndex += 1;
                 bottomIndex += 1;
-                contentPanel.anchoredPosition = new Vector2(0, 41 * topIndex);
+                contentPanel.anchoredPosition = new Vector2(0, contentPanel.GetComponent<GridLayoutGroup>().cellSize.y * topIndex);
             }
         }
         UpdateOnScreeenUIObjects();

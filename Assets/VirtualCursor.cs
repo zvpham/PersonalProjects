@@ -39,12 +39,14 @@ public class VirtualCursor : MonoBehaviour
             if (results.Count > 0)
             {
                 BaseGameUIObject UIObject = results[0].gameObject.GetComponent<BaseGameUIObject>();
-                foreach(RaycastResult uiObject in results)
+                UIObject.MouseUseUI();
+                /*
+                foreach (RaycastResult uiObject in results)
                 {
                     Debug.Log(uiObject);
                 }
-                UIObject.MouseUseUI();
                 //Debug.Log(results[0]);
+                */
             }
         }
     }

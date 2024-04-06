@@ -33,7 +33,7 @@ public class SlowTimeField : StatusAOETargetingAction
         targetingSystem.GetComponent<BlastPointAndClick>().DestroySelf();
         Destroy(targetingSystem);
         CreatedField newField = Instantiate(createdField);
-        newField.CreateGridOfObjects(affectedUnit.gameManager, endpoint, blastRadius, duration);
+        newField.CreateGridOfObjects(affectedUnit.gameManager, affectedUnit, endpoint, blastRadius, duration);
         affectedUnit.HandlePerformActions(actionType, actionName);
         affectedUnit.DeactivateTargeting();
         affectedUnit.TurnEnd();

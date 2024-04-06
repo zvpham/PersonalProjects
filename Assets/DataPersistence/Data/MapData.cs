@@ -24,8 +24,13 @@ public class MapData
     public int duringTurn;
 
     // Player Specific Data
-    public List<int> classIndexes;
-    public List<int> classLevels;
+    public int availableClassLevelUps;
+
+    // Level Systtem Data
+    public int mainXP;
+    public int mainLevel;
+    public int classXP;
+    public int classLevel;
 
     // Inventory Data
     public List<int> itemQuantities;

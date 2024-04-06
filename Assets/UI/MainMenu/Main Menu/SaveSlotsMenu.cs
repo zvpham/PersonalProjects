@@ -44,6 +44,7 @@ public class SaveSlotsMenu : Menu
                 // function to execute if we select 'yes'
                 () =>
                 {
+                    DataPersistenceManager.Instance.DeleteProfileData(saveSlot.GetProfileId());
                     DataPersistenceManager.Instance.ChangeSelectedProfileID(saveSlot.GetProfileId());
                     DataPersistenceManager.Instance.NewGame();
                     mainmenu.ActivateChooseClassMenu();

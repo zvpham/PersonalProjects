@@ -13,6 +13,7 @@ public abstract class CreatedField : ScriptableObject
     public Vector3 originPosition;
     public int fieldRadius;
     public List<Vector2> createdObjectPositions = new List<Vector2>();
+    public Unit originUnit;
 
     public bool nonStandardDuration = false;
     public bool fromAnimatedField = false;
@@ -29,11 +30,11 @@ public abstract class CreatedField : ScriptableObject
 
     public GameManager gameManager;
 
-    abstract public void CreateGridOfObjects(GameManager gameManager, Vector3 originPosition, int fieldRadius, int fieldDuration, bool onLoad = false);
+    abstract public void CreateGridOfObjects(GameManager gameManager, Unit originUnit, Vector3 originPosition, int fieldRadius, int fieldDuration, bool onLoad = false);
 
-    abstract public void CreateGridOfObjects(GameManager gameManager, Grid<CreatedObject> grid, int fieldDuration, bool onLoad = false);
+    abstract public void CreateGridOfObjects(GameManager gameManager, Unit originUnit, Grid<CreatedObject> grid, int fieldDuration, bool onLoad = false);
 
-    public void CreateGridofObjectsUsingGridPreset(GameManager gameManager, Grid<CreatedObject> grid, int fieldDuration, bool onLoad = false)
+    public void CreateGridofObjectsUsingGridPreset(GameManager gameManager, Unit originUnit, Grid<CreatedObject> grid, int fieldDuration, bool onLoad = false)
     {
         this.grid = grid;
         this.gameManager = gameManager;

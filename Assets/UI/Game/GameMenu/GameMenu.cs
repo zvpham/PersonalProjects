@@ -9,6 +9,12 @@ public class GameMenu : MonoBehaviour
     [SerializeField]
     private InputManager inputManager;
 
+    [SerializeField]
+    private VirtualCursor virtualCursor;
+
+    [Header("Confirmation Popup")]
+    [SerializeField] public ConfirmationPopupMenu confirmPopupMenu;
+
     private int currentIndex;
     public List<BaseUIPage> pages;
 
@@ -24,7 +30,6 @@ public class GameMenu : MonoBehaviour
     public void Start()
     {
         inputManager = InputManager.instance;
-        player = Player.Instance;
         gameObject.SetActive(false);
     }
     public void OpenMenu(int currentIndex)
@@ -32,6 +37,7 @@ public class GameMenu : MonoBehaviour
         this.currentIndex = currentIndex;
         this.gameObject.SetActive(true);
         pages[currentIndex].gameObject.SetActive(true);
+        pages[currentIndex].UpdateBaseUIObjects();
     }
 
     public void CloseMenu()
@@ -49,6 +55,26 @@ public class GameMenu : MonoBehaviour
             {
                 menuActions[i].Activate(pages[currentIndex]);
             }
+        }
+    }
+
+    public void EnableMenuInputs()
+    {
+        enabled = true;
+        virtualCursor.enabled = true;
+    }
+
+    public void DisableMenuInputs()
+    {
+        enabled = false;
+        virtualCursor.enabled = false;
+    }
+
+    public void ResetMenu()
+    {
+        for(int i = 0; i < pages.Count; i++)
+        {
+            pages[i].ResetPage();
         }
     }
 }

@@ -30,8 +30,29 @@ public class Conk : StatusTargetAction
     {
         targetingSystem.GetComponent<MeleeTargeting>().foundTarget -= FoundTarget;
         Unit targetUnit = affectedUnit.gameManager.grid.GetGridObject(targetPosition);
-        startStatusPresets(targetUnit);
+
+        int launchDistance = affectedUnit.strengthMod;
+
+        if(launchDistance == 0)
+        {
+            launchDistance = 1;
+        }
+
+        List<Vector2> path = new List<Vector2>();
+
+        Vector2 LaunchDirection = targetPosition - affectedUnit.transform.position;
+        Vector2 currentPathLocation = targetPosition;
+
+        path.Add(currentPathLocation);
+        for(int i = 0; i < launchDistance; i++)
+        {
+            currentPathLocation += LaunchDirection;
+            path.Add(currentPathLocation);
+        }
+
+        startMovementStatusPreset(targetUnit, path);
         affectedUnit.DeactivateTargeting();
+        affectedUnit.HandlePerformActions(actionType, actionName);
         affectedUnit.TurnEnd();
     }
 }

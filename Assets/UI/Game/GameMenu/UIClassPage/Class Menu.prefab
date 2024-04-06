@@ -96,10 +96,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 24.15
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -246,10 +246,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 24.15
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -394,10 +394,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 24.15
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -547,8 +547,8 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 998.01, y: 41}
-  m_Spacing: {x: 0, y: 0}
+  m_CellSize: {x: 4000, y: 27}
+  m_Spacing: {x: 0.76, y: 0}
   m_Constraint: 1
   m_ConstraintCount: 1
 --- !u!114 &2070828484
@@ -1690,7 +1690,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 4385015632440814340}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0
+  m_Size: 0.013150024
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1825,7 +1825,7 @@ RectTransform:
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0.008563791, y: 0.010000001}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1913,10 +1913,11 @@ MonoBehaviour:
   selectionNames: []
   contentPanel: {fileID: 4385015632167914695}
   activeUIObjects: []
+  previousMouseIndex: 0
   currentIndex: 0
   topIndex: 0
   bottomIndex: 0
-  maxUIObjectsVisibleOnScreen: 0
+  maxUIObjectsVisibleOnScreen: 14
   UIClassGroupPrefab: {fileID: -3188789776669295191, guid: 4b69d70a0b0636148a64d744729817fb,
     type: 3}
   UILockedAbilitiesPrefab: {fileID: 3611578765437571358, guid: 564078a2d0ca15c4db0244eb7445a091,
@@ -1927,12 +1928,13 @@ MonoBehaviour:
     type: 3}
   UIClassActionPrefab: {fileID: 6874257365190939894, guid: 1df052763c0314c44907b59cd99f105f,
     type: 3}
-  UIClassLevelPrefab: {fileID: 6661881201225942534, guid: 341da281fdaee4e1283a2f5bb45495a6,
+  UIClassLevelPrefab: {fileID: 1020709637062568518, guid: 341da281fdaee4e1283a2f5bb45495a6,
     type: 3}
   commonClass: {fileID: 932072439004012163}
   uncommonClass: {fileID: 9072115777671937002}
   rareClass: {fileID: 2798199756506141061}
   classDescription: {fileID: 4385015632376936362}
+  allClasses: []
   commonClasses: []
   uncommonClasses: []
   rareClasses: []

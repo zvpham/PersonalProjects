@@ -19,4 +19,5 @@ MonoBehaviour:
   Intelligence: 0
   Charisma: 2
   Luck: 1
-  ActionList: []
+  ActionList:
+  - {fileID: 11400000, guid: 35532db6b7d0a47448312083c33f342c, type: 2}

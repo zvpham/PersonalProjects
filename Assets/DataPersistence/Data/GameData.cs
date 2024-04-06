@@ -5,5 +5,5 @@ using UnityEngine;
 [System.Serializable]
 public class GameData
 {
-    public List<int> startingClasses = new List<int> { 0, 0, 0 ,0 };
+    public List<int> startingClasses = new List<int> { 0, 1, 0 ,0 };
 }

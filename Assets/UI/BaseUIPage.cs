@@ -30,6 +30,11 @@ public abstract class BaseUIPage : MonoBehaviour
 
     }
 
+    public virtual void UseHoverUI()
+    {
+
+    }
+
     public virtual void UpdateBaseUIObjects()
     {
 
@@ -50,11 +55,16 @@ public abstract class BaseUIPage : MonoBehaviour
 
     }
 
-public virtual void Start()
+    public virtual void ResetPage()
+    {
+
+    }
+
+    public virtual void Start()
     {
         menuValues = StaticUIMenuValues.Instance;
         indent = menuValues.indent;
         selectedIcon = menuValues.selectedIcon;
         selectionNames = menuValues.selectionNames;
-    }
+    }   
 }

@@ -40,7 +40,6 @@ public class Jump : StatusTargetAction
 
     public override void Activate(Unit self)
     {
-        startStatusPresets(self);
         startMovementStatusPreset(self, pathAI);
         self.TurnEnd();
     }
@@ -51,7 +50,7 @@ public class Jump : StatusTargetAction
         Vector3 position = Vector3.zero;
         Quaternion rotation = new Quaternion(0, 0, 0, 1f);
         targetingSystem = Instantiate(targetingPrefab, position, rotation);
-        targetingSystem.GetComponent<LineOfSight>().setParameters(self.transform.position, range, self.originalSprite, numSections: 2);
+        targetingSystem.GetComponent<LineOfSight>().setParameters(self.transform.position, range, self.originalSprite, numSections: 2); 
         targetingSystem.GetComponent<LineOfSight>().lineMade += foundTarget;
     }
 

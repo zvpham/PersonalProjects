@@ -37,7 +37,7 @@ public class ActionBar : MonoBehaviour
 
     public List<ActionBarLevel> actionBarlevelList = new List<ActionBarLevel>();
 
-    private Player player;
+    public Player player;
 
     public static ActionBar Instance;
 
@@ -52,14 +52,9 @@ public class ActionBar : MonoBehaviour
         Instance = this;
     }
 
-    public void Start()
-    {
-        player = Player.Instance;
-    }
-
     public void HandleActionButtonPress(ActionName actionName)
     {
-        Debug.Log(actionName.ToString());
+        //Debug.Log(actionName.ToString());
         player.OnActionButtonPressed(actionName);
     }
 

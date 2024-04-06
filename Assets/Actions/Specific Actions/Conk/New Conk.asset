@@ -12,22 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e2017a66124521459713706884a2453, type: 3}
   m_Name: New Conk
   m_EditorClassIdentifier: 
-  actionName: 18
-  weight: 0
+  actionName: 20
+  weight: 3
   maxCooldown: 5
   currentCooldown: 0
-  duration: 0
   isUsable: 0
   actionType: 0100000002000000
+  actionIsActive: 0
   isActiveAction: 0
+  isChaseAction: 0
+  description: Knocks enemies away
   affectedUnit: {fileID: 0}
-  status: []
   targetingPrefab: {fileID: 6427756441628261331, guid: e975666f4fd93cf45aeebac2ff097966,
     type: 3}
   targetingSystem: {fileID: 0}
-  createdField: {fileID: 0}
-  createObject: {fileID: 0}
-  createObjectHolder: {fileID: 0}
   range: 0
-  blastRadius: 0
-  blastAngle: 0
+  duration: 0
+  status: []

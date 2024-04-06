@@ -27,6 +27,7 @@ MonoBehaviour:
   - {fileID: 2527387851303890164, guid: 553bfb20872ef0a458e7b394829a2ab5, type: 3}
   classes:
   - {fileID: 11400000, guid: 348e1d32211a19c4f817abc39cf21ae1, type: 2}
+  - {fileID: 11400000, guid: bd036c24a3721cf438a6a91e5e619820, type: 2}
   jobClasses: []
   racialClasses:
   - {fileID: 11400000, guid: 348e1d32211a19c4f817abc39cf21ae1, type: 2}

@@ -71,6 +71,7 @@ public class KeyBindings : MonoBehaviour
         menuKeyBinds.Add(MenuInputNames.IndexUp, new List<KeyCode> { KeyCode.UpArrow });
         menuKeyBinds.Add(MenuInputNames.IndexDown, new List<KeyCode> { KeyCode.DownArrow });
         menuKeyBinds.Add(MenuInputNames.UseUi, new List<KeyCode> { KeyCode.Return });
+        menuKeyBinds.Add(MenuInputNames.HoverUI, new List<KeyCode> { KeyCode.RightShift });
 
         if (instance == null)
         {

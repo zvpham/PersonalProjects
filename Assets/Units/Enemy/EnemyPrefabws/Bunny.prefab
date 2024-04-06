@@ -120,13 +120,17 @@ MonoBehaviour:
   intelligenceMod: 0
   charisma: 16
   charismaMod: 0
+  luck: 16
+  luckMod: 0
+  defaultMeleeDamage: {fileID: 0}
   closestEnemyIndex: 0
-  visionRadius: 7
   clearLineOfSightToEnemy: 0
   friendlyFireMultiplier: 0.5
   faction: 2
   enemyList: []
   allyList: []
+  affectedByPlayerFaction: 0
+  XPValue: 0
   inPeripheralGameManager: 0
   gameManager: {fileID: 0}
   index: 0
@@ -143,29 +147,23 @@ MonoBehaviour:
   senses: []
   actionNamesForCoolDownOnLoad: 
   currentCooldownOnLoad: 
+  actionsThatHaveActiveStatus: []
   statuses: []
-  hasLocationChangeStatus: 0
+  forcedMovement: {fileID: 0}
+  flyOnLoad: 0
   originalSprite: {fileID: 0}
   spriteIndex: -1
-  physicalSouls:
-  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
-  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
-  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
-  mentalSouls:
-  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
-  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
-  - {fileID: 11400000, guid: 5530b01fc2d7c2f4d88aef66fa987385, type: 2}
+  ClassesOnStart:
+  - {fileID: 11400000, guid: 348e1d32211a19c4f817abc39cf21ae1, type: 2}
+  levelOnStart: 01000000
+  classes: []
+  commonClasses: []
+  uncommonClasses: []
+  rareClasses: []
   _keysUnusableActionTypes: 
   _valuesUnusableActionTypes: 
   drops:
   - {fileID: 2351099714194458737, guid: 86ce87ff372526345b69401b89285254, type: 3}
-  forcedMovementPathData:
-    forcedMovementPath: []
-    forcedMovementSpeed: 0
-    excessForcedMovementSpeed: 0
-    previousForcedMovementIterrationRate: 0
-    forcedPathIndex: 0
-    currentPathIndex: 0
   notOnHold: 1
   inMiddleMap: 1
   inMelee: 0

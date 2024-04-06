@@ -14,6 +14,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEngine.Tilemaps;
 using UnityEngine.UIElements;
+using static TMPro.Examples.ObjectSpin;
 using static UnityEngine.GraphicsBuffer;
 using static UnityEngine.UI.CanvasScaler;
 
@@ -97,6 +98,11 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
     public Sprite originalSprite;
     public int spriteIndex = -1;
+
+    //For Setting IN Prefab only and Only for testing (REMOVE WHEN PUBLISHING GAME)
+    public List<Class> ClassesOnStart;
+    public List<int> levelOnStart;
+
 
     public List<Class> classes;
     public List<Class> commonClasses;
@@ -264,6 +270,10 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
                 try
                 {
                     field.grid.GetGridObject(newPosition).ApplyObject(this);
+                    if(field.originUnit.faction == Faction.player)
+                    {
+                        affectedByPlayerFaction = true;
+                    }
                 }
                 catch
                 {
@@ -329,7 +339,48 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     {
         PerformedAction?.Invoke(actionTypes, actionName);
     }
+    
+    // This is to Load and then remove classes pointer to Classes that were attached to Unit Prefab
+    // For Testing Classes thean real gamePlayer;
+    public void LoadClassesOnStart()
+    {
 
+        if(levelOnStart.Count != ClassesOnStart.Count)
+        {
+            Debug.LogError("Levels on Start and Classes On Start need to have Same Size, This Unit is the problem:  " + this);
+        }
+
+        for(int i = 0; i < levelOnStart.Count; i++)
+        {
+            if (levelOnStart[i] > ClassesOnStart[i].classLevels.Count)
+            {
+                Debug.LogError(ClassesOnStart[i] + " was set to a level higher than its maximum on LevelOnStart Fix this Plz on Unit: " + this);
+            }
+        }
+
+        for(int i = 0; i < ClassesOnStart.Count; i++)
+        {
+            bool isClassAlreadyInUnit = false;
+            for(int j = 0; j < classes.Count; j++)
+            {
+                if (classes[j].className == ClassesOnStart[i].className)
+                {
+                    isClassAlreadyInUnit = true;
+                    break;
+                }
+            }
+            if (isClassAlreadyInUnit)
+            {
+                continue;
+            }
+            Class newClass = Instantiate(ClassesOnStart[i]);
+            newClass.currentLevel = levelOnStart[i];
+            newClass.AddClass(this);
+            classes.Remove(newClass);
+        }
+    }
+    
+    /*
     public void UpdateActions()
     {
         for(int i = 0; i < actions.Count; i++)
@@ -342,7 +393,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         chaseActions.Clear();
         chaseActions = new List<Action> ();
         actions = new List<Action>();
-        /*
+
         foreach(SoulItemSO phyiscalSoul in physicalSouls)
         {
             if(phyiscalSoul != null)
@@ -358,7 +409,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
                 mentalSoul.AddPhysicalSoul(this);
             }
         }
-        */
+
         for(int i  = 0; i < actions.Count; i++)
         {
             int actionIndex = actionNames.IndexOf(actions[i].actionName);
@@ -392,6 +443,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         actionCooldowns.Clear();
     }
 
+    */
     public void ChangeStr(int value)
     {
         strength += value;
@@ -548,15 +600,12 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
         if (isBaseAction)
         {
-            if (baseActions[i].actionType.Length != 0)
+            foreach (ActionTypes actionType in baseActions[i].actionType)
             {
-                foreach (ActionTypes actionType in baseActions[i].actionType)
+                if (unusableActionTypes.ContainsKey(actionType))
                 {
-                    if (unusableActionTypes.ContainsKey(actionType))
-                    {
-                        //Debug.Log("Can't Use Action" + baseActions[i].actionName.ToString());
-                        return true;
-                    }
+                    //Debug.Log("Can't Use Action" + baseActions[i].actionName.ToString());
+                    return true;
                 }
             }
             //Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
@@ -564,18 +613,15 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         }
         else
         {
-            if (actions[i].actionType.Length != 0)
+            foreach (ActionTypes actionType in actions[i].actionType)
             {
-                foreach (ActionTypes actionType in actions[i].actionType)
+                if (unusableActionTypes.ContainsKey(actionType))
                 {
-                    if (unusableActionTypes.ContainsKey(actionType))
-                    {
-                        Debug.Log("Can't Use Action" + actions[i].actionName.ToString());
-                        return true;
-                    }
+                    //Debug.Log("Can't Use Action" + actions[i].actionName.ToString());
+                    return true;
                 }
             }
-            //Debug.Log("Can Use Action" + baseActions[i].actionName.ToString());
+            //Debug.Log("Can Use Action" + actions[i].actionName.ToString());
             return false;
         }
     }
@@ -586,6 +632,12 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         OnDamage?.Invoke(damageType, value);
         health -= value;
         Instantiate(UtilsClass.CreateWorldText(value.ToString(), localPosition: gameObject.transform.position).gameObject.AddComponent<DamageText>());
+
+        if (fromUnit.faction == Faction.player)
+        {
+            affectedByPlayerFaction = true;
+        }
+
         if (health <= 0)
         {
             Death();
@@ -601,6 +653,12 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             health -= value;
             Instantiate(UtilsClass.CreateWorldText(value.ToString(), localPosition: gameObject.transform.position).gameObject.AddComponent<DamageText>());
         }
+
+        if(fromUnit.faction == Faction.player)
+        {
+            affectedByPlayerFaction = true;
+        }
+
         if (health <= 0)
         {
             Death();
@@ -643,6 +701,9 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             int forcedMovmentIndex = gameManager.forcedMovements.IndexOf(forcedMovement);
             gameManager.forcedMovements.RemoveAt(forcedMovmentIndex);
             gameManager.expectedLocationChangeList.RemoveAt(forcedMovmentIndex);
+            forcedMovmentIndex = gameManager.mainGameManger.forcedMovements.IndexOf(forcedMovement);
+            gameManager.mainGameManger.forcedMovements.RemoveAt(forcedMovmentIndex); 
+            Destroy(forcedMovement.gameObject);
         }
 
         index = gameManager.mainGameManger.units.IndexOf(this);
@@ -665,19 +726,27 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         {
             gameManager.ChangeUnits(gameObject.transform.position, null, true);
         }
+
+        if (affectedByPlayerFaction)
+        {
+            Player player = (Player) gameManager.mainGameManger.units[0];
+            player.GainXP(CalculateXpValue());
+        }
+
         Destroy(this);
         Destroy(gameObject);
     }
 
     public int CalculateXpValue()
     {
-        int baseCommonXpValue = 20;
-        int baseUncommonXpValue = 20;
-        int baseRareXpValue = 20;
+        XPValues xpvalues = gameManager.mainGameManger.xpValues;
+        int baseCommonXpValue = xpvalues.baseCommonXpValue;
+        int baseUncommonXpValue = xpvalues.baseUncommonXpValue;
+        int baseRareXpValue = xpvalues.baseRareXpValue;
 
-        float commonClassLevelMultiplier = 1.5f;
-        float uncommonClassLevelMultiplier = 1.5f;
-        float rarelassLevelMultiplier = 1.5f;
+        float commonClassLevelMultiplier = xpvalues.commonClassLevelMultiplier;
+        float uncommonClassLevelMultiplier = xpvalues.uncommonClassLevelMultiplier;
+        float rarelassLevelMultiplier = xpvalues.rarelassLevelMultiplier;
 
         int commonXP;
         int uncommonXP;
@@ -685,7 +754,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         for(int i = 0; i < commonClasses.Count; i++)
         {
             commonXP = baseCommonXpValue;
-            for(int j = 1; i < commonClasses[i].currentLevel; j++)
+            for(int j = 1; j < commonClasses[i].currentLevel; j++)
             {
                 commonXP = (int) (commonClassLevelMultiplier * commonXP);
             }
@@ -695,7 +764,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         for (int i = 0; i < uncommonClasses.Count; i++)
         {
             uncommonXP = baseUncommonXpValue;
-            for (int j = 1; i < uncommonClasses[i].currentLevel; j++)
+            for (int j = 1; j < uncommonClasses[i].currentLevel; j++)
             {
                 uncommonXP = (int)(uncommonClassLevelMultiplier * uncommonXP);
             }
@@ -705,7 +774,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         for (int i = 0; i < rareClasses.Count; i++)
         {
             rarelassXP = baseRareXpValue;
-            for (int j = 1; i < rareClasses[i].currentLevel; j++)
+            for (int j = 1; j < rareClasses[i].currentLevel; j++)
             {
                 rarelassXP = (int)(rarelassLevelMultiplier * rarelassXP);
             }

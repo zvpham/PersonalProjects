@@ -20,6 +20,8 @@ public class ForcedMovement : MonoBehaviour
     public int currentPathIndex;
     public float Ivalue;
     public bool isFlying;
+    public bool hitFlying;
+    public bool hitGrounded;
     public OnHitUnit onHitUnit;
     public OnHitWall onHitWall;
     public EndForcedMovement endForcedMovement;
@@ -70,14 +72,14 @@ public class ForcedMovement : MonoBehaviour
                 excessForcedMovementSpeed -= previousForcedMovementIterrationRate;
             }
             Unit target = unit.gameManager.flyingGrid.GetGridObject(forcedMovementPath[forcedPathIndex]);
-            if (isFlying && target != null && onHitUnit(unit, target))
+            if (hitGrounded && target != null && onHitUnit(unit, target))
             {
                 Deactivate();
                 return;
             }
 
             target = unit.gameManager.grid.GetGridObject(forcedMovementPath[forcedPathIndex]);
-            if (!isFlying && target != null && onHitUnit(unit, target))
+            if (hitFlying && target != null && onHitUnit(unit, target))
             {
                 Deactivate();
                 return;
@@ -107,7 +109,13 @@ public class ForcedMovement : MonoBehaviour
 
     public void Load(ForcedMovementPathData pathData, Unit unit, MovementStatus status)
     {
-        forcedMovementPath = pathData.forcedMovementPath;
+        List<Vector2> adjustedPath = new List<Vector2>();
+        Vector2 gameManagerAdjustment = unit.gameManager.defaultGridPosition;
+        for (int j = 0; j < pathData.forcedMovementPath.Count; j++)
+        {
+            adjustedPath.Add(pathData.forcedMovementPath[j] + gameManagerAdjustment);
+        }
+        forcedMovementPath = adjustedPath;
         forcedMovementSpeed = pathData.forcedMovementSpeed;
         excessForcedMovementSpeed = pathData.excessForcedMovementSpeed;
         previousForcedMovementIterrationRate = pathData.previousForcedMovementIterrationRate;
@@ -135,6 +143,7 @@ public class ForcedMovement : MonoBehaviour
         unit.gameManager.mainGameManger.forcedMovements.Remove(this);
         unit.gameManager.forcedMovements.Remove(this);
         unit.gameManager.expectedLocationChangeList.RemoveAt(forcedMovementIndex);
+        unit.forcedMovement = null;
         status.RemoveEffect(unit);
         Destroy(this);
         Destroy(gameObject);

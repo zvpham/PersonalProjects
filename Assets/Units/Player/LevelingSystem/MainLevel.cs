@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Class/mainLevel")]
+[CreateAssetMenu(menuName = "Leveling/mainLevel")]
 public  class MainLevel : ScriptableObject
 {
     public int XPThreshold;

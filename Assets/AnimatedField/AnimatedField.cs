@@ -17,6 +17,8 @@ abstract public class AnimatedField : MonoBehaviour
     public List<Node> openList = new List<Node>();
     public List<Node> closedList = new List<Node>();
 
+    public Unit originUnit;
+
     public Vector3 startPosition;
     public Vector3 initialDirection;
     public int range;
@@ -100,7 +102,7 @@ abstract public class AnimatedField : MonoBehaviour
         emptySpace
     }
 
-    abstract public void SetParameters(GameManager gameManager, Vector3 startPosition, Vector3 direction, float angle, CreatedField createdField, int range,
+    abstract public void SetParameters(GameManager gameManager, Unit originUnit, Vector3 startPosition, Vector3 direction, float angle, CreatedField createdField, int range,
         int initialConeBlastValue, int maxObstacleBlastValueAbsorbtion, int maxUnitBlastValueAbsorbtion,
         float secEmenateSpeed = .035f, bool isAffectFlying = true, bool ignoreWalls = true);
 

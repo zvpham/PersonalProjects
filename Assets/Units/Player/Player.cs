@@ -26,6 +26,7 @@ public class Player : Unit
 
     public int amountOfMenusOpen;
     public LevelingSystem levelingSystem;
+    public int availableClassLevelUps = 1;
     public int maxCommonClasses;
     public int maxUncommonClasses;
     public int maxRareClasses;
@@ -49,9 +50,11 @@ public class Player : Unit
         worldMapTravel = WorldMapTravel.Instance;
         actionBar = ActionBar.Instance;
         cameraManager = CameraManager.Instance;
-
         virtualCursor = VirtualCursor.Instance;
         virtualCursor.enabled = false;
+
+        actionBar.player = this;
+        gameMenu.player = this;
 
         gameCamera = cameraManager.gameCamera.GetComponent<CameraControllerPlayer>();
         gameCamera.target = gameObject;
@@ -80,7 +83,7 @@ public class Player : Unit
             gameMenu.classPage.AddClass(classes[i]);
             for(int j = 0; j < classes[i].currentLevel; j++)
             {
-                gameMenu.classPage.LevelUpClass(classes[i]);
+                gameMenu.classPage.UILevelUpClass(classes[i]);
             }
         }
 
@@ -94,6 +97,10 @@ public class Player : Unit
         {
             senses.Add(Instantiate(templateSense));
         }
+
+        defaultMeleeDamage = baseActionTemplate.DefaultMelee;
+
+        LoadClassesOnStart();
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
 
@@ -306,21 +313,18 @@ public class Player : Unit
                             item.Value.quantity);
                     }
                     notOnHold = false;
-                    amountOfMenusOpen += 1;
+                    ChangeAmountOfMenusOpen(1);
                 }
                 else
                 {
                     inventorySystem.inventoryUI.Hide();
-                    if (amountOfMenusOpen == 0)
-                    {
-                        notOnHold = true;
-                    }
+                    ChangeAmountOfMenusOpen(0);
                 }
             }
 
             if (inputManager.GetKeyDown(ActionName.ClassMenu))
             {
-                ChangeAmountOfScreensOpen(1);
+                ChangeAmountOfMenusOpen(1);
                 virtualCursor.enabled = true;
                 gameMenu.OpenMenu(gameMenu.pages.IndexOf(gameMenu.classPage));
                 actionBar.gameObject.SetActive(false);
@@ -329,17 +333,26 @@ public class Player : Unit
 
         if (inputManager.GetKeyDown(ActionName.OpenWorldMap))
         {
-            gameMenu.CloseMenu();
-            UseWorldMap();
+            if(forcedMovement == null)
+            {
+                gameMenu.CloseMenu();
+                UseWorldMap();
+            }
+            else
+            {
+                Debug.Log("Can't Open World Map when moving");
+            }
         }
     }
 
     public void CloseGameMenu()
     {
+        virtualCursor.enabled = false;
         actionBar.gameObject.SetActive(true);
+        ChangeAmountOfMenusOpen(-1);
     }
 
-    public void ChangeAmountOfScreensOpen(int screenChange)
+    public void ChangeAmountOfMenusOpen(int screenChange)
     {
         amountOfMenusOpen += screenChange;
         if (amountOfMenusOpen == 0)
@@ -361,7 +374,7 @@ public class Player : Unit
             cameraManager.worldMapCamera.enabled = true;
             worldMapTravel.StartWorldMapTravel(originalSprite);
             notOnHold = false;
-            ChangeAmountOfScreensOpen(1);
+            ChangeAmountOfMenusOpen(1);
         }
         else
         {
@@ -369,7 +382,7 @@ public class Player : Unit
             cameraManager.gameCamera.gameObject.SetActive(true);
             cameraManager.worldMapCamera.enabled = false;
             worldMapTravel.EndWorldMapTravel();
-            ChangeAmountOfScreensOpen(-1);
+            ChangeAmountOfMenusOpen(-1);
         }
     }
 
@@ -471,5 +484,10 @@ public class Player : Unit
         Instance = null;
         InventorySystem.Instance = null;
         OnDeath -= OnPlayerDeath;
+    }
+
+    public void GainXP(int XP)
+    {   
+        levelingSystem.GainXP(this, XP);
     }
 }

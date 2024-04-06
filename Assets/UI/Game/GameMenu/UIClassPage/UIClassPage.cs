@@ -19,12 +19,12 @@ public class UIClassPage : BaseUIPage
     [SerializeField]
     private UIClassStats UIClassStatsPrefab;
 
-    [SerializeField] 
+    [SerializeField]
     private UIClassAction UIClassActionPrefab;
 
     [SerializeField]
-    private BaseGameUIObject UIClassLevelPrefab;
- 
+    private UIClassLevel UIClassLevelPrefab;
+
     [SerializeField]
     private BaseGameUIObject commonClass;
 
@@ -56,7 +56,6 @@ public class UIClassPage : BaseUIPage
         topIndex = 0;
         bottomIndex = maxUIObjectsVisibleOnScreen;
         UpdateBaseUIObjects();
-        OpenMenu();
     }
 
     public void UpdateOnScreeenUIObjects()
@@ -146,7 +145,8 @@ public class UIClassPage : BaseUIPage
         int lockedAbilitiesIndex = lockedAbilities.transform.GetSiblingIndex() + 1;
         for (int i = 0; i < newClass.classLevels.Count; i++)
         {
-            BaseGameUIObject newClassLevel = Instantiate(UIClassLevelPrefab, contentPanel.transform);
+            UIClassLevel newClassLevel = Instantiate(UIClassLevelPrefab, contentPanel.transform);
+            newClassLevel.currentClass = newClass;
             newClassLevel.UIPage = this;
             newClassLevel.transform.SetSiblingIndex(lockedAbilitiesIndex);
             newClassLevel.SetOriginalText("Level " + (i + 1));
@@ -177,7 +177,7 @@ public class UIClassPage : BaseUIPage
             {
                 Destroy(newStats.gameObject);
             }
-            for(int j = 0; j < newClass.classLevels[i].ActionList.Count; j++)
+            for (int j = 0; j < newClass.classLevels[i].ActionList.Count; j++)
             {
                 UIClassAction newAction = Instantiate(UIClassActionPrefab, contentPanel.transform);
                 newAction.UIPage = this;
@@ -190,47 +190,7 @@ public class UIClassPage : BaseUIPage
                 newClassLevel.groupMembers.Add(newAction);
             }
         }
-        Debug.Log(allClasses[0]);
         UpdateBaseUIObjects();
-    }
-
-    //Moves ClassLevel from Locked to Unlocked (Only Does one, so call again if you need to level multiple)
-    public void LevelUpClass(Class leveledUpClass)
-    {
-        UIClassGroup changingClassGroup = null;
-        for(int i = 0; i < allClasses.Count; i++)
-        {
-            if (allClasses[i].currentClass == leveledUpClass)
-            {
-                changingClassGroup = allClasses[i];
-                break;
-            }
-        }
-
-        if(changingClassGroup != null) 
-        {
-            List<BaseGameUIObject> classLevelMembers = new List<BaseGameUIObject>();
-            changingClassGroup.lockedAbilities.groupMembers[0].GetAllBaseUIOBjects(classLevelMembers);
-            int lastUnlockedAbilityIndex;
-            if (changingClassGroup.unlockedAbilities.groupMembers.Count == 0)
-            {
-                lastUnlockedAbilityIndex = changingClassGroup.unlockedAbilities.transform.GetSiblingIndex() + 1;
-            }
-            else
-            {
-                lastUnlockedAbilityIndex = changingClassGroup.unlockedAbilities.groupMembers[changingClassGroup.unlockedAbilities.groupMembers.Count - 1].transform.GetSiblingIndex() + 1;
-            }
-
-            for (int i = 0; i < classLevelMembers.Count; i++)
-            {
-                classLevelMembers[i].transform.SetSiblingIndex(lastUnlockedAbilityIndex);
-                lastUnlockedAbilityIndex += 1;
-            }
-        }
-        else
-        {
-            Debug.LogError("Couldn't find Class to Adjsut");
-        }
     }
 
     public void HandleChangeDescription(string description)
@@ -240,6 +200,13 @@ public class UIClassPage : BaseUIPage
 
     public override void UseUI()
     {
+        activeUIObjects[currentIndex].UseUi();
+        UpdateBaseUIObjects();
+    }
+
+    public override void UseHoverUI()
+    {
+        base.UseHoverUI();
         activeUIObjects[currentIndex].HoverUI();
         UpdateBaseUIObjects();
     }
@@ -251,14 +218,14 @@ public class UIClassPage : BaseUIPage
 
     public override void SelectMenuObject(int itemIndex)
     {
-        if(itemIndex >= onScreenUIObjects.Count)
+        if (itemIndex >= onScreenUIObjects.Count)
         {
             return;
         }
         classDescription.ResetDescription();
         BaseGameUIObject currentObject = activeUIObjects[currentIndex];
         base.SelectMenuObject(itemIndex);
-        if(itemIndex < activeUIObjects.Count)
+        if (itemIndex < activeUIObjects.Count)
         {
             currentObject.SetText(currentObject.AddIndents(currentObject.GetOriginalText()));
             currentIndex = activeUIObjects.IndexOf(onScreenUIObjects[itemIndex]);
@@ -271,18 +238,18 @@ public class UIClassPage : BaseUIPage
 
     public override void IndexUp()
     {
-        if(currentIndex - 1 >= 0)
+        if (currentIndex - 1 >= 0)
         {
             classDescription.ResetDescription();
             if (currentIndex == topIndex && topIndex > 0)
             {
                 topIndex -= 1;
                 bottomIndex -= 1;
-                contentPanel.anchoredPosition = new Vector2(0, 41 * topIndex);
+                contentPanel.anchoredPosition = new Vector2(0, contentPanel.GetComponent<GridLayoutGroup>().cellSize.y * topIndex);
             }
             currentIndex -= 1;
             activeUIObjects[currentIndex].SetText(activeUIObjects[currentIndex].AddIndents(activeUIObjects[currentIndex].GetOriginalText()));
-            if (!activeUIObjects[currentIndex].isHeadOfGroup)
+            if (activeUIObjects[currentIndex].groupMembers.Count == 0)
             {
                 activeUIObjects[currentIndex].HoverUI();
             }
@@ -292,13 +259,12 @@ public class UIClassPage : BaseUIPage
 
     public override void IndexDown()
     {
-        Debug.Log("hello");
         if (currentIndex + 1 < activeUIObjects.Count)
         {
             classDescription.ResetDescription();
             activeUIObjects[currentIndex].SetText(activeUIObjects[currentIndex].AddIndents(activeUIObjects[currentIndex].GetOriginalText()));
             currentIndex += 1;
-            if (!activeUIObjects[currentIndex].isHeadOfGroup)
+            if (activeUIObjects[currentIndex].groupMembers.Count == 0)
             {
                 activeUIObjects[currentIndex].HoverUI();
             }
@@ -306,9 +272,92 @@ public class UIClassPage : BaseUIPage
             {
                 topIndex += 1;
                 bottomIndex += 1;
-                contentPanel.anchoredPosition = new Vector2(0, 41 * topIndex);
+                contentPanel.anchoredPosition = new Vector2(0, contentPanel.GetComponent<GridLayoutGroup>().cellSize.y * topIndex);
             }
         }
+        UpdateBaseUIObjects();
+    }
+
+    //Moves ClassLevel from Locked to Unlocked (Only Does one, so call again if you need to level multiple)
+    public void UILevelUpClass(Class leveledUpClass)
+    {
+        UIClassGroup changingClassGroup = null;
+        for (int i = 0; i < allClasses.Count; i++)
+        {
+            if (allClasses[i].currentClass == leveledUpClass)
+            {
+                changingClassGroup = allClasses[i];
+                break;
+            }
+        }
+
+        if (changingClassGroup != null)
+        {
+            List<BaseGameUIObject> classLevelMembers = new List<BaseGameUIObject>();
+            changingClassGroup.lockedAbilities.groupMembers[0].GetAllBaseUIOBjects(classLevelMembers);
+            int lastUnlockedAbilityIndex;
+            if (changingClassGroup.unlockedAbilities.groupMembers.Count == 0)
+            {
+                lastUnlockedAbilityIndex = changingClassGroup.unlockedAbilities.transform.GetSiblingIndex() + 1;
+            }
+            else
+            {
+                lastUnlockedAbilityIndex = changingClassGroup.lockedAbilities.transform.GetSiblingIndex();
+            }
+
+            UIClassLevel uiClassLevel = (UIClassLevel) classLevelMembers[0];
+            uiClassLevel.unlocked = true;
+
+            for (int i = 0; i < classLevelMembers.Count; i++)
+            {
+                classLevelMembers[i].transform.SetSiblingIndex(lastUnlockedAbilityIndex);
+                lastUnlockedAbilityIndex += 1;
+            }
+            changingClassGroup.unlockedAbilities.groupMembers.Add(classLevelMembers[0]);
+            changingClassGroup.lockedAbilities.groupMembers.RemoveAt(0);
+            UpdateBaseUIObjects();
+        }
+        else
+        {
+            Debug.LogError("Couldn't find Class to Adjsut");
+        }
+    }
+
+    public void BeginClassLevelUp(Class leveledUpClass)
+    {
+        if(gameMenu.player.availableClassLevelUps > 0)
+        {
+            gameMenu.DisableMenuInputs();
+            gameMenu.confirmPopupMenu.ActivateMenu("Level up " + leveledUpClass.className.ToString() + " to level " +  (leveledUpClass.currentLevel + 1) + "?",
+            // function to execute if we select 'yes'
+            () =>
+            {
+                leveledUpClass.LevelUp(gameMenu.player, true);
+                UILevelUpClass(leveledUpClass);
+                gameMenu.EnableMenuInputs();
+            },
+            // function to execute if we select 'Cancel'
+            () =>
+            {
+                gameMenu.EnableMenuInputs();
+            });
+        }
+    }
+
+    public override void ResetPage()
+    {
+        commonClass.FullClearGroupMemebers();
+        uncommonClass.FullClearGroupMemebers();
+        rareClass.FullClearGroupMemebers(false);
+        allClasses.Clear();
+        commonClasses.Clear();
+        uncommonClasses.Clear();
+        rareClasses.Clear();
+        classDescription.ResetDescription();
+        currentIndex = 0;
+        topIndex = 0;
+        bottomIndex = maxUIObjectsVisibleOnScreen;
+        contentPanel.anchoredPosition = new Vector2(0, 0);
         UpdateBaseUIObjects();
     }
 }

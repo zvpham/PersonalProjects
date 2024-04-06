@@ -147,6 +147,7 @@ GameObject:
   - component: {fileID: 3200740352779796503}
   - component: {fileID: 3200740352779796502}
   - component: {fileID: 3200740352779796521}
+  - component: {fileID: 6538106613315183201}
   m_Layer: 5
   m_Name: CancelButton
   m_TagString: Untagged
@@ -269,6 +270,25 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &6538106613315183201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200740352779796523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6d70d6b219293045a06650154417110, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UIPage: {fileID: 0}
+  isHeadOfGroup: 0
+  groupMembers: []
+  text: {fileID: 0}
+  originalText: 
+  numIndents: 0
+  indent: 
 --- !u!1 &3200740352799598636
 GameObject:
   m_ObjectHideFlags: 0
@@ -356,6 +376,7 @@ GameObject:
   - component: {fileID: 3200740353434070966}
   - component: {fileID: 3200740353434070964}
   - component: {fileID: 3200740353434070967}
+  - component: {fileID: 2362215994122767892}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -480,6 +501,18 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!225 &2362215994122767892
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200740353434070985}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &3200740353499153941
 GameObject:
   m_ObjectHideFlags: 0
@@ -548,6 +581,7 @@ GameObject:
   - component: {fileID: 3200740353990091800}
   - component: {fileID: 3200740353990091782}
   - component: {fileID: 3200740353990091801}
+  - component: {fileID: 4834809365916836983}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -672,6 +706,18 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!225 &4834809365916836983
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200740353990091803}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &3200740354618332413
 GameObject:
   m_ObjectHideFlags: 0
@@ -684,6 +730,7 @@ GameObject:
   - component: {fileID: 3200740354618332409}
   - component: {fileID: 3200740354618332408}
   - component: {fileID: 3200740354618332411}
+  - component: {fileID: 3984299071930217169}
   m_Layer: 5
   m_Name: ConfirmButton
   m_TagString: Untagged
@@ -806,3 +853,22 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &3984299071930217169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200740354618332413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6d70d6b219293045a06650154417110, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UIPage: {fileID: 0}
+  isHeadOfGroup: 0
+  groupMembers: []
+  text: {fileID: 0}
+  originalText: 
+  numIndents: 0
+  indent: 

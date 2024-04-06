@@ -7,6 +7,7 @@ public class HoverUI : MenuAction
 {
     public override void Activate(BaseUIPage activePage)
     {
-        ChooseClassMenu classMenu = (ChooseClassMenu) activePage;
+        Debug.Log("ANY TONAWEAADWADAWD");
+        activePage.UseHoverUI();
     }
 }

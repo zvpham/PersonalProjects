@@ -62,10 +62,10 @@ public class FlameBreath : AOETargetingAction
     public override void Activate(Unit self)
     {
         affectedUnit = self;
-        affectedUnit.ActivateTargeting();
-        affectedUnit.HandlePerformActions(actionType, actionName);
+        self.ActivateTargeting();
+        self.HandlePerformActions(actionType, actionName);
         activeAnimation = Instantiate(animation);
-        activeAnimation.GetComponent<EmenateFromCenterField>().SetParameters(affectedUnit.gameManager, affectedUnit.transform.position, finalDirection, blastAngle, createdField, blastRadius, 30, 30, 20, ignoreWalls: false);
+        activeAnimation.GetComponent<EmenateFromCenterField>().SetParameters(self.gameManager, self, self.transform.position, finalDirection, blastAngle, createdField, blastRadius, 30, 30, 20, ignoreWalls: false);
         activeAnimation.GetComponent<EmenateFromCenterField>().enabled = true;
         activeAnimation.GetComponent<EmenateFromCenterField>().animationEnd += AnimationEnd;
     }
@@ -73,11 +73,11 @@ public class FlameBreath : AOETargetingAction
     public override void PlayerActivate(Unit self)
     {
         affectedUnit = self;
-        affectedUnit.ActivateTargeting();
+        self.ActivateTargeting();
         Vector3 position = Vector3.zero;
         Quaternion rotation = new Quaternion(0, 0, 0, 1f);
         targetingSystem = Instantiate(targetingPrefab, position, rotation);
-        targetingSystem.GetComponent<ConeAttack>().setParameters(affectedUnit.transform.position, blastRadius, blastAngle);
+        targetingSystem.GetComponent<ConeAttack>().setParameters(self.transform.position, blastRadius, blastAngle);
         targetingSystem.GetComponent<ConeAttack>().foundTarget += FoundTarget;
 
         //targetingSystem.GetComponent<PointAndClick>().setParameters(affectedUnit.transform.position);
@@ -93,7 +93,7 @@ public class FlameBreath : AOETargetingAction
 
         affectedUnit.HandlePerformActions(actionType, actionName);
         activeAnimation = Instantiate(animation);
-        activeAnimation.GetComponent<EmenateFromCenterField>().SetParameters(affectedUnit.gameManager,
+        activeAnimation.GetComponent<EmenateFromCenterField>().SetParameters(affectedUnit.gameManager, affectedUnit,
             affectedUnit.transform.position, Direction, blastAngle,
             createdField, blastRadius, 30, 30, 20, ignoreWalls: false);
         activeAnimation.GetComponent<EmenateFromCenterField>().enabled = true;

@@ -9,11 +9,12 @@ using static UnityEditor.FilePathAttribute;
 
 public class EmenateFromCenterField : AnimatedField
 {
-    public override void SetParameters(GameManager gameManager, Vector3 startPosition, Vector3 direction, float angle,
+    public override void SetParameters(GameManager gameManager, Unit originUnit, Vector3 startPosition, Vector3 direction, float angle,
         CreatedField createdField, int range, int initialConeBlastValue, int maxObstacleBlastValueAbsorbtion,
         int maxUnitBlastValueAbsorbtion, float secEmenateSpeed = 0.035F, bool isAffectFlying = true, bool ignoreWalls = true)
     {
         this.gameManager = gameManager;
+        this.originUnit = originUnit;
         this.startPosition = startPosition;
         this.initialDirection = direction;
         this.angle = angle;
@@ -101,7 +102,7 @@ public class EmenateFromCenterField : AnimatedField
 
         this.openListLocation = validLocations;
         this.openList = adjustedList;
-        this.createdField.CreateGridOfObjects(gameManager, new Grid<CreatedObject>(range * 2 - 1, range * 2 - 1, 1f,
+        this.createdField.CreateGridOfObjects(gameManager, originUnit, new Grid<CreatedObject>(range * 2 - 1, range * 2 - 1, 1f,
             startPosition + new Vector3(-range - 1, -range - 1, 0), (Grid<CreatedObject> g, int x, int y) => 
             this.createdField.CreateCreatedObject(g, x, y, validLocations)), 10, isLoading);
         this.createdField.fromAnimatedField = true;

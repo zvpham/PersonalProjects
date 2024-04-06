@@ -98,11 +98,11 @@ public class MapManager : MonoBehaviour, IDataPersistence
             unit.gameManager.units.Insert(0, unit);
             unit.gameManager.mainGameManger.units.Insert(0, unit);
 
-            for (int i = 0; i < mapData.classIndexes.Count; i++)
+            for (int i = 0; i < mapData.unitPrefabDatas.classIndexes.Count; i++)
             {
-                Class newClass = resourceManager.classes[mapData.classIndexes[i]];
+                Class newClass = resourceManager.classes[mapData.unitPrefabDatas.classIndexes[i]];
+                newClass.currentLevel = mapData.unitPrefabDatas.classLevels[i];
                 newClass.AddClass(unit);
-                newClass.currentLevel = mapData.classLevels[i];
             }
 
             worldMapData = dataPersistenceManager.GetWorldMapData();
@@ -127,12 +127,20 @@ public class MapManager : MonoBehaviour, IDataPersistence
 
             // Load Player Specific Data
             Player playerTemp = (Player)unit;
+            playerTemp.availableClassLevelUps = mapData.availableClassLevelUps;
 
-            for(int i = 0; i < mapData.classIndexes.Count; i++)
+            LevelingSystem playerLevelingSystem =  playerTemp.levelingSystem;
+            playerLevelingSystem.currentMainXP = mapData.mainXP;
+            playerLevelingSystem.mainLevel = mapData.mainLevel;
+            playerLevelingSystem.currentClassXP = mapData.classXP;
+            playerLevelingSystem.classLevel = mapData.classLevel;
+            playerLevelingSystem.OnLoad(playerTemp);
+
+            for (int i = 0; i < mapData.unitPrefabDatas.classIndexes.Count; i++)
             {
-                Class newClass = resourceManager.classes[mapData.classIndexes[i]];
+                Class newClass = resourceManager.classes[mapData.unitPrefabDatas.classIndexes[i]];
+                newClass.currentLevel = mapData.unitPrefabDatas.classLevels[i];
                 newClass.AddClass(playerTemp);
-                newClass.currentLevel = mapData.classLevels[i];
             }
 
             // Load Inventory Data
@@ -354,26 +362,30 @@ public class MapManager : MonoBehaviour, IDataPersistence
             actionCooldowns.Add(action.currentCooldown);
             actionNames.Add(action.actionName);
         }
+
+        List<int> classIndexes = new List<int>();
+        List<int> classLevels = new List<int>();
+
+        for (int i = 0; i < unit.classes.Count; i++)
+        {
+            classIndexes.Add(unit.classes[i].classIndex);
+            classLevels.Add(unit.classes[i].currentLevel);
+        }
+
         unitPrefabData tempUnitData = new unitPrefabData(unit.gameObject.transform.position, unit.priority,
-            unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames);
+            unit.unitResourceManagerIndex, classIndexes, classLevels, unit.health, actionCooldowns, actionNames);
         
         mapData.unitPrefabDatas = tempUnitData;
 
         // Player Specific Data
         Player player = (Player)mainGameManger.units[0];
+        mapData.availableClassLevelUps = player.availableClassLevelUps;
 
-        List<int> classIndexes = new List<int>();
-        List<int> classLevels = new List<int>();
-
-        for (int i = 0; i < player.classes.Count; i++)
-        {
-            classIndexes.Add(player.classes[i].classIndex);
-            classLevels.Add(player.classes[i].currentLevel);
-        }
-
-        mapData.classIndexes = classIndexes;
-        mapData.classLevels = classLevels;
-
+        LevelingSystem playerLevelingSystem =  player.levelingSystem;
+        mapData.mainXP = playerLevelingSystem.currentMainXP;
+        mapData.mainLevel =  playerLevelingSystem.mainLevel;
+        mapData.classXP = playerLevelingSystem.currentClassXP;
+        mapData.classLevel = playerLevelingSystem.classLevel;
         // Inventory Data
         List<int> itemQuantities = new List<int>();
         List<int> itemSOIndexes = new List<int>();
@@ -448,7 +460,7 @@ public class MapManager : MonoBehaviour, IDataPersistence
         for(int i = 0; i < mainGameManger.activeGameManagers.Count; i++)
         {
             TileData tileData = new TileData();
-            mainGameManger.activeGameManagers[i].SaveData(tileData);
+            mainGameManger.activeGameManagers[i].SaveData(tileData, movingMapPositions: changedMapPosition);
             dataPersistenceManager.SaveTileData(tileData, dataPersistenceManager.autoSaveID, dataPersistenceManager.playerID, 
                 currentMapPosition + mainGameManger.activeGameManagers[i].gameManagerDirection);
         }

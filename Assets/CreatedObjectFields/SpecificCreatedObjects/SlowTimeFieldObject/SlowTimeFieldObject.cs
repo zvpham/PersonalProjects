@@ -7,9 +7,10 @@ using UnityEngine.UIElements;
 public class SlowTimeFieldObject : CreatedObjectStatus
 {
 
-    public SlowTimeFieldObject(Grid<CreatedObject> grid, int x, int y, GameManager gameManager, GameObject createdObjectPrefab, Vector3 originPosition, Status[] statuses, int duration, float blastRadius)
+    public SlowTimeFieldObject(Grid<CreatedObject> grid, Unit originunit, int x, int y, GameManager gameManager, GameObject createdObjectPrefab, Vector3 originPosition, Status[] statuses, int duration, float blastRadius)
     {
         this.grid = grid;
+        this.originUnit = originunit;
         this.x = x;
         this.y = y;
         Vector3Int gridPosition = gameManager.groundTilemap.WorldToCell(originPosition + new Vector3(x, y, 0));

@@ -2,6 +2,7 @@ using Inventory.Model;
 using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
+using System.Resources;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -100,16 +101,20 @@ public struct unitPrefabData
     public Vector2 position;
     public int priority;
     public int unitPrefabIndex;
+    public List<int> classIndexes;
+    public List<int> classLevels;
     public int health;
     public List<int> actionCooldowns;
     public List<ActionName> actionNames;
 
-    public unitPrefabData(Vector2 position, int priority, int unitPrefabIndex, int health,
+    public unitPrefabData(Vector2 position, int priority, int unitPrefabIndex, List<int> classIndexes, List<int> classLevels, int health,
         List<int> actionCooldowns, List<ActionName> actionNames)
     {
         this.position = position;
         this.priority = priority;
         this.unitPrefabIndex = unitPrefabIndex;
+        this.classIndexes = classIndexes;
+        this.classLevels = classLevels;
         this.health = health;
         this.actionCooldowns = actionCooldowns;
         this.actionNames = actionNames;
@@ -121,6 +126,7 @@ public struct unitPrefabData
 public struct createdFieldData
 {
     public int createdFieldTypeIndex;
+    public int originUnitIndex;
 
     public float createdFieldQuickness;
 
@@ -132,10 +138,11 @@ public struct createdFieldData
     public int fieldRadius;
     public List<Vector2> createdObjectPositions;
 
-    public createdFieldData(int createdFieldTypeIndex, float createdFieldQuickness, bool nonStandardDuration,
+    public createdFieldData(int createdFieldTypeIndex, int originUnitIndex, float createdFieldQuickness, bool nonStandardDuration,
         bool fromAnimatedField, bool createdWithBlastRadius, Vector2 originPosition, int fieldRadius, List<Vector2> createdObjectPositions)
     {
         this.createdFieldTypeIndex = createdFieldTypeIndex;
+        this.originUnitIndex = originUnitIndex;
         this.createdFieldQuickness = createdFieldQuickness;
         this.nonStandardDuration = nonStandardDuration;
         this.fromAnimatedField = fromAnimatedField;

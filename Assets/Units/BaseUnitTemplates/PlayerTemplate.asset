@@ -24,3 +24,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f1770d72357e149ef9663f7d2d85acc9, type: 2}
   Senses:
   - {fileID: 11400000, guid: cd8fe2c15815ff843a2b9cbce3d26212, type: 2}
+  DefaultMelee: {fileID: 11400000, guid: e6c901e2a7d34ab409bac3bc34b84f84, type: 2}

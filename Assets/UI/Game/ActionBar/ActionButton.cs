@@ -35,7 +35,6 @@ public class ActionButton : MonoBehaviour
 
     public void OnActionPressed()
     {
-        Debug.Log("Pressed Button");
         useAction?.Invoke(action); 
     }
 }

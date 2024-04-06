@@ -52,7 +52,7 @@ public class Jumping : MovementStatus
         Unit unit = self.gameManager.grid.GetGridObject((int)self.gameObject.transform.position.x, (int)self.gameObject.transform.position.y);
         if (unit != null)
         {
-            MeleeAttack.Attack(unit, self.toHitBonus, self.armorPenetration, self.strengthMod + 3);
+            MeleeAttack.Attack(unit, self);
             ForceMoveUnits.MoveUnit(unit);
         }
         self.gameManager.ChangeUnits(self.gameObject.transform.position, self);

@@ -28,6 +28,9 @@ public class ClassLevel : ScriptableObject
 
     public void AddClassLevel(Unit self)
     {
+
+        //Debug.Log(Strength +  " " + Agility + " " + Endurance + " " + Wisdom + " " + Intelligence + " " + Charisma + " " + Luck);
+
         self.ChangeStr(Strength);
         self.ChangeAgi(Agility);
         self.ChangeEnd(Endurance);
@@ -46,7 +49,12 @@ public class ClassLevel : ScriptableObject
                 }
                 else
                 {
-                    self.actions.Add(Instantiate(action));
+                    Action newAction = Instantiate(action);
+                    self.actions.Add(newAction);
+                    if(action.isChaseAction)
+                    {
+                        self.chaseActions.Add(newAction);
+                    }
                 }
             }
         }

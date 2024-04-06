@@ -26,6 +26,9 @@ public class MainGameManger : MonoBehaviour
     public GameManager TGameManager;
     public GameManager TRGameManager;
 
+    public int inCombat = 0;
+    public XPValues xpValues;
+
     public List<Unit> units = new List<Unit>();
     public List<ForcedMovement> forcedMovements = new List<ForcedMovement>();
     public List<Status> allStatuses = new List<Status>();
@@ -275,6 +278,8 @@ public class MainGameManger : MonoBehaviour
 
     public void ResetScene()
     {
+        Player player = (Player)units[0];
+        player.gameMenu.ResetMenu();
         for (int i = 0; i < activeGameManagers.Count; i++)
         {
             activeGameManagers[i].ClearBoard();

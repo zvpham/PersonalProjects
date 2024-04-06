@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 3922956318568513548}
   - component: {fileID: 3922956318568513551}
   - component: {fileID: 6260082256409847326}
+  - component: {fileID: -5061776034010912892}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -102,7 +103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unitResourceManagerIndex: 0
-  priority: 0
+  priority: 500
   quickness: 1
   timeFlow: 1
   strength: 16
@@ -123,13 +124,17 @@ MonoBehaviour:
   intelligenceMod: 0
   charisma: 16
   charismaMod: 0
+  luck: 16
+  luckMod: 0
+  defaultMeleeDamage: {fileID: 0}
   closestEnemyIndex: 0
-  visionRadius: 5
   clearLineOfSightToEnemy: 1
   friendlyFireMultiplier: 0.5
   faction: 0
   enemyList: []
   allyList: []
+  affectedByPlayerFaction: 0
+  XPValue: 0
   inPeripheralGameManager: 0
   gameManager: {fileID: 0}
   index: 0
@@ -146,30 +151,39 @@ MonoBehaviour:
   senses: []
   actionNamesForCoolDownOnLoad: 
   currentCooldownOnLoad: 
+  actionsThatHaveActiveStatus: []
   statuses: []
-  hasLocationChangeStatus: 0
+  forcedMovement: {fileID: 0}
+  flyOnLoad: 0
   originalSprite: {fileID: 0}
   spriteIndex: -1
-  physicalSouls: []
-  mentalSouls: []
+  ClassesOnStart: []
+  levelOnStart: 
+  classes: []
+  commonClasses: []
+  uncommonClasses: []
+  rareClasses: []
   _keysUnusableActionTypes: 
   _valuesUnusableActionTypes: 
   drops: []
-  forcedMovementPathData:
-    forcedMovementPath: []
-    forcedMovementSpeed: 0
-    excessForcedMovementSpeed: 0
-    previousForcedMovementIterrationRate: 0
-    forcedPathIndex: 0
-    currentPathIndex: 0
   notOnHold: 1
   inMiddleMap: 1
   inMelee: 0
   continueDeath: 1
   inventorySystem: {fileID: 393510028513838877}
+  gameMenu: {fileID: 0}
+  worldMapTravel: {fileID: 0}
+  cameraManager: {fileID: 0}
+  gameCamera: {fileID: 0}
+  virtualCursor: {fileID: 0}
   initialInventoryItemsForMapManager: []
-  soulSlotIndexes: 
-  onLoadSouls: []
+  amountOfMenusOpen: 0
+  levelingSystem: {fileID: -5061776034010912892}
+  availableClassLevelUps: 0
+  maxCommonClasses: 0
+  maxUncommonClasses: 0
+  maxRareClasses: 0
+  maxRacialClasses: 1
   actionBar: {fileID: 0}
 --- !u!114 &393510028513838877
 MonoBehaviour:
@@ -233,3 +247,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unitIndex: 0
+--- !u!114 &-5061776034010912892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3922956318568513558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b947310037ed55f4681b23fea8e7c872, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentMainXP: 0
+  mainLevel: 1
+  mainLevels:
+  - {fileID: 11400000, guid: 4184794bda374cb4db55c08625f28bdc, type: 2}
+  - {fileID: 11400000, guid: 041f1f41728dd6a488898ae555cd346f, type: 2}
+  - {fileID: 11400000, guid: b368770aef54697429ab84d88c7283dc, type: 2}
+  - {fileID: 11400000, guid: f07c44b110bc61940953e9f988418fc2, type: 2}
+  - {fileID: 11400000, guid: 6a8ecd5c7ab08264a9e4eab900644b55, type: 2}
+  - {fileID: 11400000, guid: 45cfab7b2db4638448d07c7d08cdfff2, type: 2}
+  - {fileID: 11400000, guid: dd3315086a1a70f48b486fef720e627c, type: 2}
+  - {fileID: 11400000, guid: 7dc8eda826f039b43beb0f0a0e20e7c1, type: 2}
+  currentClassXP: 0
+  classLevel: 1
+  maxClassLevel: 0
+  classLevelThresholds: 0a0000000a0000000a0000000a0000000a0000000a0000000a000000

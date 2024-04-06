@@ -17,6 +17,7 @@ public class CameraControllerPlayer : MonoBehaviour
     public Vector3 currentMousePosition;
 
     public GameObject target;
+    public bool dontMoveCamera;
     public bool attachedToTarget;
 
     public CameraBounds cameraBoundsData;
@@ -130,6 +131,12 @@ public class CameraControllerPlayer : MonoBehaviour
 
     public void MoveCamera()
     {
+        if(target == null || dontMoveCamera || enabled == false)
+        {
+            return;
+        }
+
+        Debug.Log("Hello");
         attachedToTarget = true;
         targetPosition = target.transform.position;
         targetPosition = GetCameraBounds();

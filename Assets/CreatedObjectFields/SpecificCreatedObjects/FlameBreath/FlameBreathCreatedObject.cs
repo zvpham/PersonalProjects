@@ -7,9 +7,10 @@ using UnityEngine;
 public class FlameBreathCreatedObject : CreatedObjectDamage
 {
 
-    public FlameBreathCreatedObject(Grid<CreatedObject> grid, int x, int y, GameObject createdObjectSpritePrefab, List<Vector3> validLocations)
+    public FlameBreathCreatedObject(Grid<CreatedObject> grid, Unit originunit, int x, int y, GameObject createdObjectSpritePrefab, List<Vector3> validLocations)
     {
         this.grid = grid;
+        this.originUnit = originunit;
         this.x = x;
         this.y = y;
         this.isActive = false;
@@ -20,7 +21,7 @@ public class FlameBreathCreatedObject : CreatedObjectDamage
         }
     }
 
-    public static void ApplyObject(float applyPercentage, GameManager gameManager, Vector3 Location, FullDamage damageCalculation)
+    public static void ApplyObject(float applyPercentage, Unit originUnit, GameManager gameManager, Vector3 Location, FullDamage damageCalculation)
     {
         Unit unit = gameManager.grid.GetGridObject(Location);
         Unit flyingUnit = gameManager.flyingGrid.GetGridObject(Location);
@@ -30,22 +31,22 @@ public class FlameBreathCreatedObject : CreatedObjectDamage
         }
         if (flyingUnit != null)
         {
-            flyingUnit.TakeDamage(damageCalculation, applyPercentage);
+            flyingUnit.TakeDamage(originUnit, damageCalculation, applyPercentage);
         }
     }
 
     public override void ApplyObject(float applyPercentage, GameManager gameManager)
     {
-        unit = gameManager.grid.GetGridObject(grid.GetWorldPosition(x,y));
-        flyingUnit = gameManager.flyingGrid.GetGridObject(grid.GetWorldPosition(x, y));
+        Unit unit = gameManager.grid.GetGridObject(grid.GetWorldPosition(x,y));
+        Unit flyingUnit = gameManager.flyingGrid.GetGridObject(grid.GetWorldPosition(x, y));
 
         if(unit != null)
         {
-            unit.TakeDamage(damageCalculation, applyPercentage);
+            unit.TakeDamage(originUnit, damageCalculation, applyPercentage);
         }
         if(flyingUnit != null)
         {
-            flyingUnit.TakeDamage(damageCalculation, applyPercentage);
+            flyingUnit.TakeDamage(originUnit, damageCalculation, applyPercentage);
         }
     }
 
@@ -55,7 +56,7 @@ public class FlameBreathCreatedObject : CreatedObjectDamage
         {
             return;
         }
-        unit.TakeDamage(damageCalculation);
+        unit.TakeDamage(originUnit, damageCalculation);
     }
 
     public override void RemoveObject(GameManager gameManager, bool affectFlying)

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "DamageFull")]
+[CreateAssetMenu(menuName = "Damage/DamageFull")]
 public class FullDamage : ScriptableObject
 {
     public List<DamageDice> damageDices;

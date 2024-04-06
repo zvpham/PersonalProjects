@@ -44,7 +44,9 @@ public class EnemyTest : Unit
             senses.Add(Instantiate(templateSense));
         }
 
-        UpdateActions();
+        defaultMeleeDamage = baseActionTemplate.DefaultMelee;
+
+        LoadClassesOnStart();
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
         gameManager.ChangeUnits(gameObject.transform.position, this, flyOnLoad);
@@ -223,7 +225,7 @@ public class EnemyTest : Unit
                 {
                     for (int i = 0; i < baseActions.Count; i++)
                     {
-                        if (baseActions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, false))
+                        if (baseActions[i].currentCooldown == 0 && !ContainsMatchingUnusableActionType(i, true))
                         {
                             currentActionWeight = baseActions[i].CalculateWeight(this);
                         }

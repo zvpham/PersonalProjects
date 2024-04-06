@@ -7,7 +7,6 @@ using UnityEngine;
 public class BaseGameUIObject : MonoBehaviour
 {
     public BaseUIPage UIPage;
-    public bool isHeadOfGroup;
     public List<BaseGameUIObject> groupMembers;
 
     [SerializeField]
@@ -89,7 +88,7 @@ public class BaseGameUIObject : MonoBehaviour
     {
         //Base Case - BaseGameUIObject has no GroupMembers
         baseGameUIObjects.Add(this);
-        if(!isHeadOfGroup)
+        if(groupMembers.Count == 0)
         {
             return;
         }
@@ -97,6 +96,16 @@ public class BaseGameUIObject : MonoBehaviour
         {
                 groupMembers[i].GetAllBaseUIOBjects(baseGameUIObjects);
         }
+    }
+
+    public List<bool> ActiveGroups()
+    {
+        List<bool> activeGroups = new List<bool>();
+        for (int i = 0; i < groupMembers.Count; i++)
+        {
+            activeGroups.Add(groupMembers[i].gameObject.activeInHierarchy);
+        }
+        return activeGroups;
     }
 
     public bool isGroupActive()
@@ -111,14 +120,19 @@ public class BaseGameUIObject : MonoBehaviour
         return false;
     }
 
-    public List<bool> ActiveGroups()
+    public void FullClearGroupMemebers(bool DestroySelf = false)
     {
-        List<bool> activeGroups = new List<bool>(); 
-        for(int i = 0;i < groupMembers.Count;i++)
+        for(int i = 0; i < groupMembers.Count;i++)
         {
-            activeGroups.Add(groupMembers[i].gameObject.activeInHierarchy);
+            groupMembers[i].FullClearGroupMemebers(true);
         }
-        return activeGroups;
+
+        if (DestroySelf)
+        {
+            Destroy(gameObject);
+        }
+        groupMembers.Clear();
+
     }
 
     public virtual void MouseUseUI()
@@ -134,7 +148,7 @@ public class BaseGameUIObject : MonoBehaviour
     public virtual void HoverUI()
     {
         //Expanding And Collapsing group
-        if (isHeadOfGroup)
+        if (groupMembers.Count > 0)
         {
             bool isAnyGroupMemberActive = false;
             List<bool> activeGroups = ActiveGroups();
@@ -166,5 +180,10 @@ public class BaseGameUIObject : MonoBehaviour
                 }
             }
         }
+    }
+
+    public virtual void UseUi()
+    {
+        UIPage.UseHoverUI();
     }
 }

@@ -325,6 +325,12 @@ public class GameManager : MonoBehaviour
             this.units.Add(unit);
             mainGameManger.units.Add(unit);
             unit.health = tempData.health;
+            for(int j = 0; j < tempData.classIndexes.Count; j++)
+            {
+                Class unitClass = Instantiate(resourceManager.classes[tempData.classIndexes[j]]);
+                unitClass.currentLevel = tempData.classLevels[j];
+                unitClass.AddClass(unit);
+            }
             unit.actionNamesForCoolDownOnLoad = tempData.actionNames;
             unit.currentCooldownOnLoad = tempData.actionCooldowns;
             unit.priority = tempData.priority;
@@ -349,6 +355,7 @@ public class GameManager : MonoBehaviour
         for(int i = 0; i < data.forcedMovementDatas.Count; i++)
         {
             GameObject tempGameObject = Instantiate(resourceManager.forcedMovementPrefab);
+
             ForcedMovement tempForcedMovement =  tempGameObject.GetComponent<ForcedMovement>();
             tempForcedMovement.Load(data.forcedMovementDatas[i], units[data.indexofUnitWithForcedMovement[i]],
                 (MovementStatus) allStatuses[data.indexofStatusWithForcedMovement[i]]);
@@ -368,9 +375,13 @@ public class GameManager : MonoBehaviour
             tempCreatedField.nonStandardDuration = data.createdFieldsData[i].nonStandardDuration;
             tempCreatedField.currentCreatedFieldDuration = data.createdFieldDuration[i];
 
-            if (data.createdFieldsData[i].createdWithBlastRadius)
+            if (data.createdFieldsData[i].createdWithBlastRadius && data.createdFieldsData[i].originUnitIndex != -1)
             {
-                tempCreatedField.CreateGridOfObjects(this, data.createdFieldsData[i].originPosition + newDefaultGridPosition, data.createdFieldsData[i].fieldRadius, 20, true);
+                tempCreatedField.CreateGridOfObjects(this, units[data.createdFieldsData[i].originUnitIndex],  data.createdFieldsData[i].originPosition + newDefaultGridPosition, data.createdFieldsData[i].fieldRadius, 20, true);
+            }
+            else
+            {
+                tempCreatedField.CreateGridOfObjects(this, mainGameManger.units[0], data.createdFieldsData[i].originPosition + newDefaultGridPosition, data.createdFieldsData[i].fieldRadius, 20, true);
             }
         }
 
@@ -393,7 +404,7 @@ public class GameManager : MonoBehaviour
 
     // Important Make sure you are assigning each value to GameData not adding to a list
     // will cause error in saves which will cause more entities than intended to be added
-    public void SaveData(TileData data, bool isFrozenZone = false)
+    public void SaveData(TileData data, bool isFrozenZone = false, bool movingMapPositions = false)
     {
         Debug.Log("Saving Game for: " +  gameManagerPosition);
         Vector3 newDefaultGridPosition = defaultGridPosition - mainGameManger.centralGameManager.defaultGridPosition;
@@ -473,8 +484,16 @@ public class GameManager : MonoBehaviour
                     actionCooldowns.Add(action.currentCooldown);
                     actionNames.Add(action.actionName);
                 }
+
+                List<int> classIndexes = new List<int>();
+                List<int> classLevels = new List<int>();
+                foreach(Class unitClass in unit.classes)
+                {
+                    classIndexes.Add(unitClass.classIndex);
+                    classLevels.Add(unitClass.currentLevel);
+                }
                 unitPrefabData temp = new unitPrefabData(unit.gameObject.transform.position - newDefaultGridPosition, unit.priority,
-                    unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames);
+                    unit.unitResourceManagerIndex, classIndexes, classLevels, unit.health, actionCooldowns, actionNames);
                 tempUnitPrefabData.Add(temp);
             }
             data.unitPrefabDatas = tempUnitPrefabData;
@@ -494,8 +513,17 @@ public class GameManager : MonoBehaviour
                     actionCooldowns.Add(action.currentCooldown);
                     actionNames.Add(action.actionName);
                 }
+
+                List<int> classIndexes = new List<int>();
+                List<int> classLevels = new List<int>();
+                foreach (Class unitClass in unit.classes)
+                {
+                    classIndexes.Add(unitClass.classIndex);
+                    classLevels.Add(unitClass.currentLevel);
+                }
+
                 unitPrefabData temp = new unitPrefabData(unit.gameObject.transform.position - newDefaultGridPosition, unit.priority,
-                    unit.unitResourceManagerIndex, unit.health, actionCooldowns, actionNames);
+                    unit.unitResourceManagerIndex, classIndexes, classLevels, unit.health, actionCooldowns, actionNames);
                 tempUnitPrefabData.Add(temp);
             }
             data.unitPrefabDatas = tempUnitPrefabData;
@@ -510,10 +538,18 @@ public class GameManager : MonoBehaviour
         {
             for (int i = 0; i < forcedMovements.Count; i++)
             {
-                ForcedMovementPathData tempMovementPathData = new ForcedMovementPathData(forcedMovements[i].forcedMovementPath,
+                List<Vector2> gameManagerlessPath =  new List<Vector2>();
+                Vector2 gameManagerAdjustment = forcedMovements[i].unit.gameManager.defaultGridPosition;
+                for (int j = 0; j < forcedMovements[i].forcedMovementPath.Count; j ++)
+                {
+                    gameManagerlessPath.Add(forcedMovements[i].forcedMovementPath[j] - gameManagerAdjustment);
+                }
+
+                ForcedMovementPathData tempMovementPathData = new ForcedMovementPathData(gameManagerlessPath,
                     forcedMovements[i].forcedMovementSpeed, forcedMovements[i].excessForcedMovementSpeed,
                     forcedMovements[i].previousForcedMovementIterrationRate, forcedMovements[i].forcedPathIndex,
                     forcedMovements[i].currentPathIndex, forcedMovements[i].forcedMovmentPriority, forcedMovements[i].isFlying);
+                forcedMovementPathDatas.Add(tempMovementPathData);
                 indexofUnitWithForcedMovement.Add(units.IndexOf(forcedMovements[i].unit));
                 indexofStatusWithForcedMovement.Add(allStatuses.IndexOf(forcedMovements[i].status));
             }
@@ -526,11 +562,19 @@ public class GameManager : MonoBehaviour
                 {
                     continue;
                 }
-                ForcedMovementPathData tempMovementPathData = new ForcedMovementPathData(forcedMovements[i].forcedMovementPath,
+
+                List<Vector2> gameManagerlessPath = new List<Vector2>();
+                Vector2 gameManagerAdjustment = forcedMovements[i].unit.gameManager.defaultGridPosition;
+                for (int j = 0; j < forcedMovements[i].forcedMovementPath.Count; j++)
+                {
+                    gameManagerlessPath.Add(forcedMovements[i].forcedMovementPath[j] - gameManagerAdjustment);
+                }
+                ForcedMovementPathData tempMovementPathData = new ForcedMovementPathData(gameManagerlessPath,
                     forcedMovements[i].forcedMovementSpeed, forcedMovements[i].excessForcedMovementSpeed,
                     forcedMovements[i].previousForcedMovementIterrationRate, forcedMovements[i].forcedPathIndex,
                     forcedMovements[i].currentPathIndex, forcedMovements[i].forcedMovmentPriority, forcedMovements[i].isFlying);
-                indexofUnitWithForcedMovement.Add(units.IndexOf(forcedMovements[i].unit));
+                forcedMovementPathDatas.Add(tempMovementPathData);
+                indexofUnitWithForcedMovement.Add(units.IndexOf(forcedMovements[i].unit) - 1);
                 indexofStatusWithForcedMovement.Add(allStatuses.IndexOf(forcedMovements[i].status));
             }
         }
@@ -595,10 +639,12 @@ public class GameManager : MonoBehaviour
         List<createdFieldData> createdFieldLists = new List<createdFieldData>();
         List<int> createdFieldDurations = new List<int>();
         List<int> createdFieldPriorities = new List<int>();
+
         foreach (CreatedField createdField in createdFields)
         {
             createdFieldData tempCreatedField = new createdFieldData();
             tempCreatedField.createdFieldTypeIndex = createdField.createdFieldTypeIndex;
+            tempCreatedField.originUnitIndex =  units.IndexOf(createdField.originUnit);
             tempCreatedField.createdFieldQuickness = createdField.createdFieldQuickness;
             tempCreatedField.createdObjectPositions = createdField.createdObjectPositions;
 

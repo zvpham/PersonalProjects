@@ -59,15 +59,20 @@ public class Class : ScriptableObject
         }
     }
 
-    public void LevelUp(Unit unit)
+    public void LevelUp(Unit unit, bool isPlayer = false)
     {
         currentLevel += 1;
-        classLevels[currentLevel].AddClassLevel(unit);
+        classLevels[currentLevel - 1].AddClassLevel(unit);
+        if(isPlayer)
+        {
+            Player player = (Player)unit;
+            player.UpdatePlayerActions();
+        }
     }
 
     public void LevelDowN(Unit unit)
     {
-        classLevels[currentLevel].RemoveClasslevel(unit);
+        classLevels[currentLevel - 1].RemoveClasslevel(unit);
         currentLevel -= 1;
     }
 

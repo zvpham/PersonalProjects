@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 455f12b45bf812e48bb09d8f200256d5, type: 3}
-  m_Name: Game Camera bounds
+  m_Script: {fileID: 11500000, guid: 523eee8f191267b4d97fbc91ceed8d6e, type: 3}
+  m_Name: New Damage Dice
   m_EditorClassIdentifier: 
-  WorldBounds:
-    m_Center: {x: 112, y: 44.5, z: -10}
-    m_Extent: {x: 37.5, y: 15, z: 0.1}
+  numberDice: 1
+  diceFaces: 4
+  damageType: 0
