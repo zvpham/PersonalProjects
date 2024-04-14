@@ -37,4 +37,9 @@ public class EnemyMeleeAttack : Action
     {
         throw new System.NotImplementedException();
     }
+
+    public override void AnimationEnd()
+    {
+
+    }
 }

@@ -20,10 +20,11 @@ MonoBehaviour:
   nonStandardDuration: 1
   statusName: Jumping
   statusImage: {fileID: 21300092, guid: 29c9cded5e558164aaf8c9bf08aa1510, type: 3}
+  activeAction: {fileID: 0}
+  isActiveStatus: 0
   isFieldStatus: 0
   ApplyEveryTurn: 0
   isFirstApply: 0
-  isFirstTurn: 1
   isFirstWorldTurn: 1
   isMovementStatus: 1
   statusIntData: 0
@@ -32,4 +33,7 @@ MonoBehaviour:
   actionTypesNotPermitted: 00000000
   actionTypesThatCancelStatus: 
   actionTypesThatActionMustContain: 
+  hitFlying: 1
+  hitGround: 0
   forcedMovementPath: []
+  forcedMovement: {fileID: 0}

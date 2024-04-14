@@ -38,4 +38,9 @@ public class SlowTimeField : StatusAOETargetingAction
         affectedUnit.DeactivateTargeting();
         affectedUnit.TurnEnd();
     }
+
+    public override void AnimationEnd()
+    {
+
+    }
 }   

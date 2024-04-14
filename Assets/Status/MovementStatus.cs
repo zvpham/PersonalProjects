@@ -5,16 +5,20 @@ using static UnityEngine.GraphicsBuffer;
 
 public abstract class MovementStatus : Status
 {
+    public bool hitFlying = true;
+    public bool hitGround = true;
     public List<Vector2> forcedMovementPath;
+    public ForcedMovement forcedMovement;
 
-    public void MovementStatusPreset(Unit self, float forcedMovementSpeed, List<Vector2> forcedMovementPath, bool startFlying, bool isFlying)
+    public void MovementStatusPreset(Unit self, float forcedMovementSpeed, List<Vector2> forcedMovementPath, bool isFlying)
     {
         GameObject temp = Instantiate(self.gameManager.resourceManager.forcedMovementPrefab);
         ForcedMovement tempForcedMovement = temp.GetComponent<ForcedMovement>();
         ForcedMovement.OnHitUnit onHitUnit = OnHitUnit;
         ForcedMovement.OnHitWall onHItWall = OnHitWall;
         ForcedMovement.EndForcedMovement endForcedMovement = EndForcedMovement;
-        tempForcedMovement.CreateForcedMovement(self, this, forcedMovementSpeed, forcedMovementPath, startFlying, isFlying,
+        forcedMovement = tempForcedMovement;
+        tempForcedMovement.CreateForcedMovement(self, this, forcedMovementSpeed, forcedMovementPath, isFlying, hitFlying, hitGround,
             onHitUnit, onHItWall, endForcedMovement);
     }
 
@@ -26,6 +30,7 @@ public abstract class MovementStatus : Status
         forcedMovement.onHitUnit = onHitUnit;
         forcedMovement.onHitWall = onHItWall;
         forcedMovement.endForcedMovement = endForcedMovement;
+        this.forcedMovement = forcedMovement;
     }
 
     public abstract bool OnHitUnit(Unit self, Unit target);

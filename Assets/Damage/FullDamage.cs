@@ -14,7 +14,7 @@ public class FullDamage : ScriptableObject
     {
         if(staticDamageType.Count != staticDamageValue.Count)
         {
-            throw new Exception("FIX DAMAGE for" +  this);  
+            throw new Exception("FIX static DAMAGE for" +  this);  
         }
 
         List<Tuple<DamageTypes, int>> totalDamaage = new List<Tuple<DamageTypes, int>>();
@@ -24,13 +24,17 @@ public class FullDamage : ScriptableObject
             int damage = 0;
             for(int i = 0; i < damageDice.numberDice; i++)
             {
-                damage += UnityEngine.Random.Range(0, damageDice.diceFaces + 1);
+                damage += UnityEngine.Random.Range(1, damageDice.diceFaces + 1);
             }
             if (staticDamageType.IndexOf(damageDice.damageType) != -1)
             {
                 damage += staticDamageValue[staticDamageType.IndexOf(damageDice.damageType)];
             }
             totalDamaage.Add(new Tuple<DamageTypes, int>( damageDice.damageType, damage));
+        }
+        if (totalDamaage.Count == 0)
+        {
+            totalDamaage.Add(new Tuple<DamageTypes, int>(DamageTypes.physical, 0));
         }
         return totalDamaage;
     }

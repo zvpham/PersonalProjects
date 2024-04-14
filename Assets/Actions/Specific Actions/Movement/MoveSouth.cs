@@ -22,4 +22,9 @@ public class MoveSouth : Action
     {
         Activate(self);
     }
+
+    public override void AnimationEnd()
+    {
+
+    }
 }

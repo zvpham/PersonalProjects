@@ -21,4 +21,9 @@ public class MoveNorthWest : Action
     {
         Activate(self);
     }
+
+    public override void AnimationEnd()
+    {
+
+    }
 }

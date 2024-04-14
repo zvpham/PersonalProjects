@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 abstract public class AnimatedField : MonoBehaviour
 {
@@ -54,7 +55,7 @@ abstract public class AnimatedField : MonoBehaviour
 
     public GameManager gameManager;
 
-    public event Action<int> animationEnd;
+    public event UnityAction animationEnd;
 
     public struct Node
     {
@@ -112,7 +113,7 @@ abstract public class AnimatedField : MonoBehaviour
 
     public void AnimationEnd()
     {
-        animationEnd?.Invoke(0);
+        animationEnd?.Invoke();
     }
 
     public void onLoad(animatedFieldData animatedFieldData, ResourceManager resourceManager, GameManager gameManager, Vector3 newDefaultGridPosition)

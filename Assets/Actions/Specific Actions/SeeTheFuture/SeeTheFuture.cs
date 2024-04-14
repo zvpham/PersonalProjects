@@ -37,4 +37,9 @@ public class SeeTheFuture : SelfStatusAction
             temp.ApplyEffectPlayer(self, duration);
         }
     }
+
+    public override void AnimationEnd()
+    {
+
+    }
 }

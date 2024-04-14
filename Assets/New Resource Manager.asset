@@ -20,11 +20,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 33e766e1fbfca4a449a7e3e497c9e38b, type: 2}
   - {fileID: 11400000, guid: f518940d8ba6db142aa741119dcd939e, type: 2}
   - {fileID: 11400000, guid: e28a0a136f642374cb07795dacb8f9a5, type: 2}
+  - {fileID: 11400000, guid: 2244732f08724c0469c45a6be1bbfcfb, type: 2}
   unitPrefabs:
   - {fileID: 3922956318568513558, guid: 87c633fcde12f9a45bc88e009e6caf05, type: 3}
   - {fileID: 8096759470053534158, guid: 50497ed9059cccf4d8c0e2d69851928b, type: 3}
   - {fileID: 8096759470053534158, guid: e92e268034a0d264783d64aa2dc40030, type: 3}
   - {fileID: 2527387851303890164, guid: 553bfb20872ef0a458e7b394829a2ab5, type: 3}
+  - {fileID: 8096759470053534158, guid: 14268aeeda8640e4592597e136b8feea, type: 3}
   classes:
   - {fileID: 11400000, guid: 348e1d32211a19c4f817abc39cf21ae1, type: 2}
   - {fileID: 11400000, guid: bd036c24a3721cf438a6a91e5e619820, type: 2}

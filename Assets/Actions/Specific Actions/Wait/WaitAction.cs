@@ -20,4 +20,9 @@ public class WaitAction : Action
     {
         Activate(self);
     }
+
+    public override void AnimationEnd()
+    {
+
+    }
 }

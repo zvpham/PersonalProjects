@@ -15,31 +15,33 @@ public abstract class CreatedObjectStatus : CreatedObject
         if (statuses != null)
         {
             Vector3 location = grid.GetWorldPosition(x, y);
-            Unit ground = gameManager.grid.GetGridObject(location);
 
-            if (ground != null)
+            Unit unit = gameManager.grid.GetGridObject(location);
+            if(unit != null)
             {
-                foreach (Status status in statuses)
+                if(unit.flying)
                 {
-                    if (ground.statuses.Contains(status))
+                    if(affectFlying)
                     {
-                        status.RemoveEffect(ground);
+                        foreach (Status status in statuses)
+                        {
+                            if (unit.statuses.Contains(status))
+                            {
+                                status.RemoveEffect(unit);
+                            }
+
+                        }
                     }
-
                 }
-            }
-
-            if (affectFlying)
-            {
-                Unit flying = gameManager.flyingGrid.GetGridObject(location);
-                if (flying != null)
+                else
                 {
                     foreach (Status status in statuses)
                     {
-                        if (flying.statuses.Contains(status))
+                        if (unit.statuses.Contains(status))
                         {
-                            status.RemoveEffect(flying);
+                            status.RemoveEffect(unit);
                         }
+
                     }
                 }
             }

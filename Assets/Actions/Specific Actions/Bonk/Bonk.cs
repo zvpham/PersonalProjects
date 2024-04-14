@@ -39,4 +39,9 @@ public class Bonk : StatusTargetAction
         affectedUnit.DeactivateTargeting();
         affectedUnit.TurnEnd();
     }
+
+    public override void AnimationEnd()
+    {
+
+    }
 }

@@ -28,23 +28,14 @@ public class SlowTimeFieldObject : CreatedObjectStatus
         if(statuses != null)
         {
             Vector3 location = grid.GetWorldPosition(x, y);
-            Unit ground = gameManager.grid.GetGridObject(location);  
-            if (ground != null)
+            Unit unit = gameManager.grid.GetGridObject(location);  
+            if (unit != null)
             {
                 foreach (Status status in statuses)
                 {
-                    status.ApplyEffect(ground, 1);
+                    status.ApplyEffect(unit, 1);
                 }
 
-            }
-
-            Unit flying = gameManager.flyingGrid.GetGridObject(location);
-            if (flying != null)
-            {
-                foreach (Status status in statuses)
-                {
-                    status.ApplyEffect(flying, 1);
-                }
             }
         }
     }

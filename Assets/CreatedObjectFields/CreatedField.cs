@@ -98,6 +98,6 @@ public abstract class CreatedField : ScriptableObject
 
     abstract public CreatedObject CreateCreatedObject(Grid<CreatedObject> g, int x, int y, List<Vector3> validLocations);
 
-    abstract public void ApplyObject(float applyPercentage, GameManager gameManager, Vector3 Location);
+    abstract public void ApplyObject(float applyPercentage, Unit originUnit, GameManager gameManager, Vector3 Location);
 }
 

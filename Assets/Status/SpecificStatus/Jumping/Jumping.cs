@@ -10,7 +10,7 @@ public class Jumping : MovementStatus
     override public void ApplyEffect(Unit target, int newDuration)
     {
         AddStatusPreset(target, newDuration);
-        MovementStatusPreset(target, forcedMovementPath.Count * 0.5f, forcedMovementPath, false, true);
+        MovementStatusPreset(target, forcedMovementPath.Count * 0.5f, forcedMovementPath, true);
     }
 
     public override void ChangeQuicknessNonstandard(float value)
@@ -48,7 +48,6 @@ public class Jumping : MovementStatus
 
     public override void EndForcedMovement(Unit self)
     {
-        self.gameManager.ChangeUnits(self.gameObject.transform.position, null, true);
         Unit unit = self.gameManager.grid.GetGridObject((int)self.gameObject.transform.position.x, (int)self.gameObject.transform.position.y);
         if (unit != null)
         {

@@ -12,22 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 052fd4ec53498dc409d7a3fea1a7cf88, type: 3}
   m_Name: SlowTimeField
   m_EditorClassIdentifier: 
-  actionName: 14
+  actionName: 16
   weight: 0
   maxCooldown: 5
   currentCooldown: 0
-  duration: 10
   isUsable: 0
   actionType: 06000000
+  actionIsActive: 0
   isActiveAction: 0
-  isTurnActivated: 0
+  isChaseAction: 0
+  description: 
   affectedUnit: {fileID: 0}
-  status: []
   targetingPrefab: {fileID: 2214998987756014707, guid: c0db5e6e15a092e4db536dd9b595b1fb,
     type: 3}
   targetingSystem: {fileID: 0}
-  createdField: {fileID: 11400000, guid: d8c36ee90bdf4ec42a83c8250e9a2d8d, type: 2}
-  createObject: {fileID: 0}
   range: 0
+  createdField: {fileID: 11400000, guid: d8c36ee90bdf4ec42a83c8250e9a2d8d, type: 2}
   blastRadius: 4
   blastAngle: 0
+  duration: 10
+  status: []

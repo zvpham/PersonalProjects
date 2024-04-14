@@ -21,7 +21,7 @@ public class FlameBreathField : CreatedField
         return new FlameBreathCreatedObject(g, originUnit, x, y, createdObjectPrefab, validLocations);
     }
 
-    public override void ApplyObject(float applyPercentage, GameManager gameManager, Vector3 Location)
+    public override void ApplyObject(float applyPercentage, Unit originUnit, GameManager gameManager, Vector3 Location)
     {
         FlameBreathCreatedObject.ApplyObject(applyPercentage, originUnit, gameManager, Location, damageCalculation);
     }

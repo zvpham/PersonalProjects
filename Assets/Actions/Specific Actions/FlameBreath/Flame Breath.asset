@@ -12,27 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b77ee03553895d64a85794f90ecafda0, type: 3}
   m_Name: Flame Breath
   m_EditorClassIdentifier: 
-  actionName: 15
+  actionName: 17
   weight: 5
   maxCooldown: 2
   currentCooldown: 0
-  duration: 0
   isUsable: 0
   actionType: 0100000004000000
+  actionIsActive: 0
   isActiveAction: 0
-  isTurnActivated: 0
+  isChaseAction: 0
+  description: 
   affectedUnit: {fileID: 0}
-  status: []
   targetingPrefab: {fileID: 3471521004899725154, guid: 7efc53ddb9dfe284992896a392fe0817,
     type: 3}
   targetingSystem: {fileID: 0}
-  createdField: {fileID: 11400000, guid: 3673fd4c349a24f4c87da52f3d1cc8e6, type: 2}
-  createObjectSpritePrefab: {fileID: 2828790863296621109, guid: 7b7f9bc463aab454b916bd817e88a8b7,
-    type: 3}
-  createObject: {fileID: 11400000, guid: 95d63f15d3e4935448338db572412d73, type: 2}
-  createObjectHolder: {fileID: 2828790863296621109, guid: 4236afa84b24ca2498f88e6924107f37,
-    type: 3}
   range: 0
+  createdField: {fileID: 11400000, guid: 3673fd4c349a24f4c87da52f3d1cc8e6, type: 2}
   blastRadius: 7
   blastAngle: 0.8
   animation: {fileID: 1345715860651558412, guid: fc5a727f8330f2046ab78b1bb721dcfb,

@@ -61,4 +61,9 @@ public class EnemyMovement : Action
     {
         throw new System.NotImplementedException();
     }
+
+    public override void AnimationEnd()
+    {
+
+    }
 }

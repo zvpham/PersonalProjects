@@ -23,4 +23,9 @@ public class MoveSouthWest : Action
     {
         throw new System.NotImplementedException();
     }
+
+    public override void AnimationEnd()
+    {
+
+    }
 }

@@ -33,23 +33,26 @@ public class EnemyTest : Unit
         ChangeInt(0);
         ChangeCha(0);
 
-        baseActionTemplate = Instantiate(baseActionTemplate);
-        foreach (Action templateAction in baseActionTemplate.Actions)
+        if(baseActionTemplate != null)
         {
-            baseActions.Add(Instantiate(templateAction));
-        }
+            baseActionTemplate = Instantiate(baseActionTemplate);
+            foreach (Action templateAction in baseActionTemplate.Actions)
+            {
+                baseActions.Add(Instantiate(templateAction));
+            }
 
-        foreach(Sense templateSense in baseActionTemplate.Senses)
-        {
-            senses.Add(Instantiate(templateSense));
-        }
+            foreach (Sense templateSense in baseActionTemplate.Senses)
+            {
+                senses.Add(Instantiate(templateSense));
+            }
 
-        defaultMeleeDamage = baseActionTemplate.DefaultMelee;
+            defaultMeleeDamage = baseActionTemplate.DefaultMelee;
+        }
 
         LoadClassesOnStart();
 
         originalSprite = GetComponent<SpriteRenderer>().sprite;
-        gameManager.ChangeUnits(gameObject.transform.position, this, flyOnLoad);
+        gameManager.ChangeUnits(gameObject.transform.position, this);
         if (gameManager.isNewSlate)
         {
             gameManager.units.Add(this);

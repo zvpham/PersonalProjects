@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor.XR;
 using UnityEngine;
+using UnityEngine.Events;
 using static UnityEngine.GraphicsBuffer;
 
 public abstract class Status : ScriptableObject
@@ -35,6 +36,8 @@ public abstract class Status : ScriptableObject
     public List<ActionTypes> actionTypesNotPermitted;
     public List<ActionTypes> actionTypesThatCancelStatus;
     public List<ActionTypes> actionTypesThatActionMustContain;
+
+    public event UnityAction animationEnd;
 
     // Start is called before the first frame update
     abstract public void ApplyEffect(Unit target, int newDuration);
@@ -200,5 +203,10 @@ public abstract class Status : ScriptableObject
     }
 
     abstract public void ChangeQuicknessNonstandard(float value);
+
+    public void AnimationEnd()
+    {
+        animationEnd?.Invoke();
+    }
 
 }

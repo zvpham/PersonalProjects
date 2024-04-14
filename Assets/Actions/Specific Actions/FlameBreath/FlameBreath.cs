@@ -100,11 +100,11 @@ public class FlameBreath : AOETargetingAction
         activeAnimation.GetComponent<EmenateFromCenterField>().animationEnd += AnimationEnd;
     }
 
-    private void AnimationEnd(int ignore)
+    public override void AnimationEnd()
     {
-        activeAnimation.GetComponent<EmenateFromCenterField>().animationEnd -= AnimationEnd;
-        affectedUnit.TurnEnd();
-        affectedUnit.DeactivateTargeting();
+            activeAnimation.GetComponent<EmenateFromCenterField>().animationEnd -= AnimationEnd;
+            affectedUnit.TurnEnd();
+            affectedUnit.DeactivateTargeting();
     }
 }
 

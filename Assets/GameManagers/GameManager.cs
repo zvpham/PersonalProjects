@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -30,7 +31,6 @@ public class GameManager : MonoBehaviour
     public ResourceManager resourceManager;
 
     public Grid<Unit> grid;
-    public Grid<Unit> flyingGrid;
     public Grid<List<Item>> itemgrid;
     public Grid<Wall> obstacleGrid;
     public Grid<SpriteNode> spriteGrid;
@@ -84,7 +84,6 @@ public class GameManager : MonoBehaviour
             instance = this;
         }
         grid = new Grid<Unit>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<Unit> g, int x, int y) => null);
-        flyingGrid = new Grid<Unit>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<Unit> g, int x, int y) => null);
         itemgrid = new Grid<List<Item>>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<List<Item>> g, int x, int y) => null);
         obstacleGrid = new Grid<Wall>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<Wall> g, int x, int y) => null);
         spriteGrid = new Grid<SpriteNode>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<SpriteNode> g, int x, int y) => new SpriteNode(g, x, y));
@@ -194,16 +193,9 @@ public class GameManager : MonoBehaviour
 
 
 
-    public void ChangeUnits(Vector3 worldPosition, Unit unit, bool isFlying = false)
+    public void ChangeUnits(Vector3 worldPosition, Unit unit)
     {
-        if(isFlying)
-        {
-            flyingGrid.SetGridObject(worldPosition, unit);
-        }
-        else
-        {
-            grid.SetGridObject(worldPosition, unit);
-        }
+        grid.SetGridObject(worldPosition, unit);
         mainGameManger.UpdatePathFindingGrid(worldPosition, obstacleGrid, grid);
     }
 
@@ -777,15 +769,13 @@ public class GameManager : MonoBehaviour
             RenderWall(x, y, wallIndex);
         }
         FinalRender();  
-        initalRenderLocations = new List<Vector3>();
-        finalRenderLocations = new List<Vector3>();
     }
 
     public void FinalRender()
     {
-        int x = -1;
-        int y = -1;
-        int wallIndex = -1;
+        int x;
+        int y;
+        int wallIndex;
         for (int i = 0; i < finalRenderLocations.Count; i++)
         {
             x = (int)finalRenderLocations[i].x;
@@ -935,10 +925,10 @@ public class GameManager : MonoBehaviour
                             break;
                     }
                     break;
-
             }
         }
-
+        initalRenderLocations = new List<Vector3>();
+        finalRenderLocations = new List<Vector3>();
     }
 
     public void RenderWall(int x, int y, int wallIndex)

@@ -29,13 +29,14 @@ public class Conk : StatusTargetAction
     public void FoundTarget(Vector3 targetPosition)
     {
         targetingSystem.GetComponent<MeleeTargeting>().foundTarget -= FoundTarget;
+        Destroy(targetingSystem);
         Unit targetUnit = affectedUnit.gameManager.grid.GetGridObject(targetPosition);
 
         int launchDistance = affectedUnit.strengthMod;
 
-        if(launchDistance == 0)
+        if(launchDistance <= 3)
         {
-            launchDistance = 1;
+            launchDistance = 3;
         }
 
         List<Vector2> path = new List<Vector2>();
@@ -53,6 +54,10 @@ public class Conk : StatusTargetAction
         startMovementStatusPreset(targetUnit, path);
         affectedUnit.DeactivateTargeting();
         affectedUnit.HandlePerformActions(actionType, actionName);
+    }
+
+    public override void AnimationEnd()
+    {
         affectedUnit.TurnEnd();
     }
 }

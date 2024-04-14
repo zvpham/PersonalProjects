@@ -25,6 +25,8 @@ public abstract class Action : ScriptableObject
 
     abstract public int CalculateWeight(Unit self);
 
+    abstract public void AnimationEnd();
+
     virtual public void Activate(Unit self, Vector3 targetLocation)
     {
 

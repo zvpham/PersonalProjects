@@ -13,6 +13,11 @@ public class MeleeAttack : Action
         throw new System.NotImplementedException();
     }
 
+    public override void AnimationEnd()
+    {
+
+    }
+
     public static void Attack(Unit target, Unit attacker)
     {
         if (hit(target, attacker.toHitBonus))
@@ -94,11 +99,11 @@ public class MeleeAttack : Action
 
         if (isCritical)
         {
-            target.TakeDamage(attacker, defaultMeleeDamage, penAmount * 2);
+            target.TakeDamage(attacker, defaultMeleeDamage, true, penAmount * 2);
         }
         else
         {
-            target.TakeDamage(attacker, defaultMeleeDamage, penAmount);
+            target.TakeDamage(attacker, defaultMeleeDamage, true, penAmount);
         }
     }
 

@@ -15,7 +15,6 @@ public class PeripheralGameManager : GameManager
     public override void Awake()
     {
         grid = new Grid<Unit>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition, (Grid<Unit> g, int x, int y) => null);
-        flyingGrid = new Grid<Unit>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition, (Grid<Unit> g, int x, int y) => null);
         itemgrid = new Grid<List<Item>>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition, (Grid<List<Item>> g, int x, int y) => null);
         obstacleGrid = new Grid<Wall>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<Wall> g, int x, int y) => null);
         spriteGrid = new Grid<SpriteNode>(mainGameManger.mapWidth, mainGameManger.mapHeight, 1f, defaultGridPosition + new Vector3(-0.5f, -0.5f, 0), (Grid<SpriteNode> g, int x, int y) => new SpriteNode(g, x, y));

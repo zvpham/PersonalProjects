@@ -22,3 +22,5 @@ MonoBehaviour:
   ActionList:
   - {fileID: 11400000, guid: 88fcd91fe9eeef94b95d84ea03487687, type: 2}
   - {fileID: 11400000, guid: 0795d63277ddb5e41a4d92587bd04774, type: 2}
+  - {fileID: 11400000, guid: f18821d91157bb147b55a9d3e964a138, type: 2}
+  - {fileID: 11400000, guid: 87fddd6d0e27b8a418d243118ebc6969, type: 2}

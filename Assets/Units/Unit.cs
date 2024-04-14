@@ -94,7 +94,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
     public List<Status> statuses;
 
     public ForcedMovement forcedMovement;
-    public bool flyOnLoad = false;
+    public bool flying;
 
     public Sprite originalSprite;
     public int spriteIndex = -1;
@@ -214,11 +214,23 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         inMelee = false;
     }
 
-    public virtual void UnitMovement(Vector3 originalPosition, Vector3 newPosition, bool FlyAtOrigin, bool FlyAtDestination)
+    public virtual void UnitMovement(Vector3 originalPosition, Vector3 newPosition)
     {
-        gameManager.mainGameManger.GetGameManger(originalPosition).ChangeUnits(originalPosition, null, FlyAtDestination);
-        CheckForStatusFields(gameObject.transform.position, gameManager.mainGameManger.GetGameManger(newPosition));
-        gameManager.mainGameManger.GetGameManger(newPosition).ChangeUnits(newPosition, this, FlyAtDestination);
+        Unit newUnit = gameManager.mainGameManger.GetGameManger(originalPosition).grid.GetGridObject(newPosition);
+        if (newUnit != null) 
+        {
+            //Swap Places if Unit already in position;
+            gameManager.mainGameManger.GetGameManger(originalPosition).ChangeUnits(originalPosition, newUnit);
+            newUnit.transform.position =  originalPosition;
+            CheckForStatusFields(gameObject.transform.position, gameManager.mainGameManger.GetGameManger(newPosition));
+            gameManager.mainGameManger.GetGameManger(newPosition).ChangeUnits(newPosition, this);
+        }
+        else
+        {
+            gameManager.mainGameManger.GetGameManger(originalPosition).ChangeUnits(originalPosition, null);
+            CheckForStatusFields(gameObject.transform.position, gameManager.mainGameManger.GetGameManger(newPosition));
+            gameManager.mainGameManger.GetGameManger(newPosition).ChangeUnits(newPosition, this);
+        }
         transform.position = newPosition;
     }
 
@@ -643,7 +655,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
             Death();
         }
     }
-    public void TakeDamage(Unit fromUnit, FullDamage damageCalaculation, float damagePercentage = 1)
+    public void TakeDamage(Unit fromUnit, FullDamage damageCalaculation, bool meleeContact, float damagePercentage = 1)
     {
         int value = 0;
         foreach (Tuple<DamageTypes, int> damage in damageCalaculation.RollForDamage())
@@ -667,6 +679,10 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
 
     public void Death(bool ChangeScreens = false)
     {
+        if(gameManager.mainGameManger.units.IndexOf(this) == -1)
+        {
+            return;
+        }
         continueDeath = true;
         OnDeath?.Invoke();
         if(!continueDeath)
@@ -717,15 +733,7 @@ public class Unit : MonoBehaviour, ISerializationCallbackReceiver
         }
         gameManager.mainGameManger.units.RemoveAt(index);
         gameManager.units.RemoveAt(gameManager.units.IndexOf(this));
-
-        if (gameManager.grid.GetGridObject(gameObject.transform.position) != null)
-        {
-            gameManager.ChangeUnits(gameObject.transform.position, null);
-        }
-        else
-        {
-            gameManager.ChangeUnits(gameObject.transform.position, null, true);
-        }
+        gameManager.ChangeUnits(gameObject.transform.position, null);
 
         if (affectedByPlayerFaction)
         {

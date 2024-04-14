@@ -23,30 +23,21 @@ public class FlameBreathCreatedObject : CreatedObjectDamage
 
     public static void ApplyObject(float applyPercentage, Unit originUnit, GameManager gameManager, Vector3 Location, FullDamage damageCalculation)
     {
+        Debug.Log(originUnit + " HEllo Origin Unit");
         Unit unit = gameManager.grid.GetGridObject(Location);
-        Unit flyingUnit = gameManager.flyingGrid.GetGridObject(Location);
         if (unit != null)
         {
-            unit.TakeDamage(originUnit, damageCalculation, applyPercentage);
-        }
-        if (flyingUnit != null)
-        {
-            flyingUnit.TakeDamage(originUnit, damageCalculation, applyPercentage);
+            unit.TakeDamage(originUnit, damageCalculation, false, applyPercentage);
         }
     }
 
     public override void ApplyObject(float applyPercentage, GameManager gameManager)
     {
         Unit unit = gameManager.grid.GetGridObject(grid.GetWorldPosition(x,y));
-        Unit flyingUnit = gameManager.flyingGrid.GetGridObject(grid.GetWorldPosition(x, y));
 
         if(unit != null)
         {
-            unit.TakeDamage(originUnit, damageCalculation, applyPercentage);
-        }
-        if(flyingUnit != null)
-        {
-            flyingUnit.TakeDamage(originUnit, damageCalculation, applyPercentage);
+            unit.TakeDamage(originUnit, damageCalculation, false,  applyPercentage);
         }
     }
 
@@ -56,7 +47,7 @@ public class FlameBreathCreatedObject : CreatedObjectDamage
         {
             return;
         }
-        unit.TakeDamage(originUnit, damageCalculation);
+        unit.TakeDamage(originUnit, damageCalculation, false);
     }
 
     public override void RemoveObject(GameManager gameManager, bool affectFlying)

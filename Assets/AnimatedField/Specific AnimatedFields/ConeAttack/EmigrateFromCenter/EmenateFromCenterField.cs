@@ -465,13 +465,13 @@ public class EmenateFromCenterField : AnimatedField
         if (neighborNode.blastValue - maxUnitBlastValueAbsorbtion > 0)
         {
             neighborNode.blastValue -= maxUnitBlastValueAbsorbtion;
-            createdField.ApplyObject(1, gameManager, neighborNode.position);
+            createdField.ApplyObject(1, originUnit, gameManager, neighborNode.position);
             openList.Add(neighborNode);
             openListLocation.Add(neighborNode.position);
         }
         else
         {
-            createdField.ApplyObject(((float)neighborNode.blastValue / (float)maxUnitBlastValueAbsorbtion), gameManager, neighborNode.position);
+            createdField.ApplyObject(((float)neighborNode.blastValue / (float)maxUnitBlastValueAbsorbtion), originUnit, gameManager, neighborNode.position);
             neighborNode.blastValue = 0;
             closedList.Add(neighborNode);
             closedListLocation.Add(neighborNode.position);
@@ -493,13 +493,13 @@ public class EmenateFromCenterField : AnimatedField
         if (neighborNode.blastValue - maxObstacleBlastValueAbsorbtion > 0)
         {
             neighborNode.blastValue -= maxObstacleBlastValueAbsorbtion;
-            createdField.ApplyObject(1, gameManager, neighborNode.position);
+            createdField.ApplyObject(1, originUnit, gameManager, neighborNode.position);
             openList.Add(neighborNode);
             openListLocation.Add(neighborNode.position);
         }
         else
         {
-            createdField.ApplyObject(((float)neighborNode.blastValue / (float)maxObstacleBlastValueAbsorbtion), gameManager, neighborNode.position);
+            createdField.ApplyObject(((float)neighborNode.blastValue / (float)maxObstacleBlastValueAbsorbtion), originUnit, gameManager, neighborNode.position);
             neighborNode.blastValue = 0;
             closedList.Add(neighborNode);
             closedListLocation.Add(neighborNode.position);
@@ -518,19 +518,20 @@ public class EmenateFromCenterField : AnimatedField
         Unit unit = gameManager.grid.GetGridObject(position);
         if (unit != null)
         {
-            return NodeState.unit;
-        }
-
-        if (affectFlying)
-        {
-            unit = gameManager.flyingGrid.GetGridObject(position);
-            if (unit != null)
+            if (unit.flying)
+            {
+                if (affectFlying)
+                {
+                    return NodeState.unit;
+                }
+            }
+            else
             {
                 return NodeState.unit;
             }
         }
 
-        return NodeState.emptySpace;
+            return NodeState.emptySpace;
     }
 
     public NodeState IsClearToMoveToPositionIgnoreWalls(Vector3 position)
@@ -544,13 +545,14 @@ public class EmenateFromCenterField : AnimatedField
         Unit unit = gameManager.grid.GetGridObject(position);
         if (unit != null)
         {
-            return NodeState.unit;
-        }
-
-        if (affectFlying)
-        {
-            unit = gameManager.flyingGrid.GetGridObject(position);
-            if (unit != null)
+            if(unit.flying)
+            {
+                if (affectFlying)
+                {
+                    return NodeState.unit;
+                }
+            }
+            else
             {
                 return NodeState.unit;
             }

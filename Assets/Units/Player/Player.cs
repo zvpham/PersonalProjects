@@ -191,7 +191,7 @@ public class Player : Unit
             gameManager.mainGameManger.mapManager.enteredTileThroughWorldMap = false;
         }
 
-        gameManager.ChangeUnits(gameObject.transform.position, this, flyOnLoad);
+        gameManager.ChangeUnits(gameObject.transform.position, this);
 
         if (!gameManager.isNewSlate)
         {
@@ -386,9 +386,9 @@ public class Player : Unit
         }
     }
 
-    public override void UnitMovement(Vector3 originalPosition, Vector3 newPosition, bool FlyAtOrigin, bool FlyAtDestination)
+    public override void UnitMovement(Vector3 originalPosition, Vector3 newPosition)
     {
-        base.UnitMovement(originalPosition, newPosition, FlyAtOrigin, FlyAtDestination);
+        base.UnitMovement(originalPosition, newPosition);
         PlayerUseSenses();
     }
 
@@ -470,6 +470,7 @@ public class Player : Unit
         {
             actionBar.UpdateCoolDowns(actions[i].actionName, actions[i].currentCooldown);
         }
+        PlayerUseSenses();
         actionBar.UpdateActionsDisplay();
         gameManager.mainGameManger.mapManager.UpdatePreviousPositions();
     }

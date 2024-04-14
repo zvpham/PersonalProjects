@@ -47,7 +47,7 @@ public class Move
         {
             if(!IsEnemy(selfUnit, newPosition, mainGameManger.GetGameManger(newPosition)))
             {
-                selfUnit.UnitMovement(originalPosition, newPosition, false, false);
+                selfUnit.UnitMovement(originalPosition, newPosition);
                 selfUnit.HandlePerformActions(movementActions, ActionName.MoveNorth);
             }
             return;
@@ -64,7 +64,7 @@ public class Move
                     PickupIfItem(selfUnit, newPosition, gameManager);
                 }
 
-                selfUnit.UnitMovement(originalPosition, newPosition, false, false);
+                selfUnit.UnitMovement(originalPosition, newPosition);
                 selfUnit.HandlePerformActions(movementActions, ActionName.MoveNorth);
             }
 

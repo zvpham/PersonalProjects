@@ -19,7 +19,8 @@ public class Jump : StatusTargetAction
             if(pathAI !=  null)
             {
                 //Debug.Log("Jump Index " + (int)(pathAI.Count / 2f) + " " + self);
-                if(self.gameManager.flyingGrid.GetGridObject(pathAI[(int)(pathAI.Count / 2f)]) == null){
+                Unit unit = self.gameManager.grid.GetGridObject(pathAI[(int)(pathAI.Count / 2f)]);
+                if (unit == null || unit.flying == false){
                     pathFound = true;
                     break;
                 }
@@ -76,7 +77,8 @@ public class Jump : StatusTargetAction
         pathAI = LineOfSightAI.MakeLine(self.transform.position, targetLocation, range, true);
         if (pathAI != null)
         {
-            if (self.gameManager.flyingGrid.GetGridObject(pathAI[(int)(pathAI.Count / 2f)]) == null)
+            Unit unit = self.gameManager.grid.GetGridObject(pathAI[(int)(pathAI.Count / 2f)]);
+            if (unit == null ||  unit.flying == false)
             {
                 pathFound = true;
             }
@@ -87,5 +89,10 @@ public class Jump : StatusTargetAction
             return weight;
         }
         return 0;
+    }
+
+    public override void AnimationEnd()
+    {
+
     }
 }

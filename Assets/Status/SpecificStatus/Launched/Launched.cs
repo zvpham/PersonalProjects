@@ -2,12 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[CreateAssetMenu(menuName = "Status/Launched")]
 public class Launched : MovementStatus
 {
+    //StatusIntData is launcher's strengthModifier
+    public int launcherStrengthAdvantage;
+    public FullDamage impactDamage;
+
     public override void ApplyEffect(Unit target, int newDuration)
     {
         AddStatusPreset(target, newDuration);
-        MovementStatusPreset(target, forcedMovementPath.Count, forcedMovementPath, false, true);
+        MovementStatusPreset(target, forcedMovementPath.Count, forcedMovementPath, true);
     }
 
     public override void ChangeQuicknessNonstandard(float value)
@@ -22,46 +27,81 @@ public class Launched : MovementStatus
 
     public override bool OnHitUnit(Unit self, Unit target)
     {
-        Vector2 direction =  target.transform.position - self.transform.position;
-
-        //Perpendicular to direction
-        List<Vector2> idealDirections = new List<Vector2>();
-        //Not forward or backwards
-        List<Vector2> nextBestDirections = new List<Vector2>();     
-
-        for(int i = -1; i <= 1; i++)
+        Vector2 nextPostionForUnit =  target.transform.position;
+        //Target will stop being Unit being moved because they are too strong
+        if (target.strengthMod > statusIntData + launcherStrengthAdvantage)
         {
-            for(int j = -1; j <= 1; j++)
-            {
-                float dotProduct = Vector2.Dot(direction, new Vector2(j, i));
-                if (dotProduct == 0)
-                {
-                    idealDirections.Add(direction);
-                }
-                else if(dotProduct != 1 && dotProduct != -1) 
-                { 
-                    nextBestDirections.Add(direction);
-                }
-            }
+            self.TakeDamage(target, impactDamage, true);
+            return true;
         }
 
+        target.TakeDamage(target, impactDamage, true);
 
-        //Change this
-        for(int i = 0; i < idealDirections.Count; i++)
+        if(target == null) 
         {
-            Vector3 newPosition =  (Vector2) target.transform.position + idealDirections[i];
-            if (self.gameManager.obstacleGrid.GetGridObject(newPosition) == null && self.gameManager.grid.GetGridObject(newPosition) == null)
+            self.TakeDamage(target, impactDamage, true);
+            if(self == null)
             {
-                target.gameManager.ChangeUnits(target.transform.position, null);
                 return true;
             }
+            else
+            {
+                return false;
+            }
         }
-        return false;
+        Launched newStatus = Instantiate(this);
+        newStatus.targetUnit = target;
+
+        newStatus.launcherStrengthAdvantage = launcherStrengthAdvantage;
+        ForcedMovement newForcedMovement = Instantiate(this.forcedMovement);
+        newStatus.forcedMovement = newForcedMovement;
+        newStatus.AddStatusPreset(target, currentStatusDuration);
+        newForcedMovement.forcedPathIndex += 1;
+        newForcedMovement.Ivalue += 1 * newForcedMovement.unit.timeFlow;
+        newForcedMovement.previousForcedMovementIterrationRate = 1 * newForcedMovement.unit.timeFlow;
+        
+        newForcedMovement.status = newStatus;
+        newForcedMovement.unit = target;
+        newForcedMovement.forcedMovmentPriority = (int)(newForcedMovement.unit.gameManager.baseTurnTime * newForcedMovement.speed) + newForcedMovement.unit.gameManager.mainGameManger.least;
+        newForcedMovement.unit.gameManager.forcedMovements.Add(newForcedMovement);
+        newForcedMovement.forcedMovementSpeed += 1; 
+        newForcedMovement.unit.gameManager.mainGameManger.forcedMovements.Add(newForcedMovement);
+        newForcedMovement.unit.gameManager.expectedLocationChangeList.Add(0);
+        newForcedMovement.unit.forcedMovement = newForcedMovement;
+
+        Vector2 direction = newForcedMovement.forcedMovementPath[newForcedMovement.forcedMovementPath.Count - 1] - newForcedMovement.forcedMovementPath[newForcedMovement.forcedMovementPath.Count - 2];
+
+
+        newForcedMovement.forcedMovementPath.Add(newForcedMovement.forcedMovementPath[newForcedMovement.forcedMovementPath.Count - 1] + direction);
+
+        // IMPORTANT NOTE THE FUNCTIONS ONHITUNIT ONHITWALL AND ENDFORCEDMOVEMENT ARE INSTANCED BASED AND NOT JUST STATIC FUNCTION YOU DUMB DUMB (NEED TO USE A SPECFIC INSTANCED VERSION IF YOU WANT TO USE THAT VERSION)
+        newForcedMovement.onHitUnit = newStatus.OnHitUnit;
+        newForcedMovement.onHitWall = newStatus.OnHitWall;
+        newForcedMovement.endForcedMovement = newStatus.EndForcedMovement;
+        newForcedMovement.Activate();
+        self.TakeDamage(target, impactDamage, true);
+
+
+        if (target.transform.position == (Vector3) nextPostionForUnit || self == null)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public override bool OnHitWall(Unit self, Wall wall)
     {
-        throw new System.NotImplementedException();
+        if(wall.durability <= statusIntData * 3)
+        {
+            //Damage is for Onhit effects like touching an electric fence
+            wall.TakeDamage(self, impactDamage, true);
+            wall.Death();
+            return false;
+        }
+        return true;
     }
 
     public override void onLoadApply(Unit target)

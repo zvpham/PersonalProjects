@@ -13,6 +13,11 @@ public class SetPiece : Wall
         gameManager.ChangeWalls(transform.position, this);
     }
 
+    public override bool IsSetPiece()
+    {
+        return true;
+    }
+
     // Update is called once per frame
     void Update()
     {

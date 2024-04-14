@@ -22,4 +22,8 @@ public class Sprint : SelfStatusAction
     {
         Activate(self);
     }
+    public override void AnimationEnd()
+    {
+
+    }
 }

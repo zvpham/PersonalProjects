@@ -41,7 +41,7 @@ public class SlowTimeFieldField : CreatedField
         throw new System.NotImplementedException();
     }
 
-    public override void ApplyObject(float applyPercentage, GameManager gameManager, Vector3 Location)
+    public override void ApplyObject(float applyPercentage, Unit originUnit, GameManager gameManager, Vector3 Location)
     {
         throw new System.NotImplementedException();
     }
