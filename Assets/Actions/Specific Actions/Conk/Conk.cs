@@ -52,12 +52,12 @@ public class Conk : StatusTargetAction
         }
 
         startMovementStatusPreset(targetUnit, path);
-        affectedUnit.DeactivateTargeting();
         affectedUnit.HandlePerformActions(actionType, actionName);
     }
 
     public override void AnimationEnd()
     {
+        affectedUnit.DeactivateTargeting();
         affectedUnit.TurnEnd();
     }
 }

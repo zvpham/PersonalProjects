@@ -44,8 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ba13b965f80b4547b727985a29acebb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  secEmenateSpeed: 0.035
+  currentTime: 0
   unit: {fileID: 0}
-  Priority: 0
+  status: {fileID: 0}
+  forcedMovmentPriority: 0
   speed: 0
   forcedMovementPath: []
   forcedMovementSpeed: 0
@@ -55,3 +58,5 @@ MonoBehaviour:
   currentPathIndex: 0
   Ivalue: 0
   isFlying: 0
+  hitFlying: 0
+  hitGrounded: 0

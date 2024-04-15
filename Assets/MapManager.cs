@@ -411,11 +411,11 @@ public class MapManager : MonoBehaviour, IDataPersistence
         for(int i = 0; i < centerGameManager.allStatuses.Count; i++)
         {
             Status status = centerGameManager.allStatuses[i];
-            if (status.targetUnit == unit)
+            if (status.affectedUnit == unit)
             {
                 statusIndexList.Add(status.statusPrefabIndex);
-                indexOfUnitThatHasStatus.Add(centerGameManager.units.IndexOf(status.targetUnit));
-                indexOfActionThatHasActiveStatus.Add(status.targetUnit.actions.IndexOf(status.activeAction));
+                indexOfUnitThatHasStatus.Add(centerGameManager.units.IndexOf(status.affectedUnit));
+                indexOfActionThatHasActiveStatus.Add(status.affectedUnit.actions.IndexOf(status.activeAction));
                 statusIntData.Add(status.statusIntData);
                 statusStringData.Add(status.statusStringData);
                 statusBoolData.Add(status.statusBoolData);

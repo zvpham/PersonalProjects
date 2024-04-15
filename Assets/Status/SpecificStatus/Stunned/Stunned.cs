@@ -34,6 +34,6 @@ public class Stunned : Status
 
     public void ApplyStun()
     {
-        targetUnit.TurnEnd();
+        affectedUnit.TurnEnd();
     }
 }

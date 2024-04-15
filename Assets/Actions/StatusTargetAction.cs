@@ -25,6 +25,7 @@ public abstract class StatusTargetAction : TargetAction
             if (temp.isMovementStatus)
             {
                 MovementStatus movementTemp = (MovementStatus)temp;
+                movementTemp.animationEnd += AnimationEnd;
                 movementTemp.forcedMovementPath = forcedMovementPath;
                 movementTemp.ApplyEffect(self, duration);
             }

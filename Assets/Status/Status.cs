@@ -10,7 +10,7 @@ using static UnityEngine.GraphicsBuffer;
 public abstract class Status : ScriptableObject
 {
     public int statusPrefabIndex;
-    public Unit targetUnit;
+    public Unit affectedUnit;
 
     public float statusQuickness = 1;
     public int statusPriority;
@@ -114,7 +114,7 @@ public abstract class Status : ScriptableObject
         target.statuses.Add(this);
         target.gameManager.allStatuses.Add(this);
         target.gameManager.mainGameManger.allStatuses.Add(this);
-        this.targetUnit = target;
+        this.affectedUnit = target;
         ChangeQuickness(target.timeFlow);
         AddUnusableStatuses(target);
         return false;
@@ -123,7 +123,7 @@ public abstract class Status : ScriptableObject
     public void AddStatusOnLoadPreset(Unit target)
     {
         this.isFirstApply = false;
-        this.targetUnit = target;
+        this.affectedUnit = target;
         target.statuses.Add(this);
         target.gameManager.allStatuses.Add(this);
         target.gameManager.mainGameManger.allStatuses.Add(this);
@@ -163,7 +163,7 @@ public abstract class Status : ScriptableObject
         {
             if (actionTypesThatCancelStatus.Contains(actionType))
             {
-                RemoveEffect(targetUnit);
+                RemoveEffect(affectedUnit);
             }
         }
     }
@@ -184,7 +184,7 @@ public abstract class Status : ScriptableObject
         }
         if (!actionContainsMatchingActionType)
         {
-            RemoveEffect(targetUnit);
+            RemoveEffect(affectedUnit);
         }
     }
 
@@ -196,8 +196,8 @@ public abstract class Status : ScriptableObject
         }
         else
         {
-            int index = targetUnit.gameManager.allStatuses.IndexOf(this);
-            targetUnit.gameManager.allStatuses[index].statusQuickness *= value;
+            int index = affectedUnit.gameManager.allStatuses.IndexOf(this);
+            affectedUnit.gameManager.allStatuses[index].statusQuickness *= value;
             statusPriority = (int)(statusPriority * value);
         }
     }

@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Events;
 using static UnityEngine.GraphicsBuffer;
 
 public class ForcedMovement : MonoBehaviour
 {
+    public float secEmenateSpeed;
+    public float currentTime;
+
     public Unit unit;
     public Status status;
     public int forcedMovmentPriority;
@@ -22,9 +26,14 @@ public class ForcedMovement : MonoBehaviour
     public bool isFlying;
     public bool hitFlying;
     public bool hitGrounded;
+    public bool pauseMovement;
+    public bool unitMovementComplete;
+    public bool wallMovementComplete;
     public OnHitUnit onHitUnit;
     public OnHitWall onHitWall;
     public EndForcedMovement endForcedMovement;
+
+    public event UnityAction animationEnd;
 
     // If True then DeactivateForcedMovement
     public delegate bool OnHitUnit(Unit self, Unit target);
@@ -62,96 +71,124 @@ public class ForcedMovement : MonoBehaviour
 
     public void Activate()
     {
-        for (float i = Ivalue; i < forcedMovementSpeed + excessForcedMovementSpeed;)
+        enabled = true;
+        if (Ivalue > forcedMovementSpeed)
         {
-            if (i > forcedMovementSpeed)
-            {
-                excessForcedMovementSpeed -= previousForcedMovementIterrationRate;
-            }
-            Unit target = unit.gameManager.grid.GetGridObject(forcedMovementPath[forcedPathIndex]);
-
-
-            Debug.LogWarning("Target: " + target + ", hitFlying: " + hitFlying + ", hitGrounded: " + hitGrounded);
-            if (target != null && hitFlying && target.flying && onHitUnit(unit, target))
-            {
-                Deactivate();
-                return;
-            }
-            else if(target != null && hitGrounded && target.flying == false && onHitUnit(unit, target))
-            {
-                Deactivate();
-                return;
-            }
-
-            Wall wall = unit.gameManager.obstacleGrid.GetGridObject(forcedMovementPath[forcedPathIndex]);
-            if (wall != null && onHitWall(unit, wall))
-            {
-                Deactivate();
-                return;
-            }
-
-            unit.UnitMovement(unit.transform.position, forcedMovementPath[forcedPathIndex]);
-            if ((Vector2)unit.transform.position == forcedMovementPath[forcedMovementPath.Count - 1])
-            {
-                Deactivate();
-                return;
-            }
-
-            forcedPathIndex += 1;
-            i += 1 * unit.timeFlow;
-            previousForcedMovementIterrationRate = 1 * unit.timeFlow;
-            Ivalue = i;
+            excessForcedMovementSpeed -= previousForcedMovementIterrationRate;
         }
-        excessForcedMovementSpeed += Ivalue - forcedMovementSpeed;
-        currentPathIndex = forcedPathIndex - 1;
-        Ivalue = 0;
+        Unit target = unit.gameManager.grid.GetGridObject(forcedMovementPath[forcedPathIndex]);
+
+
+        Debug.LogWarning("Target: " + target + ", hitFlying: " + hitFlying + ", hitGrounded: " + hitGrounded + "Position: " + forcedMovementPath[forcedPathIndex]);
+        if (target != null && hitFlying && target.flying && onHitUnit(unit, target))
+        {
+            Deactivate();
+            return;
+        }
+        else if (target != null && hitGrounded && target.flying == false && onHitUnit(unit, target))
+        {
+            Deactivate();
+            return;
+        }
+
+        Wall wall = unit.gameManager.obstacleGrid.GetGridObject(forcedMovementPath[forcedPathIndex]);
+        if (wall != null && onHitWall(unit, wall))
+        {
+            Deactivate();
+            return;
+        }
+
+        unit.UnitMovement(unit.transform.position, forcedMovementPath[forcedPathIndex]);
+        if ((Vector2)unit.transform.position == forcedMovementPath[forcedMovementPath.Count - 1])
+        {
+            Deactivate();
+            return;
+        }
+
+        forcedPathIndex += 1;
+        previousForcedMovementIterrationRate = 1 * unit.timeFlow;
+        Ivalue += 1 * unit.timeFlow;
     }
 
     public void Update()
     {
-        for (float i = Ivalue; i < forcedMovementSpeed + excessForcedMovementSpeed;)
+        if (Ivalue < forcedMovementSpeed + excessForcedMovementSpeed)
         {
-            if (i > forcedMovementSpeed)
+            currentTime += Time.deltaTime;
+            if (currentTime >= secEmenateSpeed)
             {
-                excessForcedMovementSpeed -= previousForcedMovementIterrationRate;
-            }
-            Unit target = unit.gameManager.grid.GetGridObject(forcedMovementPath[forcedPathIndex]);
+                if (Ivalue > forcedMovementSpeed)
+                {
+                    excessForcedMovementSpeed -= previousForcedMovementIterrationRate;
+                }
+                Unit target = unit.gameManager.grid.GetGridObject(forcedMovementPath[forcedPathIndex]);
 
+                Debug.LogWarning("Target: " + target + ", hitFlying: " + hitFlying + ", hitGrounded: " + hitGrounded + "Position: " + forcedMovementPath[forcedPathIndex]);
+                if (target != null && hitFlying && target.flying && onHitUnit(unit, target))
+                {
+                    Deactivate();
+                    return;
+                }
+                else if (target != null && hitGrounded && target.flying == false && onHitUnit(unit, target))
+                {
+                    Deactivate();
+                    return;
+                }
+                unitMovementComplete = true;
 
-            Debug.LogWarning("Target: " + target + ", hitFlying: " + hitFlying + ", hitGrounded: " + hitGrounded);
-            if (target != null && hitFlying && target.flying && onHitUnit(unit, target))
-            {
-                Deactivate();
-                return;
-            }
-            else if (target != null && hitGrounded && target.flying == false && onHitUnit(unit, target))
-            {
-                Deactivate();
-                return;
-            }
+                Wall wall = unit.gameManager.obstacleGrid.GetGridObject(forcedMovementPath[forcedPathIndex]);
+                if (wall != null && onHitWall(unit, wall))
+                {
+                    Deactivate();
+                    return;
+                }
+                wallMovementComplete = true;
 
-            Wall wall = unit.gameManager.obstacleGrid.GetGridObject(forcedMovementPath[forcedPathIndex]);
-            if (wall != null && onHitWall(unit, wall))
-            {
-                Deactivate();
-                return;
-            }
+                unit.UnitMovement(unit.transform.position, forcedMovementPath[forcedPathIndex]);
+                if ((Vector2)unit.transform.position == forcedMovementPath[forcedMovementPath.Count - 1])
+                {
+                    Deactivate();
+                    return;
+                }
 
-            unit.UnitMovement(unit.transform.position, forcedMovementPath[forcedPathIndex]);
-            if ((Vector2)unit.transform.position == forcedMovementPath[forcedMovementPath.Count - 1])
-            {
-                Deactivate();
-                return;
+                forcedPathIndex += 1;
+                previousForcedMovementIterrationRate = 1 * unit.timeFlow;
+                Ivalue += 1 * unit.timeFlow;
+                currentTime = 0;
             }
-
-            forcedPathIndex += 1;
-            i += 1 * unit.timeFlow;
-            previousForcedMovementIterrationRate = 1 * unit.timeFlow;
-            Ivalue = i;
         }
-        excessForcedMovementSpeed += Ivalue - forcedMovementSpeed;
-        currentPathIndex = forcedPathIndex - 1;
-        Ivalue = 0;
+        else
+        {
+            excessForcedMovementSpeed += Ivalue - forcedMovementSpeed;
+            currentPathIndex = forcedPathIndex - 1;
+            Ivalue = 0;
+            AnimationEnd();
+        }
+    }
+
+    public void AnimationEnd()
+    {
+        enabled = false;
+        animationEnd?.Invoke();
+    }
+
+    public void Deactivate()
+    {
+        if(unit == null || unit.gameManager.forcedMovements.IndexOf(this) == -1)
+        {
+            return;
+        }
+
+        endForcedMovement(unit);
+        int forcedMovementIndex = unit.gameManager.forcedMovements.IndexOf(this);
+        unit.gameManager.mainGameManger.forcedMovements.Remove(this);
+        unit.gameManager.forcedMovements.Remove(this);
+        unit.gameManager.expectedLocationChangeList.RemoveAt(forcedMovementIndex);
+        unit.forcedMovement = null;
+        status.RemoveEffect(unit);
+        Destroy(this);
+        Destroy(gameObject);
+        AnimationEnd();
     }
 
     public void Load(ForcedMovementPathData pathData, Unit unit, MovementStatus status)
@@ -180,23 +217,5 @@ public class ForcedMovement : MonoBehaviour
         unit.gameManager.forcedMovements.Add(this);
         unit.gameManager.mainGameManger.forcedMovements.Add(this);
         unit.gameManager.expectedLocationChangeList.Add(0);
-    }
-
-    public void Deactivate()
-    {
-        if(unit == null || unit.gameManager.forcedMovements.IndexOf(this) == -1)
-        {
-            return;
-        }
-
-        endForcedMovement(unit);
-        int forcedMovementIndex = unit.gameManager.forcedMovements.IndexOf(this);
-        unit.gameManager.mainGameManger.forcedMovements.Remove(this);
-        unit.gameManager.forcedMovements.Remove(this);
-        unit.gameManager.expectedLocationChangeList.RemoveAt(forcedMovementIndex);
-        unit.forcedMovement = null;
-        status.RemoveEffect(unit);
-        Destroy(this);
-        Destroy(gameObject);
     }
 }

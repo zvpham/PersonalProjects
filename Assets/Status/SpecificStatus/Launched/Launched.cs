@@ -8,7 +8,8 @@ public class Launched : MovementStatus
     //StatusIntData is launcher's strengthModifier
     public int launcherStrengthAdvantage;
     public FullDamage impactDamage;
-
+    public MeleeAttackAnimation meleeAttackAnimationPrefab;
+    public Unit targetUnit;
     public override void ApplyEffect(Unit target, int newDuration)
     {
         AddStatusPreset(target, newDuration);
@@ -27,6 +28,7 @@ public class Launched : MovementStatus
 
     public override bool OnHitUnit(Unit self, Unit target)
     {
+        targetUnit =  target;
         Vector2 nextPostionForUnit =  target.transform.position;
         //Target will stop being Unit being moved because they are too strong
         if (target.strengthMod > statusIntData + launcherStrengthAdvantage)
@@ -50,7 +52,7 @@ public class Launched : MovementStatus
             }
         }
         Launched newStatus = Instantiate(this);
-        newStatus.targetUnit = target;
+        newStatus.affectedUnit = target;
 
         newStatus.launcherStrengthAdvantage = launcherStrengthAdvantage;
         ForcedMovement newForcedMovement = Instantiate(this.forcedMovement);
@@ -90,6 +92,11 @@ public class Launched : MovementStatus
         {
             return false;
         }
+    }
+
+    public void OnHItUnitEndAnimation()
+    {
+
     }
 
     public override bool OnHitWall(Unit self, Wall wall)

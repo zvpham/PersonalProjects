@@ -100,6 +100,6 @@ public class Precognition : Status
     public void OnDeath()
     {
         DataPersistenceManager.userID = statusStringData;
-        targetUnit.gameManager.ClearBoard();
+        affectedUnit.gameManager.ClearBoard();
     }
 }

@@ -18,6 +18,7 @@ public abstract class MovementStatus : Status
         ForcedMovement.OnHitWall onHItWall = OnHitWall;
         ForcedMovement.EndForcedMovement endForcedMovement = EndForcedMovement;
         forcedMovement = tempForcedMovement;
+        forcedMovement.animationEnd += AnimationEnd;
         tempForcedMovement.CreateForcedMovement(self, this, forcedMovementSpeed, forcedMovementPath, isFlying, hitFlying, hitGround,
             onHitUnit, onHItWall, endForcedMovement);
     }
@@ -40,5 +41,7 @@ public abstract class MovementStatus : Status
 
 
     public abstract void EndForcedMovement(Unit self);
+
+
 }
 

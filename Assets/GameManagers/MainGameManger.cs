@@ -175,7 +175,7 @@ public class MainGameManger : MonoBehaviour
                             if (allStatuses[i].statusPriority <= 0)
                             {
                                 allStatuses[i].statusPriority = (int)(allStatuses[i].statusQuickness * baseTurnTime);
-                                Unit tempUnit = allStatuses[i].targetUnit;
+                                Unit tempUnit = allStatuses[i].affectedUnit;
                                 int tempIndex = tempUnit.statuses.Count;
 
                                 //reduces status duration of a status if it is supposed to go down at the end of a turn

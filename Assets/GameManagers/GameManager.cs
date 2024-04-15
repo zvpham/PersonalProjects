@@ -589,8 +589,8 @@ public class GameManager : MonoBehaviour
             {
                 Status status = allStatuses[i];
                 statusIndexList.Add(status.statusPrefabIndex);
-                indexOfUnitThatHasStatus.Add(this.units.IndexOf(status.targetUnit));
-                indexOfActionThatHasActiveStatus.Add(status.targetUnit.actions.IndexOf(status.activeAction));
+                indexOfUnitThatHasStatus.Add(this.units.IndexOf(status.affectedUnit));
+                indexOfActionThatHasActiveStatus.Add(status.affectedUnit.actions.IndexOf(status.activeAction));
                 statusIntData.Add(status.statusIntData);
                 statusStringData.Add(status.statusStringData);
                 statusBoolData.Add(status.statusBoolData);
@@ -603,13 +603,13 @@ public class GameManager : MonoBehaviour
             for (int i = 0; i < allStatuses.Count; i++)
             {
                 Status status = allStatuses[i];
-                if (status.targetUnit == units[0])
+                if (status.affectedUnit == units[0])
                 {
                     continue;
                 }
                 statusIndexList.Add(status.statusPrefabIndex);
-                indexOfUnitThatHasStatus.Add(this.units.IndexOf(status.targetUnit) - 1);
-                indexOfActionThatHasActiveStatus.Add(status.targetUnit.actions.IndexOf(status.activeAction));
+                indexOfUnitThatHasStatus.Add(this.units.IndexOf(status.affectedUnit) - 1);
+                indexOfActionThatHasActiveStatus.Add(status.affectedUnit.actions.IndexOf(status.activeAction));
                 statusIntData.Add(status.statusIntData);
                 statusStringData.Add(status.statusStringData);
                 statusBoolData.Add(status.statusBoolData);
@@ -707,7 +707,7 @@ public class GameManager : MonoBehaviour
         {
             for (int i = 0; i < allStatuses.Count; i++)
             {
-                if (allStatuses[i].targetUnit == units[0])
+                if (allStatuses[i].affectedUnit == units[0])
                 {
                     allStatuses.RemoveAt(i);
                     i--;
@@ -749,7 +749,7 @@ public class GameManager : MonoBehaviour
 
         for (int i = allStatuses.Count -1 ; i >= 0; i--)
         {
-            Unit tempUnit = allStatuses[i].targetUnit;
+            Unit tempUnit = allStatuses[i].affectedUnit;
             allStatuses[i].RemoveEffect(tempUnit);
         }
 
