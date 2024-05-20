@@ -8,21 +8,18 @@ using TMPro;
 public class ActionConfirmationMenu : Menu
 {
     [Header("Componenets")]
-    [SerializeField] private TextMeshProUGUI displayText;
     [SerializeField] private Button confirmButton;
 
     private UnityAction cancelAction;
+    private UnityAction confirmAction;
     public void Awake()
     {
         gameObject.SetActive(false);
     }
-
-    public void ActivateMenu(string displayText, UnityAction confirmAction, UnityAction cancelAction)
+    
+    public void ActivateMenu(   UnityAction confirmAction, UnityAction cancelAction)
     {
         this.gameObject.SetActive(true);
-
-        // Set the Display Text
-        this.displayText.text = displayText;
 
         //Remove any existing Listeners to make sure there aren't any previous ones hanging around
         // Note -  this only remveos listeners added through code
@@ -36,6 +33,13 @@ public class ActionConfirmationMenu : Menu
         });
 
         this.cancelAction = cancelAction;
+        this.confirmAction = confirmAction;
+    }
+
+    public void ActivateConfirmAction()
+    {
+        DeactivateMenu();
+        confirmAction();
     }
 
     public void ActivateCancelAction()

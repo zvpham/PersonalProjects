@@ -288,4 +288,65 @@ public class GridHex<TGridObject>
         }
         return hexes;
     }
+
+    public Vector3Int CubeSubtract(Vector3Int cube1, Vector3Int cube2)
+    {
+        return cube1 - cube2;
+    }
+
+    public int CubeDistance(Vector3Int cube1, Vector3Int cube2)
+    {
+        Vector3Int vector = CubeSubtract(cube1, cube2);
+        return (Math.Abs(vector.x) + Math.Abs(vector.y) + Math.Abs(vector.z)) / 2;
+    }
+
+    public Vector3Int CubeRound(Vector3 cube)
+    {
+        int q = (int) Math.Round(cube.x);
+        int r = (int)Math.Round(cube.y);
+        int s = (int)Math.Round(cube.z);
+
+        float qDiff = Math.Abs(q - cube.x);
+        float rDiff = Math.Abs(r - cube.y);
+        float sDiff = Math.Abs(s - cube.z);
+
+        if(qDiff > rDiff && qDiff > sDiff)
+        {
+            q = -r - s;
+        }
+        else if (rDiff > sDiff)
+        {
+            r = -q - s;
+        }
+        else
+        {
+            s = -q - r;
+        }
+        return new Vector3Int(q, r, s);
+    }
+
+    public float CubeLerp(float a, float b, float t)
+    {
+        return a + (b - a) * t;
+    }
+
+    public Vector3 CubeHexLerp(Vector3Int a, Vector3Int b, float t)
+    {
+        return new Vector3(CubeLerp(a.x, b.x, t),
+            CubeLerp(a.y, b.y, t),
+            CubeLerp(a.z, b.z, t));
+             
+    }
+    
+
+    public List<Vector3Int> CubeLineDraw(Vector3Int a, Vector3Int b)
+    {
+        int hexDistance = CubeDistance(a, b);
+        List<Vector3Int> hexes = new List<Vector3Int>();
+        for(int i = 0; i < hexDistance; i++)
+        {
+            hexes.Add(CubeRound(CubeHexLerp(a, b, 1.0f / hexDistance * i)));
+        }
+        return hexes;
+    }
 }

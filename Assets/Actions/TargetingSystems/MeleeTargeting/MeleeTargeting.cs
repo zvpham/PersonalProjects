@@ -11,12 +11,16 @@ public class MeleeTargeting : TargetingSystem
     public Unit movingUnit;
     public Vector2 startingPosition;
     public Vector3 endPosition;
+    public Vector2Int prevEndHexPosition;       
     public List<Vector2Int> path = new List<Vector2Int>();
     public List<Vector2Int> highlightedHexes = new List<Vector2Int>();
+    public GameObject tempMovingUnit;
     public int oneActionMoveAmount;
     public int meleeRange;
 
     public bool targetFriendly = false;
+    public bool selectedEndPositionNoUnit = false;
+
     public int actionPointsLeft;
 
     public UnityAction<List<Vector2Int>, Unit, bool> OnFoundTarget;
@@ -101,14 +105,51 @@ public class MeleeTargeting : TargetingSystem
     {
         gameManager.grid.GetXY(endPosition, out int x, out int y);
         Vector2Int endHexPosition = new Vector2Int(x, y);
-        if (!targetFriendly && gameManager.playerTurn.CheckSpaceForFriendlyUnit(endHexPosition))
+
+        if (prevEndHexPosition != null)
         {
-            OnFoundTarget?.Invoke(null, movingUnit, false);
-            gameManager.playerTurn.SelectUnit(endHexPosition);
+            if(endHexPosition == prevEndHexPosition)
+            {
+                gameManager.spriteManager.ConfirmAction();
+            }
+            else
+            {
+                gameManager.spriteManager.CancelAction();
+            }
         }
         else
         {
-            OnFoundTarget?.Invoke(path, movingUnit, true);
+
+            if (!targetFriendly && gameManager.playerTurn.CheckSpaceForFriendlyUnit(endHexPosition))
+            {
+                OnFoundTarget?.Invoke(null, movingUnit, false);
+                gameManager.playerTurn.SelectUnit(endHexPosition);
+            }
+            else
+            {
+                Vector2Int endPathHex = path[path.Count - 1];
+                Unit targetUnit = gameManager.grid.GetGridObject(endPathHex.x, endPathHex.y).unit;
+
+                if (targetUnit != null && targetUnit.team != Team.Player)
+                {
+                    tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, movingUnit.GetComponent<SpriteRenderer>().sprite);
+                    gameManager.spriteManager.ActivateActionConfirmationMenu(
+                        () => // Confirm Action
+                        {
+                            OnFoundTarget?.Invoke(path, movingUnit, true);
+                            Destroy(tempMovingUnit);
+                        },
+                        () => // Cancel Action
+                        {
+                            Destroy(tempMovingUnit);
+                        });
+                }
+                else if(targetUnit == null)
+                {
+                    selectedEndPositionNoUnit = true;
+
+                }
+            }
         }
     }
 
