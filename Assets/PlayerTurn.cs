@@ -35,7 +35,6 @@ public class PlayerTurn : MonoBehaviour
     {
         if(currentlySelectedAction != null)
         {
-            currentlySelectedAction.DeselectAction(currentlySelectedUnit);
             gameManager.spriteManager.DeactiveTargetingSystem();
         }
         currentlySelectedAction = newAction;

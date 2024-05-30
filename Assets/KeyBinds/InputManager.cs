@@ -41,13 +41,6 @@ public class InputManager : MonoBehaviour
         {
             instance = this;
         }
-        else if (instance != this)
-        {
-            Destroy(this);
-            Destroy(inputManager);
-
-        }
-        DontDestroyOnLoad(this);
     }
 
     public void Update()
@@ -61,6 +54,28 @@ public class InputManager : MonoBehaviour
             prevMousePosition = Input.mousePosition;
             startDragging = true;
 
+            //Check to see if Mouse Hits UI when clicked
+            m_PointerEventData = new PointerEventData(m_EventSystem);
+            //Set the Pointer Event Position to that of the game object
+            m_PointerEventData.position = Input.mousePosition;
+
+            //Create a list of Raycast Results
+            results = new List<RaycastResult>();
+
+            //Raycast using the Graphics Raycaster and mouse click position
+            m_Raycaster.Raycast(m_PointerEventData, results);
+
+            if (results.Count > 0)
+            {
+                for (int i = 0; i < results.Count; i++)
+                {
+                    BaseUiObject UIObject = results[i].gameObject.GetComponent<BaseUiObject>();
+                    if (UIObject != null)
+                    {
+                        mouseOverUI = true;
+                    }
+                }
+            }
         }
         else if (Input.GetMouseButtonUp(0))
         {
@@ -74,7 +89,6 @@ public class InputManager : MonoBehaviour
             //Raycast using the Graphics Raycaster and mouse click position
             m_Raycaster.Raycast(m_PointerEventData, results);
 
-            mouseOverUI = false;
             if (results.Count > 0)
             {
                 for(int i = 0; i < results.Count; i++)
@@ -94,9 +108,10 @@ public class InputManager : MonoBehaviour
             }
             isDragging = false;
             startDragging = false;
+            mouseOverUI = false;
         }
 
-        if(prevMousePosition != currentMousePosition)
+        if (prevMousePosition != currentMousePosition)
         {
             if(startDragging)
             {

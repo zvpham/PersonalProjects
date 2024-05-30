@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f909ece7b9a4d4d42b2966a7b77dc033, type: 3}
+  m_Name: BunnySoul
+  m_EditorClassIdentifier: 
+  <isStackable>k__BackingField: 1
+  <maxStackSize>k__BackingField: 99
+  <itemName>k__BackingField: BunnySoul
+  <description>k__BackingField: Bunny Hop
+  <itemImage>k__BackingField: {fileID: 21300000, guid: 37a78d4caec418b42a483c0defb42efd,
+    type: 3}
+  <DefaultParameterList>k__BackingField: []
+  <physicalAbilityList>k__BackingField:
+  - {fileID: 11400000, guid: 35532db6b7d0a47448312083c33f342c, type: 2}
+  physicalStrength: 0
+  physicalAgility: 2
+  physicalEndurance: -1
+  physicalWisdom: 0
+  physicalIntelligence: 0
+  physicalCharisma: 0
+  <mentalAbilityList>k__BackingField:
+  - {fileID: 11400000, guid: 88fcd91fe9eeef94b95d84ea03487687, type: 2}
+  mentalStrength: 0
+  mentalAgility: 0
+  mentalEndurance: 0
+  mentalWisdom: 0
+  mentalIntelligence: -1
+  mentalCharisma: 2

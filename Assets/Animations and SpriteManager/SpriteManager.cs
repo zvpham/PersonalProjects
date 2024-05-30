@@ -16,6 +16,7 @@ public class SpriteManager : MonoBehaviour
 
     public MovementTargeting movementTargeting;
     public MeleeTargeting meleeTargeting;
+    public ConeTargeting coneTargeting;
 
     public ActionConfirmationMenu actionConfirmationMenu;
     public GameObject spriteHolderPrefab;
@@ -63,7 +64,7 @@ public class SpriteManager : MonoBehaviour
         return tempSprite;
     }
 
-    public void DrawLine(List<Vector3> oneActionLinePath, List<Vector3> twoActionLinePath)
+    public void DrawLine(List<Vector3> oneActionLinePath = null, List<Vector3> twoActionLinePath = null)
     { 
         if(oneActionLinePath != null && oneActionLinePath.Count != 0)
         {
@@ -83,26 +84,36 @@ public class SpriteManager : MonoBehaviour
         twoActionLineController.SetLine(emptyList);
     }
 
-    public void ActivateMovementTargeting(Unit movingUnit, Vector2 startPosition, bool targetFriendly, int actionPointsLeft)
+    public void ActivateMovementTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft)
     {
         inputManager.TargetPositionMoved += movementTargeting.SelectNewPosition;
         inputManager.FoundPosition += movementTargeting.EndMovementTargeting;
         activeTargetingSystems = movementTargeting;
-        movementTargeting.SetParameters(startPosition, movingUnit, targetFriendly, actionPointsLeft);
+        movementTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft);
         movementTargeting.SelectNewPosition(UtilsClass.GetMouseWorldPosition());
     }
 
-    public void ActivateMeleeAttackTargeting(Unit movingUnit, Vector2 startPosition, bool targetFriendly, int actionPointsLeft, int meleeRange)
+    public void ActivateMeleeAttackTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int meleeRange)
     {
         inputManager.TargetPositionMoved += meleeTargeting.SelectNewPosition;
         inputManager.FoundPosition += meleeTargeting.EndMovementTargeting;
         activeTargetingSystems = meleeTargeting;
-        meleeTargeting.SetParameters(startPosition, movingUnit, targetFriendly, actionPointsLeft, meleeRange);
+        meleeTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft, meleeRange);
         meleeTargeting.SelectNewPosition(UtilsClass.GetMouseWorldPosition());
+    }
+
+    public void ActivateConeTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int range, int coneRange)
+    {
+        inputManager.TargetPositionMoved += coneTargeting.SelectNewPosition;
+        inputManager.FoundPosition += coneTargeting.EndMovementTargeting;
+        activeTargetingSystems = coneTargeting;
+        coneTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft, range, coneRange);
+        coneTargeting.SelectNewPosition(UtilsClass.GetMouseWorldPosition());
     }
 
     public void DeactiveTargetingSystem()
     {
+        CancelAction();
         if(activeTargetingSystems != null)
         {
             inputManager.TargetPositionMoved = null;

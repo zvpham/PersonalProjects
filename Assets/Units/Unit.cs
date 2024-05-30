@@ -7,14 +7,13 @@ public class Unit : MonoBehaviour, IInititiave
 {
     public int moveSpeed;
     public List<Action> actions;
-    public List<Vector2Int> higlightedPositions;
-    public List<Vector2Int> firstRangeBracket;
-    public List<Vector2Int> secondRangeBracket;
 
     public int maxActionsPoints = 2;
     public int currentActionsPoints = 0;
     public List<int> actionCooldowns = new List<int>();
     public List<int> actionUses = new List<int>();
+
+    public List<Unit> selfInTheseUnitsThreatenedZones = new List<Unit>();
 
     public Team team;
     public UnitGroup group;
@@ -75,6 +74,7 @@ public class Unit : MonoBehaviour, IInititiave
     {
         gameManager.SetGridObject(null, originalPosition);
         gameManager.SetGridObject(this, newPosition);
+        this.transform.position = newPosition;
     }
 
     public void AddAction(Action newAction)

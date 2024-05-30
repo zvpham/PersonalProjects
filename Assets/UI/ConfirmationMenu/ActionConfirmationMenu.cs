@@ -38,14 +38,20 @@ public class ActionConfirmationMenu : Menu
 
     public void ActivateConfirmAction()
     {
-        DeactivateMenu();
-        confirmAction();
+        if (this.gameObject.activeSelf)
+        {
+            DeactivateMenu();
+            confirmAction();
+        }
     }
 
     public void ActivateCancelAction()
     {
-        DeactivateMenu();
-        cancelAction();
+        if (this.gameObject.activeSelf)
+        {
+            DeactivateMenu();
+            cancelAction();
+        }
     }
 
     private void DeactivateMenu()

@@ -33,6 +33,7 @@ public class GridHex<TGridObject>
     private float cellSize;
     public Vector3 originPosition;
     private TGridObject[,] gridArray;
+    // TR, BR, B, BL, TL, T 
     public Vector3Int[] cubeDirectionVectors = new Vector3Int[6]
     {new Vector3Int(+1, 0, -1), new Vector3Int(+1, -1, 0), new Vector3Int(0, -1, +1),
     new Vector3Int(-1, 0, +1), new Vector3Int(-1, +1, 0), new Vector3Int(0, +1, -1) };
@@ -111,6 +112,11 @@ public class GridHex<TGridObject>
         return cellSize;
     }
 
+    public Vector3 GetWorldPosition(Vector2Int hex)
+    {
+        return GetWorldPosition(hex.x, hex.y);
+    }
+
     public Vector3 GetWorldPosition(int x, int y)
     {
         float xPos = x * .75f * cellSize;
@@ -185,15 +191,6 @@ public class GridHex<TGridObject>
         return neighborNodes;
     }
 
-    public void SetGridObject(int x, int y, TGridObject value)
-    {
-        if (x >= 0 && y >= 0 && x < width && y < height)
-        {
-            gridArray[x, y] = value;
-            if (OnGridObjectChanged != null) OnGridObjectChanged(this, new OnGridObjectChangedEventArgs { x = x, y = y });
-        }
-    }
-
     public void TriggerGridObjectChanged(int x, int y)
     {
         if (OnGridObjectChanged != null) OnGridObjectChanged(this, new OnGridObjectChangedEventArgs { x = x, y = y });
@@ -204,6 +201,25 @@ public class GridHex<TGridObject>
         int x, y;
         GetXY(worldPosition, out x, out y);
         SetGridObject(x, y, value);
+    }
+
+    public void SetGridObject(Vector2Int targetHex, TGridObject value)
+    {
+        SetGridObject(targetHex.x, targetHex.y, value);
+    }
+
+    public void SetGridObject(int x, int y, TGridObject value)
+    {
+        if (x >= 0 && y >= 0 && x < width && y < height)
+        {
+            gridArray[x, y] = value;
+            if (OnGridObjectChanged != null) OnGridObjectChanged(this, new OnGridObjectChangedEventArgs { x = x, y = y });
+        }
+    }
+
+    public TGridObject GetGridObject(Vector2Int targetHex)
+    {
+        return GetGridObject(targetHex.x, targetHex.y);
     }
 
     public TGridObject GetGridObject(int x, int y)
@@ -265,11 +281,17 @@ public class GridHex<TGridObject>
     public List<TGridObject> GetGridObjectsInRing(int x, int y, int radius)
     {
         Vector3Int centerCube = OffsetToCube(x, y);
-        List<Vector3Int> results = new List<Vector3Int> ();
+        return GetGridObjectsInRing(centerCube, radius);
+    }
+
+    public List<TGridObject> GetGridObjectsInRing(Vector3Int centerCubePosition, int radius)
+    {
+        Vector3Int centerCube = centerCubePosition;
+        List<Vector3Int> results = new List<Vector3Int>();
         Vector3Int hex = CubeAdd(centerCube, CubeScale(CubeDirection(4), radius));
-        for(int i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
-            for( int j = 0; j < radius; j++)
+            for (int j = 0; j < radius; j++)
             {
                 results.Add(hex);
                 hex = CubeNeighbor(hex, i);
@@ -277,17 +299,18 @@ public class GridHex<TGridObject>
         }
 
         List<TGridObject> hexes = new List<TGridObject>();
-        for(int i = 0; i < results.Count; i++)
+        for (int i = 0; i < results.Count; i++)
         {
-            Vector2Int offsetPosition =  CubeToOffset(results[i]);
+            Vector2Int offsetPosition = CubeToOffset(results[i]);
             TGridObject hexObject = GetGridObject(offsetPosition.x, offsetPosition.y);
-            if(hexObject != null)
+            if (hexObject != null)
             {
                 hexes.Add(hexObject);
             }
         }
         return hexes;
     }
+
 
     public Vector3Int CubeSubtract(Vector3Int cube1, Vector3Int cube2)
     {
@@ -347,6 +370,7 @@ public class GridHex<TGridObject>
         {
             hexes.Add(CubeRound(CubeHexLerp(a, b, 1.0f / hexDistance * i)));
         }
+        hexes.Add(b);
         return hexes;
     }
 }

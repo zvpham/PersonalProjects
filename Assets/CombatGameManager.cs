@@ -21,6 +21,8 @@ public class CombatGameManager : MonoBehaviour
     public PlayerTurn playerTurn;
     public bool playerTurnActive = false;
 
+    public Move move;   
+
     public Vector3 defaultGridAdjustment = Vector3.zero;
     public float cellSize;
     // Start is called before the first frame update
@@ -85,7 +87,19 @@ public class CombatGameManager : MonoBehaviour
     public void SetGridObject(Unit unit, Vector3 unitPosition)
     {
         GridPosition gridPosition = grid.GetGridObject(unitPosition);
-        gridPosition.unit = unit;
+
+        if(unit == null)
+        {
+            gridPosition.unit =  gridPosition.tempUnit;
+        }
+        else
+        {
+            if(gridPosition.unit != null)
+            {
+                gridPosition.tempUnit = gridPosition.unit;
+            }
+            gridPosition.unit = unit;
+        }
         grid.SetGridObject(unitPosition, gridPosition);
     }
 

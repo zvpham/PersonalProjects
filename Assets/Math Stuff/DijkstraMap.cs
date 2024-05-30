@@ -59,7 +59,7 @@ public class DijkstraMap
             openList.Remove(currentNode);
             foreach(DijkstraMapNode neighborNode in GetNeighborList(currentNode))
             {
-                if(currentNode.value + 1 <  neighborNode.value)
+                if(currentNode.value + 1 <  neighborNode.value && neighborNode.walkable)
                 {
                     neighborNode.value = currentNode.value + 1;
                     grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
@@ -67,6 +67,49 @@ public class DijkstraMap
                 }
             }
             closedList.Add(currentNode);
+        }
+
+        for (int i = 0; i < grid.GetHeight(); i++)
+        {
+            for (int j = 0; j < grid.GetWidth(); j++)
+            {
+                DijkstraMapNode tempNode = grid.GetGridObject(j, i);
+                if(tempNode.walkable == false)
+                {
+                    tempNode.value = int.MaxValue;
+                    grid.SetGridObject(j, i, tempNode);
+                }
+            }
+        }
+    }
+
+    public void SetUnwalkable(Vector2Int unwalkableHex)
+    {
+        SetUnwalkable(new List<Vector2Int>() {  unwalkableHex });
+    }
+
+    public void SetUnwalkable(List<Vector2Int> unwalkableHexes)
+    {
+        for(int i = 0; i < unwalkableHexes.Count; i++)
+        {
+            DijkstraMapNode tempNode = grid.GetGridObject(unwalkableHexes[i]);
+            tempNode.walkable = false;
+            grid.SetGridObject(unwalkableHexes[i], tempNode);
+        }
+    }
+
+    public void SetWalkable(Vector2Int unwalkableHex)
+    {
+        SetWalkable(new List<Vector2Int>() { unwalkableHex });
+    }
+
+    public void SetWalkable(List<Vector2Int> unwalkableHexes)
+    {
+        for (int i = 0; i < unwalkableHexes.Count; i++)
+        {
+            DijkstraMapNode tempNode = grid.GetGridObject(unwalkableHexes[i]);
+            tempNode.walkable = true;
+            grid.SetGridObject(unwalkableHexes[i], tempNode);
         }
     }
 
@@ -97,14 +140,32 @@ public class DijkstraMap
         return neighborList;
     }
 
-    public void ResetMap()
+    // Full Reset Resets Walkable Status on All Hexes
+    public void ResetMap(bool fullReset = false)
     {
-        for(int i = 0; i < grid.GetHeight(); i++)
+        if (fullReset)
         {
-            for(int j = 0; j < grid.GetWidth(); j++)
+            for (int i = 0; i < grid.GetHeight(); i++)
             {
-                grid.GetGridObject(j, i).value = int.MaxValue;
-                grid.SetGridObject(j, i, grid.GetGridObject(j, i));
+                for (int j = 0; j < grid.GetWidth(); j++)
+                {
+                    DijkstraMapNode tempNode = grid.GetGridObject(j, i);
+                    tempNode.value = int.MaxValue;
+                    tempNode.walkable = true;
+                    grid.SetGridObject(j, i, tempNode);
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < grid.GetHeight(); i++)
+            {
+                for (int j = 0; j < grid.GetWidth(); j++)
+                {
+                    DijkstraMapNode tempNode = grid.GetGridObject(j, i);
+                    tempNode.value = int.MaxValue;
+                    grid.SetGridObject(j, i, tempNode);
+                }
             }
         }
     }

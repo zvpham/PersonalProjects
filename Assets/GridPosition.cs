@@ -8,6 +8,7 @@ public class GridPosition
     public int x;
     public int y;
     public Unit unit;
+    public Unit tempUnit;
 
     public GridPosition(GridHex<GridPosition> grid, int x, int y)
     {

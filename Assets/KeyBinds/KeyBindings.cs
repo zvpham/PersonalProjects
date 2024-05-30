@@ -7,6 +7,7 @@ public class KeyBindings : MonoBehaviour
     public static KeyBindings instance;
     public GameObject keybindmanager;
     public Dictionary<PlayerActionName, List<KeyCode>> defaultActionKeyBinds = new Dictionary<PlayerActionName, List<KeyCode>>();
+    public Dictionary<MenuActionName, List<KeyCode>> menuActionKeyBinds = new Dictionary<MenuActionName, List<KeyCode>>();
     // Start is called before the first frame update
     void Awake()
     {
@@ -15,6 +16,8 @@ public class KeyBindings : MonoBehaviour
         defaultActionKeyBinds.Add(PlayerActionName.ActionThree, new List<KeyCode>() { KeyCode.Alpha3 });
         defaultActionKeyBinds.Add(PlayerActionName.ActionFour, new List<KeyCode>() { KeyCode.Alpha4 });
         defaultActionKeyBinds.Add(PlayerActionName.SwitchUnits, new List<KeyCode>() { KeyCode.Tab });
+        defaultActionKeyBinds.Add(PlayerActionName.ConfirmAction, new List<KeyCode>() { KeyCode.Return });
+        defaultActionKeyBinds.Add(PlayerActionName.CancelAction, new List<KeyCode>() { KeyCode.Escape });
 
 
         if (instance == null)

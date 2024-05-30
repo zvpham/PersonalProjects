@@ -2,12 +2,21 @@ using CodeMonkey.Utils;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class TestHexGrid : MonoBehaviour
 {
     GridHex<GridPosition> hexgrid;
     AStarPathfindingHex path;
     DijkstraMap map;
+    public List<Vector3Int> highlightedHexws = new List<Vector3Int>();
+    public Vector3Int cubeStartHex;
+    public Vector3Int cubeEndHex;
+    public Vector3 currentMouse;
+    public Vector3 prevMouse;
+    public Tilemap tileMap;
+    public ResourceManager resourceManager;
+    public LineController lineController;
     // Start is called before the first frame update
     void Start()
     {
@@ -18,26 +27,39 @@ public class TestHexGrid : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetMouseButtonDown(0))
+        currentMouse = UtilsClass.GetMouseWorldPosition();
+        if (Input.GetMouseButtonDown(0))
         {
-            /*
-            map.getGrid().GetXY(UtilsClass.GetMouseWorldPosition(), out int x, out int y);
-            List<Vector2Int> goal = new List<Vector2Int>();
-            goal.Add(new Vector2Int(x, y));
-            map.SetGoals(goal);
-            */
             hexgrid.GetXY(UtilsClass.GetMouseWorldPosition(), out int x, out int y);
-            Debug.Log(x + " " + y);
-            List<GridPosition> grids = hexgrid.GetGridObjectsInRing(x, y, 2);
-            for(int i = 0; i < grids.Count; i++)
-            {
-                Debug.Log(grids[i]);
-            }
+            cubeStartHex = hexgrid.OffsetToCube(x, y);
         }
 
-        if (Input.GetMouseButtonDown(1))
+        if(currentMouse != prevMouse)
         {
-            map.ResetMap();
+            prevMouse = currentMouse;
+            hexgrid.GetXY(UtilsClass.GetMouseWorldPosition(), out int x, out int y);
+            Vector2Int tempCubeOffset = new Vector2Int(x, y);
+            cubeEndHex =  hexgrid.OffsetToCube(x,y);
+            List<Vector3Int> hexPath = hexgrid.CubeLineDraw(cubeStartHex, cubeEndHex);
+            
+            for(int i = 0; i < highlightedHexws.Count; i++)
+            {
+                tileMap.SetTile(highlightedHexws[i], resourceManager.BaseTile[0]);
+            }
+            highlightedHexws.Clear();
+
+            for(int i = 0; i < hexPath.Count; i++)
+            {
+                Vector2Int currentHex = hexgrid.CubeToOffset(hexPath[i]);
+                Vector3Int adjustedHex =  new Vector3Int(currentHex.y, currentHex.x, 0);
+                highlightedHexws.Add(adjustedHex);
+                tileMap.SetTile(adjustedHex, resourceManager.BaseTile[1]);
+            }
+
+            List<Vector3> line = new List<Vector3>();
+            line.Add(hexgrid.GetWorldPosition(cubeStartHex.x, cubeStartHex.y));
+            line.Add(hexgrid.GetWorldPosition(tempCubeOffset.x, tempCubeOffset.y));
+            lineController.SetLine(line);
         }
     }
 }

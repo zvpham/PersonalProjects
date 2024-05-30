@@ -8,18 +8,23 @@ public class DijkstraMapNode
     public int x;
     public int y;
     public int value;
+    public bool walkable;
     
     public DijkstraMapNode(GridHex<DijkstraMapNode> grid, int x, int y)
     {
         this.grid = grid;
         this.x = x;
         this.y = y;
+        this.walkable = true;
         value = int.MaxValue;
     }
 
     public void ChangeValue(int newValue)
     {
-        value = newValue;
+        if(walkable)
+        {
+            value = newValue;
+        }
     }
 
     public override string ToString()

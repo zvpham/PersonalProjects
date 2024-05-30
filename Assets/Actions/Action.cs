@@ -19,13 +19,6 @@ public abstract class Action : ScriptableObject
         }
     }
 
-    public abstract void DeselectAction(Unit self);
-
-    public abstract void Activate(Unit self);
-
-    public abstract void PlayerActivate(Unit self);
-    // Start is called before the first frame update
-
     public void UseActionPreset(Unit self)
     {
         if(consumableAction)

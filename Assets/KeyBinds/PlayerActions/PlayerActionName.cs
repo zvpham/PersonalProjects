@@ -4,5 +4,7 @@ public enum PlayerActionName
     ActionTwo,
     ActionThree,
     ActionFour,
-    SwitchUnits
+    SwitchUnits,
+    CancelAction,
+    ConfirmAction
 }
