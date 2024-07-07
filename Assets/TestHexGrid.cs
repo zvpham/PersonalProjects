@@ -48,6 +48,17 @@ public class TestHexGrid : MonoBehaviour
         gameManager.spriteManager.CreateGrid(mapWidth, mapHeight, amountOfTerrainLevels, cellSize, defaultGridAdjustment);
         hexgrid = new GridHex<GridPosition>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<GridPosition> g, int x, int y) =>
             new GridPosition(g, x, y, defaultElevation), false);
+        for (int i = 0; i < prefabTerrain.terrainElevation.Count; i++)
+        {
+            Vector3Int terrainHexData = prefabTerrain.terrainElevation[i];
+            gameManager.spriteManager.elevationOfHexes[terrainHexData.x, terrainHexData.y] = terrainHexData.z;
+        }
+
+        for (int i = 0; i < prefabTerrain.terrainElevation.Count; i++)
+        {
+            Vector3Int terrainHexData = prefabTerrain.terrainElevation[i];
+            gameManager.spriteManager.ChangeElevation(terrainHexData.x, terrainHexData.y, 0);
+        }
     }
 
     // Start is called before the first frame update
@@ -55,7 +66,6 @@ public class TestHexGrid : MonoBehaviour
     {
         //hexgrid =  new GridHex<GridPosition>(10, 10, 1, new Vector3(-0.5f, -0.5f, 0), (GridHex<GridPosition> Grid, int x, int y) => new GridPosition(Grid, x, y, 3), true);
         CreateGrid(32, 32, 7);
-        //map =  new DijkstraMap(10, 10, new Vector3(-0.5f, -0.5f, 0));
     }
 
     // Update is called once per frame
@@ -68,12 +78,12 @@ public class TestHexGrid : MonoBehaviour
         // Raise Elevation
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, 2, true);
+            gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, 1, true);
         }
         // Drop Elevation
         else if (Input.GetKeyDown(KeyCode.E))
         {
-            gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, - 2, true);
+            gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, - 1, true);
         }
         else if(Input.GetKeyDown(KeyCode.PageUp))
         {
@@ -150,27 +160,22 @@ public class TestHexGrid : MonoBehaviour
 
     public void SaveTerrain()
     {
-        prefabTerrain.terrainElevation = gameManager.spriteManager.elevationOfHexes;
+        prefabTerrain.terrainElevation = new List<Vector3Int>();
+        for (int i = 0; i < gameManager.spriteManager.elevationOfHexes.GetLength(1); i++)
+        {
+            for (int j = 0; j < gameManager.spriteManager.elevationOfHexes.GetLength(0); j++)
+            {
+                prefabTerrain.terrainElevation.Add(new Vector3Int(j, i, gameManager.spriteManager.elevationOfHexes[j, i]));
+            }
+        }
+        AssetDatabase.Refresh();
+        EditorUtility.SetDirty(prefabTerrain);
+        AssetDatabase.SaveAssets();
     }
 
-    public void DisplayTerrain()
+    public void DisplayTerrain()    
     {
-        string displayString = "";
-        List<string> displayMessage = new List<string>();
-        for(int i = 0; i < prefabTerrain.terrainElevation.GetLength(0); i++)
-        {
-            displayString = "";
-            for (int j = 0; j < prefabTerrain.terrainElevation.GetLength(1); j++)
-            {
-                displayString += prefabTerrain.terrainElevation[j, i].ToString() + " ";
-            }
-            displayMessage.Add(displayString);
-        }
 
-        for(int i = 0; i < displayMessage.Count; i++)
-        {
-            Debug.Log(displayMessage[i]);
-        }
     }
 }
 

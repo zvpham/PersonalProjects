@@ -5,5 +5,5 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "PrefabTerrain")]
 public class PrefabTerrain : ScriptableObject
 {
-    public int[,] terrainElevation;
+    public List<Vector3Int> terrainElevation;
 }
