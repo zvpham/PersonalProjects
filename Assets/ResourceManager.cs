@@ -1,3 +1,4 @@
+using Inventory.Model;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,4 +9,16 @@ public class ResourceManager : ScriptableObject
 {
     public List<Sprite> hexBaseSprites;
     public List<Tile> BaseTile;
+
+
+    public List<EquipableItemSO> allItems;
+    public List<EquipableItemSO> weapons;
+    public List<EquipableItemSO> offHands;
+    public List<EquipableItemSO> helmets;
+    public List<EquipableItemSO> armor;
+    public List<EquipableItemSO> boots;
+    public List<EquipableItemSO> accessories;
+
+    public List<Unit> heroes;
+    public List<UnitClass> job;
 }

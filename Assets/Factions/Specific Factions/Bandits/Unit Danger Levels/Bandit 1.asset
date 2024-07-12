@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23b003122e225964eb592355b4df6d7a, type: 3}
+  m_Name: Bandit 1
+  m_EditorClassIdentifier: 
+  meleeHeroes:
+  - {fileID: -1027663435593090111, guid: b2f70065eb452014085e34f80d24e476, type: 3}
+  rangedHeroes: []
+  supportHeroes: []
+  meleeUnitGroups:
+  - {fileID: 2097898329977275897, guid: 1f4a54415c85bea429c3d9259e720089, type: 3}
+  rangedUnitGroups: []
+  supportHUnitGroups: []

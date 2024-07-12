@@ -8,19 +8,18 @@ public class MouseFollower : MonoBehaviour
 {
     [SerializeField]
     private Canvas canvas;
- 
+
     [SerializeField]
-    public UIInventoryItem item;
+    public UICharacterProfile item;
 
     public void Awake()
     {
         canvas = transform.root.GetComponent<Canvas>();
-        item = GetComponentInChildren<UIInventoryItem>();
     }
 
-    public void SetData(Sprite sprite, int quantity)
+    public void SetData(Sprite sprite)
     {
-        item.SetData(sprite, quantity);
+        item.SetData(sprite);
     }
 
     private void Update()

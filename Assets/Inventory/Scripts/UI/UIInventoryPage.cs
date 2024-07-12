@@ -1,7 +1,9 @@
+using Inventory.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.UIElements;
+using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -16,18 +18,18 @@ namespace Inventory.UI
         private RectTransform contentPanel;
 
         [SerializeField]
-        private UIInventoryDescription itemDescription;
+        private MouseFollower mouseFollower;
 
         [SerializeField]
-        private MouseFollower mouseFollower;
+        private MenuInputManager menuInputManager;
 
         public List<UIInventoryItem> listOfUIItems = new List<UIInventoryItem>();
 
-        public List<SoulSlot> soulSlots = new List<SoulSlot>();
+        public List<EquipSlot> equipSlots = new List<EquipSlot>();
 
         private int currentlyDraggedItemIndex = -1;
 
-        public static UIInventoryPage Instance;
+        public EquipSlot currentlyDraggingEquipSlot = null;
 
         public event Action<int> OnDescriptionRequested,
             OnItemActionRequested,
@@ -35,57 +37,55 @@ namespace Inventory.UI
 
         public event Action<int, int> OnSwapItems;
 
-        public event Action<int, SoulSlot> OnEquipSoul;
+        public event Action<int, EquipSlot> OnEquipItem;
+        public event Action<EquipableItemSO, EquipSlot> OnProfileClicked;
 
-        [SerializeField]
-        private ItemActionPanel actionPanel;
+        public event Action<EquipSlot> OnUnequipItem;
+
         public void Awake()
         {
-            if (Instance != null)
-            {
-                Debug.LogWarning("Found more than ONe InventoryUiPage in scene in the Scence");
-                Destroy(this.gameObject);
-                return;
-            }
-            Instance = this;
-
             Hide();
             mouseFollower.Toggle(false);
-            itemDescription.ResetDescription();
         }
 
-        public void InitializeInventoryUI(int inventorySize)
+        public void Start()
         {
-            for (int i = 0; i < soulSlots.Count; i++)
+            menuInputManager.OnMouseUp += ResetDraggedItem;
+        }
+
+        public void AddInventoryUIItem()
+        {
+            UIInventoryItem uiItem = Instantiate(itemPrefab, Vector3.zero, Quaternion.identity);
+            uiItem.transform.SetParent(contentPanel);
+            listOfUIItems.Add(uiItem);
+            uiItem.OnItemClicked += HandleItemSelection;
+            uiItem.OnItemBeginDrag += HandleBeginDrag;
+            uiItem.OnItemDroppedOn += HandleSwap;
+            uiItem.OnItemEndDrag += HandleEndDrag;
+            uiItem.OnRightMouseBtnClick += HandleShowItemActions;
+        }
+
+        public void InitializeInventoryUI()
+        {
+            for (int i = 0; i < equipSlots.Count; i++)
             {
-                soulSlots[i].OnItemDroppedOn += HandleSoulEquip;
-            }
-                for (int i = 0; i < inventorySize; i++)
-            {
-                UIInventoryItem uiItem = Instantiate(itemPrefab, Vector3.zero, Quaternion.identity);
-                uiItem.transform.SetParent(contentPanel);
-                listOfUIItems.Add(uiItem);
-                uiItem.OnItemClicked += HandleItemSelection;
-                uiItem.OnItemBeginDrag += HandleBeginDrag;
-                uiItem.OnItemDroppedOn += HandleSwap;
-                uiItem.OnItemEndDrag += HandleEndDrag;
-                uiItem.OnRightMouseBtnClick += HandleShowItemActions;
+                equipSlots[i].OnItemDroppedOn -= HandleItemEquip;
+                equipSlots[i].OnItemDroppedOn += HandleItemEquip;
+
+                equipSlots[i].OnItemBeginDrag -= HandleBeginDragEquip;
+                equipSlots[i].OnItemBeginDrag += HandleBeginDragEquip;
             }
         }
 
-        internal void UpdateDescription(int itemIndex, Sprite itemImage, string itemName, string description)
+        public void UpdateData(int itemIndex, Sprite itemImage, int itemQuantity, string name, string attributeOne, string attributeTwo, string mainCategoryOne, string mainTextOne, string mainCategoryTwo, string mainTextTwo, string mainCategoryThree, string mainTextThree)
         {
-            itemDescription.SetDescription(itemImage, itemName, description);
-            DeselectAllItems();
-            listOfUIItems[itemIndex].Select();
-        }
-
-        public void UpdateData(int itemIndex, Sprite itemImage, int itemQuantity)
-        {
-            if (listOfUIItems.Count > itemIndex)
+            int placementIndex = itemIndex;
+            if (placementIndex >= listOfUIItems.Count)
             {
-                listOfUIItems[itemIndex].SetData(itemImage, itemQuantity);
+                AddInventoryUIItem();
+                placementIndex = listOfUIItems.Count - 1;
             }
+            listOfUIItems[placementIndex].SetData(itemImage, itemQuantity, name, attributeOne, attributeTwo, mainCategoryOne, mainTextOne, mainCategoryTwo, mainTextTwo, mainCategoryThree, mainTextThree);
         }
         private void HandleShowItemActions(UIInventoryItem inventoryItemUI)
         {
@@ -97,9 +97,24 @@ namespace Inventory.UI
             OnItemActionRequested?.Invoke(index);
         }
 
+        private void UnequipItemUI()
+        {
+            OnUnequipItem?.Invoke(currentlyDraggingEquipSlot);
+        }
+
+        private void HandleEndDragEquip(EquipSlot equipSlot)
+        {
+            if(currentlyDraggingEquipSlot != equipSlot)
+            {
+                UnequipItemUI();
+            }
+            currentlyDraggingEquipSlot = null;
+            menuInputManager.OnMouseUp -= HandleEndDragEquip;
+        }
+
         private void HandleEndDrag(UIInventoryItem inventoryItemUI)
         {
-            ResetDraggedItem();
+            //ResetDraggedItem();
         }
 
         private void HandleSwap(UIInventoryItem inventoryItemUI)
@@ -113,22 +128,42 @@ namespace Inventory.UI
             HandleItemSelection(inventoryItemUI);
         }
 
-        private void HandleSoulEquip(SoulSlot soulSlot)
+        public void ItemEquip(EquipableItemSO item, EquipSlot equipSlot)
+        {
+            OnProfileClicked?.Invoke(item, equipSlot);
+        } 
+
+        private void HandleItemEquip(EquipSlot equipSlot)
         {
             if(currentlyDraggedItemIndex == -1 || mouseFollower.item == null)
             {
                 return;
             }
-
-            soulSlot.contentImage.gameObject.SetActive(true);
-            soulSlot.contentImage.sprite = listOfUIItems[currentlyDraggedItemIndex].itemImage.sprite;
-            OnEquipSoul?.Invoke(currentlyDraggedItemIndex, soulSlot);
+            OnEquipItem?.Invoke(currentlyDraggedItemIndex, equipSlot);
         }
 
-        private void ResetDraggedItem()
+        public void ConfirmItemEquip(EquipSlot equipSlot)
+        {
+            equipSlot.contentImage.gameObject.SetActive(true);
+            equipSlot.contentImage.sprite = listOfUIItems[currentlyDraggedItemIndex].itemImage.sprite;
+        }
+        public void ConfirmItemEquip(EquipableItemSO item, EquipSlot equipSlot)
+        {
+            equipSlot.contentImage.gameObject.SetActive(true);
+            equipSlot.contentImage.sprite = item.itemImage;
+        }
+
+        private void ResetDraggedItem(EquipSlot IgnoreThis = null)
         {
             mouseFollower.Toggle(false);
             currentlyDraggedItemIndex = -1;
+        }
+
+        private void HandleBeginDragEquip(EquipSlot equipSlot)
+        {
+            CreateDraggedItem(equipSlot.contentImage.sprite);
+            currentlyDraggingEquipSlot = equipSlot;
+            menuInputManager.OnMouseUp += HandleEndDragEquip;
         }
 
         private void HandleBeginDrag(UIInventoryItem inventoryItemUI)
@@ -143,10 +178,10 @@ namespace Inventory.UI
             OnStartDragging?.Invoke(index);
         }
 
-        public void CreateDraggedItem(Sprite sprite, int quantity)
+        public void CreateDraggedItem(Sprite sprite)
         {
             mouseFollower.Toggle(true);
-            mouseFollower.SetData(sprite, quantity);
+            mouseFollower.SetData(sprite);
         }
 
         private void HandleItemSelection(UIInventoryItem inventoryItemUI)
@@ -162,25 +197,12 @@ namespace Inventory.UI
         public void Show()
         {
             gameObject.SetActive(true);
-            itemDescription.ResetDescription();
             ResetSelection();
         }
 
         public void ResetSelection()
         {
-            itemDescription.ResetDescription();
             DeselectAllItems();
-        }
-
-        public void AddAction(string actionName, UnityAction performAction)
-        {
-            actionPanel.AddButton(actionName, performAction);
-        }
-
-        public void ShowItemAction(int itemIndex)
-        {
-            actionPanel.Toggle(true, listOfUIItems[itemIndex]);
-            actionPanel.transform.position = listOfUIItems[itemIndex].transform.position;
         }
 
         private void DeselectAllItems()
@@ -189,23 +211,20 @@ namespace Inventory.UI
             {
                 item.Deselect();
             }
-            actionPanel.Toggle(false);
         }
 
         public void Hide()
         {
             gameObject.SetActive(false);
             ResetDraggedItem();
-            actionPanel.Toggle(false);
         }
 
         internal void ResetAllItems()
         {
-            if (listOfUIItems[0] == null)
+            if (listOfUIItems.Count == 0 || listOfUIItems[0] == null)
             {
-                int inventorySize = listOfUIItems.Count;
                 listOfUIItems = new List<UIInventoryItem>();
-                InitializeInventoryUI(inventorySize);
+                InitializeInventoryUI();
             }
             foreach (var item in listOfUIItems)
             {   

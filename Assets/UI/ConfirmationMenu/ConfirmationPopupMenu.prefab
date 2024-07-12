@@ -35,8 +35,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -6.609, y: 55.5}
-  m_SizeDelta: {x: 630.782, y: 211}
+  m_AnchoredPosition: {x: 0.00049686, y: 57.75}
+  m_SizeDelta: {x: 589, y: 215.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3200740352774752638
 CanvasRenderer:
@@ -173,7 +173,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 208.78, y: -122}
+  m_AnchoredPosition: {x: 143, y: -110}
   m_SizeDelta: {x: 250, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3200740352779796503
@@ -324,7 +324,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 750, y: 400}
+  m_SizeDelta: {x: 589, y: 331}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3200740352799598635
 CanvasRenderer:
@@ -528,7 +528,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &3200740353499153938
 RectTransform:
   m_ObjectHideFlags: 0
@@ -551,7 +551,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 589, y: 331}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3200740353499153939
 MonoBehaviour:
@@ -729,7 +729,6 @@ GameObject:
   - component: {fileID: 3200740354618332409}
   - component: {fileID: 3200740354618332408}
   - component: {fileID: 3200740354618332411}
-  - component: {fileID: 3984299071930217169}
   m_Layer: 5
   m_Name: ConfirmButton
   m_TagString: Untagged
@@ -755,7 +754,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -222, y: -122}
+  m_AnchoredPosition: {x: -151, y: -110}
   m_SizeDelta: {x: 250, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3200740354618332409
@@ -852,21 +851,3 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
---- !u!114 &3984299071930217169
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3200740354618332413}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6669bcaa4ada19f45af802853e8d023e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  UIPage: {fileID: 0}
-  groupMembers: []
-  text: {fileID: 0}
-  originalText: 
-  numIndents: 0
-  indent: 

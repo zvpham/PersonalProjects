@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98622aaffeb284b4eb1105971d6ba219, type: 3}
+  m_Name: Ring Of Strength
+  m_EditorClassIdentifier: 
+  <itemIndex>k__BackingField: 6
+  <isStackable>k__BackingField: 1
+  <maxStackSize>k__BackingField: 2147483647
+  <itemName>k__BackingField: Ring Of Strength
+  <description>k__BackingField: 
+  <itemImage>k__BackingField: {fileID: -1228687703, guid: 4ca42cc387825f64aba3746dd3e68e71, type: 3}
+  <DefaultParameterList>k__BackingField: []
+  attributeOne: 
+  attributeTwo: 
+  mainCategoryOne: Weight
+  mainOneMin: 0
+  mainOneMax: 0
+  mainCategoryTwo: 
+  mainTwoMin: 0
+  mainTwoMax: 0
+  mainCategoryThree: 
+  mainThreeMin: 0
+  mainThreeMax: 0
+  equipType: 6
+  actions: []

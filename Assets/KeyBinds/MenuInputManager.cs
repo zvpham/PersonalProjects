@@ -1,4 +1,5 @@
 using CodeMonkey.Utils;
+using Inventory.UI;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -28,7 +29,7 @@ public class MenuInputManager : MonoBehaviour
     [SerializeField] RectTransform canvasRect;
     public List<RaycastResult> results;
 
-    public UnityAction FoundPosition;
+    public UnityAction <EquipSlot> OnMouseUp;
     public UnityAction<Vector3> TargetPositionMoved;
 
     private void Awake()
@@ -83,21 +84,28 @@ public class MenuInputManager : MonoBehaviour
             //Raycast using the Graphics Raycaster and mouse click position
             m_Raycaster.Raycast(m_PointerEventData, results);
 
+            EquipSlot mouseHoverEquipSlot = null;
             if (results.Count > 0)
             {
                 for (int i = 0; i < results.Count; i++)
                 {
-                    BaseUiObject UIObject = results[i].gameObject.GetComponent<BaseUiObject>();
-                    if (UIObject != null)
+                    EquipSlot equipSlot = results[i].gameObject.GetComponent<EquipSlot>();
+                    UICharacterProfile characterProfile = results[i].gameObject.GetComponent<UICharacterProfile>();
+                    if (equipSlot != null)
                     {
-                        mouseOverUI = true;
+                        mouseHoverEquipSlot = equipSlot;
+                        equipSlot.OnDrop(null);
+                    }
+                    else if (characterProfile != null)
+                    {
+                        characterProfile.OnDrop(null);
                     }
                 }
             }
 
             if (!isDragging && !mouseOverUI)
             {
-                FoundPosition?.Invoke();
+                OnMouseUp?.Invoke(mouseHoverEquipSlot);
             }
             isDragging = false;
             startDragging = false;

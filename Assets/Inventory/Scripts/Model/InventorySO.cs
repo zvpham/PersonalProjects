@@ -15,44 +15,31 @@ namespace Inventory.Model
         [SerializeField]
         public List<InventoryItem> inventoryItems;
 
-        [field: SerializeField]
-        public int Size { get; private set; } = 10;
-
         public event Action<Dictionary<int, InventoryItem>> OnInventoryUpdated;
 
         public void Initialize()
         {
             inventoryItems = new List<InventoryItem>();
-            for (int i = 0; i < Size; i++) 
-            {
-                inventoryItems.Add(InventoryItem.GetEmptyItem());
-            }
         }
-        public int AddItem(ItemSO item, int quantity, List<ItemParameter> itemState = null)
+
+        public void AddItem(InventoryItem item)
+        {
+            AddItem(item.item, item.quantity);
+        }
+
+        public void AddItem(ItemSO item, int quantity, List<ItemParameter> itemState = null)
         {
             if (item.isStackable == false)
             {
-                for (int i = 0; i < inventoryItems.Count; i++)
-                {
-                    if (isInventoryFull())
-                    {
-                        return quantity;
-                    }
-
-                    while (quantity > 0 && isInventoryFull() == false)
-                    {
-                       quantity -= AddItemToFirstFreeSlot(item, 1, itemState);
-                    }
-                    InformAboutChange();
-                    return quantity;
-                }
+                Debug.LogError("Shouldn't Happen");
+                return;
             }
-            quantity = AddStackableItem(item, quantity);
+            AddStackableItem(item, quantity);
             InformAboutChange();
-            return quantity;
+            return;
         }
 
-        private int AddItemToFirstFreeSlot(ItemSO item, int quantity, List<ItemParameter> itemState = null)
+        private void AddItemToNewSlot(ItemSO item, int quantity, List<ItemParameter> itemState = null)
         {
             InventoryItem newItem = new InventoryItem()
             {
@@ -61,20 +48,12 @@ namespace Inventory.Model
                 itemState = new List<ItemParameter>(itemState == null ? item.DefaultParameterList : itemState)
             };
 
-            for(int i = 0; i < inventoryItems.Count; i++)
-            {
-                if (inventoryItems[i].isEmpty)
-                {
-                    inventoryItems[i] = newItem;
-                    return quantity;
-                }
-            }
-            return 0;
+            inventoryItems.Add(newItem);
+            InformAboutChange();
+            return;
         }
-        private bool isInventoryFull()
-        => inventoryItems.Where(item => item.isEmpty).Any() == false;
 
-        private int AddStackableItem(ItemSO item, int quantity)
+        private void AddStackableItem(ItemSO item, int quantity)
         {
             for(int i = 0; i < inventoryItems.Count; i++)
             {
@@ -96,22 +75,17 @@ namespace Inventory.Model
                     {
                         inventoryItems[i] = inventoryItems[i].ChangeQuantity(inventoryItems[i].quantity + quantity);
                         InformAboutChange();
-                        return 0;
+                        return;
                     }
                 } 
             }
-            while (quantity > 0 &&  isInventoryFull() == false)
+            while (quantity > 0)
             {
                 int newQuantity = Mathf.Clamp(quantity, 0, item.maxStackSize);
                 quantity -= newQuantity;
-                AddItemToFirstFreeSlot(item, newQuantity); 
+                AddItemToNewSlot(item, newQuantity); 
             }
-            return quantity;
-        }
-
-        public void AddItem(InventoryItem item)
-        { 
-            AddItem(item.item, item.quantity);
+            return;
         }
 
         public Dictionary<int, InventoryItem> GetCurrentInventoryState()
@@ -177,6 +151,7 @@ namespace Inventory.Model
     public struct InventoryItem
     {
         public int quantity;
+
         public ItemSO item;
         public List<ItemParameter> itemState;
         public bool isEmpty => item == null;

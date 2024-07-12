@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 public class AgentWeapon : MonoBehaviour
 {
     [SerializeField]
-    private EquipableItemSO weapon;
+    private EquipableStandardItemSO weapon;
 
     [SerializeField]
     private InventorySO inventoryData;
@@ -16,7 +16,7 @@ public class AgentWeapon : MonoBehaviour
     [SerializeField]
     private List<ItemParameter> parametersToModify, itemCurrentState;
 
-    public void SetWeapon(EquipableItemSO weaponItemSO, List<ItemParameter> itemState)
+    public void SetWeapon(EquipableStandardItemSO weaponItemSO, List<ItemParameter> itemState)
     {
         if(weapon != null)
         {

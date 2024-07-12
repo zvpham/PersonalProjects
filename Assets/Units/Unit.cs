@@ -1,13 +1,43 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
+using Inventory.Model;
 
-public class Unit : MonoBehaviour, IInititiave
+public class Unit : UnitSuperClass, IInititiave
 {
+    // Class Selection UI
+    public bool inOverWorld = false;
+
+    public Sprite unitProfile; 
+
+    public UnitClass unitClass;
+    public List<bool> skillTreeOneBranchOne = new List<bool>() { false, false, false, false };
+    public List<bool> skillTreeOneBranchTwo = new List<bool>() { false, false, false, false };
+    public List<bool> skillTreeTwoBranchOne = new List<bool>() { false, false, false, false };
+    public List<bool> skillTreeTwoBranchTwo = new List<bool>() { false, false, false, false };
+
+    public EquipableItemSO helmet;
+    public EquipableItemSO armor;
+    public EquipableItemSO legs;
+    public EquipableItemSO mainHand;
+    public EquipableItemSO offHand;
+    public EquipableItemSO Item1;
+    public EquipableItemSO Item2;
+    public EquipableItemSO Item3;
+    public EquipableItemSO Item4;
+
+    public int[] itemUses = new int[4];
+
+    public int maxHealth;
+    public int currentHealth;
+    public int maxArmor;
+    public int currentArmor;
+
     public int moveSpeed;
     public List<Action> actions;
-
+    public List<Passive> passives;
     public int maxActionsPoints = 2;
     public int currentActionsPoints = 0;
     public List<int> actionCooldowns = new List<int>();
@@ -21,6 +51,13 @@ public class Unit : MonoBehaviour, IInititiave
     public UnityAction onTurnStart;
 
     public CombatGameManager gameManager;
+
+    public UnityAction<Action, TargetingSystem> OnSelectedAction;
+
+    public void Awake()
+    {
+        unitProfile = unitClass.UIUnitProfile;
+    }
 
     public int CalculateInititive()
     {
@@ -39,6 +76,11 @@ public class Unit : MonoBehaviour, IInititiave
         {
             UseActionPoints(2);
         }
+    }
+
+    public void HandleSelectedAction (Action selectedAction, TargetingSystem actionTargetingSystem)
+    {
+        OnSelectedAction?.Invoke(selectedAction, actionTargetingSystem);
     }
 
     public void UseActionPoints(int usedActionPoints)
@@ -87,29 +129,25 @@ public class Unit : MonoBehaviour, IInititiave
     // Start is called before the first frame update
     void Start()
     {
-        if(group == null)
+        if (!inOverWorld)
         {
-            gameManager.allinitiativeGroups.Add(this);
-        }
+            if (group == null)
+            {
+                gameManager.allinitiativeGroups.Add(this);
+            }
 
-        if(team == Team.Player)
-        {
-            gameManager.playerTurn.playerUnits.Add(this);
-        }
-        
-        for(int i = 0; i < actions.Count; i++)
-        {
-            actionCooldowns.Add(0);
-            actionUses.Add(actions[i].maxUses);
-        }
-        gameManager.SetGridObject(this, transform.position);
-        gameManager.units.Add(this);
-    }
+            if (team == Team.Player)
+            {
+                gameManager.playerTurn.playerUnits.Add(this);
+            }
 
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+            for (int i = 0; i < actions.Count; i++)
+            {
+                actionCooldowns.Add(0);
+                actionUses.Add(actions[i].maxUses);
+            }
+            gameManager.SetGridObject(this, transform.position);
+            gameManager.units.Add(this);
+        }
     }
 }

@@ -23,3 +23,28 @@ MonoBehaviour:
   - {fileID: 11400000, guid: db04ddcf4fe55634c8b891e659da45b7, type: 2}
   - {fileID: 11400000, guid: 0058adefd8750c7489b69f1e23877f1e, type: 2}
   - {fileID: 11400000, guid: 62dca02949b3460488307445d170d8f1, type: 2}
+  allItems:
+  - {fileID: 11400000, guid: 13ee536ec8366ac4288a806a6048091b, type: 2}
+  - {fileID: 11400000, guid: d00d31aa2f28a174fa9b65f2dedd844f, type: 2}
+  - {fileID: 11400000, guid: c27e4b3a37033de43b07bcefb2e4a3c5, type: 2}
+  - {fileID: 11400000, guid: d14e2fe2ca700bb4590cb729b4a53ff0, type: 2}
+  - {fileID: 11400000, guid: 5ed034043bae8b44c8b891607f065b27, type: 2}
+  - {fileID: 11400000, guid: 1d74f37f4f62311478991f762fb2e791, type: 2}
+  - {fileID: 11400000, guid: 0568be4482c37884f9f83fb696c4ea71, type: 2}
+  weapons:
+  - {fileID: 11400000, guid: 13ee536ec8366ac4288a806a6048091b, type: 2}
+  - {fileID: 11400000, guid: d00d31aa2f28a174fa9b65f2dedd844f, type: 2}
+  offHands:
+  - {fileID: 11400000, guid: c27e4b3a37033de43b07bcefb2e4a3c5, type: 2}
+  helmets:
+  - {fileID: 11400000, guid: d14e2fe2ca700bb4590cb729b4a53ff0, type: 2}
+  armor:
+  - {fileID: 11400000, guid: 5ed034043bae8b44c8b891607f065b27, type: 2}
+  boots:
+  - {fileID: 11400000, guid: 1d74f37f4f62311478991f762fb2e791, type: 2}
+  accessories:
+  - {fileID: 11400000, guid: 0568be4482c37884f9f83fb696c4ea71, type: 2}
+  heroes:
+  - {fileID: -1027663435593090111, guid: ee9bc63b70fa468498d43ec958e722c5, type: 3}
+  job:
+  - {fileID: 11400000, guid: c1ca7bf8262889c428a7297004360abd, type: 2}

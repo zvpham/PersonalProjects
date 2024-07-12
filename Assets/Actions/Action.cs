@@ -11,12 +11,16 @@ public abstract class Action : ScriptableObject
     public bool consumableAction = false;
     public List<ActionType> actionTypes;
 
+    public TargetingSystem targetingSystem;
+
     public virtual void SelectAction(Unit self)
     {
         if (!CheckActionUsable(self))
         {
             return;
         }
+
+        self.OnSelectedAction(this, targetingSystem);
     }
 
     public void UseActionPreset(Unit self)

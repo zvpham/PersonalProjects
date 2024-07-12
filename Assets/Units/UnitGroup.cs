@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UnitGroup : MonoBehaviour, IInititiave
+public class UnitGroup : UnitSuperClass, IInititiave
 {
     [SerializeField] private List<Unit> units = new List<Unit>();
     public List<Unit> activeUnits = new List<Unit>();  
     public Team team;
     public CombatGameManager gameManager;
+
     public int CalculateInititive()
     {
         return 1;
@@ -51,5 +52,14 @@ public class UnitGroup : MonoBehaviour, IInititiave
     public void Start()
     {
         gameManager.allinitiativeGroups.Add(this);
+
+        Unit[] unitChildren = gameObject.GetComponentsInChildren<Unit>();
+        for (int i = 0; i < unitChildren.Length; i++)
+        {
+            if (!units.Contains(unitChildren[i]))
+            {
+                units.Add(unitChildren[i]);
+            }
+        }
     }
 }

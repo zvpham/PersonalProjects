@@ -23,17 +23,21 @@ public class BaseGameUIObject : MonoBehaviour
 
     public void Awake()
     {
+        /*
         if(StaticUIMenuValues.Instance != null)
         {
             menuValues = StaticUIMenuValues.Instance;
             indent = menuValues.indent;
         }
+        */
     }
 
     public void Start()
     {
+        /*
         menuValues = StaticUIMenuValues.Instance;
         indent = menuValues.indent;
+        */
     }
 
     public void setAmountOfIndents(int indentAmount)
