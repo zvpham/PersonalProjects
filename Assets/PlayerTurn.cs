@@ -9,16 +9,29 @@ public class PlayerTurn : MonoBehaviour
     public CombatGameManager gameManager;
     public ActionBar actionBar;
 
+    //Data For Enemy AI
+    // Determines how much ranged player has
+    public int totalRangedValue;
+
     public Unit currentlySelectedUnit;
+    public List<UnitSuperClass> playerUnitSuperUnits;
     public List<Unit> playerUnits;
     public List<Unit> activeUnits;
 
     public Action currentlySelectedAction;
     // Start is called before the first frame update
 
-    public void Test()
+    public int CalculateRangedValue()
     {
-
+        totalRangedValue = 0;
+        for (int i = 0; i < playerUnitSuperUnits.Count; i++)
+        {
+            if (playerUnitSuperUnits[i].unitType == UnitType.Ranged)
+            {
+                totalRangedValue += 2 + playerUnitSuperUnits[i].powerLevel;
+            }
+        }
+        return totalRangedValue;
     }
 
     public void OnTurnStart(List<Unit> units)
@@ -71,7 +84,7 @@ public class PlayerTurn : MonoBehaviour
         if (activeUnits.Contains(unit))
         {
             currentlySelectedUnit = unit;
-            SelectAction(currentlySelectedUnit.actions[0]);
+            SelectAction(unit.move);
         }
         else
         {

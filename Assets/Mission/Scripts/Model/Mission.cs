@@ -17,6 +17,7 @@ namespace Inventory.Model
 
         // Data Elements
         public MissionType missionType;
+        public MissionUnitPlacementName missionUnitFormation;
         public Faction missionProviderFaction;
         public Faction missionTargetFaction;  
         
@@ -26,7 +27,8 @@ namespace Inventory.Model
         public List<UnitSuperClass> enemyUnits2;
         public List<UnitSuperClass> allyUnits;
         
-        public void LoadMissionData(int newDangerRating = -1,  Faction newMissionProviderFaction = null, Faction newMissionTargetFaction = null, Faction newMissionAdditionalFaction = null)
+        public void LoadMissionData(int newDangerRating = -1,  Faction newMissionProviderFaction = null,
+            Faction newMissionTargetFaction = null, Faction newMissionAdditionalFaction = null)
         {
             if(newMissionProviderFaction != null)
             {
@@ -65,6 +67,7 @@ namespace Inventory.Model
                     missionCompsoitionIndex = Random.Range(0, finalMissionComposition.enemyCompositions.Count);
                     EnemyComposition finalEnemyComposition = finalMissionComposition.enemyCompositions[missionCompsoitionIndex];
                     enemyUnits = finalEnemyComposition.GetComposition(missionTargetFaction);
+                    missionUnitFormation = MissionUnitPlacementName.LineBattleWestStart;
                     break;
                 case (MissionType.Assassination):
                     break;

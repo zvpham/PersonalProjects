@@ -24,6 +24,9 @@ public class InputManager : MonoBehaviour
     public Vector3 prevMousePosition;
     public Vector3 currentMousePosition;
 
+    public float amountOfTimeMouseInSamePosition = 0;
+    public float amountOfTimeMouseNeedsToStayInPlaceToCallEvent = 1.5f;
+
     public List<PlayerAction> playerActions;
 
     [SerializeField] GraphicRaycaster m_Raycaster;
@@ -32,7 +35,7 @@ public class InputManager : MonoBehaviour
     [SerializeField] RectTransform canvasRect;
     public List<RaycastResult> results;
 
-    public UnityAction FoundPosition;
+    public UnityAction FoundPosition, MouseMoved, MouseStayedInPlace;
     public UnityAction<Vector3> TargetPositionMoved;
 
     private void Awake()
@@ -45,7 +48,22 @@ public class InputManager : MonoBehaviour
 
     public void Update()
     {
+        Vector3 tempCurrentMousePosition = currentMousePosition;
         currentMousePosition = Input.mousePosition;
+
+        if (tempCurrentMousePosition == currentMousePosition)
+        {
+            amountOfTimeMouseInSamePosition += Time.deltaTime;
+            if(amountOfTimeMouseInSamePosition > amountOfTimeMouseNeedsToStayInPlaceToCallEvent)
+            {
+                MouseStayedInPlace?.Invoke();
+            }
+        }
+        else
+        {
+            amountOfTimeMouseInSamePosition = 0;
+            MouseMoved?.Invoke();
+        }
 
         cameraController.ChangeCameraZoom(Input.mouseScrollDelta.y);
 

@@ -2,10 +2,12 @@ using Inventory.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEditor.UIElements;
 using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace Inventory.UI
 {
@@ -26,6 +28,13 @@ namespace Inventory.UI
         public List<UIInventoryItem> listOfUIItems = new List<UIInventoryItem>();
 
         public List<EquipSlot> equipSlots = new List<EquipSlot>();
+
+        public Image currentWeightPanel;
+        public TMP_Text currentWeightTXT;
+        public TMP_Text remainingWeightTXT;
+        public TMP_Text lowWeightTXT;
+        public TMP_Text mediumWieghtTXT;
+        public TMP_Text highWeightTXT;
 
         private int currentlyDraggedItemIndex = -1;
 
@@ -50,7 +59,7 @@ namespace Inventory.UI
 
         public void Start()
         {
-            menuInputManager.OnMouseUp += ResetDraggedItem;
+            menuInputManager.ResetDragUI += ResetDraggedItem;
         }
 
         public void AddInventoryUIItem()
@@ -87,6 +96,43 @@ namespace Inventory.UI
             }
             listOfUIItems[placementIndex].SetData(itemImage, itemQuantity, name, attributeOne, attributeTwo, mainCategoryOne, mainTextOne, mainCategoryTwo, mainTextTwo, mainCategoryThree, mainTextThree);
         }
+
+        public void UpdateWeight(int currentWeight, int lowWeight, int mediumWeight, int highWeight)
+        {
+            lowWeightTXT.text = lowWeight.ToString();
+            mediumWieghtTXT.text = mediumWeight.ToString();
+            highWeightTXT.text = highWeight.ToString();
+            int weightRemaining = -1;
+            if(currentWeight > highWeight)
+            {
+                currentWeightPanel.color = Color.red;
+                currentWeightTXT.text =  currentWeight.ToString() + "/" + highWeight.ToString();
+                weightRemaining = highWeight - currentWeight;
+                remainingWeightTXT.text = weightRemaining.ToString() + " weight remaining";
+            }
+            else if(currentWeight > mediumWeight)
+            {
+                currentWeightPanel.color = new Color(1f, 0.647f, 0); // Orange
+                currentWeightTXT.text = currentWeight.ToString() + "/" + highWeight.ToString();
+                weightRemaining = highWeight - currentWeight;
+                remainingWeightTXT.text = weightRemaining.ToString() + " weight remaining";
+            }
+            else if(currentWeight > lowWeight)
+            {
+                currentWeightPanel.color = Color.yellow;
+                currentWeightTXT.text = currentWeight.ToString() + "/" + mediumWeight.ToString();
+                weightRemaining = mediumWeight - currentWeight;
+                remainingWeightTXT.text = weightRemaining.ToString() + " weight remaining";
+            }
+            else
+            {
+
+                currentWeightPanel.color = Color.green;
+                currentWeightTXT.text = currentWeight.ToString() + "/" + lowWeight.ToString();
+                weightRemaining = lowWeight - currentWeight;
+                remainingWeightTXT.text = weightRemaining.ToString() + " weight remaining";
+            }
+        }
         private void HandleShowItemActions(UIInventoryItem inventoryItemUI)
         {
             int index = listOfUIItems.IndexOf(inventoryItemUI);
@@ -109,7 +155,7 @@ namespace Inventory.UI
                 UnequipItemUI();
             }
             currentlyDraggingEquipSlot = null;
-            menuInputManager.OnMouseUp -= HandleEndDragEquip;
+            menuInputManager.ResetDragUI -= HandleEndDragEquip;
         }
 
         private void HandleEndDrag(UIInventoryItem inventoryItemUI)
@@ -163,7 +209,7 @@ namespace Inventory.UI
         {
             CreateDraggedItem(equipSlot.contentImage.sprite);
             currentlyDraggingEquipSlot = equipSlot;
-            menuInputManager.OnMouseUp += HandleEndDragEquip;
+            menuInputManager.ResetDragUI += HandleEndDragEquip;
         }
 
         private void HandleBeginDrag(UIInventoryItem inventoryItemUI)

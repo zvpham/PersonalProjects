@@ -18,3 +18,5 @@ MonoBehaviour:
   maxUses: 1
   consumableAction: 0
   actionTypes: 00000000
+  animation: {fileID: 7321156129805876732, guid: d58f70abe8af1664eb5f900d0c97cb1b, type: 3}
+  targetingSystem: {fileID: 0}

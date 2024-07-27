@@ -8,9 +8,12 @@ public abstract class Action : ScriptableObject
     public int weight;
     public int coolDown;
     public int maxUses = 1;
+    public int intialActionPointUsage = 1;
+    public int actionPointGrowth = 1;
     public bool consumableAction = false;
     public List<ActionType> actionTypes;
 
+    public CustomAnimations animation;
     public TargetingSystem targetingSystem;
 
     public virtual void SelectAction(Unit self)
@@ -20,7 +23,7 @@ public abstract class Action : ScriptableObject
             return;
         }
 
-        self.OnSelectedAction(this, targetingSystem);
+        //self.OnSelectedAction(this, targetingSystem);
     }
 
     public void UseActionPreset(Unit self)
@@ -36,10 +39,10 @@ public abstract class Action : ScriptableObject
     {
         int actionIndex = self.actions.IndexOf(this);
 
-        if (self.actionCooldowns[actionIndex] != 0 || self.actionUses[actionIndex] <= 0)
+        if (actionIndex == -1 || self.actionCooldowns[actionIndex] == 0 || self.actionUses[actionIndex] > 0)
         {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 }

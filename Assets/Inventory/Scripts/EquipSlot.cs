@@ -19,6 +19,8 @@ public class EquipSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IBeg
     public int EquipSlotIndex = -1;
 
     public EquipType equipType;
+    public bool disabledDueToMercenary = false;
+    public bool missionStart = false;
 
     public event Action<EquipSlot> OnItemDroppedOn, OnItemClicked, OnItemBeginDrag;
 
@@ -130,7 +132,7 @@ public class EquipSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IBeg
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (currentItem == null)
+        if (currentItem == null || disabledDueToMercenary || missionStart)
         {
             return;
         }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 757064c3e71fcb64ca6a603b871826f8, type: 3}
   m_Name: ClassLess
   m_EditorClassIdentifier: 
-  UIUnitProfile: {fileID: 1718211556, guid: 0e4c87474c1f2af479c2f8ce402c0e59, type: 3}
+  UIUnitProfile: {fileID: 346796280, guid: 4ca42cc387825f64aba3746dd3e68e71, type: 3}
   className: Classless
   skillTree1: {fileID: 11400000, guid: 2ed8b8050385bdf47bebdf1a1cb21b53, type: 2}
   skillTree2: {fileID: 11400000, guid: 2ed8b8050385bdf47bebdf1a1cb21b53, type: 2}

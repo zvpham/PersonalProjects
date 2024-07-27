@@ -1,3 +1,4 @@
+using Inventory.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,12 +16,29 @@ public class WorldMapData: IComparable<WorldMapData>
     public bool inCombat;
     public bool newGame = true;
 
+    //Inventory Data
     public List<int> playerItemIndexes;
     public List<int> playerItemQuantities;
-
     public List<unitLoadoutData> playerHeroes;
-    public List<mercenaryData> playerMercenaries; 
+    public List<mercenaryData> playerMercenaries;
 
+    // player BattleLine Data
+    public List<battleLineData> frontLineData;
+    public List<battleLineData> backLineData;
+
+
+    //mission Data
+    // Data Elements
+    public MissionType missionType;
+    public MissionUnitPlacementName missionUnitPlacementName;
+    public FactionName missionProviderFaction;
+    public FactionName missionTargetFaction;
+
+    //Additional Faction is for third enemy Faction in Intervene missions or a possible additional ally faction in other missions (not sure about last one)
+    public FactionName missionAdditionalFaction;
+    public List<battleLineData> enemyUnits1;
+    public List<battleLineData> enemyUnits2;
+    public List<battleLineData> allyUnits;
     public List<Vector2Int> tileDataPosition;
     public List<int> tileSeedData;
 
@@ -42,6 +60,8 @@ public class WorldMapData: IComparable<WorldMapData>
 [System.Serializable]
 public struct unitLoadoutData
 {
+    //Prefab Data
+    public int heroIndex;
     //Job Data
     public int jobIndex;
     public bool isEmpty => jobIndex == -1;
@@ -61,14 +81,11 @@ public struct unitLoadoutData
     public int item3Index;
     public int item4Index;
 
-    //PositionData
-    public bool inFrontLine;
-    public int positionIndex;
-
-    public unitLoadoutData(int jobIndex, List<bool> skillTree1Branch1Unlocks, List<bool> skillTree1Branch2Unlocks,
+    public unitLoadoutData(List<bool> skillTree1Branch1Unlocks, List<bool> skillTree1Branch2Unlocks,
      List<bool> skillTree2Branch1Unlocks, List<bool> skillTree2Branch2Unlocks, int helmetIndex, int armorIndex, int bootIndex, int mainHandIndex,
-     int offHandIndex, int item1Index, int item2Index, int item3Index, int item4Index, bool inFrontLine, int positionIndex)
+     int offHandIndex, int item1Index, int item2Index, int item3Index, int item4Index, int jobIndex, int heroIndex)
     {
+        this.heroIndex = heroIndex;
         this.jobIndex = jobIndex;
         this.skillTree1Branch1Unlocks = skillTree1Branch1Unlocks;
         this.skillTree1Branch2Unlocks = skillTree1Branch2Unlocks;
@@ -84,9 +101,6 @@ public struct unitLoadoutData
         this.item2Index = item2Index;
         this.item3Index = item3Index;
         this.item4Index = item4Index;
-
-        this.inFrontLine = inFrontLine;
-        this.positionIndex = positionIndex;
     }
 }
 
@@ -94,8 +108,22 @@ public struct unitLoadoutData
 public struct mercenaryData
 {
     public int mercenaryIndex;
+    public bool isEmpty => mercenaryIndex == -1;
+    public mercenaryData(int mercenaryIndex = -1)
+    {
+        this.mercenaryIndex = mercenaryIndex;
+    }
+}
 
-    //PositionData
-    public bool inFrontLine;
-    public int positionIndex;
+[System.Serializable]
+public struct battleLineData
+{
+    public unitLoadoutData unitData;
+    public mercenaryData unitGroupData;
+
+    public battleLineData(unitLoadoutData unitData, mercenaryData unitGroupData)
+    {
+        this.unitData = unitData;
+        this.unitGroupData = unitGroupData;
+    }
 }

@@ -19,6 +19,16 @@ public class ResourceManager : ScriptableObject
     public List<EquipableItemSO> boots;
     public List<EquipableItemSO> accessories;
 
-    public List<Unit> heroes;
+
+    public List<Action> actions;
+
     public List<UnitClass> job;
+    public Unit emptyHero;
+    public List<Unit> heroes;
+    public List<UnitGroup> mercenaries;
+
+    public SpriteRenderer spriteHolder;
+
+    public List<Faction> factions;
+    public Mission emptyMission;
 }

@@ -139,16 +139,19 @@ public class CameraControllerPlayer : MonoBehaviour
         targetSize = mainCamera.orthographicSize - (zoomChange * scrollChangeMultiplierCurrent);
         mainCamera.orthographicSize = GetCameraSize();
         SetCameraBounds();
+        // Case - zooming out and extents x or y goes negative
         if ((cameraBounds.extents.y < 0 || cameraBounds.extents.x < 0) && zoomChange < 0)
         {
             mainCamera.orthographicSize = maxSize;
-            scrollChangeMultiplierCurrent = scrollChangeMultiplierMax;
-        }
-        else if (zoomChange > 0 && mainCamera.orthographicSize == maxSize
-            - (zoomChange * scrollChangeMultiplierMax))
-        {
             scrollChangeMultiplierCurrent = scrollChangeMultiplierStartingRate;
         }
+        // zooming in and already max zoom out size
+        else if (zoomChange > 0 && mainCamera.orthographicSize == maxSize
+            - (zoomChange * scrollChangeMultiplierStartingRate))
+        {
+            scrollChangeMultiplierCurrent = scrollChangeMultiplierMax;
+        }
+        // zooming in
         else if (zoomChange > 0)
         {
             scrollChangeMultiplierCurrent = scrollChangeMultiplierCurrent / scrollChangeMultiplierRate;
@@ -157,6 +160,7 @@ public class CameraControllerPlayer : MonoBehaviour
                 scrollChangeMultiplierCurrent = scrollChangeMultiplierMin;
             }
         }
+        //zooming out
         else if (zoomChange < 0)
         {
             scrollChangeMultiplierCurrent = scrollChangeMultiplierCurrent * scrollChangeMultiplierRate;

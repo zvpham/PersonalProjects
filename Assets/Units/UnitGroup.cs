@@ -4,10 +4,14 @@ using UnityEngine;
 
 public class UnitGroup : UnitSuperClass, IInititiave
 {
-    [SerializeField] private List<Unit> units = new List<Unit>();
+    public int mercenaryIndex;
+
+    [SerializeField] public List<Unit> units = new List<Unit>();
     public List<Unit> activeUnits = new List<Unit>();  
     public Team team;
     public CombatGameManager gameManager;
+
+    public bool inOverWorld = false;
 
     public int CalculateInititive()
     {
@@ -30,6 +34,11 @@ public class UnitGroup : UnitSuperClass, IInititiave
         {
             gameManager.StartPlayerTurn(activeUnits);
         }
+        else
+        {
+            IInititiave unitInitiative = activeUnits[0];
+            unitInitiative.StartTurn();
+        }
     }
 
     public void EndTurn(Unit unitWhoEndedTurn)
@@ -43,23 +52,25 @@ public class UnitGroup : UnitSuperClass, IInititiave
             }
             gameManager.TurnEnd(this);
         }
-        else if (team == Team.Player)
+        else
         {
-            gameManager.playerTurn.UnitGroupTurnEnd();
+            if (team == Team.Player)
+            {
+                gameManager.playerTurn.UnitGroupTurnEnd();
+            }
+            else
+            {
+                IInititiave unitInitiative = activeUnits[0];
+                unitInitiative.StartTurn();
+            }
         }
     }
 
     public void Start()
     {
-        gameManager.allinitiativeGroups.Add(this);
-
-        Unit[] unitChildren = gameObject.GetComponentsInChildren<Unit>();
-        for (int i = 0; i < unitChildren.Length; i++)
+        if (!inOverWorld)
         {
-            if (!units.Contains(unitChildren[i]))
-            {
-                units.Add(unitChildren[i]);
-            }
+            gameManager.allinitiativeGroups.Add(this);
         }
     }
 }

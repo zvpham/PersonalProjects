@@ -22,7 +22,7 @@ MonoBehaviour:
   attributeOne: 
   attributeTwo: 
   mainCategoryOne: Weight
-  mainOneMin: 10
+  mainOneMin: 40
   mainOneMax: 0
   mainCategoryTwo: Armor
   mainTwoMin: 10
@@ -32,3 +32,4 @@ MonoBehaviour:
   mainThreeMax: 0
   equipType: 1
   actions: []
+  passives: []

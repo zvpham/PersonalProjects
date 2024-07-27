@@ -18,8 +18,9 @@ public class KeyBindings : MonoBehaviour
         defaultActionKeyBinds.Add(PlayerActionName.SwitchUnits, new List<KeyCode>() { KeyCode.Tab });
         defaultActionKeyBinds.Add(PlayerActionName.ConfirmAction, new List<KeyCode>() { KeyCode.Return });
         defaultActionKeyBinds.Add(PlayerActionName.CancelAction, new List<KeyCode>() { KeyCode.Escape });
+        defaultActionKeyBinds.Add(PlayerActionName.EndTurn, new List<KeyCode>() { KeyCode.E });
 
-
+        menuActionKeyBinds.Add(MenuActionName.Back, new List<KeyCode>() { KeyCode.Backspace });
         if (instance == null)
         {
             instance = this;

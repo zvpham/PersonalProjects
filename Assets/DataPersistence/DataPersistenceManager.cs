@@ -223,6 +223,11 @@ public class DataPersistenceManager : MonoBehaviour
         return gameData;
     }
 
+    public WorldMapData GetCurrentWorldMapData()
+    {
+        return worldMapData;
+    }
+
     public WorldMapData GetWorldMapData()
     {
         worldMapData = mapDataHandler.LoadWorldMapData(selectedProfileId, worldMapFileName);
@@ -303,6 +308,7 @@ public class DataPersistenceManager : MonoBehaviour
 
         worldMapData.lastUpdated = System.DateTime.Now.ToBinary();
         worldMapData.selectedProfileId = selectedProfileId;
+        worldMapData.inCombat = false;
     }
 
     // For TimeIDS (Manual Saves
@@ -424,6 +430,135 @@ public class DataPersistenceManager : MonoBehaviour
         mapDataHandler.Save(worldMapData, selectedProfileId, dirFolder, oldestSaveId.ToString(), worldMapFileName);
     }
 
+    public void SaveCombatGameBase()
+    {
+        //return right away if data persistence is disabled
+        if (disableDataPersistence)
+        {
+            return;
+        }
+
+        //if we don't have any data to save, log a warning here
+        if (this.worldMapData == null)
+        {
+            Debug.Log("No data was found. A New Game needs to be started before data can be loaded.");
+            return;
+        }
+
+        // pass data to other scirpts so they can update it
+        foreach (IDataPersistence dataPersistenceObj in dataPersistenceObjects)
+        {
+            dataPersistenceObj.SaveData(worldMapData);
+        }
+
+        worldMapData.lastUpdated = System.DateTime.Now.ToBinary();
+        worldMapData.selectedProfileId = selectedProfileId;
+        worldMapData.inCombat = true;
+    }
+
+    public void SaveCombatGame(string dirFolder)
+    {
+        SaveCombatGameBase();
+
+        if (dirFolder == autoSaveID)
+        {
+            worldMapData.isAutoSave = true;
+        }
+
+        int oldestSaveId = 0;
+        //figure out what subfolder to save file to
+        List<List<WorldMapData>> profilesData = GetAllProfilesMapData();
+        for (int i = 0; i < profilesData.Count; i++)
+        {
+            if (profilesData[i].Count > 0 && profilesData[i][profilesData[i].Count - 1].selectedProfileId == selectedProfileId)
+            {
+                List<WorldMapData> profileData = profilesData[i];
+                List<WorldMapData> autoSavesData = new List<WorldMapData>();
+                List<WorldMapData> timeIDSavesData = new List<WorldMapData>();
+                for (int j = 0; j < profileData.Count; j++)
+                {
+                    if (profileData[j].isAutoSave)
+                    {
+                        autoSavesData.Add(profileData[j]);
+                    }
+                    else
+                    {
+                        timeIDSavesData.Add(profileData[j]);
+                    }
+                }
+
+                if (dirFolder == autoSaveID)
+                {
+                    if (autoSavesData.Count >= maxAutoSaves)
+                    {
+                        oldestSaveId = autoSavesData[0].saveNumber;
+                        DateTime oldestDateTime = DateTime.FromBinary(autoSavesData[0].lastUpdated);
+                        for (int k = 0; k < autoSavesData.Count; k++)
+                        {
+                            //Debug.Log("Hello: " + autoSavesData[k].saveNumber + " " + DateTime.FromBinary(autoSavesData[k].lastUpdated)  + " "  + oldestSaveId + " "+ oldestDateTime);
+                            if (DateTime.FromBinary(autoSavesData[k].lastUpdated) < oldestDateTime)
+                            {
+                                //Debug.Log("Hello");
+                                oldestSaveId = autoSavesData[k].saveNumber;
+                                oldestDateTime = DateTime.FromBinary(autoSavesData[k].lastUpdated);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        List<int> currentAutoSaves = new List<int>();
+                        for (int k = 0; k < autoSavesData.Count; k++)
+                        {
+                            currentAutoSaves.Add(autoSavesData[k].saveNumber);
+                        }
+
+                        for (int l = 0; l < maxAutoSaves; l++)
+                        {
+                            if (!currentAutoSaves.Contains(l))
+                            {
+                                oldestSaveId = l;
+                                break;
+                            }
+                        }
+                    }
+                }
+                else if (dirFolder == timeSaveID)
+                {
+                    if (timeIDSavesData.Count >= maxTimeIDSaves)
+                    {
+                        Debug.LogError("Not Implemented Yet: Add Menu To Delete Save");
+                        return;
+                    }
+                    else
+                    {
+                        List<int> currentTimeIDSaves = new List<int>();
+                        for (int k = 0; k < timeIDSavesData.Count; k++)
+                        {
+                            currentTimeIDSaves.Add(timeIDSavesData[k].saveNumber);
+                        }
+
+                        for (int l = 0; l < maxTimeIDSaves; l++)
+                        {
+                            if (!currentTimeIDSaves.Contains(l))
+                            {
+                                oldestSaveId = l;
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Should be saving to either Time or AutoSave Folder not: " + dirFolder);
+                }
+            }
+        }
+        worldMapData.saveNumber = oldestSaveId;
+        //Save that data to a file using the data handler
+        mapDataHandler.Save(worldMapData, selectedProfileId, dirFolder, oldestSaveId.ToString(), worldMapFileName);
+    }
+
+
     public void ChangeGameData(string subFolder)
     {
         //this.tileData.saveToDelete = subFolder;
@@ -431,6 +566,7 @@ public class DataPersistenceManager : MonoBehaviour
 
     private List<IDataPersistence> FindAllDataPersistenceObjects()
     {
+        Debug.Log("Load Data Objects Loaded");
         // FindObjectsofType takes in an optional boolean to include inactive gameObjects
         IEnumerable<IDataPersistence> dataPersistenceObjects = FindObjectsOfType<MonoBehaviour>(true)
             .OfType<IDataPersistence>();

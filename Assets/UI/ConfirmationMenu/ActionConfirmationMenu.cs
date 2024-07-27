@@ -17,7 +17,7 @@ public class ActionConfirmationMenu : Menu
         gameObject.SetActive(false);
     }
     
-    public void ActivateMenu(   UnityAction confirmAction, UnityAction cancelAction)
+    public void ActivateMenu(UnityAction confirmAction, UnityAction cancelAction)
     {
         this.gameObject.SetActive(true);
 

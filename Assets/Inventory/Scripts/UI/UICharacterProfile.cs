@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 
 namespace Inventory.UI
 {
-    public class UICharacterProfile : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEndDragHandler, IDropHandler, IDragHandler
+    public class UICharacterProfile : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEndDragHandler, IDragHandler
     {
         [SerializeField]
         public Image itemImage;

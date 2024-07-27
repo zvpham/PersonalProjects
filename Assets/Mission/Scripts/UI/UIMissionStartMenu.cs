@@ -6,7 +6,7 @@ using UnityEngine;
 public class UIMissionStartMenu : MonoBehaviour
 {
     public UICharacterMenu currentHeroes;
-    public void AddHero(Unit unit)
+    public void AddProfile(Unit unit)
     {
         if(unit != null)
         {

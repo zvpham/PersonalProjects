@@ -24,13 +24,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0058adefd8750c7489b69f1e23877f1e, type: 2}
   - {fileID: 11400000, guid: 62dca02949b3460488307445d170d8f1, type: 2}
   allItems:
-  - {fileID: 11400000, guid: 13ee536ec8366ac4288a806a6048091b, type: 2}
-  - {fileID: 11400000, guid: d00d31aa2f28a174fa9b65f2dedd844f, type: 2}
+  - {fileID: 11400000, guid: e24ff6b319aad4e479bf5f165bfab77d, type: 2}
+  - {fileID: 11400000, guid: f944c82b21d347d40889bd3537545b6b, type: 2}
   - {fileID: 11400000, guid: c27e4b3a37033de43b07bcefb2e4a3c5, type: 2}
   - {fileID: 11400000, guid: d14e2fe2ca700bb4590cb729b4a53ff0, type: 2}
   - {fileID: 11400000, guid: 5ed034043bae8b44c8b891607f065b27, type: 2}
   - {fileID: 11400000, guid: 1d74f37f4f62311478991f762fb2e791, type: 2}
   - {fileID: 11400000, guid: 0568be4482c37884f9f83fb696c4ea71, type: 2}
+  - {fileID: 11400000, guid: dc3c45d55cf0d774dad15972e2410128, type: 2}
   weapons:
   - {fileID: 11400000, guid: 13ee536ec8366ac4288a806a6048091b, type: 2}
   - {fileID: 11400000, guid: d00d31aa2f28a174fa9b65f2dedd844f, type: 2}
@@ -44,7 +45,18 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1d74f37f4f62311478991f762fb2e791, type: 2}
   accessories:
   - {fileID: 11400000, guid: 0568be4482c37884f9f83fb696c4ea71, type: 2}
-  heroes:
-  - {fileID: -1027663435593090111, guid: ee9bc63b70fa468498d43ec958e722c5, type: 3}
+  actions:
+  - {fileID: 11400000, guid: dde7f548d5bdadd498b511eb0268b8f3, type: 2}
+  - {fileID: 11400000, guid: 505f164067487ae478219d6f6d836e62, type: 2}
   job:
   - {fileID: 11400000, guid: c1ca7bf8262889c428a7297004360abd, type: 2}
+  emptyHero: {fileID: 5597699536523439801, guid: f7c79c7ae599b6845a03d8c2a05306e1, type: 3}
+  heroes:
+  - {fileID: -1027663435593090111, guid: b2f70065eb452014085e34f80d24e476, type: 3}
+  mercenaries:
+  - {fileID: 2097898329977275897, guid: 1f4a54415c85bea429c3d9259e720089, type: 3}
+  spriteHolder: {fileID: 6546736994369712444, guid: 6c6f66dee961e4d92952ee62f46b41b5, type: 3}
+  factions:
+  - {fileID: 11400000, guid: 4ba40c29db62d6240927e94b239e6cc8, type: 2}
+  - {fileID: 11400000, guid: 503a1942a54cadd46a8d6ba5a0576496, type: 2}
+  emptyMission: {fileID: 0}

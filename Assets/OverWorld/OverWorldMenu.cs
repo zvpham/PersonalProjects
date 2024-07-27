@@ -34,4 +34,15 @@ public class OverWorldMenu : MonoBehaviour
         ChangeMenu?.Invoke();
         missionStartSystem.OpenMenu();
     }
+
+    public void OnLaunchMissionButtonClicked()
+    {
+        gameManager.MakeAutoSave();
+        gameManager.OpenCombatScene();
+    }
+
+    public void CloseMenu()
+    {
+        ChangeMenu?.Invoke();
+    }
 }

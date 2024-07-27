@@ -13,7 +13,7 @@ public class MenuInputManager : MonoBehaviour
 {
     public static MenuInputManager instance;
 
-    private KeyBindings keyBindings;
+    public KeyBindings keyBindings;
 
     public bool isDragging = false;
     public bool startDragging = false;
@@ -23,13 +23,16 @@ public class MenuInputManager : MonoBehaviour
 
     public List<MenuAction> menuActions;
 
+    [SerializeField] public OverWorldMenu overWorldMenu;
     [SerializeField] GraphicRaycaster m_Raycaster;
     PointerEventData m_PointerEventData;
     [SerializeField] EventSystem m_EventSystem;
     [SerializeField] RectTransform canvasRect;
+    [SerializeField] UICharacterProfile mouseFollerItem;
     public List<RaycastResult> results;
 
-    public UnityAction <EquipSlot> OnMouseUp;
+    public UnityAction<UICharacterProfile> OnMouseUp;
+    public UnityAction <EquipSlot> ResetDragUI;
     public UnityAction<Vector3> TargetPositionMoved;
 
     private void Awake()
@@ -85,6 +88,7 @@ public class MenuInputManager : MonoBehaviour
             m_Raycaster.Raycast(m_PointerEventData, results);
 
             EquipSlot mouseHoverEquipSlot = null;
+            UICharacterProfile mouseOverCharacterProfile = null;
             if (results.Count > 0)
             {
                 for (int i = 0; i < results.Count; i++)
@@ -96,8 +100,9 @@ public class MenuInputManager : MonoBehaviour
                         mouseHoverEquipSlot = equipSlot;
                         equipSlot.OnDrop(null);
                     }
-                    else if (characterProfile != null)
+                    else if (characterProfile != null && characterProfile != mouseFollerItem)
                     {
+                        mouseOverCharacterProfile = characterProfile;
                         characterProfile.OnDrop(null);
                     }
                 }
@@ -105,7 +110,13 @@ public class MenuInputManager : MonoBehaviour
 
             if (!isDragging && !mouseOverUI)
             {
-                OnMouseUp?.Invoke(mouseHoverEquipSlot);
+                OnMouseUp?.Invoke(mouseOverCharacterProfile);
+            }
+
+
+            if (!isDragging && !mouseOverUI)
+            {
+                ResetDragUI?.Invoke(mouseHoverEquipSlot);
             }
             isDragging = false;
             startDragging = false;

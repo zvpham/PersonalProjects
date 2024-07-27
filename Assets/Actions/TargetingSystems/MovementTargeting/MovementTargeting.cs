@@ -19,6 +19,7 @@ public class MovementTargeting : TargetingSystem
     public GameObject tempMovingUnit;
     public int oneActionMoveAmount;
     public int twoActionMoveAmount;
+    public int amountMoved = 0;
 
     public List<Vector2Int> firstRangeBracket = new List<Vector2Int>();
     public List<Vector2Int> secondRangeBracket = new List<Vector2Int>();
@@ -41,6 +42,7 @@ public class MovementTargeting : TargetingSystem
         prevEndHexPosition = new Vector2Int(-10, 0);
         path = new List<Vector2Int>();
         this.enabled = true;
+        amountMoved = movingUnit.amountMoveUsedDuringRound;
 
         SetUp(startingPosition, actionPointsLeft, movingUnit.moveSpeed);
         for (int i = 0; i < gameManager.units.Count; i++)
@@ -61,11 +63,28 @@ public class MovementTargeting : TargetingSystem
         map.getGrid().GetXY(targetPosition, out int x, out int y);
         map.ResetMap();
         map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) });
-        actionPointsLeft = numActionPoints;
         startingPosition = targetPosition;
         firstRangeBracket.Clear();
         secondRangeBracket.Clear();
-        if (numActionPoints == 2)
+
+        actionPointsLeft = numActionPoints;
+
+        int initialActionPoints = numActionPoints;
+        int moveAmounts = 0;
+        while(initialActionPoints > 0)
+        {
+            if(initialActionPoints >= movingUnit.amountMoveUsedDuringRound + moveAmounts +  1)
+            {
+                moveAmounts += 1;
+                initialActionPoints -= movingUnit.amountMoveUsedDuringRound + moveAmounts;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (moveAmounts == 2)
         {
             for (int i = 1; i <= moveSpeed * 2; i++)
             {
@@ -88,7 +107,7 @@ public class MovementTargeting : TargetingSystem
                 }
             }
         }
-        else if (numActionPoints == 1)
+        else if (moveAmounts == 1)
         {
             for (int i = 1; i <= moveSpeed; i++)
             {
@@ -104,7 +123,6 @@ public class MovementTargeting : TargetingSystem
                     }
                 }
             }
-
         }
     }
 
@@ -128,7 +146,7 @@ public class MovementTargeting : TargetingSystem
         {
             oneActionMoveAmount = 0;
             twoActionMoveAmount = 0;
-            if (actionPointsLeft == 2)
+            if (actionPointsLeft >= amountMoved + 1 + amountMoved + 2)
             {
                 endHex.Add(new Vector2Int(endX, endY));
                 map.SetGoals(endHex);
@@ -213,7 +231,7 @@ public class MovementTargeting : TargetingSystem
                     }
                 }
             }
-            else if (actionPointsLeft == 1)
+            else if (actionPointsLeft >= amountMoved + 1)
             {
                 endHex.Add(new Vector2Int(endX, endY));
                 map.SetGoals(endHex);
@@ -237,7 +255,7 @@ public class MovementTargeting : TargetingSystem
             DrawLine();
         }  
     }
-    public override void EndMovementTargeting()
+    public override void EndTargeting()
     {
         gameManager.grid.GetXY(endPosition, out int x, out int y);
 
@@ -247,11 +265,14 @@ public class MovementTargeting : TargetingSystem
         }
 
         Vector2Int endHexPosition = new Vector2Int(x, y);
-
+         
+        // Case -  Player Clicks on previously selected Hex
+        // Confirms action
         if (prevEndHexPosition.x >= 0 && endHexPosition == prevEndHexPosition)
         {
                 gameManager.spriteManager.ConfirmAction();
         }
+        //Case - Player clicks on hex that has not been previously selected
         else
         {
             // Select Player Unit when you aren't using a friendly ability like heal
@@ -262,7 +283,7 @@ public class MovementTargeting : TargetingSystem
             }
             else
             {
-
+                //if there is still action Points left Add temp Path to Set Path
                 if (actionPointsLeft > 0)
                 {
                     prevEndHexPosition = endHexPosition;
@@ -274,18 +295,21 @@ public class MovementTargeting : TargetingSystem
 
                 if (firstRangeBracket.Contains(endHexPosition))
                 {
-                    actionPointsLeft -= 1;
+                    actionPointsLeft -= amountMoved + 1;
+                    amountMoved += 1;
                 }
-                else
+                else if (secondRangeBracket.Contains(endHexPosition))
                 {
-                    actionPointsLeft -= 2;
+                    actionPointsLeft -= amountMoved + 1;
+                    actionPointsLeft -= amountMoved + 2;
+                    amountMoved += 2;
                 }
 
 
                 Vector2Int endPathHex = setPath[setPath.Count - 1];
                 Destroy(tempMovingUnit);
                 tempMovingUnit = null;
-                tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, movingUnit.GetComponent<SpriteRenderer>().sprite);
+                tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, movingUnit.unitProfile);
                 SetUp(map.getGrid().GetWorldPosition(setPath[setPath.Count - 1]), actionPointsLeft, movingUnit.moveSpeed);
                 gameManager.spriteManager.ActivateActionConfirmationMenu(
                     () => // Confirm Action

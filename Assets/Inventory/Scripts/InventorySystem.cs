@@ -16,6 +16,8 @@ public class InventorySystem : MonoBehaviour
     [SerializeField]
     public InventorySO inventoryData;
 
+    public bool dispalyOnly = false;
+
     public List<InventoryItem> initialItems = new List<InventoryItem>();
 
     [SerializeField]
@@ -40,6 +42,7 @@ public class InventorySystem : MonoBehaviour
     public void PrepareCharacterSystem()
     {
         characterSystem.OnUnitClicked += HandleNewUnitSelected;
+        characterSystem.OnChangedUnitCategory += HandleOnUnitCategoryChanged;
     }
 
     public void PrepareEquipSlotData()
@@ -52,8 +55,11 @@ public class InventorySystem : MonoBehaviour
 
     public void PrepareInventoryData()
     {
-        inventoryData.Initialize();
-        inventoryData.OnInventoryUpdated += UpdateInventoryUI;
+        if(!dispalyOnly)
+        {
+            inventoryData.Initialize();
+            inventoryData.OnInventoryUpdated += UpdateInventoryUI;
+        }
     }
 
     private void PrepareUI()
@@ -68,22 +74,28 @@ public class InventorySystem : MonoBehaviour
 
     public void LoadInitialItems()
     {
-        foreach (InventoryItem item in initialItems)
+        if (!dispalyOnly)
         {
-            if (item.isEmpty)
+            foreach (InventoryItem item in initialItems)
             {
-                continue;
+                if (item.isEmpty)
+                {
+                    continue;
+                }
+                inventoryData.AddItem(item);
             }
-            inventoryData.AddItem(item);
         }
     }
 
     public void AddItem(ItemSO item, int itemQuantity)
     {
-        InventoryItem newItem = new InventoryItem();
-        newItem.item = item;
-        newItem.ChangeQuantity(itemQuantity);
-        inventoryData.AddItem(newItem);
+        if (!dispalyOnly)
+        {
+            InventoryItem newItem = new InventoryItem();
+            newItem.item = item;
+            newItem.ChangeQuantity(itemQuantity);
+            inventoryData.AddItem(newItem);
+        }
     }
 
     public void OpenMenu()
@@ -149,6 +161,7 @@ public class InventorySystem : MonoBehaviour
         {
             inventoryUI.ItemEquip(unit.Item4, inventoryUI.equipSlots[8]);
         }
+        inventoryUI.UpdateWeight(currentUnit.currentWeight, currentUnit.lowWeight, currentUnit.mediumWeight, currentUnit.highWeight);
     }
 
     private void UpdateInventoryUI(Dictionary<int, InventoryItem> inventoryState)
@@ -220,10 +233,25 @@ public class InventorySystem : MonoBehaviour
             return;
         }
 
-
-        if (item.equipType == equipSlot.equipType)
+        if(item.equipType == EquipType.Accessory && (equipSlot.equipType == EquipType.Accessory1 || equipSlot.equipType == EquipType.Accessory2 || 
+            equipSlot.equipType == EquipType.Accessory3 || equipSlot.equipType == EquipType.Accessory4))
         {
-            equipSlot.AddItem(item, currentUnit);
+            equipSlot.currentItem = item;
+            inventoryUI.ConfirmItemEquip(item, equipSlot);
+        }
+        else if(item.equipType == EquipType.BothHands && equipSlot.equipType == EquipType.MainHand)
+        {
+            EquipSlot mainHandEquipSlot = inventoryUI.equipSlots[3];
+            EquipSlot offHandEquipSlot = inventoryUI.equipSlots[4];
+
+            mainHandEquipSlot.currentItem = item;
+
+            inventoryUI.ConfirmItemEquip(item, mainHandEquipSlot);
+            inventoryUI.ConfirmItemEquip(item, offHandEquipSlot);
+        }
+        else if (item.equipType == equipSlot.equipType)
+        {
+            equipSlot.currentItem = item;
             inventoryUI.ConfirmItemEquip(item, equipSlot);
         }
         else
@@ -235,7 +263,7 @@ public class InventorySystem : MonoBehaviour
 
     private void HandleEquipItem(int itemIndex, EquipSlot equipSlot)
     {
-        if (currentUnit == null)
+        if (currentUnit == null || !characterSystem.manageHeroes)
         {
             return;
         }
@@ -286,10 +314,16 @@ public class InventorySystem : MonoBehaviour
             inventoryUI.ConfirmItemEquip(equipSlot);
             inventoryData.RemoveItem(itemIndex, 1);
         }
+        inventoryUI.UpdateWeight(currentUnit.currentWeight, currentUnit.lowWeight, currentUnit.mediumWeight, currentUnit.highWeight);
     }
 
     private void HandleUnequipItem(EquipSlot equipSlot)
     {
+        if (!characterSystem.manageHeroes)
+        {
+            return;
+        }
+
         inventoryData.AddItem(equipSlot.currentItem, 1);
         if (equipSlot.currentItem.equipType ==  EquipType.BothHands)
         {
@@ -297,8 +331,16 @@ public class InventorySystem : MonoBehaviour
             inventoryUI.equipSlots[4].ClearItem();
         }
         equipSlot.RemoveItem(currentUnit);
+        inventoryUI.UpdateWeight(currentUnit.currentWeight, currentUnit.lowWeight, currentUnit.mediumWeight, currentUnit.highWeight);
     }
-    
+
+    private void HandleOnUnitCategoryChanged(bool heroButtonPressed)
+    {
+        for(int i = 0; i < inventoryUI.equipSlots.Count; i++)
+        {
+            inventoryUI.equipSlots[i].disabledDueToMercenary = !heroButtonPressed;
+        }
+    }
 
     /*
     public void OnLoadEquipSoul(int soulSlotIndex, SoulItemSO soul)

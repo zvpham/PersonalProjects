@@ -53,7 +53,6 @@ namespace Inventory.Model
 
         public Mission GetMissionAt(int missionIndex)
         {
-            Debug.Log(missionIndex);
             return missions[missionIndex];
         }
 

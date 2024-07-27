@@ -44,28 +44,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f21da1e08098054f98acfd513359fba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  unitType: 0
+  powerLevel: 1
+  inOverWorld: 0
   unitProfile: {fileID: 0}
+  heroIndex: 0
   unitClass: {fileID: 11400000, guid: c1ca7bf8262889c428a7297004360abd, type: 2}
   skillTreeOneBranchOne: 00000000
   skillTreeOneBranchTwo: 00000000
   skillTreeTwoBranchOne: 00000000
   skillTreeTwoBranchTwo: 00000000
-  helmet: {fileID: 0}
-  armor: {fileID: 0}
-  legs: {fileID: 0}
-  mainHand: {fileID: 0}
+  helmet: {fileID: 11400000, guid: d14e2fe2ca700bb4590cb729b4a53ff0, type: 2}
+  armor: {fileID: 11400000, guid: 5ed034043bae8b44c8b891607f065b27, type: 2}
+  legs: {fileID: 11400000, guid: 1d74f37f4f62311478991f762fb2e791, type: 2}
+  mainHand: {fileID: 11400000, guid: e24ff6b319aad4e479bf5f165bfab77d, type: 2}
   offHand: {fileID: 0}
   Item1: {fileID: 0}
   Item2: {fileID: 0}
   Item3: {fileID: 0}
   Item4: {fileID: 0}
   itemUses: 00000000000000000000000000000000
-  moveSpeed: 0
+  currentWeight: 0
+  overWieght: 0
+  lowWeight: 0
+  mediumWeight: 0
+  highWeight: 0
+  strength: 10
+  dexterity: 10
+  maxHealth: 100
+  currentHealth: 0
+  maxArmor: 0
+  currentArmor: 0
+  moveSpeed: 3
+  endTurn: {fileID: 0}
+  move: {fileID: 0}
+  amountMoveUsedDuringRound: 0
   actions: []
+  passives: []
   maxActionsPoints: 2
   currentActionsPoints: 0
   actionCooldowns: 
   actionUses: 
+  amountActionUsedDuringRound: 
   selfInTheseUnitsThreatenedZones: []
   team: 0
   group: {fileID: 0}

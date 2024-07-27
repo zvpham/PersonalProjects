@@ -195,7 +195,7 @@ public class ConeTargeting : TargetingSystem
         }
 
     }
-    public override void EndMovementTargeting()
+    public override void EndTargeting()
     {
         gameManager.grid.GetXY(endPosition, out int x, out int y);
 

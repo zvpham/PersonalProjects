@@ -9,7 +9,7 @@ public class LineOfSightTargeting : TargetingSystem
         throw new System.NotImplementedException();
     }
 
-    public override void EndMovementTargeting()
+    public override void EndTargeting()
     {
         throw new System.NotImplementedException();
     }

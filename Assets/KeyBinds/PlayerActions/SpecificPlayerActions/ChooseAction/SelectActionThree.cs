@@ -8,7 +8,12 @@ public class SelectActionThree : PlayerAction
 {
     public override void Activate(InputManager input)
     {
-        if (input.player.currentlySelectedUnit.actions.Count >= 3)
-            input.player.SelectAction(input.player.currentlySelectedUnit.actions[2]);
+        if (input.player.currentlySelectedUnit.actions.Count >= 2 &&
+            input.player.currentlySelectedAction != input.player.currentlySelectedUnit.actions[1])
+            input.player.SelectAction(input.player.currentlySelectedUnit.actions[1]);
+        else
+        {
+            input.player.SelectAction(input.player.currentlySelectedUnit.move);
+        }
     }
 }

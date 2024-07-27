@@ -1,55 +1,417 @@
 using CodeMonkey.Utils;
+using Inventory.Model;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Diagnostics;
 using UnityEngine.Tilemaps;
 
-public class CombatGameManager : MonoBehaviour
+public class CombatGameManager : MonoBehaviour, IDataPersistence
 {
+    [SerializeField]
     public ResourceManager resourceManager;
+    [SerializeField]
+    public DataPersistenceManager dataPersistenceManager;
+
+    [SerializeField]
+    public CombatMapGenerator combatMapGenerator;
     public SpriteManager spriteManager;
     public DijkstraMap map;
     public GridHex<GridPosition> grid;
-    public GameObject player;
     public List<AStarPathNode> movement;
 
     public List<Unit> units = new List<Unit>();
     public List<IInititiave> allinitiativeGroups = new List<IInititiave>();
     public List<IInititiave> initiativeOrder = new List<IInititiave>();
-
-    public PlayerTurn playerTurn;
+    
     public bool playerTurnActive = false;
+    public PlayerTurn playerTurn;
+    public AITurn enemyTurn;
+    public Move move;
 
-    public Move move;   
+    public bool startOfCombat = true;
+    public bool playingAnimation = false;
+
+    public int mapSize = 32;
 
     public Vector3 defaultGridAdjustment = Vector3.zero;
     public float cellSize;
     // Start is called before the first frame update
     void Awake()
     {
-        OnStartGame(10, 10);
+        OnStartGame(mapSize, mapSize);
+        dataPersistenceManager =  DataPersistenceManager.Instance;
+    }
+
+    public void Start()
+    {
+        dataPersistenceManager.LoadGame();
+        enabled = false;
+        startOfCombat = true; 
+    }
+
+    public void StartCombat()
+    {
+        if (!startOfCombat)
+        {
+            return;
+        }
+        enabled = true;
+        startOfCombat = false;
+    }
+
+    public void LoadData(WorldMapData mapData = null)
+    {
+        Debug.Log("Load Game");
+        List<UnitSuperClass> frontLineUnits = new List<UnitSuperClass>();
+        for (int i = 0; i < mapData.frontLineData.Count; i++)
+        {
+            battleLineData frontLineUnit = mapData.frontLineData[i];
+            if(frontLineUnit.unitGroupData.mercenaryIndex != -1)
+            {
+                UnitGroup newUnitGroup = Instantiate(resourceManager.mercenaries[frontLineUnit.unitGroupData.mercenaryIndex]);
+                newUnitGroup.gameManager = this;
+                newUnitGroup.team = Team.Player;
+                for (int j = 0; j < newUnitGroup.transform.childCount; j++)
+                {
+                    Unit childUnit = newUnitGroup.transform.GetChild(j).GetComponent<Unit>();
+                    childUnit.group = newUnitGroup;
+                    childUnit.team = Team.Player;
+                    childUnit.gameManager = this;
+                    newUnitGroup.units.Add(childUnit);
+                }
+                frontLineUnits.Add(newUnitGroup);
+            }
+            else
+            {
+                unitLoadoutData hero = mapData.playerHeroes[i];
+                Unit newHero = Instantiate(resourceManager.emptyHero);
+                newHero.gameManager = this;
+                newHero.team = Team.Player;
+                newHero.transform.SetParent(gameObject.transform);
+                newHero.unitClass = resourceManager.job[hero.jobIndex];
+
+                for (int j = 0; j < hero.skillTree1Branch1Unlocks.Count; j++)
+                {
+                    if (hero.skillTree1Branch1Unlocks[j])
+                    {
+                        newHero.unitClass.skillTree1.branch1.BranchSkills[j].UnlockSkill(newHero);
+                    }
+                }
+
+                for (int j = 0; j < hero.skillTree1Branch2Unlocks.Count; j++)
+                {
+                    if (hero.skillTree1Branch2Unlocks[j])
+                    {
+                        newHero.unitClass.skillTree1.branch2.BranchSkills[j].UnlockSkill(newHero);
+                    }
+                }
+
+                for (int j = 0; j < hero.skillTree2Branch1Unlocks.Count; j++)
+                {
+                    if (hero.skillTree2Branch1Unlocks[j])
+                    {
+                        newHero.unitClass.skillTree2.branch1.BranchSkills[j].UnlockSkill(newHero);
+                    }
+                }
+
+                for (int j = 0; j < hero.skillTree2Branch2Unlocks.Count; j++)
+                {
+                    if (hero.skillTree2Branch2Unlocks[j])
+                    {
+                        newHero.unitClass.skillTree2.branch2.BranchSkills[j].UnlockSkill(newHero);
+                    }
+                }
+
+                if(hero.helmetIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.helmetIndex];
+                    item.EquipItem(newHero);
+                }
+                if (hero.armorIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.armorIndex];
+                    item.EquipItem(newHero);
+                }
+                if (hero.bootsIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.bootsIndex];
+                    item.EquipItem(newHero);
+                }
+                if (hero.mainHandIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.mainHandIndex];
+                    item.EquipItem(newHero);
+                }
+                if (hero.offHandIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.offHandIndex];
+                    item.EquipItem(newHero);
+                }
+                if (hero.item1Index != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.item1Index];
+                    item.EquipItem(newHero);
+                }
+                if (hero.item2Index != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.item2Index];
+                    item.EquipItem(newHero);
+                }
+                if (hero.item3Index != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.item3Index];
+                    item.EquipItem(newHero);
+                }
+                if (hero.item4Index != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.item4Index];
+                    item.EquipItem(newHero);
+                }
+                frontLineUnits.Add(newHero);
+            }
+        }
+
+        List<UnitSuperClass> backLineUnits = new List<UnitSuperClass>();
+        for (int i = 0; i < mapData.backLineData.Count; i++)
+        {
+            battleLineData backLineUnit = mapData.backLineData[i];
+            if (backLineUnit.unitGroupData.mercenaryIndex != -1)
+            {
+                UnitGroup newUnitGroup = Instantiate(resourceManager.mercenaries[backLineUnit.unitGroupData.mercenaryIndex]);
+                newUnitGroup.gameManager = this;
+                for(int j = 0; j < newUnitGroup.transform.childCount; j++)
+                {
+                    Unit childUnit = newUnitGroup.transform.GetChild(j).GetComponent<Unit>();
+                    childUnit.team = Team.Player;
+                    childUnit.gameManager = this;
+                    childUnit.group = newUnitGroup;
+                    newUnitGroup.units.Add(childUnit);
+                }
+                newUnitGroup.team = Team.Player;
+                backLineUnits.Add(newUnitGroup);
+            }
+            else
+            {
+                unitLoadoutData hero = mapData.backLineData[i].unitData;
+                Unit newHero = Instantiate(resourceManager.emptyHero);
+                newHero.gameManager = this;
+                newHero.team = Team.Player;
+                newHero.transform.SetParent(gameObject.transform);
+                newHero.unitClass = resourceManager.job[hero.jobIndex];
+
+                for (int j = 0; j < hero.skillTree1Branch1Unlocks.Count; j++)
+                {
+                    if (hero.skillTree1Branch1Unlocks[j])
+                    {
+                        newHero.unitClass.skillTree1.branch1.BranchSkills[j].UnlockSkill(newHero);
+                    }
+                }
+
+                for (int j = 0; j < hero.skillTree1Branch2Unlocks.Count; j++)
+                {
+                    if (hero.skillTree1Branch2Unlocks[j])
+                    {
+                        newHero.unitClass.skillTree1.branch2.BranchSkills[j].UnlockSkill(newHero);
+                    }
+                }
+
+                for (int j = 0; j < hero.skillTree2Branch1Unlocks.Count; j++)
+                {
+                    if (hero.skillTree2Branch1Unlocks[j])
+                    {
+                        newHero.unitClass.skillTree2.branch1.BranchSkills[j].UnlockSkill(newHero);
+                    }
+                }
+
+                for (int j = 0; j < hero.skillTree2Branch2Unlocks.Count; j++)
+                {
+                    if (hero.skillTree2Branch2Unlocks[j])
+                    {
+                        newHero.unitClass.skillTree2.branch2.BranchSkills[j].UnlockSkill(newHero);
+                    }
+                }
+
+                if (hero.helmetIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.helmetIndex];
+                    item.EquipItem(newHero);
+                }
+                if (hero.armorIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.armorIndex];
+                    item.EquipItem(newHero);
+                }
+                if (hero.bootsIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.bootsIndex];
+                    item.EquipItem(newHero);
+                }
+                if (hero.mainHandIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.mainHandIndex];
+                    item.EquipItem(newHero);
+                }
+                if (hero.offHandIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.offHandIndex];
+                    item.EquipItem(newHero);
+                }
+                if (hero.item1Index != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.item1Index];
+                    item.EquipItem(newHero);
+                }
+                if (hero.item2Index != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.item2Index];
+                    item.EquipItem(newHero);
+                }
+                if (hero.item3Index != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.item3Index];
+                    item.EquipItem(newHero);
+                }
+                if (hero.item4Index != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.item4Index];
+                    item.EquipItem(newHero);
+                }
+                backLineUnits.Add(newHero);
+            }
+        }
+
+        List<UnitSuperClass> enemyUnits1 = new List<UnitSuperClass>();
+        for (int i = 0; i < mapData.enemyUnits1.Count; i++)
+        {
+            battleLineData enemyUnit = mapData.enemyUnits1[i];
+            if (enemyUnit.unitGroupData.mercenaryIndex != -1)
+            {
+                UnitGroup newUnitGroup = Instantiate(resourceManager.mercenaries[enemyUnit.unitGroupData.mercenaryIndex]);
+                newUnitGroup.gameManager = this;
+                newUnitGroup.team = Team.Team2;
+                for (int j = 0; j < newUnitGroup.transform.childCount; j++)
+                {
+                    Unit childUnit = newUnitGroup.transform.GetChild(j).GetComponent<Unit>();
+                    childUnit.team = Team.Team2;
+                    childUnit.gameManager = this;
+                    childUnit.group = newUnitGroup;
+                    newUnitGroup.units.Add(childUnit);
+                }
+            enemyUnits1.Add(newUnitGroup);
+            }
+            else
+            {
+                Unit newHero = Instantiate(resourceManager.heroes[enemyUnit.unitData.heroIndex]);   
+                newHero.gameManager = this;
+                newHero.team = Team.Team2;
+                newHero.transform.SetParent(gameObject.transform);
+                enemyUnits1.Add(newHero);
+            }
+        }
+
+        List<UnitSuperClass> enemyUnits2 = new List<UnitSuperClass>();
+        for (int i = 0; i < mapData.enemyUnits2.Count; i++)
+        {
+            battleLineData enemyUnit = mapData.enemyUnits2[i];
+            if (enemyUnit.unitGroupData.mercenaryIndex != -1)
+            {
+                UnitGroup newUnitGroup = Instantiate(resourceManager.mercenaries[enemyUnit.unitGroupData.mercenaryIndex]);
+                newUnitGroup.gameManager = this;
+                newUnitGroup.team = Team.Team3;
+                for (int j = 0; j < newUnitGroup.transform.childCount; j++)
+                {
+                    Unit childUnit = newUnitGroup.transform.GetChild(j).GetComponent<Unit>();
+                    childUnit.team = Team.Team3;
+                    childUnit.gameManager = this;
+                    childUnit.group = newUnitGroup;
+                    newUnitGroup.units.Add(childUnit);
+                }
+                enemyUnits2.Add(newUnitGroup);
+            }
+            else
+            {
+                Unit newHero = Instantiate(resourceManager.heroes[enemyUnit.unitData.heroIndex]);
+                newHero.gameManager = this;
+                newHero.team = Team.Team3;
+                newHero.transform.SetParent(gameObject.transform);
+                enemyUnits2.Add(newHero);
+            }
+        }
+
+        List<UnitSuperClass> allyUnits = new List<UnitSuperClass>();
+        for (int i = 0; i < mapData.allyUnits.Count; i++)
+        {
+            battleLineData enemyUnit = mapData.allyUnits[i];
+            if (enemyUnit.unitGroupData.mercenaryIndex != -1)
+            {
+                UnitGroup newUnitGroup = Instantiate(resourceManager.mercenaries[enemyUnit.unitGroupData.mercenaryIndex]);
+                newUnitGroup.gameManager = this;
+                newUnitGroup.team = Team.Team4;
+                for (int j = 0; j < newUnitGroup.transform.childCount; j++)
+                {
+                    Unit childUnit = newUnitGroup.transform.GetChild(j).GetComponent<Unit>();
+                    childUnit.team = Team.Team4;
+                    childUnit.gameManager = this;
+                    childUnit.group = newUnitGroup;
+                    newUnitGroup.units.Add(childUnit);
+                }
+                allyUnits.Add(newUnitGroup);
+            }
+            else
+            {
+                Unit newHero = Instantiate(resourceManager.heroes[enemyUnit.unitData.heroIndex]);
+                newHero.gameManager = this;
+                newHero.team = Team.Team4;
+                newHero.transform.SetParent(gameObject.transform);
+                allyUnits.Add(newHero);
+            }
+        }
+
+
+        if (mapData.inCombat == false)
+        {
+            //Puts enemy units into a frontLine and BackLine, 0  - FrontLine, 1 - BackLine
+            List<List<UnitSuperClass>> enemyUnits1BattleLines =  enemyTurn.LoadEnemyPositions(mapData.missionUnitPlacementName, 
+                enemyUnits1);
+            combatMapGenerator.InitializeCombatMapGenerator(grid, mapSize, mapData.missionType, mapData.missionUnitPlacementName,
+                mapData.missionProviderFaction, mapData.missionTargetFaction, mapData.missionAdditionalFaction, frontLineUnits, 
+                backLineUnits, enemyUnits1BattleLines[0], enemyUnits1BattleLines[1]);
+            combatMapGenerator.GenerateTerrain();
+            combatMapGenerator.PlaceUnits();
+        }
+    }
+
+    public void SaveData(WorldMapData mapData = null)
+    {
+        throw new System.NotImplementedException();
     }
 
     public void Update()
     {
-        NextTurn();
-        enabled = false;
+        if (!playingAnimation)
+        {
+            NextTurn();
+        }
     }
 
     public void NextTurn()
     {
-        if(initiativeOrder.Count == 0)
+        enabled = false;
+        // Round End
+        if (initiativeOrder.Count == 0)
         {
             setInitiativeOrder();
+            ResetUnitActionAmounts();
         }
         initiativeOrder[initiativeOrder.Count - 1].StartTurn();
     }
 
     public void OnStartGame(int mapWidth, int mapHeight)
     {
-        grid = new GridHex<GridPosition>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<GridPosition> g, int x, int y) => new GridPosition(g, x, y), true);
-        map = new DijkstraMap(10, 10, cellSize,  defaultGridAdjustment, false);
+        grid = new GridHex<GridPosition>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<GridPosition> g, int x, int y) => new GridPosition(g, x, y), false);
+        map = new DijkstraMap(mapWidth, mapHeight, cellSize,  defaultGridAdjustment, false);
+        spriteManager.CreateGrid(mapWidth, mapHeight, cellSize, defaultGridAdjustment);
     }
 
     public void StartPlayerTurn(Unit unit)
@@ -65,11 +427,21 @@ public class CombatGameManager : MonoBehaviour
 
     public void TurnEnd(IInititiave initiativeGroup)
     {
-        Debug.Log("End Turn");
         initiativeOrder.Remove(initiativeGroup);
-        NextTurn();
+        enabled = true;
     }
 
+    public void ResetUnitActionAmounts()
+    {
+        for(int i = 0; i < units.Count; i++)
+        {
+            units[i].amountMoveUsedDuringRound = 0;
+            for(int j = 0; j < units[i].amountActionUsedDuringRound.Count; j++)
+            {
+                units[i].amountActionUsedDuringRound[j] = 0;
+            }
+        }
+    }
 
     public void setInitiativeOrder()
     {

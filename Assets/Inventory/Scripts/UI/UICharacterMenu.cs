@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Inventory.UI
 {
@@ -19,7 +20,15 @@ namespace Inventory.UI
         [SerializeField]
         private MenuInputManager menuInputManager;
 
+        [SerializeField]
+        private Button heroButton;
+
+        [SerializeField]
+        private Button mercenaryButton;
+
         public List<UICharacterProfile> listOfUIProfiles = new List<UICharacterProfile>();
+
+        public bool allowCharacterSwap = true;
 
         private int currentlyDraggedItemIndex = -1;
 
@@ -28,10 +37,14 @@ namespace Inventory.UI
             OnStartDragging;
 
         public event Action<int, int> OnSwapItems;
+        public event Action<int> OnItemDropped;
+
+        // true = hero button pressed, false = merc button pressed
+        public event Action<bool> OnCategoryButtonPressed;
 
         public void Start()
         {
-            menuInputManager.OnMouseUp += ResetDraggedItem;
+            menuInputManager.ResetDragUI += ResetDraggedItem;
         }
 
         public void InitializeCharacterMenuUI(int menuSize)
@@ -50,6 +63,7 @@ namespace Inventory.UI
             uiItem.OnCharacterClicked += HandleItemSelection;
             uiItem.OnCharacterBeginDrag += HandleBeginDrag;
             uiItem.OnCharacterDroppedOn += HandleSwap;
+            uiItem.OnCharacterDroppedOn += HandleItemDroppedOnMissionStart;
             uiItem.OnCharacterEndDrag += HandleEndDrag;
             uiItem.OnRightMouseBtnClick += HandleShowItemActions;
         }
@@ -85,18 +99,7 @@ namespace Inventory.UI
             //ResetDraggedItem();
         }
 
-        private void HandleSwap(UICharacterProfile inventoryItemUI)
-        {
-            int index = listOfUIProfiles.IndexOf(inventoryItemUI);
-            if (index == -1)
-            {
-                return;
-            }
-            OnSwapItems?.Invoke(currentlyDraggedItemIndex, index);
-            HandleItemSelection(inventoryItemUI);
-        }
-
-        private void ResetDraggedItem(EquipSlot ignore =  null)
+        private void ResetDraggedItem(EquipSlot ignore = null)
         {
             mouseFollower.Toggle(false);
             currentlyDraggedItemIndex = -1;
@@ -120,6 +123,15 @@ namespace Inventory.UI
             mouseFollower.SetData(sprite);
         }
 
+        public void SelectProfile(int profileIndex)
+        {
+            if (profileIndex == -1)
+            {
+                return;
+            }
+            listOfUIProfiles[profileIndex].Select();
+        }
+
         private void HandleItemSelection(UICharacterProfile inventoryItemUI)
         {
             int index = listOfUIProfiles.IndexOf(inventoryItemUI);
@@ -132,6 +144,27 @@ namespace Inventory.UI
             OnProfileClicked?.Invoke(index);
         }
 
+        private void HandleSwap(UICharacterProfile inventoryItemUI)
+        {
+            int index = listOfUIProfiles.IndexOf(inventoryItemUI);
+            if (index == -1 || !allowCharacterSwap)
+            {
+                return;
+            }
+            OnSwapItems?.Invoke(currentlyDraggedItemIndex, index);
+            HandleItemSelection(inventoryItemUI);
+        }
+
+        private void HandleItemDroppedOnMissionStart(UICharacterProfile inventoryItemUI)
+        {
+            int index = listOfUIProfiles.IndexOf(inventoryItemUI);
+            if (index == -1)
+            {
+                return;
+            }
+            OnItemDropped?.Invoke(index);
+        }
+
         public UICharacterProfile GetCharacterProfile(int index)
         {
             return listOfUIProfiles[index];
@@ -142,9 +175,9 @@ namespace Inventory.UI
             DeselectAllItems();
         }
 
-        private void DeselectAllItems()
+        public virtual void DeselectAllItems()
         {
-            for(int i =0; i < listOfUIProfiles.Count; i++)
+            for(int i = 0; i < listOfUIProfiles.Count; i++)
             {
                 if (listOfUIProfiles[i] != null)
                 {
@@ -153,6 +186,45 @@ namespace Inventory.UI
             }
         }
 
+        public void ClearCharacterProfiles()
+        {
+            for(int i = 0; i < listOfUIProfiles.Count; i++)
+            {
+                if (listOfUIProfiles[i] != null)
+                {
+                    Destroy(listOfUIProfiles[i].gameObject);
+                }
+            }
+            listOfUIProfiles = new List<UICharacterProfile>();
+        }
+
+        public void OnMenuOpened()
+        {
+            heroButton.interactable = false;
+            mercenaryButton.interactable = true;
+        }
+
+        public void OnHeroesButtonPresed()
+        {
+            heroButton.interactable = false;
+            mercenaryButton.interactable = true;
+            ClearCharacterProfiles();
+            OnCategoryButtonPressed?.Invoke(true);
+        }
+
+        public void OnMercenariesButtonPressed()
+        {
+            heroButton.interactable = true;
+            mercenaryButton.interactable = false;
+            ClearCharacterProfiles();
+            OnCategoryButtonPressed?.Invoke(false);
+
+        }
+
+        public int GetCurrentlyDraggedIndex()
+        {
+            return currentlyDraggedItemIndex;
+        }
 
         internal void ResetAllItems()
         {
