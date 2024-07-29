@@ -9,7 +9,7 @@ public class SpriteNode
     public int y;
     public GameManager gameManager;
     // [ Unit]
-    public SpriteRenderer[] sprites = new SpriteRenderer[1];
+    public SpriteRenderer[] sprites = new SpriteRenderer[2];
     public SpriteNode(GridHex<SpriteNode> grid, int x, int y)
     {
         this.grid = grid;

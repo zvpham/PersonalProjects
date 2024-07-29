@@ -8,6 +8,7 @@ using UnityEngine.WSA;
 
 public class SpriteManager : MonoBehaviour
 {
+    [SerializeField] private List<LineController> lineControllers;
     [SerializeField] private LineController oneActionLineController;
     [SerializeField] private LineController twoActionLineController;
     [SerializeField] private CombatGameManager combatGameManager;
@@ -157,9 +158,21 @@ public class SpriteManager : MonoBehaviour
         }
     }
 
+    public void DrawLine(List<Vector3> linePath, int lineControllerIndex)
+    {
+        if (linePath != null)
+        {
+            lineControllers[lineControllerIndex].SetLine(linePath);
+        }
+    }
+
     public void ClearLines()
     {
         List<Vector3> emptyList = new List<Vector3>();
+        for(int i = 0; i < lineControllers.Count; i++)
+        {
+            lineControllers[i].SetLine(emptyList);
+        }
         oneActionLineController.SetLine(emptyList);
         twoActionLineController.SetLine(emptyList);
     }
@@ -217,10 +230,10 @@ public class SpriteManager : MonoBehaviour
        tileMaps[tilemapIndex].SetTile(currentNodePosition, resourceManager.BaseTile[hexIndex]);
     }
 
-    public GameObject CreateTempSpriteHolder(Vector2Int hexPosition, Sprite sprite)
+    public GameObject CreateTempSpriteHolder(Vector2Int hexPosition, int spriteLayer, Sprite sprite)
     {
         Vector3 worldPosition = combatGameManager.grid.GetWorldPosition(hexPosition.x, hexPosition.y);
-        return CreateSpriteRenderer(0, -7, sprite, worldPosition);
+        return CreateSpriteRenderer(spriteLayer, -7, sprite, worldPosition);
     }
 
     public GameObject CreateSpriteRenderer(int index, int sortingOrder, Sprite sprite, Vector3 objectPosition)

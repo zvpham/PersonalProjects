@@ -71,7 +71,7 @@ public class MeleeTargeting : TargetingSystem
     public void SetUp(Vector3 targetPosition, int numActionPoints, int moveSpeed)
     {
         ResetSetUp();
-
+        Debug.Log("Set UP");
         DijkstraMap map = gameManager.map;
         map.getGrid().GetXY(targetPosition, out int x, out int y);
         map.ResetMap(true);
@@ -98,6 +98,8 @@ public class MeleeTargeting : TargetingSystem
         possibleMoveAmounts = moveAmounts;
 
         List<DijkstraMapNode> mapNodes = new List<DijkstraMapNode>();
+        List<DijkstraMapNode> unresolvedMapNodes = new List<DijkstraMapNode>();
+        rangeBrackets = new List<List<Vector2Int>>();
 
         int currentRadius = 1;
         if(moveAmounts > 0)
@@ -105,20 +107,58 @@ public class MeleeTargeting : TargetingSystem
             canStillMove = true;
             for (int i = 1; i <= moveAmounts; i++)
             {
+
+                rangeBrackets.Add(new List<Vector2Int>());
+                for (int j = 0; j < unresolvedMapNodes.Count; j++)
+                {
+                    Vector2Int currentNodePosition = new Vector2Int(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y);
+                    if (map.getGrid().GetGridObject(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y).value <= moveSpeed * i)
+                    {
+                        gameManager.spriteManager.ChangeTile(currentNodePosition, 1, i + 1);
+                        rangeBrackets[i - 1].Add(currentNodePosition);
+                        highlightedPositions.Add(currentNodePosition);
+                        unresolvedMapNodes.RemoveAt(j);
+                        j--;
+                    }
+                }
+
                 for (int j = currentRadius; j <= meleeRange + moveSpeed * i; j++)
                 {
                     mapNodes = map.getGrid().GetGridObjectsInRing(x, y, j);
                     for (int k = 0; k < mapNodes.Count; k++)
                     {
-                        Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
-                        if (map.getGrid().GetGridObject(mapNodes[j].x, mapNodes[j].y).value <= moveSpeed * i)
+                        Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
+                        if (map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * i)
                         {
-                            gameManager.spriteManager.ChangeTile(currentNodePosition, 1, 2);
+                            gameManager.spriteManager.ChangeTile(currentNodePosition, 1, i + 1);
+                            rangeBrackets[i - 1].Add(currentNodePosition);
                             firstRangeBracket.Add(currentNodePosition);
                             highlightedPositions.Add(currentNodePosition);
                         }
+                        else
+                        {
+                            unresolvedMapNodes.Add(mapNodes[k]);
+                        }
                     }
                     currentRadius += 1;
+                }
+            }
+        }
+        else
+        {
+            canStillMove = false;
+            for (int i = 1; i <= meleeRange; i++)
+            {
+                mapNodes = map.getGrid().GetGridObjectsInRing(x, y, i);
+                for (int j = 0; j < mapNodes.Count; j++)
+                {
+                    Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
+                    Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
+                    if (targetUnit != null && targetUnit.team != movingUnit.team && map.getGrid().GetGridObject(mapNodes[j].x, mapNodes[j].y).value <= meleeRange)
+                    {
+                        gameManager.spriteManager.ChangeTile(currentNodePosition, 1, 5);
+                        highlightedTargetedPositions.Add(currentNodePosition);
+                    }
                 }
             }
         }
@@ -222,6 +262,12 @@ public class MeleeTargeting : TargetingSystem
         {
             gameManager.spriteManager.ChangeTile(highlightedTargetedPositions[i], 1, 0);
         }
+
+        for (int i = 0; i < highlightedHexes.Count; i++)
+        {
+            gameManager.spriteManager.ChangeTile(highlightedHexes[i], 2, 0);
+        }
+
         highlightedTargetedPositions = new List<Vector2Int>();
     }
 
@@ -430,7 +476,7 @@ public class MeleeTargeting : TargetingSystem
                             () => // Confirm Action
                             {
                                 selectedTarget = true;
-                                gameManager.move.AnotherActionMove(setPath, movingUnit);
+                                //gameManager.move.AnotherActionMove(setPath, movingUnit);
                                 OnFoundTarget?.Invoke(setPath, movingUnit, targetUnit, true);
                                 Destroy(tempMovingUnit);
                             },
@@ -443,13 +489,13 @@ public class MeleeTargeting : TargetingSystem
                     else
                     {
                         endPathHex = setPath[setPath.Count - 1];
-                        tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, movingUnit.unitProfile);
+                        tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
                         SetUp(map.getGrid().GetWorldPosition(setPath[setPath.Count - 1]), 0, movingUnit.moveSpeed);
                         gameManager.spriteManager.ActivateActionConfirmationMenu(
                             () => // Confirm Action
                             {
                                 selectedTarget = true;
-                                gameManager.move.AnotherActionMove(setPath, movingUnit);
+                                //gameManager.move.AnotherActionMove(setPath, movingUnit);
                                 OnFoundTarget?.Invoke(setPath, movingUnit, targetUnit, true);
                                 Destroy(tempMovingUnit);
                             },
@@ -475,12 +521,12 @@ public class MeleeTargeting : TargetingSystem
                     }
 
                     Destroy(tempMovingUnit);
-                    tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, movingUnit.unitProfile);
+                    tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
                     SetUp(map.getGrid().GetWorldPosition(setPath[setPath.Count - 1]), actionPointsLeft, movingUnit.moveSpeed);
                     gameManager.spriteManager.ActivateActionConfirmationMenu(
                         () => // Confirm Action
                         {
-                            gameManager.move.AnotherActionMove(setPath, movingUnit);
+                            //gameManager.move.AnotherActionMove(setPath, amountMoved movingUnit);
                             Destroy(tempMovingUnit);
                         },
                         () => // Cancel Action
@@ -491,112 +537,6 @@ public class MeleeTargeting : TargetingSystem
                 }
             }
         }
-
-        /*
-        // if there has already been a selected hex
-        if (prevEndHexPosition.x >= 0)
-        {
-            if(endHexPosition == prevEndHexPosition)
-            {
-                gameManager.spriteManager.ConfirmAction();
-            }
-            else
-            {
-                prevEndHexPosition = new Vector2Int(-1, -1);
-                Vector2Int endPathHex = path[path.Count - 1];
-                Unit targetUnit = gameManager.grid.GetGridObject(endPathHex.x, endPathHex.y).unit;
-                Destroy(tempMovingUnit);
-
-                if (targetUnit != null && targetUnit.team != Team.Player && targetInRange)
-                {
-                    tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, movingUnit.unitProfile);
-                    gameManager.spriteManager.ActivateActionConfirmationMenu(
-                        () => // Confirm Action
-                        {
-                            OnFoundTarget?.Invoke(path, movingUnit, null, true);
-                            Destroy(tempMovingUnit);
-                        },
-                        () => // Cancel Action
-                        {
-                            ResetTargeting();
-                        });
-                }
-            }
-        }
-        // no previously selected hex
-        else
-        {
-            // Select Player Unit when you aren't using a friendly ability like heal
-            if (!targetFriendly && gameManager.playerTurn.CheckSpaceForFriendlyUnit(endHexPosition))
-            {
-                OnFoundTarget?.Invoke(null, movingUnit, false);
-                gameManager.playerTurn.SelectUnit(endHexPosition);
-            }
-            else
-            {
-                prevEndHexPosition =  endHexPosition;
-                Vector2Int endPathHex = path[path.Count - 1];
-
-                //if there is still action Points left Add temp Path to Set Path
-                if (actionPointsLeft > 0)
-                {
-                    prevEndHexPosition = endHexPosition;
-                    for (int i = 0; i < path.Count; i++)
-                    {
-                        setPath.Add(path[i]);
-                    }
-                }
-
-                Unit targetUnit = gameManager.grid.GetGridObject(endPathHex.x, endPathHex.y).unit;
-                //Target Unit
-                if (targetUnit != null && targetUnit.team != Team.Player && targetInRange)
-                {
-                    tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, movingUnit.unitProfile);
-                    SetUp(map.getGrid().GetWorldPosition(setPath[setPath.Count - 2]), 0, movingUnit.moveSpeed);
-                    gameManager.spriteManager.ActivateActionConfirmationMenu(
-                        () => // Confirm Action
-                        {
-                            selectedTarget = true;
-                            OnFoundTarget?.Invoke(setPath, movingUnit, true);
-                            Destroy(tempMovingUnit);
-                        },
-                        () => // Cancel Action
-                        {
-                            ResetTargeting();
-                        });
-                } 
-                //no Unit in target hex -  Prep Player to move
-                else if(targetUnit == null)
-                {
-                    if (firstRangeBracket.Contains(endPathHex))
-                    {
-                        actionPointsLeft -= amountMoved + 1;
-                        amountMoved += 1;
-                    }
-                    else if (secondRangeBracket.Contains(endPathHex))
-                    {
-                        actionPointsLeft -= amountMoved + 1;
-                        actionPointsLeft -= amountMoved + 2;
-                        amountMoved += 2;
-                    }
-
-                    tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, movingUnit.unitProfile);
-                    SetUp(map.getGrid().GetWorldPosition(setPath[setPath.Count - 1]), actionPointsLeft, movingUnit.moveSpeed);
-                    gameManager.spriteManager.ActivateActionConfirmationMenu(
-                        () => // Confirm Action
-                        {
-                            gameManager.move.AnotherActionMove(path, movingUnit);
-                            Destroy(tempMovingUnit);
-                        },
-                        () => // Cancel Action
-                        {
-                            ResetTargeting();
-                        });
-                }
-        
-            }
-        }
-        */
     }
 
     public void ResetTargeting()
@@ -608,11 +548,7 @@ public class MeleeTargeting : TargetingSystem
         prevEndHexPosition = new Vector2Int(-1, -1);
         path = new List<Vector2Int>();
         setPath = new List<Vector2Int>();
-
-        for (int i = 0; i < highlightedHexes.Count; i++)
-        {
-            gameManager.spriteManager.ChangeTile(highlightedHexes[i], 2, 0);
-        }
+        
         gameManager.spriteManager.ClearLines();
 
         actionPointsLeft = movingUnit.currentActionsPoints;
@@ -622,8 +558,8 @@ public class MeleeTargeting : TargetingSystem
 
     public override void DeactivateTargetingSystem()
     {
-        ResetSetUp();
         ResetTargeting();
+        ResetSetUp();
         map.ResetMap(true);
         OnFoundTarget = null;
     }

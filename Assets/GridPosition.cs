@@ -19,10 +19,13 @@ public class GridPosition
 
     public override string ToString()
     {
+        /*
         if(unit == null)
         {
             return " ";
         }
         return unit.ToString();
+        */
+        return x.ToString() + ", " + y.ToString();
     }
 }

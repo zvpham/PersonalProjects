@@ -215,7 +215,7 @@ public class ConeTargeting : TargetingSystem
         {
             prevEndHexPosition = new Vector2Int(-1, -1);
             Vector2Int endPathHex = path[path.Count - 1];
-            tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, movingUnit.GetComponent<SpriteRenderer>().sprite);
+            tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.GetComponent<SpriteRenderer>().sprite);
             gameManager.spriteManager.ActivateActionConfirmationMenu(
                 () => // Confirm Action
                 {
@@ -251,11 +251,11 @@ public class ConeTargeting : TargetingSystem
 
                 SetUp(map.getGrid().GetWorldPosition(endPathHex), actionPointsLeft, movingUnit.moveSpeed);
 
-                tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, movingUnit.GetComponent<SpriteRenderer>().sprite);
+                tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.GetComponent<SpriteRenderer>().sprite);
                 gameManager.spriteManager.ActivateActionConfirmationMenu(
                     () => // Confirm Action
                     {
-                        gameManager.move.AnotherActionMove(path, movingUnit);
+                        //gameManager.move.AnotherActionMove(path, movingUnit);
                         Destroy(tempMovingUnit);
                     },
                     () => // Cancel Action
