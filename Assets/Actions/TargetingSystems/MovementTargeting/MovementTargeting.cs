@@ -496,7 +496,8 @@ public class MovementTargeting : TargetingSystem
     {
         Destroy(tempMovingUnit);
         tempMovingUnit = null;
-        setPath.Clear();
+        setPath = new List<Vector2Int>();
+        path = new List<Vector2Int>();
         prevEndHexPosition = new Vector2Int(-1, -1);
         actionMoveAmounts = new List<int>();
         actionLines = new List<List<Vector3>>();
@@ -516,8 +517,6 @@ public class MovementTargeting : TargetingSystem
         ResetSetUp();
         ResetTargeting();
         map.ResetMap(true);
-        setPath = new List<Vector2Int>();
-        path = new List<Vector2Int>();
         OnFoundTarget = null;
     }
 
@@ -527,9 +526,6 @@ public class MovementTargeting : TargetingSystem
         {
             return;
         }
-
-        //List<Vector3> oneActionLine = new List<Vector3>();
-        //List<Vector3> twoActionLine = new List<Vector3>();
 
         if(IndexOfStartingActionLine > 0)
         {

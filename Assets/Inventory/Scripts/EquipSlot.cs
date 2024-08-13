@@ -19,6 +19,7 @@ public class EquipSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IBeg
     public int EquipSlotIndex = -1;
 
     public EquipType equipType;
+    public bool isBackUp = false;
     public bool disabledDueToMercenary = false;
     public bool missionStart = false;
 
@@ -32,7 +33,7 @@ public class EquipSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IBeg
 
     public void AddItem(EquipableItemSO item, Unit unit, bool onLoad = false)
     {
-        if(unit == null)
+        if(unit == null || item == null)
         {
             return;
         }
@@ -61,14 +62,28 @@ public class EquipSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IBeg
                 unit.legs = item;
                 break;
             case (EquipType.MainHand):
-                unit.mainHand = item;
+                if (isBackUp)
+                {
+                    unit.backUpMainHand = item;
+                }
+                else
+                {
+                    unit.mainHand = item;
+                }
                 break;
             case (EquipType.OffHand):
-                unit.offHand = item;
+                if (isBackUp)
+                {
+                    unit.backUpOffHand = item;
+                }
+                else
+                {
+                    unit.offHand = item;
+                }
                 break;
         }
         currentItem = item;
-        item.EquipItem(unit);
+        item.EquipItem(unit, isBackUp);
     }
 
     public void RemoveItem(Unit unit, bool onLoad = false)
@@ -105,17 +120,36 @@ public class EquipSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IBeg
                 unit.legs = null;
                 break;
             case (EquipType.MainHand):
-                item = unit.mainHand;
-                unit.mainHand = null;
+                if (isBackUp)
+                {
+                    item = unit.backUpMainHand;
+                    unit.backUpMainHand = null;
+                }
+                else
+                {
+                    item = unit.mainHand;
+                    unit.mainHand = null;
+                }
                 break;
             case (EquipType.OffHand):
-                item = unit.offHand;
-                unit.offHand = null;
+                if (isBackUp)
+                {
+                    item = unit.backUpOffHand;
+                    unit.backUpOffHand = null;
+                }
+                else
+                {
+                    item = unit.offHand;
+                    unit.offHand = null;
+                }
                 break;
         }
         ClearItem();
         currentItem = null;
-        item.UnequipItem(unit);
+        if(item != null)
+        {
+            item.UnequipItem(unit, isBackUp);
+        }
     }
 
     public void OnPointerClick(PointerEventData pointerData)

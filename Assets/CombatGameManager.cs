@@ -84,7 +84,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
             }
             else
             {
-                unitLoadoutData hero = mapData.playerHeroes[i];
+                unitLoadoutData hero = mapData.frontLineData[i].unitData;
                 Unit newHero = Instantiate(resourceManager.emptyHero);
                 newHero.gameManager = this;
                 newHero.team = Team.Player;
@@ -167,6 +167,16 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
                 {
                     EquipableItemSO item = resourceManager.allItems[hero.item4Index];
                     item.EquipItem(newHero);
+                }
+                if (hero.backUpMainHandIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.backUpMainHandIndex];
+                    item.EquipItem(newHero, true);
+                }
+                if (hero.backUpOffHandIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.backUpOffHandIndex];
+                    item.EquipItem(newHero, true);
                 }
                 frontLineUnits.Add(newHero);
             }
@@ -277,7 +287,17 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
                     EquipableItemSO item = resourceManager.allItems[hero.item4Index];
                     item.EquipItem(newHero);
                 }
-                backLineUnits.Add(newHero);
+                if (hero.backUpMainHandIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.backUpMainHandIndex];
+                    item.EquipItem(newHero, true);
+                }
+                if (hero.backUpOffHandIndex != -1)
+                {
+                    EquipableItemSO item = resourceManager.allItems[hero.backUpOffHandIndex];
+                    item.EquipItem(newHero, true);
+                }
+                    backLineUnits.Add(newHero);
             }
         }
 

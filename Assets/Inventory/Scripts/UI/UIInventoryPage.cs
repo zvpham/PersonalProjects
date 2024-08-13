@@ -25,16 +25,39 @@ namespace Inventory.UI
         [SerializeField]
         private MenuInputManager menuInputManager;
 
+        public bool isMissionStart = false;
+
         public List<UIInventoryItem> listOfUIItems = new List<UIInventoryItem>();
 
         public List<EquipSlot> equipSlots = new List<EquipSlot>();
 
-        public Image currentWeightPanel;
-        public TMP_Text currentWeightTXT;
-        public TMP_Text remainingWeightTXT;
-        public TMP_Text lowWeightTXT;
-        public TMP_Text mediumWieghtTXT;
-        public TMP_Text highWeightTXT;
+        public EquipSlot backUpMainHand;
+        public EquipSlot backUpOffHand;
+
+        public Image currentWeightPanel1;
+        public TMP_Text currentWeightTXT1;
+        public TMP_Text remainingWeightTXT1;
+        public TMP_Text lowWeightTXT1;
+        public TMP_Text mediumWieghtTXT1;
+        public TMP_Text highWeightTXT1;
+
+        public Image currentWeightPanel2;
+        public TMP_Text currentWeightTXT2;
+        public TMP_Text remainingWeightTXT2;
+        public TMP_Text lowWeightTXT2;
+        public TMP_Text mediumWieghtTXT2;
+        public TMP_Text highWeightTXT2;
+
+        public Image actionPointPrefab;
+        public Image actionPointPanel;
+
+        public TMP_Text armorValue;
+        public TMP_Text healthValue;
+        public TMP_Text strengthValue;
+        public TMP_Text dexterityValue;
+        public TMP_Text powerPointGenerationValue;
+        public TMP_Text movementValue;
+        public TMP_Text VisionValue;
 
         private int currentlyDraggedItemIndex = -1;
 
@@ -50,6 +73,9 @@ namespace Inventory.UI
         public event Action<EquipableItemSO, EquipSlot> OnProfileClicked;
 
         public event Action<EquipSlot> OnUnequipItem;
+        public event Action<EquipSlot, EquipSlot> OnSwapEquipSlot;
+
+        public event Action<bool> OnSwapHands;
 
         public void Awake()
         {
@@ -84,53 +110,106 @@ namespace Inventory.UI
                 equipSlots[i].OnItemBeginDrag -= HandleBeginDragEquip;
                 equipSlots[i].OnItemBeginDrag += HandleBeginDragEquip;
             }
+
+            backUpMainHand.OnItemDroppedOn -= HandleItemEquip;
+            backUpMainHand.OnItemDroppedOn += HandleItemEquip;
+
+            backUpMainHand.OnItemBeginDrag -= HandleBeginDragEquip;
+            backUpMainHand.OnItemBeginDrag += HandleBeginDragEquip;
+
+            backUpOffHand.OnItemDroppedOn -= HandleItemEquip;
+            backUpOffHand.OnItemDroppedOn += HandleItemEquip;
+
+            backUpOffHand.OnItemBeginDrag -= HandleBeginDragEquip;
+            backUpOffHand.OnItemBeginDrag += HandleBeginDragEquip;
         }
 
-        public void UpdateData(int itemIndex, Sprite itemImage, int itemQuantity, string name, string attributeOne, string attributeTwo, string mainCategoryOne, string mainTextOne, string mainCategoryTwo, string mainTextTwo, string mainCategoryThree, string mainTextThree)
+        public void UpdateData(int itemIndex, Sprite itemImage, int itemQuantity, string name, string attributeOne, string attributeTwo,
+            string mainCategoryOne, string mainTextOne, string mainCategoryTwo, string mainTextTwo, string mainCategoryThree, string mainTextThree,
+            string ammoExtension)
         {
             int placementIndex = itemIndex;
+
             if (placementIndex >= listOfUIItems.Count)
             {
                 AddInventoryUIItem();
                 placementIndex = listOfUIItems.Count - 1;
             }
-            listOfUIItems[placementIndex].SetData(itemImage, itemQuantity, name, attributeOne, attributeTwo, mainCategoryOne, mainTextOne, mainCategoryTwo, mainTextTwo, mainCategoryThree, mainTextThree);
+
+            listOfUIItems[placementIndex].SetData(itemImage, itemQuantity, name, attributeOne, attributeTwo, mainCategoryOne,
+                mainTextOne, mainCategoryTwo, mainTextTwo, mainCategoryThree, mainTextThree, ammoExtension);
         }
 
         public void UpdateWeight(int currentWeight, int lowWeight, int mediumWeight, int highWeight)
         {
-            lowWeightTXT.text = lowWeight.ToString();
-            mediumWieghtTXT.text = mediumWeight.ToString();
-            highWeightTXT.text = highWeight.ToString();
-            int weightRemaining = -1;
+            lowWeightTXT1.text = lowWeight.ToString();
+            mediumWieghtTXT1.text = mediumWeight.ToString();
+            highWeightTXT1.text = highWeight.ToString();
+            int weightRemaining;
             if(currentWeight > highWeight)
             {
-                currentWeightPanel.color = Color.red;
-                currentWeightTXT.text =  currentWeight.ToString() + "/" + highWeight.ToString();
+                currentWeightPanel1.color = Color.red;
+                currentWeightTXT1.text =  currentWeight.ToString() + "/" + highWeight.ToString();
                 weightRemaining = highWeight - currentWeight;
-                remainingWeightTXT.text = weightRemaining.ToString() + " weight remaining";
+                remainingWeightTXT1.text = weightRemaining.ToString() + " weight remaining";
             }
             else if(currentWeight > mediumWeight)
             {
-                currentWeightPanel.color = new Color(1f, 0.647f, 0); // Orange
-                currentWeightTXT.text = currentWeight.ToString() + "/" + highWeight.ToString();
+                currentWeightPanel1.color = new Color(1f, 0.647f, 0); // Orange
+                currentWeightTXT1.text = currentWeight.ToString() + "/" + highWeight.ToString();
                 weightRemaining = highWeight - currentWeight;
-                remainingWeightTXT.text = weightRemaining.ToString() + " weight remaining";
+                remainingWeightTXT1.text = weightRemaining.ToString() + " weight remaining";
             }
             else if(currentWeight > lowWeight)
             {
-                currentWeightPanel.color = Color.yellow;
-                currentWeightTXT.text = currentWeight.ToString() + "/" + mediumWeight.ToString();
+                currentWeightPanel1.color = Color.yellow;
+                currentWeightTXT1.text = currentWeight.ToString() + "/" + mediumWeight.ToString();
                 weightRemaining = mediumWeight - currentWeight;
-                remainingWeightTXT.text = weightRemaining.ToString() + " weight remaining";
+                remainingWeightTXT1.text = weightRemaining.ToString() + " weight remaining";
+            }
+            else
+            {
+                currentWeightPanel1.color = Color.green;
+                currentWeightTXT1.text = currentWeight.ToString() + "/" + lowWeight.ToString();
+                weightRemaining = lowWeight - currentWeight;
+                remainingWeightTXT1.text = weightRemaining.ToString() + " weight remaining";
+            }
+        }
+
+        public void UpdateWeightSecondary(int currentWeight, int lowWeight, int mediumWeight, int highWeight)
+        {
+            lowWeightTXT2.text = lowWeight.ToString();
+            mediumWieghtTXT2.text = mediumWeight.ToString();
+            highWeightTXT2.text = highWeight.ToString();
+            int weightRemaining = -1;
+            if (currentWeight > highWeight)
+            {
+                currentWeightPanel2.color = Color.red;
+                currentWeightTXT2.text = currentWeight.ToString() + "/" + highWeight.ToString();
+                weightRemaining = highWeight - currentWeight;
+                remainingWeightTXT2.text = weightRemaining.ToString() + " weight remaining";
+            }
+            else if (currentWeight > mediumWeight)
+            {
+                currentWeightPanel2.color = new Color(1f, 0.647f, 0); // Orange
+                currentWeightTXT2.text = currentWeight.ToString() + "/" + highWeight.ToString();
+                weightRemaining = highWeight - currentWeight;
+                remainingWeightTXT2.text = weightRemaining.ToString() + " weight remaining";
+            }
+            else if (currentWeight > lowWeight)
+            {
+                currentWeightPanel2.color = Color.yellow;
+                currentWeightTXT2.text = currentWeight.ToString() + "/" + mediumWeight.ToString();
+                weightRemaining = mediumWeight - currentWeight;
+                remainingWeightTXT2.text = weightRemaining.ToString() + " weight remaining";
             }
             else
             {
 
-                currentWeightPanel.color = Color.green;
-                currentWeightTXT.text = currentWeight.ToString() + "/" + lowWeight.ToString();
+                currentWeightPanel2.color = Color.green;
+                currentWeightTXT2.text = currentWeight.ToString() + "/" + lowWeight.ToString();
                 weightRemaining = lowWeight - currentWeight;
-                remainingWeightTXT.text = weightRemaining.ToString() + " weight remaining";
+                remainingWeightTXT2.text = weightRemaining.ToString() + " weight remaining";
             }
         }
         private void HandleShowItemActions(UIInventoryItem inventoryItemUI)
@@ -148,11 +227,46 @@ namespace Inventory.UI
             OnUnequipItem?.Invoke(currentlyDraggingEquipSlot);
         }
 
+        private void SwapItemUI(EquipSlot newEquipSlot)
+        {
+            OnSwapEquipSlot?.Invoke(currentlyDraggingEquipSlot, newEquipSlot);
+        }
+
+        public void SwapMainHand()
+        {
+            OnSwapHands?.Invoke(true);
+        }
+
+        public void SwapOffHand()
+        {
+            OnSwapHands?.Invoke(false);
+        }
+
         private void HandleEndDragEquip(EquipSlot equipSlot)
         {
+            EquipableItemSO currentItem = currentlyDraggingEquipSlot.currentItem;
             if(currentlyDraggingEquipSlot != equipSlot)
             {
-                UnequipItemUI();
+                if(equipSlot != null)
+                {
+                    if ((equipSlot.equipType == EquipType.Accessory1 || equipSlot.equipType == EquipType.Accessory2 ||
+                        equipSlot.equipType == EquipType.Accessory3 || equipSlot.equipType == EquipType.Accessory4) &&
+                        (currentlyDraggingEquipSlot.equipType == EquipType.Accessory1 || currentlyDraggingEquipSlot.equipType == EquipType.Accessory2 ||
+                        currentlyDraggingEquipSlot.equipType == EquipType.Accessory3 || currentlyDraggingEquipSlot.equipType == EquipType.Accessory4)
+                        || equipSlot.equipType == currentlyDraggingEquipSlot.equipType || (currentItem.equipType == EquipType.BothHands) &&
+                        equipSlot.equipType == EquipType.MainHand || equipSlot.equipType == EquipType.OffHand)
+                    {
+                        SwapItemUI(equipSlot);
+                    }
+                    else
+                    {
+                        UnequipItemUI();
+                    }
+                }
+                else
+                {
+                    UnequipItemUI();
+                }
             }
             currentlyDraggingEquipSlot = null;
             menuInputManager.ResetDragUI -= HandleEndDragEquip;
@@ -196,7 +310,14 @@ namespace Inventory.UI
         public void ConfirmItemEquip(EquipableItemSO item, EquipSlot equipSlot)
         {
             equipSlot.contentImage.gameObject.SetActive(true);
-            equipSlot.contentImage.sprite = item.itemImage;
+            if(item == null)
+            {
+                equipSlot.contentImage.sprite = null;
+            }
+            else
+            {
+                equipSlot.contentImage.sprite = item.itemImage;
+            }
         }
 
         private void ResetDraggedItem(EquipSlot IgnoreThis = null)
@@ -207,6 +328,10 @@ namespace Inventory.UI
 
         private void HandleBeginDragEquip(EquipSlot equipSlot)
         {
+            if(isMissionStart)
+            {
+                return;
+            }
             CreateDraggedItem(equipSlot.contentImage.sprite);
             currentlyDraggingEquipSlot = equipSlot;
             menuInputManager.ResetDragUI += HandleEndDragEquip;
@@ -215,7 +340,7 @@ namespace Inventory.UI
         private void HandleBeginDrag(UIInventoryItem inventoryItemUI)
         {
             int index = listOfUIItems.IndexOf(inventoryItemUI);
-            if (index == -1)
+            if (index == -1 || isMissionStart)
             {
                 return;
             }
@@ -265,13 +390,72 @@ namespace Inventory.UI
             ResetDraggedItem();
         }
 
-        internal void ResetAllItems()
+        public void UpdateUnitInfo(Unit unit)
+        {
+            List<GameObject> actionPointChildren = new List<GameObject>();
+            for (int i = 0; i < actionPointPanel.transform.childCount; i++)
+            {
+                actionPointChildren.Add(actionPointPanel.transform.GetChild(i).gameObject);
+            }
+
+            for (int i = 0; i < actionPointChildren.Count; i++)
+            {
+                Destroy(actionPointChildren[i]);
+            }
+
+            for (int i = 0; i < unit.maxActionsPoints; i++)
+            {
+                Image newActionPoint = Instantiate(actionPointPrefab, actionPointPanel.gameObject.transform);
+                newActionPoint.transform.position = newActionPoint.transform.position +
+                    new Vector3(actionPointPrefab.rectTransform.rect.width * i, 0, 0);
+            }
+
+            armorValue.text = unit.maxArmor + "/" + unit.maxArmor;
+            healthValue.text =  unit.maxHealth + "/" + unit.maxHealth;
+            strengthValue.text = UpdateCharacterStat(unit.strength);
+            dexterityValue.text = UpdateCharacterStat(unit.dexterity);
+            movementValue.text = UpdateCharacterStat(unit.moveSpeed);
+        }
+
+        public string UpdateCharacterStat(int value)
+        {
+            if(value > 0)
+            {
+                return " + " + value;
+            }
+            else if(value == 0)
+            {
+                return " 0";
+            }
+            else
+            {
+                return " - " + Mathf.Abs(value); 
+            }
+        }
+
+        internal void ResetAllItems(Dictionary<int, InventoryItem> inventoryState)
         {
             if (listOfUIItems.Count == 0 || listOfUIItems[0] == null)
             {
                 listOfUIItems = new List<UIInventoryItem>();
                 InitializeInventoryUI();
             }
+
+            int itemAmount = 0;
+            foreach(var inventoryItem in inventoryState) 
+            {
+                if (!inventoryItem.Value.isEmpty)
+                {
+                    itemAmount += 1;
+                }
+            }
+
+            for(int i = itemAmount; i <  listOfUIItems.Count; i++)
+            {
+                Destroy(listOfUIItems[0].gameObject);
+                listOfUIItems.RemoveAt(0);
+            }
+
             foreach (var item in listOfUIItems)
             {   
                 item.ResetData();

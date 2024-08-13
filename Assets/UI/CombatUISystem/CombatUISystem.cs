@@ -8,7 +8,6 @@ public class CombatUISystem : MonoBehaviour
     public InputManager inputManager;
     public CombatGameManager gameManager;
     public List<CombatAttackUI> attackUIList;
-    public int mostRecentAttackUIActivated;
 
     public void Start()
     {
@@ -35,7 +34,6 @@ public class CombatUISystem : MonoBehaviour
     {
         inputManager.MouseStayedInPlace -= HandleMouseStayedStill;
         inputManager.MouseMoved -= HandleMouseMoved;
-        mostRecentAttackUIActivated = 0;
     }
 
     public void OnDeactivateTargetingSystem()
@@ -48,17 +46,31 @@ public class CombatUISystem : MonoBehaviour
 
     public void SetDataAttackUi(Unit targetUnit, List<AttackDataUI> attackDatas, Vector3 newPosition)
     {
-        attackUIList[mostRecentAttackUIActivated].SetData(targetUnit, attackDatas, newPosition);
-        mostRecentAttackUIActivated += 1;
+        int attackUIIndex = -1; 
+        for(int i = 0; i < attackUIList.Count; i++)
+        {
+            if (!attackUIList[i].gameObject.activeSelf) 
+            {
+                attackUIIndex = i;
+                break;
+            }
+        }
+        attackUIList[attackUIIndex].SetData(targetUnit, attackDatas, newPosition);
+        attackUIList[attackUIIndex].readyToReset = true;
+        targetUnit.combatAttackUi = attackUIList[attackUIIndex];
+        
     }
 
     public void ResetDataAttackUI()
     {
-        for (int i = 0; i < mostRecentAttackUIActivated; i++)
+        for (int i = 0; i < attackUIList.Count; i++)
         {
-            attackUIList[i].Deactivate();
+            if (attackUIList[i].readyToReset && attackUIList[i].gameObject.activeSelf)
+            {
+                attackUIList[i].unit.combatAttackUi = null;
+                attackUIList[i].Deactivate();
+            }
         }
-        mostRecentAttackUIActivated = 0;
     }
 
 }

@@ -9,31 +9,37 @@ public abstract class CustomAnimations : MonoBehaviour
 {
     public float currentTime;
     public float totalTime;
-    public int xindex;
+    public bool disableOnStart = true;
+    //public int xindex;
+    //public int yindex;
     public SpriteManager spriteManager;
     public UnityAction endAnimation;
 
     public virtual void Start()
     {
-        enabled = false;
+        if(disableOnStart)
+        {
+            enabled = false;
+        }
     }
 
     public virtual void PlayAnimation()
     {
+        spriteManager.ChangePlayNewAnimation(false);
         enabled = true;
+        disableOnStart = false;
     }
 
     public virtual void EndAnimation()
     {
-        spriteManager.animations.RemoveAt(xindex);
-        spriteManager.timeBetweenAnimations.RemoveAt(0);
-        spriteManager.playNewAnimation = true;
-
-        for( int i = xindex; i < spriteManager.animations.Count; i++ )
+        spriteManager.animations[0].Remove(this);
+        if (spriteManager.animations[0].Count == 0)
         {
-            CustomAnimations customAnimation = spriteManager.animations[i];
-            customAnimation.xindex = i;
+            spriteManager.animations.RemoveAt(0);
+            spriteManager.timeBetweenAnimations.RemoveAt(0);
+            spriteManager.ChangePlayNewAnimation(true);
         }
+
 
         if(spriteManager.animations.Count == 0)
         {

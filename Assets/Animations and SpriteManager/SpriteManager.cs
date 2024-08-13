@@ -20,6 +20,7 @@ public class SpriteManager : MonoBehaviour
 
     public MovementTargeting movementTargeting;
     public MeleeTargeting meleeTargeting;
+    public RangedTargeting rangedTargeting;
     public ConeTargeting coneTargeting;
 
     public ActionConfirmationMenu actionConfirmationMenu;
@@ -30,7 +31,7 @@ public class SpriteManager : MonoBehaviour
 
     [SerializeField] private TargetingSystem activeTargetingSystems;
 
-    public List<CustomAnimations> animations = new List<CustomAnimations>();
+    public List<List<CustomAnimations>> animations = new List<List<CustomAnimations>>();
     public bool playNewAnimation;
     public bool DebugAnimations = false;
     public List<float> timeBetweenAnimations = new List<float>();
@@ -63,7 +64,10 @@ public class SpriteManager : MonoBehaviour
                 }
 
                 debugWord += animations[0].ToString() + " ";
-                animations[0].PlayAnimation();
+                for(int i = 0; i < animations[0].Count; i++)
+                {
+                    animations[0][i].PlayAnimation();
+                }
 
                 if (DebugAnimations)
                 {
@@ -83,32 +87,23 @@ public class SpriteManager : MonoBehaviour
     {
         combatGameManager.playingAnimation = true;
         newAnimation.spriteManager = this;
-        playNewAnimation = true;
         if (animations.Count == 0)
         {
-            newAnimation.xindex = 0;
-            playNewAnimation = true;
-            animations.Add(newAnimation);
+            ChangePlayNewAnimation(true);
+            animations.Add(new List<CustomAnimations>() { newAnimation });
             enabled = true;
+            timeBetweenAnimations.Add(timeInterval);
         }
         else if (index >= animations.Count)
         {
-            newAnimation.xindex = animations.Count;
-            animations.Add(newAnimation);
+            animations.Add(new List<CustomAnimations>() { newAnimation });
+            timeBetweenAnimations.Add(timeInterval);
         }
         else
         {
-            newAnimation.xindex = index;
-            animations.Insert(index, newAnimation);
-
-            for (int i = index + 1; i < animations.Count; i++)
-            {
-                animations[i].xindex = i;
-            }
+            animations[index].Add(newAnimation);
 
         }
-
-        timeBetweenAnimations.Add(timeInterval);
 
         if (DebugAnimations)
         {
@@ -125,8 +120,13 @@ public class SpriteManager : MonoBehaviour
 
     public void EndAnimations()
     {
-        playNewAnimation = false;
+        ChangePlayNewAnimation(false);
         combatGameManager.playingAnimation = false;
+    }
+
+    public void ChangePlayNewAnimation(bool playNewAnimation)
+    {
+        this.playNewAnimation = playNewAnimation;
     }
 
     public void ActivateActionConfirmationMenu(UnityAction confirmAction, UnityAction cancelAction)
@@ -196,7 +196,16 @@ public class SpriteManager : MonoBehaviour
         meleeTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft, actionPointUseAmount, meleeRange, calculateAttackData);
         meleeTargeting.SelectNewPosition(UtilsClass.GetMouseWorldPosition());
     }
-
+    public void ActivateRangedTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int actionPointUseAmount, int range,
+   AttackData attackData, List<EquipableAmmoSO> unitAmmo)
+    {
+        combatUI.OnActivateTargetingSystem();
+        inputManager.TargetPositionMoved += rangedTargeting.SelectNewPosition;
+        inputManager.FoundPosition += rangedTargeting.EndTargeting;
+        activeTargetingSystems = rangedTargeting;
+        rangedTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft, actionPointUseAmount, range, attackData ,unitAmmo);
+        rangedTargeting.SelectNewPosition(UtilsClass.GetMouseWorldPosition());
+    }
     public void ActivateConeTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int range, int coneRange)
     {
         combatUI.OnActivateTargetingSystem();
@@ -255,5 +264,10 @@ public class SpriteManager : MonoBehaviour
     public void ResetCombatAttackUI()
     {
         combatUI.ResetDataAttackUI();
+    }
+
+    public void ActivateDamageCombatUI()
+    {
+
     }
 }

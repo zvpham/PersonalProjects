@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using Inventory.Model;
+using JetBrains.Annotations;
+using System;
 
 public class Unit : UnitSuperClass, IInititiave
 {
@@ -11,6 +13,7 @@ public class Unit : UnitSuperClass, IInititiave
     public bool inOverWorld = false;
 
     public Sprite unitProfile;
+    public CombatAttackUI combatAttackUi;
 
     public int heroIndex = -1;  
 
@@ -25,6 +28,8 @@ public class Unit : UnitSuperClass, IInititiave
     public EquipableItemSO legs;
     public EquipableItemSO mainHand;
     public EquipableItemSO offHand;
+    public EquipableItemSO backUpMainHand;
+    public EquipableItemSO backUpOffHand;
     public EquipableItemSO Item1;
     public EquipableItemSO Item2;
     public EquipableItemSO Item3;
@@ -33,14 +38,15 @@ public class Unit : UnitSuperClass, IInititiave
     public int[] itemUses = new int[4];
 
     public int currentWeight;
+    public int backUpWeight;
     public bool overWieght;
 
     public int lowWeight;
     public int mediumWeight;
     public int highWeight;
 
-    public int strength = 10;
-    public int dexterity = 10;
+    public int strength = 0;
+    public int dexterity = 0;
 
 
     public int maxHealth = 100;
@@ -49,10 +55,14 @@ public class Unit : UnitSuperClass, IInititiave
     public int currentArmor;
     public int moveSpeed = 3;
 
+    public float damageResistence = 0f;
+    public float shieldDamageResistence = 0f;
+
     public Action endTurn;
     public Action move;
     public int amountMoveUsedDuringRound;
     public List<Action> actions;
+    public List<bool> actionsActives;
     public List<Passive> passives;
     public int maxActionsPoints = 2;
     public int currentActionsPoints = 0;
@@ -65,7 +75,12 @@ public class Unit : UnitSuperClass, IInititiave
     public Team team;
     public UnitGroup group;
 
+    public bool confirmDeath;
+
     public UnityAction onTurnStart;
+    public UnityAction<Unit> OnDeath;
+    // Self Unit, Damage Dealing Unit, Damage, IsMelee, isFirstInstanceOfDamage
+    public UnityAction<Unit, Unit, bool, bool> OnDamage;
 
     public CombatGameManager gameManager;
 
@@ -100,6 +115,7 @@ public class Unit : UnitSuperClass, IInititiave
 
             move = gameManager.resourceManager.actions[0];
             endTurn = gameManager.resourceManager.actions[1];
+            currentHealth = maxHealth;
         }
         else
         {
@@ -171,6 +187,14 @@ public class Unit : UnitSuperClass, IInititiave
             {
                 Item4.EquipItem(this);
             }
+            if(backUpMainHand != null)
+            {
+                backUpMainHand.EquipItem(this, true);
+            }
+            if (backUpOffHand != null)
+            {
+                backUpOffHand.EquipItem(this, true);
+            }
 
             ChangeStrength(strength);
             ChangeDexterity(dexterity);
@@ -181,29 +205,29 @@ public class Unit : UnitSuperClass, IInititiave
     public void ChangeStrength(int newStrength)
     {
         strength = newStrength;
-        int strengthModifier = newStrength - 10;
-        lowWeight = 50 + (25 * strengthModifier);
-        mediumWeight = 100 + (25 * strengthModifier);
-        highWeight = 150 + (25 * strengthModifier);
+        int weightAdjustmentModifier = 25;
+        lowWeight = 50 + (weightAdjustmentModifier * ( strength / 2));
+        mediumWeight = 100 + (weightAdjustmentModifier * (strength / 2));
+        highWeight = 150 + (weightAdjustmentModifier * (strength / 2));
         ChangeWeight(currentWeight);
     }
 
-    public int GetStrength()
+    public float GetMaximumDamageModifer()
     {
-        return strength - 10;
+        return .1f * strength;
     }
 
     public void ChangeDexterity(int newDexterity)
     {
         dexterity =  newDexterity;
-        int dexModifier = (dexterity - 10) / 2;
-        moveSpeed = 3 + dexModifier;
+        moveSpeed = 3 + (newDexterity / 2);
     }
 
-    public int GetDexterityModifier()
+    public float GetMinimumDamageModifer()
     {
-        return dexterity - 10;
+        return .1f * dexterity;
     }
+
 
     public void ChangeWeight(int newWeight)
     {
@@ -212,6 +236,7 @@ public class Unit : UnitSuperClass, IInititiave
         if(currentWeight > highWeight)
         {
             overWieght = true;
+            maxActionsPoints = 1;
         }
         else if(currentWeight > mediumWeight)
         {
@@ -227,6 +252,11 @@ public class Unit : UnitSuperClass, IInititiave
         }
     }
 
+    public void ChangeBackUpWeight(int newWeight)
+    {
+        backUpWeight = newWeight;
+    }
+
     public int CalculateInititive()
     {
         return 2;
@@ -236,13 +266,23 @@ public class Unit : UnitSuperClass, IInititiave
     {
         onTurnStart?.Invoke();
         currentActionsPoints = maxActionsPoints;
+        CheckActionsDisabled();
         if (team == Team.Player)
         {
             gameManager.StartPlayerTurn(this);
         }
         else
         {
-            UseActionPoints(2);
+            UseActionPoints(currentActionsPoints);
+        }
+    }
+
+    public void CheckActionsDisabled()
+    {
+        actionsActives = new List<bool>();
+        for(int i = 0; i < actions.Count; i++)
+        {
+            actionsActives.Add(actions[i].CheckActionUsable(this));
         }
     }
 
@@ -251,7 +291,7 @@ public class Unit : UnitSuperClass, IInititiave
         OnSelectedAction?.Invoke(selectedAction, actionTargetingSystem);
     }
 
-    public void UseActionPoints(int usedActionPoints)
+    public void UseActionPoints(int usedActionPoints, bool isAnotherActionMoveAndOnlyMoved = true)
     {
         if(team == Team.Player)
         {
@@ -262,7 +302,7 @@ public class Unit : UnitSuperClass, IInititiave
         {
             EndTurn();
         }
-        else if(team == Team.Player)
+        else if(team == Team.Player &&  isAnotherActionMoveAndOnlyMoved)
         {
             gameManager.playerTurn.SelectAction(gameManager.playerTurn.currentlySelectedAction);
         }
@@ -297,5 +337,109 @@ public class Unit : UnitSuperClass, IInititiave
         actionCooldowns.Add(0);
         actionUses.Add(newAction.maxUses);
         amountActionUsedDuringRound.Add(0);
+    }
+
+    public Tuple<int, int, List<AttackDataUI>> CalculateEstimatedDamage(int minDamageValue, int maxDamageValue, bool ignoreShield)
+    {
+        float combatDamageResistenceValue = damageResistence;
+        List<AttackDataUI> unitAttackedData = new List<AttackDataUI> ();
+
+        if (!ignoreShield && shieldDamageResistence != 0)
+        {
+            combatDamageResistenceValue += shieldDamageResistence;
+            AttackDataUI shieldedAttackDataUI = new AttackDataUI();
+            shieldedAttackDataUI.data = "Shielded " + "-" + shieldDamageResistence;
+            shieldedAttackDataUI.attackState = attackState.Benediction;
+            shieldedAttackDataUI.attackDataType = attackDataType.Modifier;
+            unitAttackedData.Add(shieldedAttackDataUI);
+        }
+
+        if (damageResistence > 1)
+        {
+            combatDamageResistenceValue = 1f;
+        }
+
+        int newMinDamageValue = minDamageValue - (int)(minDamageValue * combatDamageResistenceValue);
+        int newMaxDamageValue =  maxDamageValue - (int)(maxDamageValue * combatDamageResistenceValue);
+
+        Tuple<int, int, List<AttackDataUI>> attackedData = new Tuple<int, int, List<AttackDataUI>> (newMinDamageValue, newMaxDamageValue, unitAttackedData);
+        return attackedData;
+    }
+
+    public void TakeDamage(Unit damageDealingUnit, List<int> minDamage, List<int> maxDamage, bool meleeContact, bool ignoreShield, bool ignoreArmor,
+        bool firstInstanceOfDamageSetUp)
+    {
+        if(minDamage.Count != maxDamage.Count)
+        {
+            Debug.LogError("min Damaage and Max Damage should be the same");
+            return;
+        }
+        int seed = System.DateTime.Now.Millisecond;
+        UnityEngine.Random.InitState(seed);
+
+        float combatDamageResistenceValue = damageResistence;
+
+        if (!ignoreShield)
+        {
+            combatDamageResistenceValue += shieldDamageResistence;
+        }
+
+        if (damageResistence > 1)
+        {
+            combatDamageResistenceValue = 1f;
+        }
+
+        int intialArmor = currentArmor;
+        int intialHealth = currentHealth;
+        bool firstInstanceOfDamage = firstInstanceOfDamageSetUp;
+        for(int i = 0; i <  minDamage.Count; i++)
+        {
+            int damageValue = UnityEngine.Random.Range(minDamage[i], maxDamage[i] + 1);
+            damageValue = damageValue - (int) (damageValue * combatDamageResistenceValue);
+            OnDamage?.Invoke(this, damageDealingUnit, meleeContact, firstInstanceOfDamage);
+            firstInstanceOfDamage = false;
+
+            if(ignoreArmor)
+            {
+                currentHealth -= damageValue;
+            }
+            else
+            {
+                currentArmor -= damageValue;
+                if (currentArmor < 0)
+                {
+                    currentHealth += currentArmor;
+                    currentArmor = 0;
+                }
+            }
+        }
+
+        if(currentHealth <= 0)
+        {
+            Death();
+        }
+        else
+        {
+            Debug.Log("damage");
+            DamageAnimation damageAnimation = Instantiate(gameManager.resourceManager.damageAnimation);
+            damageAnimation.SetParameters(combatAttackUi, this, intialArmor, intialHealth);
+
+            AttackedAnimation attackedAnimation = Instantiate(gameManager.resourceManager.attackedAnimation);
+            attackedAnimation.SetParameters(gameManager, damageDealingUnit.transform.position, this.transform.position);
+
+        }
+
+    }
+
+    public void Death()
+    {
+        confirmDeath = true;
+        OnDeath?.Invoke(this);
+
+        if(!confirmDeath)
+        {
+            return;
+        }
+
     }
 }

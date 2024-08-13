@@ -5,7 +5,10 @@ using UnityEngine;
 public class AttackDataUI
 {
     public string data;
-    public attackState attackState;
+    public int min;
+    public int max;
+    public attackState attackState; 
+    public attackDataType attackDataType;
 }
 
 [SerializeField]
@@ -14,4 +17,11 @@ public enum attackState
     Benificial,  // good
     Benediction, // bad
     Benign       // neutral
+}
+
+[SerializeField]
+public enum attackDataType
+{
+    Main,
+    Modifier
 }

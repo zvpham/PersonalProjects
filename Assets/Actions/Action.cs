@@ -28,9 +28,12 @@ public abstract class Action : ScriptableObject
 
     public void UseActionPreset(Unit self)
     {
-        if(consumableAction)
+        int actionIndex = self.actions.IndexOf(this);
+        Debug.Log("Action Uses: " + self.amountActionUsedDuringRound[actionIndex]);
+        self.UseActionPoints(intialActionPointUsage + actionPointGrowth * self.amountActionUsedDuringRound[actionIndex]);
+        self.amountActionUsedDuringRound[actionIndex] += 1;
+        if (consumableAction)
         {
-            int actionIndex = self.actions.IndexOf(this);
             self.actionUses[actionIndex] -= 1;
         }
     }
@@ -39,10 +42,16 @@ public abstract class Action : ScriptableObject
     {
         int actionIndex = self.actions.IndexOf(this);
 
-        if (actionIndex == -1 || self.actionCooldowns[actionIndex] == 0 || self.actionUses[actionIndex] > 0)
+        if (actionIndex != -1 && self.actionCooldowns[actionIndex] == 0 && self.actionUses[actionIndex] > 0 && SpecificCheckActionUsable(self) &&
+            this.intialActionPointUsage + actionPointGrowth * self.amountActionUsedDuringRound[actionIndex] <= self.currentActionsPoints)
         {
             return true;
         }
         return false;
+    }
+
+    public virtual bool SpecificCheckActionUsable(Unit self)
+    {
+        return true;
     }
 }

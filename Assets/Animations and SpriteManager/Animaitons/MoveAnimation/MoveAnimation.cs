@@ -29,7 +29,6 @@ public class MoveAnimation : CustomAnimations
         base.PlayAnimation();
         attackingNode = gameManager.spriteManager.spriteGrid.GetGridObject(originalPosition);
         attackingSprite = attackingNode.sprites[0];
-
     }
 
     // Update is called once per frame

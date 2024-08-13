@@ -6,13 +6,13 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Item/EquipableWeapon")]
 public class EquipableWeaponSO : EquipableItemSO
 {
-    public override void EquipItem(Unit unit)
+    public override void EquipItem(Unit unit, bool isBackUp)
     {
-        base.EquipItem(unit);
+        base.EquipItem(unit, isBackUp);
     }
 
-    public override void UnequipItem(Unit unit)
+    public override void UnequipItem(Unit unit, bool isBackUp)
     {
-        base.UnequipItem(unit);     
+        base.UnequipItem(unit, isBackUp);     
     }
 }

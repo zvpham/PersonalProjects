@@ -135,7 +135,7 @@ namespace Inventory.Model
                 int remainder = inventoryItems[itemIndex].quantity - amount;
                 if (remainder <= 0)
                 {
-                    inventoryItems[itemIndex] = InventoryItem.GetEmptyItem();
+                    inventoryItems.RemoveAt(itemIndex);
                 }
                 else
                 {

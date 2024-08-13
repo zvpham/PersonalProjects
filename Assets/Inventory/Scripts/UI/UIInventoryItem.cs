@@ -71,7 +71,8 @@ namespace Inventory.UI
             borderImage.enabled = true;
         }
 
-        public void SetData(Sprite sprite, int quantity, string name, string attributeOne, string attributeTwo, string mainCategoryOne, string mainTextOne, string mainCategoryTwo, string mainTextTwo, string mainCategoryThree, string mainTextThree)
+        public void SetData(Sprite sprite, int quantity, string name, string attributeOne, string attributeTwo, string mainCategoryOne,
+            string mainTextOne, string mainCategoryTwo, string mainTextTwo, string mainCategoryThree, string mainTextThree, string ammoExtension = "")
         {
             itemImage.gameObject.SetActive(true);   
             itemImage.sprite = sprite;
@@ -93,7 +94,7 @@ namespace Inventory.UI
                 mainStatTwoTxt.gameObject.SetActive(false);
             }
             mainStatTwoCategory.text = mainCategoryTwo;
-            mainStatTwoTxt.text = mainTextTwo;
+            mainStatTwoTxt.text = mainTextTwo + ammoExtension;
 
             if (mainCategoryThree == "")
             {

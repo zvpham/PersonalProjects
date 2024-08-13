@@ -49,7 +49,6 @@ public class Move : Action
                 movingUnit.MovePositions(movingUnit.transform.position, newPosition);
 
             }
-            movingUnit.gameManager.spriteManager.playNewAnimation = true;
             int actionPointsUsed = 0;
             for (int i = 0; i < amountMoved; i++)
             {
@@ -66,7 +65,7 @@ public class Move : Action
         }
     }
 
-    public void AnotherActionMove(List<Vector2Int> path, int amountMoved, Unit movingUnit)
+    public void AnotherActionMove(List<Vector2Int> path, int amountMoved, Unit movingUnit, bool onlyMoved)
     {
         Debug.Log("Another Action MOve");
         if(path.Count == 0 || (path.Count == 1 && 
@@ -74,7 +73,6 @@ public class Move : Action
         {
             return;
         }
-        movingUnit.gameManager.spriteManager.DeactiveTargetingSystem();
         DijkstraMap map = movingUnit.gameManager.map;
         for (int i = 0; i < path.Count; i++)
         {
@@ -83,15 +81,16 @@ public class Move : Action
             moveAnimation.SetParameters(movingUnit.gameManager, movingUnit.transform.position, newPosition);
             movingUnit.MovePositions(movingUnit.transform.position, newPosition);
         }
-        movingUnit.gameManager.spriteManager.playNewAnimation = true;
         int actionPointsUsed = 0;
         for (int i = 0; i < amountMoved; i++)
         {
             actionPointsUsed += this.intialActionPointUsage + this.actionPointGrowth * movingUnit.amountMoveUsedDuringRound;
             movingUnit.amountMoveUsedDuringRound += 1;
         }
-
-        movingUnit.gameManager.spriteManager.DeactiveTargetingSystem();
-        movingUnit.UseActionPoints(actionPointsUsed);
+        if(onlyMoved)
+        {
+            movingUnit.gameManager.spriteManager.DeactiveTargetingSystem();
+        }
+        movingUnit.UseActionPoints(actionPointsUsed, onlyMoved);
     }
 }

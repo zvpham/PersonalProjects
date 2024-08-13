@@ -80,10 +80,13 @@ public struct unitLoadoutData
     public int item2Index;
     public int item3Index;
     public int item4Index;
+    public int backUpMainHandIndex;
+    public int backUpOffHandIndex;
 
     public unitLoadoutData(List<bool> skillTree1Branch1Unlocks, List<bool> skillTree1Branch2Unlocks,
      List<bool> skillTree2Branch1Unlocks, List<bool> skillTree2Branch2Unlocks, int helmetIndex, int armorIndex, int bootIndex, int mainHandIndex,
-     int offHandIndex, int item1Index, int item2Index, int item3Index, int item4Index, int jobIndex, int heroIndex)
+     int offHandIndex, int item1Index, int item2Index, int item3Index, int item4Index, int backUpMainHandIndex, 
+     int backUpOffHandIndex, int jobIndex, int heroIndex)
     {
         this.heroIndex = heroIndex;
         this.jobIndex = jobIndex;
@@ -101,6 +104,8 @@ public struct unitLoadoutData
         this.item2Index = item2Index;
         this.item3Index = item3Index;
         this.item4Index = item4Index;
+        this.backUpMainHandIndex = backUpMainHandIndex;
+        this.backUpOffHandIndex = backUpOffHandIndex;
     }
 }
 

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2886a5a0bcffeb94f9a3342bd1798ce2, type: 3}
+  m_Name: Ranged Attack
+  m_EditorClassIdentifier: 
+  actionSprite: {fileID: 0}
+  weight: 0
+  coolDown: 0
+  maxUses: 1
+  intialActionPointUsage: 1
+  actionPointGrowth: 1
+  consumableAction: 0
+  actionTypes: 
+  animation: {fileID: -5626302034160200816, guid: 30eed55309289f84eaec25668625021f, type: 3}
+  targetingSystem: {fileID: 0}
+  minDamage: 20
+  maxDamage: 75
+  effectiveRange: 4
+  maxRange: 8
+  effectAgainstArmorPercentage: 0
+  ignoreArmor: 0

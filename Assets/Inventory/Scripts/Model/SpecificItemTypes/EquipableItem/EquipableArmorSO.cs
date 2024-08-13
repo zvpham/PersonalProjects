@@ -6,15 +6,15 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Item/EquipableArmor")]
 public class EquipableArmorSO : EquipableItemSO
 {
-    public override void EquipItem(Unit unit)
+    public override void EquipItem(Unit unit, bool isBackUp)
     {
-        base.EquipItem(unit);
-        unit.maxArmor += mainTwoMin;
+        base.EquipItem(unit, isBackUp);
+        unit.maxArmor += (int) mainTwoMin;
     }
 
-    public override void UnequipItem(Unit unit)
+    public override void UnequipItem(Unit unit, bool isBackUp)
     {
-        base.UnequipItem(unit);
-        unit.maxArmor -= mainTwoMin;
+        base.UnequipItem(unit, isBackUp);
+        unit.maxArmor -= (int) mainTwoMin;
     }
 }

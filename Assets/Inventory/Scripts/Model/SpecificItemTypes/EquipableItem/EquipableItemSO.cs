@@ -17,7 +17,7 @@ namespace Inventory.Model
         public int mainOneMax;
 
         public string mainCategoryTwo;
-        public int mainTwoMin;
+        public float mainTwoMin;
         public int mainTwoMax;
 
         public string mainCategoryThree;
@@ -30,8 +30,10 @@ namespace Inventory.Model
         public List<Action> actions = new List<Action>();
         public List<Passive> passives = new List<Passive>();
 
-        public virtual void EquipItem(Unit unit)
+        public virtual void EquipItem(Unit unit, bool isBackUp = false)
         {
+            bool isWeapon = false;
+
             switch (equipType)
             {
                 case (EquipType.Accessory1):
@@ -56,30 +58,91 @@ namespace Inventory.Model
                     unit.legs = this;
                     break;
                 case (EquipType.MainHand):
-                    unit.mainHand = this;
+                    isWeapon = true;
+                    if (isBackUp)
+                    {
+                        unit.backUpMainHand = this;
+                    }
+                    else
+                    {
+                        unit.mainHand = this;
+                    }
                     break;
                 case (EquipType.OffHand):
-                    unit.offHand = this;
+                    isWeapon = true;
+                    if (isBackUp)
+                    {
+                        unit.backUpOffHand = this;
+                    }
+                    else
+                    {
+                        unit.offHand = this;
+                    }
+                    break;
+                case (EquipType.BothHands):
+                    isWeapon = true;
                     break;
             }
 
-            for (int i = 0; i < actions.Count; i++)
+            if(isBackUp)
             {
-                unit.AddAction(actions[i]);
-            }
+                unit.ChangeStrength(unit.strength);
+                unit.ChangeBackUpWeight(unit.backUpWeight + mainOneMin);
+                unit.ChangeWeight(unit.currentWeight + (mainOneMin / 2));
 
-            for(int i = 0 ; i < passives.Count; i++)
+            }
+            else
             {
-               
-            }
+                for (int i = 0; i < actions.Count; i++)
+                {
+                    unit.AddAction(actions[i]);
+                    Debug.Log("Add Action");
+                }
 
-            unit.ChangeStrength(unit.strength);
-            unit.ChangeWeight(unit.currentWeight + mainOneMin);
+                for (int i = 0; i < passives.Count; i++)
+                {
+
+                }
+
+                unit.ChangeStrength(unit.strength);
+                unit.ChangeWeight(unit.currentWeight + mainOneMin);
+                if (isWeapon)
+                {
+                    unit.ChangeBackUpWeight(unit.backUpWeight + (mainOneMin / 2));
+                }
+                else
+                {
+                    unit.ChangeBackUpWeight(unit.backUpWeight + mainOneMin);
+                }
+            }
         }
-        
-        public virtual void UnequipItem(Unit unit)
+
+        public virtual void UnequipItem(Unit unit, bool isBackUp)
         {
-            unit.ChangeWeight(unit.currentWeight - mainOneMin);
+            Debug.LogWarning("Unequip Item: " + name);
+            bool isWeapon = false;
+            if(equipType == EquipType.MainHand || equipType == EquipType.OffHand || equipType == EquipType.BothHands)
+            {
+                isWeapon = true;
+            }
+
+            if (isBackUp)
+            {
+                unit.ChangeWeight(unit.currentWeight - (mainOneMin / 2));
+                unit.ChangeBackUpWeight(unit.backUpWeight - mainOneMin);
+            }
+            else
+            {
+                unit.ChangeWeight(unit.currentWeight - mainOneMin);
+                if (isWeapon)
+                {
+                    unit.ChangeBackUpWeight(unit.backUpWeight - (mainOneMin / 2));
+                }
+                else
+                {
+                    unit.ChangeBackUpWeight(unit.backUpWeight - mainOneMin);
+                }
+            }
         }
     }
 
@@ -98,4 +161,6 @@ namespace Inventory.Model
         Accessory3,
         Accessory4
     }
+
+
 }

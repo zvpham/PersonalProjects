@@ -148,6 +148,8 @@ public class OverworldGameManager : MonoBehaviour, IDataPersistence
                 tempHero.item2Index = resourceManager.allItems.IndexOf(playerHeroes[i].Item2);
                 tempHero.item3Index = resourceManager.allItems.IndexOf(playerHeroes[i].Item3);
                 tempHero.item4Index = resourceManager.allItems.IndexOf(playerHeroes[i].Item4);
+                tempHero.backUpMainHandIndex = resourceManager.allItems.IndexOf(playerHeroes[i].backUpMainHand);
+                tempHero.backUpOffHandIndex = resourceManager.allItems.IndexOf(playerHeroes[i].backUpOffHand);
             }
             heroes.Add(tempHero);
         }
@@ -203,6 +205,8 @@ public class OverworldGameManager : MonoBehaviour, IDataPersistence
                 unitLoadoutData.item2Index = resourceManager.allItems.IndexOf(tempHero.Item2);
                 unitLoadoutData.item3Index = resourceManager.allItems.IndexOf(tempHero.Item3);
                 unitLoadoutData.item4Index = resourceManager.allItems.IndexOf(tempHero.Item4);
+                unitLoadoutData.backUpMainHandIndex = resourceManager.allItems.IndexOf(tempHero.backUpMainHand);
+                unitLoadoutData.backUpOffHandIndex = resourceManager.allItems.IndexOf(tempHero.backUpOffHand);
                 tempBattleLineData.unitData = unitLoadoutData;
                 tempBattleLineData.unitGroupData.mercenaryIndex = -1;
             }
@@ -247,6 +251,8 @@ public class OverworldGameManager : MonoBehaviour, IDataPersistence
                 unitLoadoutData.item2Index = resourceManager.allItems.IndexOf(tempHero.Item2);
                 unitLoadoutData.item3Index = resourceManager.allItems.IndexOf(tempHero.Item3);
                 unitLoadoutData.item4Index = resourceManager.allItems.IndexOf(tempHero.Item4);
+                unitLoadoutData.backUpMainHandIndex = resourceManager.allItems.IndexOf(tempHero.backUpMainHand);
+                unitLoadoutData.backUpOffHandIndex = resourceManager.allItems.IndexOf(tempHero.backUpOffHand);
                 tempBattleLineData.unitData = unitLoadoutData;
                 tempBattleLineData.unitGroupData.mercenaryIndex = -1;
             }
@@ -302,6 +308,8 @@ public class OverworldGameManager : MonoBehaviour, IDataPersistence
                 unitLoadoutData.item2Index = resourceManager.allItems.IndexOf(tempHero.Item2);
                 unitLoadoutData.item3Index = resourceManager.allItems.IndexOf(tempHero.Item3);
                 unitLoadoutData.item4Index = resourceManager.allItems.IndexOf(tempHero.Item4);
+                unitLoadoutData.backUpMainHandIndex = resourceManager.allItems.IndexOf(tempHero.backUpMainHand);
+                unitLoadoutData.backUpOffHandIndex = resourceManager.allItems.IndexOf(tempHero.backUpOffHand);
                 tempBattleLineData.unitData = unitLoadoutData;
                 tempBattleLineData.unitGroupData.mercenaryIndex = -1;
             }
@@ -347,6 +355,8 @@ public class OverworldGameManager : MonoBehaviour, IDataPersistence
                 unitLoadoutData.item2Index = resourceManager.allItems.IndexOf(tempHero.Item2);
                 unitLoadoutData.item3Index = resourceManager.allItems.IndexOf(tempHero.Item3);
                 unitLoadoutData.item4Index = resourceManager.allItems.IndexOf(tempHero.Item4);
+                unitLoadoutData.backUpMainHandIndex = resourceManager.allItems.IndexOf(tempHero.backUpMainHand);
+                unitLoadoutData.backUpOffHandIndex = resourceManager.allItems.IndexOf(tempHero.backUpOffHand);
                 tempBattleLineData.unitData = unitLoadoutData;
                 tempBattleLineData.unitGroupData.mercenaryIndex = -1;
             }
@@ -392,6 +402,8 @@ public class OverworldGameManager : MonoBehaviour, IDataPersistence
                 unitLoadoutData.item2Index = resourceManager.allItems.IndexOf(tempHero.Item2);
                 unitLoadoutData.item3Index = resourceManager.allItems.IndexOf(tempHero.Item3);
                 unitLoadoutData.item4Index = resourceManager.allItems.IndexOf(tempHero.Item4);
+                unitLoadoutData.backUpMainHandIndex = resourceManager.allItems.IndexOf(tempHero.backUpMainHand);
+                unitLoadoutData.backUpOffHandIndex = resourceManager.allItems.IndexOf(tempHero.backUpOffHand);
                 tempBattleLineData.unitData = unitLoadoutData;
                 tempBattleLineData.unitGroupData.mercenaryIndex = -1;
             }

@@ -31,4 +31,7 @@ public class ResourceManager : ScriptableObject
 
     public List<Faction> factions;
     public Mission emptyMission;
+
+    public DamageAnimation damageAnimation;
+    public AttackedAnimation attackedAnimation;
 }
