@@ -18,4 +18,14 @@ public class LineOfSightTargeting : TargetingSystem
     {
         throw new System.NotImplementedException();                                 
     }
+
+    public override void NextItem()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void PreviousItem()
+    {
+
+    }
 }

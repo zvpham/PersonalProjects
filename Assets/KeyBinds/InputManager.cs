@@ -99,6 +99,7 @@ public class InputManager : MonoBehaviour
         {
             m_PointerEventData = new PointerEventData(m_EventSystem);
             //Set the Pointer Event Position to that of the game object
+
             m_PointerEventData.position = Input.mousePosition;
 
             //Create a list of Raycast Results
@@ -121,7 +122,7 @@ public class InputManager : MonoBehaviour
 
             if (!isDragging && !mouseOverUI)
             {
-                gameManager.grid.GetXY(currentMousePosition, out int x, out int y);
+                //gameManager.grid.GetXY(currentMousePosition, out int x, out int y);
                 FoundPosition?.Invoke();
             }
             isDragging = false;

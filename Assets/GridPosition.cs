@@ -7,12 +7,14 @@ public class GridPosition
     public GridHex<GridPosition> hexGrid;
     public int x;
     public int y;
+    public int elevation;
     public Unit unit;
     public Unit tempUnit;
 
-    public GridPosition(GridHex<GridPosition> grid, int x, int y)
+    public GridPosition(GridHex<GridPosition> grid, int x, int y, int elevation)
     {
         this.hexGrid = grid;
+        this.elevation = elevation;
         this.x = x;
         this.y = y;
     }

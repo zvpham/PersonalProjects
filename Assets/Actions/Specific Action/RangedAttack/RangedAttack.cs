@@ -23,14 +23,22 @@ public class RangedAttack : Action
 
         List<EquipableAmmoSO> unitAmmo = new List<EquipableAmmoSO>();
 
-        CheckCorrectAmmo(self.Item1, unitAmmo);
-        CheckCorrectAmmo(self.Item2, unitAmmo);
-        CheckCorrectAmmo(self.Item3, unitAmmo);
-        CheckCorrectAmmo(self.Item4, unitAmmo);
+        CheckCorrectAmmo(self.Item1, 0, unitAmmo, self);
+        CheckCorrectAmmo(self.Item2, 1, unitAmmo, self);
+        CheckCorrectAmmo(self.Item3, 2, unitAmmo, self);
+        CheckCorrectAmmo(self.Item4, 3, unitAmmo, self);
 
-        if(unitAmmo.Count <= 0)
+        bool foundAmmo = false;
+        for (int i = 0; i < unitAmmo.Count; i++)
         {
-            Debug.Log("No ammo");
+            if (unitAmmo[i] != null)
+            {
+                foundAmmo = true;
+            }
+        }
+
+        if (!foundAmmo)
+        {
             return;
         }
 
@@ -44,40 +52,39 @@ public class RangedAttack : Action
     {
         List<EquipableAmmoSO> unitAmmo = new List<EquipableAmmoSO>();
 
-        CheckCorrectAmmo(self.Item1, unitAmmo);
-        CheckCorrectAmmo(self.Item2, unitAmmo);
-        CheckCorrectAmmo(self.Item3, unitAmmo);
-        CheckCorrectAmmo(self.Item4, unitAmmo);
+        CheckCorrectAmmo(self.Item1, 0, unitAmmo, self);
+        CheckCorrectAmmo(self.Item2, 1, unitAmmo, self);
+        CheckCorrectAmmo(self.Item3, 2, unitAmmo, self);
+        CheckCorrectAmmo(self.Item4, 3, unitAmmo, self);
 
-        if (unitAmmo.Count <= 0)
+        for(int i = 0; i < unitAmmo.Count; i++)
         {
-            return false;
+            if (unitAmmo[i] != null)
+            {
+                return true;
+            }
         }
 
-        return true;
+        return false;
     }
 
-    public void CheckCorrectAmmo(EquipableItemSO item, List<EquipableAmmoSO> unitAmmo)
+    public void CheckCorrectAmmo(EquipableItemSO item, int itemIndex, List<EquipableAmmoSO> unitAmmo, Unit self)
     {
-        Debug.Log("Item: " + item);
-        if(item != null)
-        {
-            Debug.Log("Item Type: " + item.GetType());
-        }
-        if (item != null && item.GetType() == typeof(EquipableAmmoSO))
+        EquipableAmmoSO newAmmo = null;
+        if (item != null && item.GetType() == typeof(EquipableAmmoSO) && self.itemUses[itemIndex] > 0)
         {
             EquipableAmmoSO ammo = (EquipableAmmoSO)item;
             if(ammo.ammoType == ammoType)
             {
-                Debug.Log("ammo Count: " + unitAmmo.Count);
-                unitAmmo.Add(ammo);
-                Debug.Log("ammo Count2: " + unitAmmo.Count);
+                newAmmo = ammo;
             }
         }
+        unitAmmo.Add(newAmmo);
     }
 
     public void FoundTarget(Unit movingUnit, Unit targetUnit, bool foundTarget)
     {
+        Debug.Log("Found Target");
         if (foundTarget)
         {
             GridHex<GridPosition> map = movingUnit.gameManager.grid;
@@ -184,6 +191,15 @@ public struct AttackData
         for(int i = 0; i < attackData.Item3.Count; i++)
         {
             allAttackData.Add(attackData.Item3[i]);
+        }
+
+        if (armorDamagePercentage > 1)
+        {
+            AttackDataUI antiArmorAttackDataUI = new AttackDataUI();
+            antiArmorAttackDataUI.data = "AntiArmor " + armorDamagePercentage.ToString() + "X";
+            antiArmorAttackDataUI.attackDataType = attackDataType.Modifier;
+            antiArmorAttackDataUI.attackState = attackState.Benificial;
+            allAttackData.Add(antiArmorAttackDataUI);
         }
 
         return allAttackData;

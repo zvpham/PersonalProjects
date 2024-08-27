@@ -8,4 +8,8 @@ public abstract class TargetingSystem : MonoBehaviour
     public abstract void EndTargeting();
 
     public abstract void DeactivateTargetingSystem();
+
+    public abstract void NextItem();
+
+    public abstract void PreviousItem();
 }

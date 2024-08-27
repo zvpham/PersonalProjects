@@ -52,7 +52,16 @@ public class CombatMapGenerator : MonoBehaviour
     // Make Based On Map For Future Use
     public void GenerateTerrain()
     {
-
+        TerrainType missionTerrain = TerrainType.Grassland;
+        switch(missionTerrain)
+        {
+            case TerrainType.Grassland:
+                break;
+            case TerrainType.Forest:
+                break;
+            case TerrainType.Hilly:
+                break;
+        }
     }
 
     public void PlaceUnits()

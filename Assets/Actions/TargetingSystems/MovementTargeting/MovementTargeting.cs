@@ -573,41 +573,15 @@ public class MovementTargeting : TargetingSystem
         {
             actionMoveAmounts.RemoveAt(actionMoveAmounts.Count - 1);
         }
-        /*
-        if (setPath.Count > 0)
-        {
-            oneActionLine = new List<Vector3>() { movingUnit.transform.position };
-            for (int i = 0; i < setPath.Count; i++)
-            {
-                oneActionLine.Add(map.getGrid().GetWorldPosition(setPath[i].x, setPath[i].y));
-            }
-        }
-        else
-        {
-            oneActionLine = new List<Vector3>() { movingUnit.transform.position };
-            for (int i = 0; i < oneActionMoveAmount; i++)
-            {
-                oneActionLine.Add(map.getGrid().GetWorldPosition(path[i].x, path[i].y));
-            }
-        }
+    }
 
-        if (setPath.Count > 0)
-        {
-            twoActionLine.Add(oneActionLine[oneActionLine.Count - 1]);
-            for (int i = 0; i < twoActionMoveAmount; i++)
-            {
-                twoActionLine.Add(map.getGrid().GetWorldPosition(path[i].x, path[i].y));
-            }
-        }
-        else
-        {
-            twoActionLine.Add(oneActionLine[oneActionLine.Count - 1]);
-            for (int i = 0; i < twoActionMoveAmount; i++)
-            {
-                twoActionLine.Add(map.getGrid().GetWorldPosition(path[i + oneActionMoveAmount].x, path[i + oneActionMoveAmount].y));
-            }
-        }
-        gameManager.spriteManager.DrawLine(oneActionLine, twoActionLine);
-        */
+    public override void NextItem()
+    {
+
+    }
+
+    public override void PreviousItem()
+    {
+
     }
 }

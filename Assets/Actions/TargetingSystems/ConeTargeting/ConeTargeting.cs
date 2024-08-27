@@ -360,4 +360,14 @@ public class ConeTargeting : TargetingSystem
     {
         ResetSetUp();
     }
+
+    public override void NextItem()
+    {
+
+    }
+
+    public override void PreviousItem()
+    {
+
+    }
 }

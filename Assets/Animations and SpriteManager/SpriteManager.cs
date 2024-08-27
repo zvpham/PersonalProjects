@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.Events;
 using UnityEngine.WSA;
+using UnityEngine.UIElements;
 
 public class SpriteManager : MonoBehaviour
 {
@@ -17,6 +18,21 @@ public class SpriteManager : MonoBehaviour
     [SerializeField] private CombatUISystem combatUI;
 
     public GridHex<SpriteNode> spriteGrid;
+    public int[,] elevationOfHexes;
+    public int[,] terrainSprites;
+    public bool[,] terrainIsChangingElevation;
+    public TerrainHolder[,] tempTerrain;
+    public TerrainHolder[,] terrain;
+    public List<List<Vector2Int>> terrainTilePositions;
+    public List<TerrainHolder> inactiveWalls;
+    public List<TerrainHolder> activeWalls;
+    public List<GameObject> inactiveMasks;
+    public List<GameObject> activeMasks;
+    public TerrainHolder newGroundprefab;
+    public TerrainHolder wallPrefab;
+    public GameObject maskPrefab;
+
+    public int currentViewingElevation;
 
     public MovementTargeting movementTargeting;
     public MeleeTargeting meleeTargeting;
@@ -38,20 +54,9 @@ public class SpriteManager : MonoBehaviour
     public float currentTime;
     public string debugWord;
 
-    public void CreateGrid(int mapWidth, int mapHeight, float cellSize, Vector3 defaultGridAdjustment)
-    {
-        spriteGrid = new GridHex<SpriteNode>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<SpriteNode> g, int x, int y) => new SpriteNode(g, x, y), false);
-
-    }
-
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(1))
-        {
-            movementTargeting.enabled = true;
-        }
-
         currentTime += Time.deltaTime;
         if (timeBetweenAnimations.Count != 0 && currentTime >= timeBetweenAnimations[0])
         {
@@ -216,6 +221,16 @@ public class SpriteManager : MonoBehaviour
         coneTargeting.SelectNewPosition(UtilsClass.GetMouseWorldPosition());
     }
 
+    public void NextItem()
+    {
+        activeTargetingSystems.NextItem();
+    }
+
+    public void PreviousItem()
+    {
+        activeTargetingSystems.PreviousItem();
+    }
+
     public void DeactiveTargetingSystem()
     {
         combatUI.OnDeactivateTargetingSystem();
@@ -266,8 +281,175 @@ public class SpriteManager : MonoBehaviour
         combatUI.ResetDataAttackUI();
     }
 
-    public void ActivateDamageCombatUI()
+    public void CreateGrid(int mapWidth, int mapHeight, int amountOfTerrainLevels, float cellSize, Vector3 defaultGridAdjustment)
+    {
+        spriteGrid = new GridHex<SpriteNode>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<SpriteNode> g, int x, int y) => new SpriteNode(g, x, y), false);
+        terrainTilePositions =  new List<List<Vector2Int>>();
+        terrain = new TerrainHolder[mapWidth, mapHeight];
+        for (int i = 0; i < amountOfTerrainLevels; i++)
+        {
+            terrainTilePositions.Add(new List<Vector2Int>());
+        }
+
+        elevationOfHexes = new int[mapWidth, mapHeight];
+        terrainSprites = new int[mapWidth, mapHeight];
+        terrainIsChangingElevation = new bool[mapWidth, mapHeight];
+        for (int i = 0; i < mapHeight; i++)
+        {
+            for (int j = 0; j < mapWidth; j++)
+            {
+                elevationOfHexes[j, i] = combatGameManager.defaultElevation;
+                terrainSprites[j, i] = 1;
+                terrainIsChangingElevation[j, i] = false;
+                terrain[j, i] = tempTerrain[j, i];
+                terrainTilePositions[tempTerrain[j, i].elevation].Add(new Vector2Int(j, i));
+            }
+        }
+        currentViewingElevation = terrainTilePositions.Count - 1;
+    }
+
+    public void SetViewElevation(int newViewElevation)
+    {
+        if (newViewElevation >= terrainTilePositions.Count || newViewElevation < 0)
+        {
+            return;
+        }
+        currentViewingElevation = newViewElevation;
+        for (int currentElevation = 0; currentElevation < terrainTilePositions.Count; currentElevation++)
+        {
+            for (int tilePositionIndex = 0; tilePositionIndex < terrainTilePositions[currentElevation].Count; tilePositionIndex++)
+            {
+                Vector2Int tilePosition = terrainTilePositions[currentElevation][tilePositionIndex];
+                TerrainHolder terrainHex = terrain[tilePosition.x, tilePosition.y];
+                if (currentElevation <= currentViewingElevation)
+                {
+                    terrainHex.transform.position = spriteGrid.GetWorldPosition(tilePosition.x, tilePosition.y)  + 
+                        new Vector3(0, combatGameManager.terrainHeightDifference * (currentElevation - combatGameManager.defaultElevation));
+                    for (int k = 0; k < terrainHex.walls.Count; k++)
+                    {
+                        terrainHex.walls[k].enabled = true;
+                    }
+                }
+                else
+                {
+                    int elevationDifference = currentElevation - currentViewingElevation;
+                    terrainHex.transform.position = spriteGrid.GetWorldPosition(tilePosition.x, tilePosition.y) +
+                        new Vector3(0, combatGameManager.terrainHeightDifference * (currentElevation - combatGameManager.defaultElevation - elevationDifference));
+                    for (int k = 0; k < elevationDifference; k++)
+                    {
+                        if(terrainHex.walls.Count - 1 - k < 0)
+                        {
+                            break;
+                        }
+                        terrainHex.walls[terrainHex.walls.Count - 1 - k].enabled = false;
+                    }
+                }
+            }
+        }
+    }
+
+    public void CreateElevationSprite(int x, int y, int elevation, bool playAnimation)
     {
 
+        if (playAnimation)
+        {
+            TerrainHolder newHex = null;
+
+            newHex = Instantiate(newGroundprefab);
+            Vector3 originalHexPosition = spriteGrid.GetWorldPosition(x, y);
+            newHex.transform.position = originalHexPosition;
+            newHex.elevation = elevation;
+            newHex.x = x;
+            newHex.y = y;
+            Debug.Log("Set Hex: " + elevation + ", " + x + ", " + y);
+           terrain[x, y] = newHex;
+
+
+            int terrainTileIndex = terrainTilePositions[combatGameManager.defaultElevation].IndexOf(new Vector2Int(x, y));
+
+            if (terrainTileIndex == -1)
+            {
+                Debug.LogError("Attempted to ceate a new Elevation Terrain Sprite while sprite for the position exists: " + new Vector2Int(x, y));
+            }
+            Vector3Int currentNodePosition = new Vector3Int(y, x);
+            newHex.sprite.sprite = tileMaps[0].GetSprite(currentNodePosition);
+            terrain[x, y] = newHex;
+
+        }
+        else
+        {
+            TerrainHolder newHex = Instantiate(newGroundprefab);
+            Vector3 originalHexPosition = spriteGrid.GetWorldPosition(x, y);
+            newHex.transform.position = originalHexPosition;
+            newHex.elevation = elevation;
+            newHex.x = x;
+            newHex.y = y;
+            Debug.Log("Set Hex: " + elevation + ", " + x + ", " + y);
+            terrain[x, y] = newHex;
+
+            int terrainTileIndex = terrainTilePositions[combatGameManager.defaultElevation].IndexOf(new Vector2Int(x, y));
+
+            if (terrainTileIndex == -1)
+            {
+                Debug.LogError("Attempted to ceate a new Elevation Terrain Sprite while sprite for the position exists: " + new Vector2Int(x, y));
+            }
+            else
+            {
+                Vector2Int newTileHex = terrainTilePositions[combatGameManager.defaultElevation][terrainTileIndex];
+                terrainTilePositions[combatGameManager.defaultElevation].RemoveAt(terrainTileIndex);
+                terrainTilePositions[elevation].Add(newTileHex);
+            }
+            float newHexHeight = newHex.transform.position.y + ((elevation - combatGameManager.defaultElevation) * combatGameManager.terrainHeightDifference);
+            newHex.transform.position = new Vector3(newHex.transform.position.x, newHexHeight);
+            Vector3Int currentNodePosition = new Vector3Int(y, x);
+            newHex.sprite.sprite = tileMaps[0].GetSprite(currentNodePosition);
+            terrain[x, y] = newHex;
+        }
+    }
+
+    public TerrainHolder UseOpenWall()
+    {
+        if (inactiveWalls.Count <= 0)
+        {
+            TerrainHolder newWall = Instantiate(wallPrefab);
+            newWall.transform.position = new Vector3(-20, -20);
+            inactiveWalls.Add(newWall);
+        }
+
+        TerrainHolder openWall = inactiveWalls[0];
+        inactiveWalls.RemoveAt(0);
+        activeWalls.Add(openWall);
+        return openWall;
+    }
+
+    public void DisableWall(TerrainHolder wall)
+    {
+        activeWalls.Remove(wall);
+        inactiveWalls.Add(wall);
+        wall.transform.parent = null;
+        wall.transform.position = new Vector3(-20, -20);
+    }
+
+    public GameObject UseOpenMask()
+    {
+        if (inactiveMasks.Count <= 0)
+        {
+            GameObject newWall = Instantiate(maskPrefab);
+            newWall.transform.position = new Vector3(-20, -20);
+            inactiveMasks.Add(newWall);
+        }
+
+        GameObject openWall = inactiveMasks[0];
+        inactiveMasks.RemoveAt(0);
+        activeMasks.Add(openWall);
+        return openWall;
+    }
+
+    public void DisableMask(GameObject mask)
+    {
+        activeMasks.Remove(mask);
+        inactiveMasks.Add(mask);
+        mask.transform.parent = null;
+        mask.transform.position = new Vector3(-20, -20);
     }
 }

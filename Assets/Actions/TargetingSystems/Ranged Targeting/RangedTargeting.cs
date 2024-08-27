@@ -45,7 +45,9 @@ public class RangedTargeting : TargetingSystem
     public bool targetFriendly = false;
     public bool canStillMove;
     public bool keepCombatAttackUi = false;
+    public bool ChangeCombatAttackUI = false;
     public bool selectOnTarget = false;
+    public bool unitAttemptingToMove = false;
 
     public int actionPointsLeft;
 
@@ -74,7 +76,8 @@ public class RangedTargeting : TargetingSystem
         map = movingUnit.gameManager.map;
         startingPosition = movingUnit.transform.position;
         selectedTarget = false;
-        prevEndHexPosition = new Vector2Int(-10, 0);
+        unitAttemptingToMove = false;
+        prevEndHexPosition = new Vector2Int(-1, -1);
         path = new List<Vector2Int>();
         this.enabled = true;
         amountMoved = movingUnit.amountMoveUsedDuringRound;
@@ -414,10 +417,20 @@ public class RangedTargeting : TargetingSystem
                     Debug.Log("this SHouldn't happen");
                 }
 
-                
-                //Create Combat Attack UI and Cover
-                if (prevEndHexSelectedPosition != endHex[0] && !keepCombatAttackUi)
+                if((prevEndHexPosition.x <= -1 ||prevEndHexPosition.y <= -1) && prevEndHexSelectedPosition != endHex[0])
                 {
+                    for (int i = 0; i < highlightedCoverHexes.Count; i++)
+                    {
+                        gameManager.spriteManager.ChangeTile(highlightedCoverHexes[i], 3, 0);
+                    }
+                    highlightedCoverHexes = new List<Vector2Int> ();
+
+                }
+
+                //Create Combat Attack UI and Cover
+                if (ChangeCombatAttackUI || (prevEndHexSelectedPosition != endHex[0] && !keepCombatAttackUi))
+                {
+                    ChangeCombatAttackUI = false;
                     for (int i = 0; i < highlightedCoverHexes.Count; i++)
                     {
                         gameManager.spriteManager.ChangeTile(highlightedCoverHexes[i], 3, 0);
@@ -443,7 +456,7 @@ public class RangedTargeting : TargetingSystem
                                 attackData.armorDamagePercentage, attackData.originUnit);
                             if(unitAmmo != null && unitAmmo.Count > 0)
                             {
-                                unitAmmo[currentAmmoIndex].ModifyAttack(currentAttackData);
+                                currentAttackData = unitAmmo[currentAmmoIndex].ModifyAttack(currentAttackData);
                             }
                             List<AttackDataUI> attackDatas = currentAttackData.CalculateAttackData(targetUnit);
                             if(highlightedCoverHexes.Count > 0)
@@ -561,8 +574,8 @@ public class RangedTargeting : TargetingSystem
                         }
                     }
                     keepCombatAttackUi = true;
-                    // Case target is within meleeRange
-                    if (targetInMeleeRange)
+                    // Case target is within Range and Hasn't attempted to move
+                    if (targetInMeleeRange && !unitAttemptingToMove)
                     {
                         SetUp(startingPosition, 0, movingUnit.moveSpeed);
                         gameManager.spriteManager.ActivateActionConfirmationMenu(
@@ -581,6 +594,7 @@ public class RangedTargeting : TargetingSystem
                     else
                     {
                         endPathHex = setPath[setPath.Count - 1];
+                        Destroy(tempMovingUnit);
                         tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
                         SetUp(map.getGrid().GetWorldPosition(setPath[setPath.Count - 1]), 0, movingUnit.moveSpeed);
                         gameManager.spriteManager.ActivateActionConfirmationMenu(
@@ -615,6 +629,7 @@ public class RangedTargeting : TargetingSystem
                     Destroy(tempMovingUnit);
                     tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
                     SetUp(map.getGrid().GetWorldPosition(setPath[setPath.Count - 1]), actionPointsLeft, movingUnit.moveSpeed);
+                    unitAttemptingToMove = true;
                     gameManager.spriteManager.ActivateActionConfirmationMenu(
                         () => // Confirm Action
                         {
@@ -687,6 +702,7 @@ public class RangedTargeting : TargetingSystem
         tempMovingUnit = null;
         selectedTarget = false;
         keepCombatAttackUi = false;
+        unitAttemptingToMove = false;
         prevEndHexPosition = new Vector2Int(-1, -1);
         path = new List<Vector2Int>();
         setPath = new List<Vector2Int>();
@@ -795,6 +811,53 @@ public class RangedTargeting : TargetingSystem
         for (int i = 0; i < highlightedCoverHexes.Count; i++)
         {
             gameManager.spriteManager.ChangeTile(highlightedCoverHexes[i], 3, 6);
+        }
+    }
+
+    public override void NextItem()
+    {
+        if(currentAmmoIndex == -1)
+        {
+            return;
+        }
+
+        for(int i = 0; i < unitAmmo.Count; i++)
+        {
+            currentAmmoIndex += 1;
+            if(currentAmmoIndex >= unitAmmo.Count)
+            {
+                currentAmmoIndex = 0;
+            }
+            if (unitAmmo[currentAmmoIndex] != null)
+            {
+                ChangeCombatAttackUI = true;
+                SelectNewPosition(endPosition);
+                return;
+            }
+        }
+
+    }
+
+    public override void PreviousItem()
+    {
+        if (currentAmmoIndex == -1)
+        {
+            return;
+        }
+
+        for (int i = 0; i < unitAmmo.Count; i++)
+        {
+            currentAmmoIndex -= 1;
+            if (currentAmmoIndex <= -1)
+            {
+                currentAmmoIndex = unitAmmo.Count - 1;
+            }
+            if (unitAmmo[currentAmmoIndex] != null)
+            {
+                ChangeCombatAttackUI = true;
+                SelectNewPosition(endPosition);
+                return;
+            }
         }
     }
 }

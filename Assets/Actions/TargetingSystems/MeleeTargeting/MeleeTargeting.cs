@@ -708,4 +708,14 @@ public class MeleeTargeting : TargetingSystem
             }
         }
     }
+
+    public override void NextItem()
+    {
+
+    }
+
+    public override void PreviousItem()
+    {
+
+    }
 }

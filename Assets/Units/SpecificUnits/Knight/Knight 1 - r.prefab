@@ -63,7 +63,7 @@ MonoBehaviour:
   backUpMainHand: {fileID: 0}
   backUpOffHand: {fileID: 0}
   Item1: {fileID: 11400000, guid: 29276f5da199c884c9da68d5d6e4e929, type: 2}
-  Item2: {fileID: 11400000, guid: 29276f5da199c884c9da68d5d6e4e929, type: 2}
+  Item2: {fileID: 11400000, guid: 18a4528d0668ec54da9aab5fde4d7f4b, type: 2}
   Item3: {fileID: 0}
   Item4: {fileID: 0}
   itemUses: 00000000000000000000000000000000

@@ -90,6 +90,101 @@ public class Unit : UnitSuperClass, IInititiave
     void Start()
     {
         unitProfile = unitClass.UIUnitProfile;
+        for (int j = 0; j < skillTreeOneBranchOne.Count; j++)
+        {
+            if (skillTreeOneBranchOne[j])
+            {
+                unitClass.skillTree1.branch1.BranchSkills[j].UnlockSkill(this);
+            }
+        }
+
+        for (int j = 0; j < skillTreeOneBranchTwo.Count; j++)
+        {
+            if (skillTreeOneBranchTwo[j])
+            {
+                unitClass.skillTree1.branch2.BranchSkills[j].UnlockSkill(this);
+            }
+        }
+
+        for (int j = 0; j < skillTreeTwoBranchOne.Count; j++)
+        {
+            if (skillTreeTwoBranchOne[j])
+            {
+                unitClass.skillTree2.branch1.BranchSkills[j].UnlockSkill(this);
+            }
+        }
+
+        for (int j = 0; j < skillTreeTwoBranchTwo.Count; j++)
+        {
+            if (skillTreeTwoBranchTwo[j])
+            {
+                unitClass.skillTree2.branch2.BranchSkills[j].UnlockSkill(this);
+            }
+        }
+
+        if (helmet != null)
+        {
+            helmet.EquipItem(this);
+        }
+        if (armor != null)
+        {
+            armor.EquipItem(this);
+        }
+        if (legs != null)
+        {
+            legs.EquipItem(this);
+        }
+        if (mainHand != null)
+        {
+            mainHand.EquipItem(this);
+        }
+        if (offHand != null)
+        {
+            offHand.EquipItem(this);
+        }
+        if (Item1 != null)
+        {
+            Item1.EquipItem(this);
+            if(Item1.GetType() == typeof(EquipableAmmoSO))
+            {
+                itemUses[0] = Item1.mainThreeMin;
+            }
+        }
+        if (Item2 != null)
+        {
+            Item2.EquipItem(this);
+            if (Item1.GetType() == typeof(EquipableAmmoSO))
+            {
+                itemUses[1] = Item2.mainThreeMin;
+            }
+        }
+        if (Item3 != null)
+        {
+            Item3.EquipItem(this);
+            if (Item1.GetType() == typeof(EquipableAmmoSO))
+            {
+                itemUses[2] = Item3.mainThreeMin;
+            }
+        }
+        if (Item4 != null)
+        {
+            Item4.EquipItem(this);
+            if (Item1.GetType() == typeof(EquipableAmmoSO))
+            {
+                itemUses[3] = Item4.mainThreeMin;
+            }
+        }
+        if (backUpMainHand != null)
+        {
+            backUpMainHand.EquipItem(this, true);
+        }
+        if (backUpOffHand != null)
+        {
+            backUpOffHand.EquipItem(this, true);
+        }
+
+        ChangeStrength(strength);
+        ChangeDexterity(dexterity);
         if (!inOverWorld)
         {
             if (group == null)
@@ -117,89 +212,6 @@ public class Unit : UnitSuperClass, IInititiave
             endTurn = gameManager.resourceManager.actions[1];
             currentHealth = maxHealth;
         }
-        else
-        {
-            for (int j = 0; j < skillTreeOneBranchOne.Count; j++)
-            {
-                if (skillTreeOneBranchOne[j])
-                {
-                    unitClass.skillTree1.branch1.BranchSkills[j].UnlockSkill(this);
-                }
-            }
-
-            for (int j = 0; j < skillTreeOneBranchTwo.Count; j++)
-            {
-                if (skillTreeOneBranchTwo[j])
-                {
-                    unitClass.skillTree1.branch2.BranchSkills[j].UnlockSkill(this);
-                }
-            }
-
-            for (int j = 0; j < skillTreeTwoBranchOne.Count; j++)
-            {
-                if (skillTreeTwoBranchOne[j])
-                {
-                    unitClass.skillTree2.branch1.BranchSkills[j].UnlockSkill(this);
-                }
-            }
-
-            for (int j = 0; j < skillTreeTwoBranchTwo.Count; j++)
-            {
-                if (skillTreeTwoBranchTwo[j])
-                {
-                    unitClass.skillTree2.branch2.BranchSkills[j].UnlockSkill(this);
-                }
-            }
-
-            if (helmet != null)
-            {
-                helmet.EquipItem(this);
-            }
-            if (armor != null)
-            {
-                armor.EquipItem(this);
-            }
-            if (legs != null)
-            {
-                legs.EquipItem(this);
-            }
-            if (mainHand != null)
-            {
-                mainHand.EquipItem(this);
-            }
-            if (offHand != null)
-            {
-                offHand.EquipItem(this);
-            }
-            if (Item1 != null)
-            {
-                Item1.EquipItem(this);
-            }
-            if (Item2 != null)
-            {
-                Item2.EquipItem(this);
-            }
-            if (Item3 != null)
-            {
-                Item3.EquipItem(this);
-            }
-            if (Item4 != null)
-            {
-                Item4.EquipItem(this);
-            }
-            if(backUpMainHand != null)
-            {
-                backUpMainHand.EquipItem(this, true);
-            }
-            if (backUpOffHand != null)
-            {
-                backUpOffHand.EquipItem(this, true);
-            }
-
-            ChangeStrength(strength);
-            ChangeDexterity(dexterity);
-        }
-
     }
 
     public void ChangeStrength(int newStrength)

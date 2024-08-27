@@ -20,11 +20,13 @@ public class EquipableAmmoSO : EquipableItemSO
         base.UnequipItem(unit, isBackUp);
     }
 
-    public void ModifyAttack(AttackData attackData)
+    public AttackData ModifyAttack(AttackData attackData)
     {
-        attackData.minDamage = (int) (attackData.minDamage * this.mainTwoMin);
-        attackData.maxDamage = (int) (attackData.maxDamage * this.mainTwoMin);
-        attackData.armorDamagePercentage = armorPiercingModifier; 
+        AttackData newAttackData = attackData;
+        newAttackData.minDamage = (int)(attackData.minDamage * this.mainTwoMin);
+        newAttackData.maxDamage = (int)(attackData.maxDamage * this.mainTwoMin);
+        newAttackData.armorDamagePercentage = armorPiercingModifier;
+        return newAttackData;
     }
 }
 
