@@ -405,16 +405,6 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         spriteManager.CreateGrid(mapWidth, mapHeight, amountOfElevations, cellSize, defaultGridAdjustment);
     }
 
-    public void SetElevation(Vector2Int xyHexPosition, int newElevation)
-    {
-        SetElevation(xyHexPosition.x, xyHexPosition.y, newElevation);
-    }
-
-    public void SetElevation(int x, int y, int newElevation)
-    {
-        spriteManager.CreateElevationSprite(x, y, newElevation, true) ;
-    }
-
     private void Quicksort(List<int> array, int left, int right)
     {
         if (left < right)

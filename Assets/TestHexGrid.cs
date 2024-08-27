@@ -101,18 +101,6 @@ public class TestHexGrid : MonoBehaviour
                 {
                     Vector2Int offSetPosition = gameManager.spriteManager.spriteGrid.CubeToOffset(cubePath[i]);
                     ChangeElevation(offSetPosition.x, offSetPosition.y, 2, true, false);
-                    /*
-                    if(i == 0)
-                    {
-                        Vector2Int offSetPosition = gameManager.spriteManager.spriteGrid.CubeToOffset(cubePath[i]);
-                        ChangeElevation(offSetPosition.x, offSetPosition.y, 2, true, false);
-                    }
-                    else
-                    {
-                        Vector2Int offSetPosition = gameManager.spriteManager.spriteGrid.CubeToOffset(cubePath[i]);
-                        ChangeElevation(offSetPosition.x, offSetPosition.y, 2, true, true);
-                    }
-                    */
                 }
                 mouseIndex = 0;
             }
@@ -157,74 +145,7 @@ public class TestHexGrid : MonoBehaviour
         int hexElevation = gameManager.spriteManager.elevationOfHexes[currentlySelectedHex.x, currentlySelectedHex.y] - defaultElevation;
         currentlySelectedHexSprite.transform.position = hexgrid.GetWorldPosition(currentlySelectedHex) + new Vector3(0, terrainHeightDifference * hexElevation);
     }     
-    /*
-    public void CreateElevationSprite(int x, int y, int elevation, bool playAnimation)
-    {
 
-        if(playAnimation)
-        {
-            TerrainHolder newHex = null;
-
-            newHex = Instantiate(newGroundHexPrefab);
-            Vector3 originalHexPosition = hexgrid.GetWorldPosition(x, y);
-            newHex.transform.position = originalHexPosition;
-            newHex.elevation = elevation;
-            newHex.x = x;
-            newHex.y = y;
-            Debug.Log("Set Hex: " + elevation + ", " + x + ", " + y);
-            gameManager.spriteManager.terrain[x, y] = newHex;
-
-
-            int terrainTileIndex = gameManager.spriteManager.terrainTilePositions[defaultElevation].IndexOf(new Vector2Int(x, y));
-
-            if (terrainTileIndex == -1)
-            {
-                Debug.LogError("Attempted to ceate a new Elevation Terrain Sprite while sprite for the position exists: " + new Vector2Int(x, y));
-            }
-            Vector3Int currentNodePosition = new Vector3Int(y, x);
-            newHex.sprite.sprite = tileMap.GetSprite(currentNodePosition);
-            gameManager.spriteManager.terrain[x, y] = newHex;
-
-        }
-        else
-        {
-            TerrainHolder newHex = null;
-            if (elevation == defaultElevation)
-            {
-                return;
-            }
-            else if (elevation > defaultElevation)
-            {
-                newHex = Instantiate(newGroundHexPrefab);
-                Vector3 originalHexPosition = hexgrid.GetWorldPosition(x, y);
-                newHex.transform.position = originalHexPosition;
-                newHex.elevation = elevation;
-                newHex.x = x;
-                newHex.y = y;
-                Debug.Log("Set Hex: " + elevation + ", " + x + ", " + y);
-                gameManager.spriteManager.terrain[x, y] = newHex;
-            }
-
-            int terrainTileIndex = gameManager.spriteManager.terrainTilePositions[defaultElevation].IndexOf(new Vector2Int(x, y));
-
-            if (terrainTileIndex == -1)
-            {
-                Debug.LogError("Attempted to ceate a new Elevation Terrain Sprite while sprite for the position exists: " + new Vector2Int(x, y));
-            }
-            else
-            {
-                Vector2Int newTileHex = gameManager.spriteManager.terrainTilePositions[defaultElevation][terrainTileIndex];
-                gameManager.spriteManager.terrainTilePositions[defaultElevation].RemoveAt(terrainTileIndex);
-                gameManager.spriteManager.terrainTilePositions[elevation].Add(newTileHex);
-            }
-            float newHexHeight = newHex.transform.position.y + ((elevation - defaultElevation) * terrainHeightDifference);
-            newHex.transform.position = new Vector3(newHex.transform.position.x, newHexHeight);
-            Vector3Int currentNodePosition = new Vector3Int(y, x);
-            newHex.sprite.sprite = tileMap.GetSprite(currentNodePosition);
-            gameManager.spriteManager.terrain[x, y] = newHex;
-        }
-    }
-    */
     public void ChangeElevation(int x, int y, int elevationChangeAmount, bool playAnimation =  false, bool partOfAGroup = false)
     {
         int initialElevationOfHex = gameManager.spriteManager.elevationOfHexes[x, y];
@@ -242,12 +163,6 @@ public class TestHexGrid : MonoBehaviour
         {
             return;
         }
-        /*
-        if (initialElevationOfHex == defaultElevation && gameManager.spriteManager.terrain[x, y] == null)
-        {
-            CreateElevationSprite(x, y, newElevation, playAnimation);
-        }
-        */
 
         gameManager.spriteManager.terrainIsChangingElevation[x,y] = true;
         TerrainElevationChangeAnimation changeElevation = Instantiate(ChangeElevationAnimation);

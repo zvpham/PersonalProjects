@@ -212,10 +212,7 @@ public class TerrainElevationChangeAnimation : CustomAnimations
         {
             topHeight = gameManager.defaultElevation;
         }
-        if (spriteManager.terrain[hexPosition.x, hexPosition.y] == null)
-        {
-            spriteManager.CreateElevationSprite(hexPosition.x, hexPosition.y, newTerrainHeight, false);
-        }
+
         TerrainHolder newTerrain = spriteManager.terrain[hexPosition.x, hexPosition.y];
         for (int i = 0; i < topHeight - endElevation; i++)
         {

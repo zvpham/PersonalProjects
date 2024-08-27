@@ -31,6 +31,7 @@ public class SpriteManager : MonoBehaviour
     public TerrainHolder newGroundprefab;
     public TerrainHolder wallPrefab;
     public GameObject maskPrefab;
+    public TerrainElevationChangeAnimation ChangeElevationAnimation;
 
     public int currentViewingElevation;
 
@@ -308,6 +309,18 @@ public class SpriteManager : MonoBehaviour
         currentViewingElevation = terrainTilePositions.Count - 1;
     }
 
+    public Vector3 GetWorldPosition(Vector2Int hexPosition)
+    {
+        return GetWorldPosition(hexPosition.x, hexPosition.y);
+    }
+
+    public Vector3 GetWorldPosition(int x, int y)
+    {
+        Vector3 hexPosition =  spriteGrid.GetWorldPosition(x, y);
+        hexPosition += new Vector3(0, combatGameManager.terrainHeightDifference * (elevationOfHexes[x, y] - combatGameManager.defaultElevation));
+        return hexPosition;
+    }
+
     public void SetViewElevation(int newViewElevation)
     {
         if (newViewElevation >= terrainTilePositions.Count || newViewElevation < 0)
@@ -348,63 +361,35 @@ public class SpriteManager : MonoBehaviour
         }
     }
 
-    public void CreateElevationSprite(int x, int y, int elevation, bool playAnimation)
+    public void ChangeElevation(int x, int y, int elevationChangeAmount, bool playAnimation = false, bool partOfAGroup = false)
     {
-
-        if (playAnimation)
+        int initialElevationOfHex = elevationOfHexes[x, y];
+        int newElevation = initialElevationOfHex + elevationChangeAmount;
+        if (newElevation < 0)
         {
-            TerrainHolder newHex = null;
-
-            newHex = Instantiate(newGroundprefab);
-            Vector3 originalHexPosition = spriteGrid.GetWorldPosition(x, y);
-            newHex.transform.position = originalHexPosition;
-            newHex.elevation = elevation;
-            newHex.x = x;
-            newHex.y = y;
-            Debug.Log("Set Hex: " + elevation + ", " + x + ", " + y);
-           terrain[x, y] = newHex;
-
-
-            int terrainTileIndex = terrainTilePositions[combatGameManager.defaultElevation].IndexOf(new Vector2Int(x, y));
-
-            if (terrainTileIndex == -1)
-            {
-                Debug.LogError("Attempted to ceate a new Elevation Terrain Sprite while sprite for the position exists: " + new Vector2Int(x, y));
-            }
-            Vector3Int currentNodePosition = new Vector3Int(y, x);
-            newHex.sprite.sprite = tileMaps[0].GetSprite(currentNodePosition);
-            terrain[x, y] = newHex;
-
+            newElevation = 0;
         }
-        else
+        else if (newElevation > terrainTilePositions.Count - 1)
         {
-            TerrainHolder newHex = Instantiate(newGroundprefab);
-            Vector3 originalHexPosition = spriteGrid.GetWorldPosition(x, y);
-            newHex.transform.position = originalHexPosition;
-            newHex.elevation = elevation;
-            newHex.x = x;
-            newHex.y = y;
-            Debug.Log("Set Hex: " + elevation + ", " + x + ", " + y);
-            terrain[x, y] = newHex;
-
-            int terrainTileIndex = terrainTilePositions[combatGameManager.defaultElevation].IndexOf(new Vector2Int(x, y));
-
-            if (terrainTileIndex == -1)
-            {
-                Debug.LogError("Attempted to ceate a new Elevation Terrain Sprite while sprite for the position exists: " + new Vector2Int(x, y));
-            }
-            else
-            {
-                Vector2Int newTileHex = terrainTilePositions[combatGameManager.defaultElevation][terrainTileIndex];
-                terrainTilePositions[combatGameManager.defaultElevation].RemoveAt(terrainTileIndex);
-                terrainTilePositions[elevation].Add(newTileHex);
-            }
-            float newHexHeight = newHex.transform.position.y + ((elevation - combatGameManager.defaultElevation) * combatGameManager.terrainHeightDifference);
-            newHex.transform.position = new Vector3(newHex.transform.position.x, newHexHeight);
-            Vector3Int currentNodePosition = new Vector3Int(y, x);
-            newHex.sprite.sprite = tileMaps[0].GetSprite(currentNodePosition);
-            terrain[x, y] = newHex;
+            newElevation = terrainTilePositions.Count - 1;
         }
+        int realElevationChangeAmount = newElevation - initialElevationOfHex;
+        if (realElevationChangeAmount == 0)
+        {
+            return;
+        }
+
+        terrainIsChangingElevation[x, y] = true;
+        TerrainElevationChangeAnimation changeElevation = Instantiate(ChangeElevationAnimation);
+        Vector3 currenthexPosition = spriteGrid.GetWorldPosition(x, y);
+        changeElevation.SetParameters(combatGameManager, currenthexPosition, (currenthexPosition + 
+            (realElevationChangeAmount * new Vector3(0, combatGameManager.terrainHeightDifference))),
+            x, y, initialElevationOfHex, newElevation, partOfAGroup);
+        int terrainTileIndex = terrainTilePositions[initialElevationOfHex].IndexOf(new Vector2Int(x, y));
+        Vector2Int newTileHex = terrainTilePositions[initialElevationOfHex][terrainTileIndex];
+        terrainTilePositions[initialElevationOfHex].RemoveAt(terrainTileIndex);
+        terrainTilePositions[newElevation].Add(newTileHex);
+
     }
 
     public TerrainHolder UseOpenWall()
