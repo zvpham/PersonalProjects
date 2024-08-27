@@ -63,5 +63,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4ba40c29db62d6240927e94b239e6cc8, type: 2}
   - {fileID: 11400000, guid: 503a1942a54cadd46a8d6ba5a0576496, type: 2}
   emptyMission: {fileID: 0}
+  prefabTerrains:
+  - {fileID: 11400000, guid: 696e5d62e9d58f941b3bd6a574dac974, type: 2}
   damageAnimation: {fileID: -3683181007129332457, guid: 1a39b9cd4390aad45869072313aeb4c5, type: 3}
   attackedAnimation: {fileID: 3921192079602612236, guid: d6d4baf721bd2c1459ad1983276d14b2, type: 3}

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using Unity.VisualScripting.ReorderableList;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
@@ -11,6 +12,7 @@ using UnityEngine.UI;
 public class TestHexGrid : MonoBehaviour
 {
     GridHex<GridPosition> hexgrid;
+    public PrefabTerrain prefabTerrain;
     public float cellSize;
     public Vector3 defaultGridAdjustment;
     //AStarPathfindingHex path;
@@ -66,12 +68,12 @@ public class TestHexGrid : MonoBehaviour
         // Raise Elevation
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, 2, true);
+            gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, 2, true);
         }
         // Drop Elevation
         else if (Input.GetKeyDown(KeyCode.E))
         {
-            ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, - 2, true);
+            gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, - 2, true);
         }
         else if(Input.GetKeyDown(KeyCode.PageUp))
         {
@@ -100,7 +102,7 @@ public class TestHexGrid : MonoBehaviour
                 for(int i = 0; i < cubePath.Count; i++)
                 {
                     Vector2Int offSetPosition = gameManager.spriteManager.spriteGrid.CubeToOffset(cubePath[i]);
-                    ChangeElevation(offSetPosition.x, offSetPosition.y, 2, true, false);
+                    gameManager.spriteManager.ChangeElevation(offSetPosition.x, offSetPosition.y, 2, true, false);
                 }
                 mouseIndex = 0;
             }
@@ -146,35 +148,48 @@ public class TestHexGrid : MonoBehaviour
         currentlySelectedHexSprite.transform.position = hexgrid.GetWorldPosition(currentlySelectedHex) + new Vector3(0, terrainHeightDifference * hexElevation);
     }     
 
-    public void ChangeElevation(int x, int y, int elevationChangeAmount, bool playAnimation =  false, bool partOfAGroup = false)
+    public void SaveTerrain()
     {
-        int initialElevationOfHex = gameManager.spriteManager.elevationOfHexes[x, y];
-        int newElevation = initialElevationOfHex + elevationChangeAmount;
-        if (newElevation < 0)
-        {
-            newElevation = 0;
-        }
-        else if (newElevation > gameManager.spriteManager.terrainTilePositions.Count - 1)
-        {
-            newElevation = gameManager.spriteManager.terrainTilePositions.Count - 1;
-        }
-        int realElevationChangeAmount = newElevation - initialElevationOfHex;
-        if (realElevationChangeAmount == 0)
-        {
-            return;
-        }
-
-        gameManager.spriteManager.terrainIsChangingElevation[x,y] = true;
-        TerrainElevationChangeAnimation changeElevation = Instantiate(ChangeElevationAnimation);
-        Vector3 currenthexPosition = gameManager.spriteManager.spriteGrid.GetWorldPosition(x,y);
-        changeElevation.SetParameters(gameManager, currenthexPosition, (currenthexPosition + (realElevationChangeAmount * new Vector3(0, terrainHeightDifference))), 
-            x, y, initialElevationOfHex, newElevation, partOfAGroup);
-        int terrainTileIndex = gameManager.spriteManager.terrainTilePositions[initialElevationOfHex].IndexOf(new Vector2Int(x, y));
-        Vector2Int newTileHex = gameManager.spriteManager.terrainTilePositions[initialElevationOfHex][terrainTileIndex];
-        gameManager.spriteManager.terrainTilePositions[initialElevationOfHex].RemoveAt(terrainTileIndex);
-        gameManager.spriteManager.terrainTilePositions[newElevation].Add(newTileHex);
-
+        prefabTerrain.terrainElevation = gameManager.spriteManager.elevationOfHexes;
     }
 
-    //public void 
+    public void DisplayTerrain()
+    {
+        string displayString = "";
+        List<string> displayMessage = new List<string>();
+        for(int i = 0; i < prefabTerrain.terrainElevation.GetLength(0); i++)
+        {
+            displayString = "";
+            for (int j = 0; j < prefabTerrain.terrainElevation.GetLength(1); j++)
+            {
+                displayString += prefabTerrain.terrainElevation[j, i].ToString() + " ";
+            }
+            displayMessage.Add(displayString);
+        }
+
+        for(int i = 0; i < displayMessage.Count; i++)
+        {
+            Debug.Log(displayMessage[i]);
+        }
+    }
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(TestHexGrid))]
+public class TestGridEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        TestHexGrid me = (TestHexGrid)target;
+        if (GUILayout.Button("Save Terrain"))
+        {
+            me.SaveTerrain();
+        }
+        if (GUILayout.Button("Display Terrain"))
+        {
+            me.DisplayTerrain();
+        }
+        DrawDefaultInspector();
+    }
+}
+#endif
