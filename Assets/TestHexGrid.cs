@@ -54,9 +54,12 @@ public class TestHexGrid : MonoBehaviour
             gameManager.spriteManager.elevationOfHexes[terrainHexData.x, terrainHexData.y] = terrainHexData.z;
         }
 
+
+        Debug.Log(gameManager.spriteManager.terrainTilePositions.Count);
         for (int i = 0; i < prefabTerrain.terrainElevation.Count; i++)
         {
             Vector3Int terrainHexData = prefabTerrain.terrainElevation[i];
+            gameManager.spriteManager.terrainTilePositions[terrainHexData.z].Add(new Vector2Int(terrainHexData.x, terrainHexData.y));
             gameManager.spriteManager.ChangeElevation(terrainHexData.x, terrainHexData.y, 0);
         }
     }

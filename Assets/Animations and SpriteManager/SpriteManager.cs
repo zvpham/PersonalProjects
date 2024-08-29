@@ -303,7 +303,6 @@ public class SpriteManager : MonoBehaviour
                 terrainSprites[j, i] = 1;
                 terrainIsChangingElevation[j, i] = false;
                 terrain[j, i] = tempTerrain[j, i];
-                terrainTilePositions[tempTerrain[j, i].elevation].Add(new Vector2Int(j, i));
             }
         }
         currentViewingElevation = terrainTilePositions.Count - 1;
@@ -454,14 +453,13 @@ public class SpriteManager : MonoBehaviour
     public void PlaceWallIfBelowGround(Vector2Int hexPosition, int newElevation)
     {
         int newTerrainHeight = elevationOfHexes[hexPosition.x, hexPosition.y];
-        int topHeight = newElevation;
+        int topHeight = newTerrainHeight;
         if (newElevation > combatGameManager.defaultElevation)
         {
             topHeight = combatGameManager.defaultElevation;
         }
 
         TerrainHolder newTerrain = terrain[hexPosition.x, hexPosition.y];
-        Debug.Log("Attemptin TO Place NEw Wall: " + topHeight + ", " + newElevation); 
         for (int i = 0; i < topHeight - newElevation; i++)
         {
             if (newTerrain.walls.Count >= topHeight - newElevation)
