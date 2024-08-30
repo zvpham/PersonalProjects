@@ -35,6 +35,8 @@ public class SpriteManager : MonoBehaviour
 
     public int currentViewingElevation;
 
+    Vector2Int currentlySelectedHex;
+    public GameObject currentlySelectedHexSprite;
     public MovementTargeting movementTargeting;
     public MeleeTargeting meleeTargeting;
     public RangedTargeting rangedTargeting;
@@ -134,6 +136,35 @@ public class SpriteManager : MonoBehaviour
     {
         this.playNewAnimation = playNewAnimation;
     }
+
+    public void SelectMouseHex()
+    {
+        Vector3 mousePosition = Input.mousePosition;
+        Vector2 worldPoint = Camera.main.ScreenToWorldPoint(mousePosition);
+        RaycastHit2D[] hit = Physics2D.RaycastAll(worldPoint, Vector2.zero);
+        if(hit.GetLength(0) == 0)
+        {
+            currentlySelectedHex = new Vector2Int(0, 0);
+        }
+        else
+        {
+            TerrainHolder currentTerrain = null;
+            int highestElevation = -20;
+            for(int i = 0; i < hit.GetLength(0); i++)
+            {
+                TerrainHolder tempTerrainHolder = hit[i].transform.gameObject.GetComponent<TerrainHolder>();
+                if(tempTerrainHolder.sprite.sortingOrder > highestElevation)
+                {
+                    currentTerrain = tempTerrainHolder;
+                    highestElevation = tempTerrainHolder.sprite.sortingOrder;
+                }
+            }
+            currentlySelectedHex = new Vector2Int(currentTerrain.x, currentTerrain.y);
+        }
+        int hexElevation = elevationOfHexes[currentlySelectedHex.x, currentlySelectedHex.y] - combatGameManager.defaultElevation;
+        currentlySelectedHexSprite.transform.position = spriteGrid.GetWorldPosition(currentlySelectedHex) + new Vector3(0, combatGameManager.terrainHeightDifference * hexElevation);
+    }
+    
 
     public void ActivateActionConfirmationMenu(UnityAction confirmAction, UnityAction cancelAction)
     {
