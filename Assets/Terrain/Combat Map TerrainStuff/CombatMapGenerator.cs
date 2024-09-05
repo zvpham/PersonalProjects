@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class CombatMapGenerator : MonoBehaviour
 {
+    public MapTerrain mapTerrain;
     public MissionType missionType;
     public MissionUnitPlacementName missionUnitPlacementName;
     public FactionName missionProviderFaction;
@@ -24,8 +25,8 @@ public class CombatMapGenerator : MonoBehaviour
 
     public int mapSize;
     public GridHex<GridPosition> map;
-    public void InitializeCombatMapGenerator(GridHex<GridPosition> map, int mapSize, MissionType missionType, 
-        MissionUnitPlacementName missionPlacementName, 
+    public void InitializeCombatMapGenerator(GridHex<GridPosition> map, int mapSize, MissionType missionType,
+        MissionUnitPlacementName missionPlacementName, MapTerrain mapTerrain,
         FactionName missionProviderFaction, FactionName missionTargetFaction, FactionName missionAdditionalFaction,
         List<UnitSuperClass> playerFrontLine, List<UnitSuperClass> playerBackLine,
         List<UnitSuperClass> enemyUnits1FrontLine, List<UnitSuperClass> enemyUnits1BackLine, 
@@ -33,6 +34,7 @@ public class CombatMapGenerator : MonoBehaviour
         List<UnitSuperClass> allyUnitsFrontLine = null, List<UnitSuperClass> allyUnitsBackLine = null)
     {
         this.missionType = missionType;
+        this.mapTerrain = mapTerrain;
         this.missionUnitPlacementName = missionPlacementName;
         this.missionProviderFaction = missionProviderFaction;
         this.missionTargetFaction = missionTargetFaction;

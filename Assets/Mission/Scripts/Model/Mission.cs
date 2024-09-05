@@ -16,6 +16,7 @@ namespace Inventory.Model
         public int reward;
 
         // Data Elements
+        public MapTerrain mapTerrain;
         public MissionType missionType;
         public MissionUnitPlacementName missionUnitFormation;
         public Faction missionProviderFaction;

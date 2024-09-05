@@ -29,6 +29,7 @@ public class WorldMapData: IComparable<WorldMapData>
 
     //mission Data
     // Data Elements
+    public int mapTerrainData;
     public MissionType missionType;
     public MissionUnitPlacementName missionUnitPlacementName;
     public FactionName missionProviderFaction;

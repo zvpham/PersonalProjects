@@ -78,6 +78,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public void LoadData(WorldMapData mapData = null)
     {
         Debug.Log("Load Game");
+        // Load Units
         List<UnitSuperClass> frontLineUnits = new List<UnitSuperClass>();
         for (int i = 0; i < mapData.frontLineData.Count; i++)
         {
@@ -180,13 +181,15 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
             }
         }
 
-
         if (mapData.inCombat == false)
         {
             //Puts enemy units into a frontLine and BackLine, 0  - FrontLine, 1 - BackLine
             List<List<UnitSuperClass>> enemyUnits1BattleLines =  enemyTurn.LoadEnemyPositions(mapData.missionUnitPlacementName, 
                 enemyUnits1);
-            combatMapGenerator.InitializeCombatMapGenerator(grid, mapSize, mapData.missionType, mapData.missionUnitPlacementName,
+
+            // Load Mission Data
+            combatMapGenerator.InitializeCombatMapGenerator(grid, mapSize, mapData.missionType, mapData.missionUnitPlacementName, 
+                resourceManager.mapTerrains[mapData.mapTerrainData],
                 mapData.missionProviderFaction, mapData.missionTargetFaction, mapData.missionAdditionalFaction, frontLineUnits, 
                 backLineUnits, enemyUnits1BattleLines[0], enemyUnits1BattleLines[1]);
             combatMapGenerator.GenerateTerrain();

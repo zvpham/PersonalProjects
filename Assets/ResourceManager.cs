@@ -32,6 +32,7 @@ public class ResourceManager : ScriptableObject
     public List<Faction> factions;
     public Mission emptyMission;
 
+    public List<MapTerrain> mapTerrains;
     public List<PrefabTerrain> prefabTerrains;
 
     public DamageAnimation damageAnimation;

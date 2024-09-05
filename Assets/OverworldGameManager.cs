@@ -262,6 +262,7 @@ public class OverworldGameManager : MonoBehaviour, IDataPersistence
 
         //Saving Mission data
         Mission currentMission = missionSelectSystem.currentMission;
+        mapData.mapTerrainData = resourceManager.mapTerrains.IndexOf(currentMission.mapTerrain);
         mapData.missionType = currentMission.missionType;
         mapData.missionUnitPlacementName = currentMission.missionUnitFormation;
         mapData.missionProviderFaction = currentMission.missionProviderFaction.factionName;
