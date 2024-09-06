@@ -76,7 +76,13 @@ public class CombatMapGenerator : MonoBehaviour
 
     public void GeneratePremadeTerrain()
     {
-        Debug.Log(gameManager.spriteManager.terrainTilePositions.Count);
+        Debug.Log(gameManager.spriteManager.terrainTilePositions.Count + ", " + mapTerrain.prefabTerrain.terrainElevation.Count);
+        for (int i = 0; i < mapTerrain.prefabTerrain.terrainElevation.Count; i++)
+        {
+            Vector3Int terrainHexData = mapTerrain.prefabTerrain.terrainElevation[i];
+            gameManager.spriteManager.elevationOfHexes[terrainHexData.x, terrainHexData.y] = terrainHexData.z;
+        }
+
         for (int i = 0; i < mapTerrain.prefabTerrain.terrainElevation.Count; i++)
         {
             Vector3Int terrainHexData = mapTerrain.prefabTerrain.terrainElevation[i];
@@ -138,7 +144,7 @@ public class CombatMapGenerator : MonoBehaviour
             if (unitSuperClasses[i].transform.childCount == 0)
             {
                 Vector2Int currentMapPositionOffset = map.CubeToOffset(currentMapPositionCube);
-                Vector3 newUnitPosition = map.GetWorldPosition(new Vector2Int(currentMapPositionOffset.x, currentMapPositionOffset.y));
+                Vector3 newUnitPosition = gameManager.spriteManager.GetWorldPosition(new Vector2Int(currentMapPositionOffset.x, currentMapPositionOffset.y));
                 unitSuperClasses[i].transform.position = newUnitPosition;
                 currentMapPositionCube = map.CubeAdd(currentMapPositionCube, map.cubeDirectionVectors[cubeDirectionIndex]);
             }
@@ -147,7 +153,7 @@ public class CombatMapGenerator : MonoBehaviour
                 for (int j = 0; j < unitSuperClasses[i].transform.childCount; j++)
                 {
                     Vector2Int currentMapPositionOffset = map.CubeToOffset(currentMapPositionCube);
-                    Vector3 newUnitPosition = map.GetWorldPosition(new Vector2Int(currentMapPositionOffset.x, currentMapPositionOffset.y));
+                    Vector3 newUnitPosition = gameManager.spriteManager.GetWorldPosition(new Vector2Int(currentMapPositionOffset.x, currentMapPositionOffset.y));
                     unitSuperClasses[i].transform.GetChild(j).transform.position = newUnitPosition;
                     currentMapPositionCube = map.CubeAdd(currentMapPositionCube, map.cubeDirectionVectors[cubeDirectionIndex]);
                 }

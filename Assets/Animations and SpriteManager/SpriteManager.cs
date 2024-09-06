@@ -6,6 +6,7 @@ using UnityEngine.Tilemaps;
 using UnityEngine.Events;
 using UnityEngine.WSA;
 using UnityEngine.UIElements;
+using System.Runtime.ConstrainedExecution;
 
 public class SpriteManager : MonoBehaviour
 {
@@ -21,8 +22,8 @@ public class SpriteManager : MonoBehaviour
     public int[,] elevationOfHexes;
     public int[,] terrainSprites;
     public bool[,] terrainIsChangingElevation;
-    public TerrainHolder[,] tempTerrain;
     public TerrainHolder[,] terrain;
+    public List<TerrainHolder> allGroundTerrainHolders;
     public List<List<Vector2Int>> terrainTilePositions;
     public List<TerrainHolder> inactiveWalls;
     public List<TerrainHolder> activeWalls;
@@ -289,14 +290,15 @@ public class SpriteManager : MonoBehaviour
     public GameObject CreateTempSpriteHolder(Vector2Int hexPosition, int spriteLayer, Sprite sprite)
     {
         Vector3 worldPosition = combatGameManager.grid.GetWorldPosition(hexPosition.x, hexPosition.y);
-        return CreateSpriteRenderer(spriteLayer, -7, sprite, worldPosition);
+        return CreateSpriteRenderer(spriteLayer, sprite, worldPosition);
     }
 
-    public GameObject CreateSpriteRenderer(int index, int sortingOrder, Sprite sprite, Vector3 objectPosition)
+    public GameObject CreateSpriteRenderer(int index, Sprite sprite, Vector3 objectPosition)
     {
         SpriteNode currentSpriteNode = spriteGrid.GetGridObject(objectPosition);
         SpriteRenderer ownSpriteRenderer = Instantiate(resourceManager.spriteHolder, objectPosition, new Quaternion(0, 0, 0, 1f));
-        ownSpriteRenderer.sortingOrder = sortingOrder;
+        spriteGrid.GetXY(objectPosition, out int x, out int y);
+        ownSpriteRenderer.sortingOrder = terrain[x, y].sprite.sortingOrder;
         ownSpriteRenderer.transform.parent = transform;
         currentSpriteNode.sprites[index] = ownSpriteRenderer;
         currentSpriteNode.sprites[index].sprite = sprite;
@@ -333,8 +335,13 @@ public class SpriteManager : MonoBehaviour
                 elevationOfHexes[j, i] = combatGameManager.defaultElevation;
                 terrainSprites[j, i] = 1;
                 terrainIsChangingElevation[j, i] = false;
-                terrain[j, i] = tempTerrain[j, i];
             }
+        }
+
+        for(int i  = 0; i < allGroundTerrainHolders.Count; i++)
+        {
+            TerrainHolder tempTerrainHolder = allGroundTerrainHolders[i];
+            terrain[tempTerrainHolder.x, tempTerrainHolder.y] =  tempTerrainHolder;
         }
         currentViewingElevation = terrainTilePositions.Count - 1;
     }
@@ -510,7 +517,6 @@ public class SpriteManager : MonoBehaviour
 
     public TerrainHolder UseOpenWall()
     {
-        Debug.Log("Use Open Wall");
         if (inactiveWalls.Count <= 0)
         {
             TerrainHolder newWall = Instantiate(wallPrefab);

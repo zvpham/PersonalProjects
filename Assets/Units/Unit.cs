@@ -204,7 +204,7 @@ public class Unit : UnitSuperClass, IInititiave
             }
             gameManager.SetGridObject(this, transform.position);
             gameManager.units.Add(this);
-            gameManager.spriteManager.CreateSpriteRenderer(0, -7, unitProfile, transform.position);
+            gameManager.spriteManager.CreateSpriteRenderer(0, unitProfile, transform.position);
             gameManager.grid.GetXY(transform.position, out int x, out int y);
             gameManager.StartCombat();
 

@@ -193,6 +193,15 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
                 mapData.missionProviderFaction, mapData.missionTargetFaction, mapData.missionAdditionalFaction, frontLineUnits, 
                 backLineUnits, enemyUnits1BattleLines[0], enemyUnits1BattleLines[1]);
             combatMapGenerator.GenerateTerrain();
+
+            for(int i = 0; i < units.Count; i++)
+            {
+                grid.GetXY(units[i].transform.position, out int x, out int y);
+                Debug.Log("Before Adjustment Position: " + units[i].transform.position + ", " + units[i]);
+                units[i].transform.position = spriteManager.GetWorldPosition(x, y);
+                Debug.Log("After Adjustment Position: " + units[i].transform.position + ", " + units[i]);
+            }
+
             combatMapGenerator.PlaceUnits();
         }
     }
@@ -469,7 +478,6 @@ new GridPosition(g, x, y, defaultElevation), false);
                 newHex.y = j;
                 newHex.transform.position = grid.GetWorldPosition(i, j);
                 newHex.sprite.sortingOrder = startingSortingOrder - (2 * j);
-                newHex.spriteManager = spriteManager;
             }
         }
         Debug.Log(spriteManager.terrain.GetLength(0) + ", " + spriteManager.terrain.GetLength(1));
