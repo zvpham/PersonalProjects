@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class CombatMapGenerator : MonoBehaviour
 {
+    public CombatGameManager gameManager;
     public MapTerrain mapTerrain;
     public MissionType missionType;
     public MissionUnitPlacementName missionUnitPlacementName;
@@ -54,17 +55,36 @@ public class CombatMapGenerator : MonoBehaviour
     // Make Based On Map For Future Use
     public void GenerateTerrain()
     {
-        TerrainType missionTerrain = TerrainType.Grassland;
-        switch(missionTerrain)
+        if(mapTerrain.prefabTerrain != null)
         {
-            case TerrainType.Grassland:
-                break;
-            case TerrainType.Forest:
-                break;
-            case TerrainType.Hilly:
-                break;
+            GeneratePremadeTerrain();
+        }
+        else
+        {
+            TerrainType missionTerrain = TerrainType.Grassland;
+            switch (missionTerrain)
+            {
+                case TerrainType.Grassland:
+                    break;
+                case TerrainType.Forest:
+                    break;
+                case TerrainType.Hilly:
+                    break;
+            }
         }
     }
+
+    public void GeneratePremadeTerrain()
+    {
+        Debug.Log(gameManager.spriteManager.terrainTilePositions.Count);
+        for (int i = 0; i < mapTerrain.prefabTerrain.terrainElevation.Count; i++)
+        {
+            Vector3Int terrainHexData = mapTerrain.prefabTerrain.terrainElevation[i];
+            gameManager.spriteManager.terrainTilePositions[terrainHexData.z].Add(new Vector2Int(terrainHexData.x, terrainHexData.y));
+            gameManager.spriteManager.ChangeElevation(terrainHexData.x, terrainHexData.y, 0);
+        }
+    }
+
 
     public void PlaceUnits()
     {

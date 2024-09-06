@@ -510,6 +510,7 @@ public class SpriteManager : MonoBehaviour
 
     public TerrainHolder UseOpenWall()
     {
+        Debug.Log("Use Open Wall");
         if (inactiveWalls.Count <= 0)
         {
             TerrainHolder newWall = Instantiate(wallPrefab);
