@@ -10,7 +10,7 @@ public class RangedTargeting : TargetingSystem
     public CombatGameManager gameManager;
     public Unit movingUnit;
     public Vector3 startingPosition;
-    public Vector3 endPosition;
+    public Vector2Int currentlySelectedHex;
     // For End Targeting/ Mouse Up
     public Vector2Int prevEndHexPosition;
     // For Selection/ Mouse Hover (Combat UI)
@@ -229,14 +229,15 @@ public class RangedTargeting : TargetingSystem
     }
 
     //Mouse Hover
-    public override void SelectNewPosition(Vector3 newPosition)
+    public override void SelectNewPosition(Vector2Int newHex)
     {
         if (!selectedTarget)
         {
-            endPosition = newPosition;
+            currentlySelectedHex = newHex;
             map.ResetMap();
             List<Vector2Int> endHex = new List<Vector2Int>();
-            map.getGrid().GetXY(newPosition, out int endX, out int endY);
+            int endX = currentlySelectedHex.x;
+            int endY = currentlySelectedHex.y;
             amountActionLineIncreased = 0;
             if (map.getGrid().GetGridObject(endX, endY) != null)
             {
@@ -489,7 +490,8 @@ public class RangedTargeting : TargetingSystem
     // On Mouse UP
     public override void EndTargeting()
     {
-        gameManager.grid.GetXY(endPosition, out int x, out int y);
+        int x = currentlySelectedHex.x;
+        int y = currentlySelectedHex.y;
 
         if (x >= gameManager.grid.GetWidth() || x < 0 || y >= gameManager.grid.GetHeight() || y < 0)
         {
@@ -831,7 +833,7 @@ public class RangedTargeting : TargetingSystem
             if (unitAmmo[currentAmmoIndex] != null)
             {
                 ChangeCombatAttackUI = true;
-                SelectNewPosition(endPosition);
+                SelectNewPosition(currentlySelectedHex);
                 return;
             }
         }
@@ -855,7 +857,7 @@ public class RangedTargeting : TargetingSystem
             if (unitAmmo[currentAmmoIndex] != null)
             {
                 ChangeCombatAttackUI = true;
-                SelectNewPosition(endPosition);
+                SelectNewPosition(currentlySelectedHex);
                 return;
             }
         }

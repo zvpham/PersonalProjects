@@ -19,7 +19,7 @@ public class Move : Action
     {
         if (foundTarget)
         {
-            if (movingUnit.gameManager.map.getGrid().GetWorldPosition(path[0].x, path[0].y) == movingUnit.transform.position)
+            if (movingUnit.gameManager.spriteManager.GetWorldPosition(path[0].x, path[0].y) == movingUnit.transform.position)
             {
                 path.RemoveAt(0);
             }
@@ -43,9 +43,9 @@ public class Move : Action
             DijkstraMap map = movingUnit.gameManager.map;
             for (int i = 0; i < path.Count; i++)
             {
-                Vector3 newPosition = map.getGrid().GetWorldPosition(path[i].x, path[i].y);
+                Vector3 newPosition = movingUnit.gameManager.spriteManager.GetWorldPosition(path[i].x, path[i].y);
                 MoveAnimation moveAnimation = (MoveAnimation)Instantiate(animation);
-                moveAnimation.SetParameters(movingUnit.gameManager, movingUnit.transform.position, newPosition);
+                moveAnimation.SetParameters(movingUnit.gameManager, movingUnit.transform.position, newPosition, new Vector2Int(path[i].x, path[i].y));
                 movingUnit.MovePositions(movingUnit.transform.position, newPosition);
 
             }
@@ -69,16 +69,16 @@ public class Move : Action
     {
         Debug.Log("Another Action MOve");
         if(path.Count == 0 || (path.Count == 1 && 
-            movingUnit.gameManager.map.getGrid().GetWorldPosition(path[0].x, path[0].y) == movingUnit.transform.position))
+            movingUnit.gameManager.spriteManager.GetWorldPosition(path[0].x, path[0].y) == movingUnit.transform.position))
         {
             return;
         }
         DijkstraMap map = movingUnit.gameManager.map;
         for (int i = 0; i < path.Count; i++)
         {
-            Vector3 newPosition = map.getGrid().GetWorldPosition(path[i].x, path[i].y);
+            Vector3 newPosition = movingUnit.gameManager.spriteManager.GetWorldPosition(path[i].x, path[i].y);
             MoveAnimation moveAnimation = (MoveAnimation)Instantiate(animation);
-            moveAnimation.SetParameters(movingUnit.gameManager, movingUnit.transform.position, newPosition);
+            moveAnimation.SetParameters(movingUnit.gameManager, movingUnit.transform.position, newPosition, new Vector2Int(path[i].x, path[i].y));
             movingUnit.MovePositions(movingUnit.transform.position, newPosition);
         }
         int actionPointsUsed = 0;

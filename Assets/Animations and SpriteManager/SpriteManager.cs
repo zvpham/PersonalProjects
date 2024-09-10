@@ -27,11 +27,17 @@ public class SpriteManager : MonoBehaviour
     public List<List<Vector2Int>> terrainTilePositions;
     public List<TerrainHolder> inactiveWalls;
     public List<TerrainHolder> activeWalls;
-    public List<GameObject> inactiveMasks;
-    public List<GameObject> activeMasks;
+    public List<GameObject> inactiveHighlightedHexes;
+    public List<GameObject> activeHighlightedHexes;
+    public List<GameObject> inactiveTargetHexes;
+    public List<GameObject> activeTargetHexes;
     public TerrainHolder newGroundprefab;
     public TerrainHolder wallPrefab;
-    public GameObject maskPrefab;
+    public GameObject highlightedHexPrefab;
+    public GameObject highlightedHexHolder;
+    public GameObject wallHolder;
+    public GameObject targetHexPrefab;
+    public GameObject targetHexHolder;
     public TerrainElevationChangeAnimation ChangeElevationAnimation;
 
     public int currentViewingElevation;
@@ -57,6 +63,13 @@ public class SpriteManager : MonoBehaviour
     public List<float> timeBetweenAnimations = new List<float>();
     public float currentTime;
     public string debugWord;
+
+    public UnityAction<Vector2Int> NewSelectedHex;
+
+    public void Start()
+    {
+        inputManager.TargetPositionMoved += SelectMouseHex;
+    }
 
     // Update is called once per frame
     void Update()
@@ -142,9 +155,11 @@ public class SpriteManager : MonoBehaviour
     {
         Vector3 mousePosition = Input.mousePosition;
         Vector2 worldPoint = Camera.main.ScreenToWorldPoint(mousePosition);
+        Vector2 previousSelectedHex = currentlySelectedHex;
         RaycastHit2D[] hit = Physics2D.RaycastAll(worldPoint, Vector2.zero);
         if(hit.GetLength(0) == 0)
         {
+            Debug.LogWarning("HIt Nothing");
             currentlySelectedHex = new Vector2Int(0, 0);
         }
         else
@@ -164,6 +179,11 @@ public class SpriteManager : MonoBehaviour
         }
         int hexElevation = elevationOfHexes[currentlySelectedHex.x, currentlySelectedHex.y] - combatGameManager.defaultElevation;
         currentlySelectedHexSprite.transform.position = spriteGrid.GetWorldPosition(currentlySelectedHex) + new Vector3(0, combatGameManager.terrainHeightDifference * hexElevation);
+        Debug.Log("current Hex Posiition:" + currentlySelectedHex);
+        if(previousSelectedHex != currentlySelectedHex)
+        {
+            NewSelectedHex?.Invoke(currentlySelectedHex);
+        }
     }
     
 
@@ -217,41 +237,41 @@ public class SpriteManager : MonoBehaviour
 
     public void ActivateMovementTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft)
     {
-        inputManager.TargetPositionMoved += movementTargeting.SelectNewPosition;
+        NewSelectedHex += movementTargeting.SelectNewPosition;
         inputManager.FoundPosition += movementTargeting.EndTargeting;
         activeTargetingSystems = movementTargeting;
         movementTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft);
-        movementTargeting.SelectNewPosition(UtilsClass.GetMouseWorldPosition());
+        movementTargeting.SelectNewPosition(currentlySelectedHex);
     }
 
     public void ActivateMeleeAttackTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int actionPointUseAmount, int meleeRange,
         MeleeTargeting.CalculateAttackData calculateAttackData)
     {
         combatUI.OnActivateTargetingSystem();
-        inputManager.TargetPositionMoved += meleeTargeting.SelectNewPosition;
+        NewSelectedHex += meleeTargeting.SelectNewPosition;
         inputManager.FoundPosition += meleeTargeting.EndTargeting;
         activeTargetingSystems = meleeTargeting;
         meleeTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft, actionPointUseAmount, meleeRange, calculateAttackData);
-        meleeTargeting.SelectNewPosition(UtilsClass.GetMouseWorldPosition());
+        meleeTargeting.SelectNewPosition(currentlySelectedHex);
     }
     public void ActivateRangedTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int actionPointUseAmount, int range,
    AttackData attackData, List<EquipableAmmoSO> unitAmmo)
     {
         combatUI.OnActivateTargetingSystem();
-        inputManager.TargetPositionMoved += rangedTargeting.SelectNewPosition;
+        NewSelectedHex += rangedTargeting.SelectNewPosition;
         inputManager.FoundPosition += rangedTargeting.EndTargeting;
         activeTargetingSystems = rangedTargeting;
         rangedTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft, actionPointUseAmount, range, attackData ,unitAmmo);
-        rangedTargeting.SelectNewPosition(UtilsClass.GetMouseWorldPosition());
+        rangedTargeting.SelectNewPosition(currentlySelectedHex);
     }
     public void ActivateConeTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int range, int coneRange)
     {
         combatUI.OnActivateTargetingSystem();
-        inputManager.TargetPositionMoved += coneTargeting.SelectNewPosition;
+        NewSelectedHex += coneTargeting.SelectNewPosition;
         inputManager.FoundPosition += coneTargeting.EndTargeting;
         activeTargetingSystems = coneTargeting;
         coneTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft, range, coneRange);
-        coneTargeting.SelectNewPosition(UtilsClass.GetMouseWorldPosition());
+        coneTargeting.SelectNewPosition(currentlySelectedHex);
     }
 
     public void NextItem()
@@ -270,7 +290,7 @@ public class SpriteManager : MonoBehaviour
         CancelAction();
         if(activeTargetingSystems != null)
         {
-            inputManager.TargetPositionMoved = null;
+            NewSelectedHex = null;
             inputManager.FoundPosition = null;
             activeTargetingSystems.DeactivateTargetingSystem();
         }
@@ -289,7 +309,7 @@ public class SpriteManager : MonoBehaviour
 
     public GameObject CreateTempSpriteHolder(Vector2Int hexPosition, int spriteLayer, Sprite sprite)
     {
-        Vector3 worldPosition = combatGameManager.grid.GetWorldPosition(hexPosition.x, hexPosition.y);
+        Vector3 worldPosition = GetWorldPosition(hexPosition.x, hexPosition.y);
         return CreateSpriteRenderer(spriteLayer, sprite, worldPosition);
     }
 
@@ -298,7 +318,7 @@ public class SpriteManager : MonoBehaviour
         SpriteNode currentSpriteNode = spriteGrid.GetGridObject(objectPosition);
         SpriteRenderer ownSpriteRenderer = Instantiate(resourceManager.spriteHolder, objectPosition, new Quaternion(0, 0, 0, 1f));
         spriteGrid.GetXY(objectPosition, out int x, out int y);
-        ownSpriteRenderer.sortingOrder = terrain[x, y].sprite.sortingOrder;
+        ownSpriteRenderer.sortingOrder = terrain[x, y].sprite.sortingOrder + 3;
         ownSpriteRenderer.transform.parent = transform;
         currentSpriteNode.sprites[index] = ownSpriteRenderer;
         currentSpriteNode.sprites[index].sprite = sprite;
@@ -521,6 +541,7 @@ public class SpriteManager : MonoBehaviour
         {
             TerrainHolder newWall = Instantiate(wallPrefab);
             newWall.transform.position = new Vector3(-20, -20);
+            newWall.transform.parent = wallHolder.transform;
             inactiveWalls.Add(newWall);
         }
 
@@ -534,30 +555,53 @@ public class SpriteManager : MonoBehaviour
     {
         activeWalls.Remove(wall);
         inactiveWalls.Add(wall);
-        wall.transform.parent = null;
+        wall.transform.parent = wall.transform;
         wall.transform.position = new Vector3(-20, -20);
     }
 
-    public GameObject UseOpenMask()
+    public GameObject UseOpenHighlightedHex()
     {
-        if (inactiveMasks.Count <= 0)
+        if (inactiveHighlightedHexes.Count <= 0)
         {
-            GameObject newWall = Instantiate(maskPrefab);
-            newWall.transform.position = new Vector3(-20, -20);
-            inactiveMasks.Add(newWall);
+            GameObject newHex = Instantiate(highlightedHexPrefab);
+            newHex.transform.position = new Vector3(-20, -20);
+            newHex.transform.parent = highlightedHexHolder.transform;
+            inactiveHighlightedHexes.Add(newHex);
         }
 
-        GameObject openWall = inactiveMasks[0];
-        inactiveMasks.RemoveAt(0);
-        activeMasks.Add(openWall);
-        return openWall;
+        GameObject openHighlightedHex = inactiveHighlightedHexes[0];
+        inactiveHighlightedHexes.RemoveAt(0);
+        activeHighlightedHexes.Add(openHighlightedHex);
+        return openHighlightedHex;
     }
 
-    public void DisableMask(GameObject mask)
+    public void DisableHighlightedHex(GameObject hex)
     {
-        activeMasks.Remove(mask);
-        inactiveMasks.Add(mask);
-        mask.transform.parent = null;
-        mask.transform.position = new Vector3(-20, -20);
+        activeHighlightedHexes.Remove(hex);
+        inactiveHighlightedHexes.Add(hex);
+        hex.transform.position = new Vector3(-20, -20);
+    }
+
+    public GameObject UseOpenTargetHex()
+    {
+        if (inactiveTargetHexes.Count <= 0)
+        {
+            GameObject newHex = Instantiate(targetHexPrefab);
+            newHex.transform.position = new Vector3(-20, -20);
+            newHex.transform.parent = targetHexHolder.transform;
+            inactiveTargetHexes.Add(newHex);
+        }
+
+        GameObject openHighlightedHex = inactiveTargetHexes[0];
+        inactiveTargetHexes.RemoveAt(0);
+        activeTargetHexes.Add(openHighlightedHex);
+        return openHighlightedHex;
+    }
+
+    public void DisableTargetHex(GameObject hex)
+    {
+        activeTargetHexes.Remove(hex);
+        inactiveTargetHexes.Add(hex);
+        hex.transform.position = new Vector3(-20, -20);
     }
 }

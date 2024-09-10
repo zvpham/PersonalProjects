@@ -9,10 +9,12 @@ public class MoveAnimation : CustomAnimations
     public SpriteNode attackingNode;
     public Vector2 originalPosition;
     public Vector2 newPosition;
+    public Vector2Int newXY;
     public Vector2 movementAmount;
     public float moveSpeed;
     public int moveSpeedPartitions = 24;
     public int positionindex;
+    public int newSortingOrder;
 
     // Start is called before the first frame update
     public override void Start()
@@ -29,6 +31,11 @@ public class MoveAnimation : CustomAnimations
         base.PlayAnimation();
         attackingNode = gameManager.spriteManager.spriteGrid.GetGridObject(originalPosition);
         attackingSprite = attackingNode.sprites[0];
+        newSortingOrder = spriteManager.terrain[newXY.x, newXY.y].sprite.sortingOrder + 3;
+        if (attackingSprite.sortingOrder < newSortingOrder)
+        {
+            attackingSprite.sortingOrder = newSortingOrder;
+        }
     }
 
     // Update is called once per frame
@@ -47,17 +54,19 @@ public class MoveAnimation : CustomAnimations
         }
     }
 
-    public  void SetParameters(CombatGameManager gameManager, Vector2 originalPosition, Vector2 newPosition)
+    public  void SetParameters(CombatGameManager gameManager, Vector2 originalPosition, Vector2 newPosition, Vector2Int newxy)
     {
         this.gameManager = gameManager;
         this.originalPosition = originalPosition;
         this.newPosition = newPosition;
+        this.newXY = newxy;
         gameManager.spriteManager.AddAnimations(this, gameManager.spriteManager.animations.Count);
     }
 
     public override void EndAnimation()
     {
         gameManager.spriteManager.spriteGrid.GetGridObject(newPosition).sprites[0] = attackingSprite;
+        attackingSprite.sortingOrder = newSortingOrder;
         attackingNode.sprites[0] = null;
         base.EndAnimation();
     }

@@ -17,7 +17,6 @@ public class TerrainElevationChangeAnimation : CustomAnimations
     public int moveSpeedPartitions = 24;
     public int positionindex;
     public int xpos, ypos;
-    public List<GameObject> masksUsed = new List<GameObject>();
 
     // Start is called before the first frame update
     public override void Start()
@@ -340,11 +339,6 @@ public class TerrainElevationChangeAnimation : CustomAnimations
         for(int i = 0; i < endElevation - gameManager.defaultElevation; i++)
         {
             currentTerrainTile.walls[i].sprite.sortingOrder = currentTerrainTile.sprite.sortingOrder;
-        }
-
-        for(int i = 0; i < masksUsed.Count; i++)
-        {
-            spriteManager.DisableMask(masksUsed[i]);
         }
         base.EndAnimation();
     }

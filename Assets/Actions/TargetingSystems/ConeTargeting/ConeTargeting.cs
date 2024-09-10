@@ -10,7 +10,7 @@ public class ConeTargeting : TargetingSystem
     public CombatGameManager gameManager;
     public Unit movingUnit;
     public Vector3 startingPosition;
-    public Vector3 endPosition;
+    public Vector2Int currentlySelectedHex;
     public Vector2Int prevEndHexPosition;
     public List<Vector2Int> path = new List<Vector2Int>();
     public List<Vector2Int> coneHexes = new List<Vector2Int>();
@@ -96,14 +96,15 @@ public class ConeTargeting : TargetingSystem
         highlightedPositions = new List<Vector2Int>();
     }
 
-    public override void SelectNewPosition(Vector3 newPosition)
+    public override void SelectNewPosition(Vector2Int newHex)
     {
         if (!foundEndHex && actionPointsLeft == 2)
         {
-            endPosition = newPosition;
+            currentlySelectedHex = newHex;
             map.ResetMap();
             List<Vector2Int> endHex = new List<Vector2Int>();
-            map.getGrid().GetXY(newPosition, out int endX, out int endY);
+            int endX = currentlySelectedHex.x;
+            int endY = currentlySelectedHex.y;
             if (map.getGrid().GetGridObject(endX, endY) != null)
             {
                 if (actionPointsLeft == 2)
@@ -158,7 +159,8 @@ public class ConeTargeting : TargetingSystem
         else
         {
             map.getGrid().GetXY(startingPosition, out int x, out int y);
-            map.getGrid().GetXY(newPosition, out int endX, out int endY);
+            int endX = currentlySelectedHex.x;
+            int endY = currentlySelectedHex.y;
 
             Vector3Int startCube = map.getGrid().OffsetToCube(x, y);
             Vector3Int endCube = map.getGrid().OffsetToCube(endX, endY);
@@ -197,7 +199,8 @@ public class ConeTargeting : TargetingSystem
     }
     public override void EndTargeting()
     {
-        gameManager.grid.GetXY(endPosition, out int x, out int y);
+        int x = currentlySelectedHex.x;
+        int y = currentlySelectedHex.y;
 
         if (x >= gameManager.grid.GetWidth() || x < 0 || y >= gameManager.grid.GetHeight() || y < 0)
         {

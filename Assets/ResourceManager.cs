@@ -10,6 +10,7 @@ public class ResourceManager : ScriptableObject
     public List<Sprite> hexBaseSprites;
     public List<Tile> BaseTile;
 
+    public List<Color> highlightedHexColors;
 
     public List<EquipableItemSO> allItems;
     public List<EquipableItemSO> weapons;

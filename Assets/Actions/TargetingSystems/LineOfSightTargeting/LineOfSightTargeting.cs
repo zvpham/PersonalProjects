@@ -14,7 +14,7 @@ public class LineOfSightTargeting : TargetingSystem
         throw new System.NotImplementedException();
     }
 
-    public override void SelectNewPosition(Vector3 newPosition)
+    public override void SelectNewPosition(Vector2Int newPosition)
     {
         throw new System.NotImplementedException();                                 
     }

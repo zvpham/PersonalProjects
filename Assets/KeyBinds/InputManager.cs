@@ -35,8 +35,7 @@ public class InputManager : MonoBehaviour
     [SerializeField] RectTransform canvasRect;
     public List<RaycastResult> results;
 
-    public UnityAction FoundPosition, MouseMoved, MouseStayedInPlace;
-    public UnityAction<Vector3> TargetPositionMoved;
+    public UnityAction FoundPosition, MouseMoved, MouseStayedInPlace, TargetPositionMoved;
 
     private void Awake()
     {
@@ -156,7 +155,7 @@ public class InputManager : MonoBehaviour
 
     public void ChangeTargetPosition()
     {
-        TargetPositionMoved?.Invoke(UtilsClass.GetMouseWorldPosition());
+        TargetPositionMoved?.Invoke();
     }
 
     private void Start()

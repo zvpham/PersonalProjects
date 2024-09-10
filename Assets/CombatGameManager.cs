@@ -193,15 +193,6 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
                 mapData.missionProviderFaction, mapData.missionTargetFaction, mapData.missionAdditionalFaction, frontLineUnits, 
                 backLineUnits, enemyUnits1BattleLines[0], enemyUnits1BattleLines[1]);
             combatMapGenerator.GenerateTerrain();
-
-            for(int i = 0; i < units.Count; i++)
-            {
-                grid.GetXY(units[i].transform.position, out int x, out int y);
-                Debug.Log("Before Adjustment Position: " + units[i].transform.position + ", " + units[i]);
-                units[i].transform.position = spriteManager.GetWorldPosition(x, y);
-                Debug.Log("After Adjustment Position: " + units[i].transform.position + ", " + units[i]);
-            }
-
             combatMapGenerator.PlaceUnits();
         }
     }
@@ -459,16 +450,19 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     {
         grid = new GridHex<GridPosition>(mapSize, mapSize, cellSize, defaultGridAdjustment, (GridHex<GridPosition> g, int x, int y) =>
 new GridPosition(g, x, y, defaultElevation), false);
+        spriteManager.allGroundTerrainHolders = new List<TerrainHolder>();
+        int amountOfLayers = 4;
+        int layerAdjustment = 2;
         for (int i = 0; i < mapSize; i++)
         {
             int startingSortingOrder;
             if(i % 2 == 0)
             {
-                startingSortingOrder = mapSize * 2;
+                startingSortingOrder = mapSize * amountOfLayers * layerAdjustment;
             }
             else
             {
-                startingSortingOrder = mapSize * 2 - 1;
+                startingSortingOrder = mapSize * amountOfLayers * layerAdjustment - amountOfLayers;
             }
             for(int j = 0; j < mapSize; j++)
             {
@@ -477,10 +471,10 @@ new GridPosition(g, x, y, defaultElevation), false);
                 newHex.x = i; 
                 newHex.y = j;
                 newHex.transform.position = grid.GetWorldPosition(i, j);
-                newHex.sprite.sortingOrder = startingSortingOrder - (2 * j);
+                newHex.sprite.sortingOrder = startingSortingOrder - (amountOfLayers * layerAdjustment * j);
+                spriteManager.allGroundTerrainHolders.Add(newHex);
             }
         }
-        Debug.Log(spriteManager.terrain.GetLength(0) + ", " + spriteManager.terrain.GetLength(1));
     }
 }
 

@@ -12,8 +12,8 @@ public class MovementTargeting : TargetingSystem
     public CombatGameManager gameManager;
     public Unit movingUnit;
     public Vector3 startingPosition;
-    public Vector3 endPosition;
     public Vector2Int prevEndHexPosition;
+    public Vector2Int currentlySelectedHex;
     public List<Vector2Int> path = new List<Vector2Int>();
     public List<Vector2Int> setPath = new List<Vector2Int>();
     public GameObject tempMovingUnit;
@@ -27,7 +27,7 @@ public class MovementTargeting : TargetingSystem
     List<List<Vector3>> actionLines = new List<List<Vector3>>();
 
     public List<List<Vector2Int>> rangeBrackets =  new List<List<Vector2Int>>();
-    public List<Vector2Int> highlightedPositions = new List<Vector2Int>();
+    public List<GameObject> highlightedHexes;
 
     public bool targetFriendly = false;
 
@@ -47,7 +47,7 @@ public class MovementTargeting : TargetingSystem
         path = new List<Vector2Int>();
         this.enabled = true;
         amountMoved = movingUnit.amountMoveUsedDuringRound;
-
+        highlightedHexes = new List<GameObject>();
         SetUp(startingPosition, actionPointsLeft, movingUnit.moveSpeed);
     }
 
@@ -105,9 +105,13 @@ public class MovementTargeting : TargetingSystem
                     Vector2Int currentNodePosition = new Vector2Int(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y);
                     if (map.getGrid().GetGridObject(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y).value <= moveSpeed * i)
                     {
-                        gameManager.spriteManager.ChangeTile(currentNodePosition, 1, amountMoved +  i + 1);
+                        GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
+                        newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+                        newHighlightedHex.GetComponent<SpriteRenderer>().color = gameManager.resourceManager.highlightedHexColors[amountMoved + i];
+                        newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
+                            currentNodePosition.y].sprite.sortingOrder + 1;
+                        highlightedHexes.Add(newHighlightedHex);
                         rangeBrackets[i - 1].Add(currentNodePosition);
-                        highlightedPositions.Add(currentNodePosition);
                         unresolvedMapNodes.RemoveAt(j);
                         j--;
                     }
@@ -121,9 +125,13 @@ public class MovementTargeting : TargetingSystem
                         Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
                         if (map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * i)
                         {
-                            gameManager.spriteManager.ChangeTile(currentNodePosition, 1, amountMoved + i + 1);
+                            GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
+                            newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+                            newHighlightedHex.GetComponent<SpriteRenderer>().color = gameManager.resourceManager.highlightedHexColors[amountMoved + i];
+                            newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
+                                currentNodePosition.y].sprite.sortingOrder + 1;
+                            highlightedHexes.Add(newHighlightedHex);
                             rangeBrackets[i - 1].Add(currentNodePosition);
-                            highlightedPositions.Add(currentNodePosition);
                         }
                         else
                         {
@@ -139,21 +147,22 @@ public class MovementTargeting : TargetingSystem
     // Clear Highlighted Hexes
     public void ResetSetUp()
     {
-        for (int i = 0; i < highlightedPositions.Count; i++)
+        for(int i = 0; i < highlightedHexes.Count; i++)
         {
-            gameManager.spriteManager.ChangeTile(highlightedPositions[i], 1, 0);
+            gameManager.spriteManager.DisableHighlightedHex(highlightedHexes[i]);
         }
-        highlightedPositions = new List<Vector2Int>();
+        highlightedHexes = new List<GameObject>();
     }
 
     // Select New Position when Mouse Hovers over a new Hex
-    public override void SelectNewPosition(Vector3 newPosition)
+    public override void SelectNewPosition(Vector2Int newHex)
     {
-        endPosition = newPosition;
+        this.currentlySelectedHex = newHex;
         map.ResetMap();
         List<Vector2Int> endHex = new List<Vector2Int>();
-        map.getGrid().GetXY(newPosition, out int endX, out int endY);
         amountActionLineIncreased = 0;
+        int endX = currentlySelectedHex.x;
+        int endY = currentlySelectedHex.y;
         if (map.getGrid().GetGridObject(endX, endY) != null)
         {
             endHex.Add(new Vector2Int(endX, endY));
@@ -287,126 +296,13 @@ public class MovementTargeting : TargetingSystem
                     }
                 }
             }
-            /*
-            oneActionMoveAmount = 0;
-            twoActionMoveAmount = 0;
-            if (actionPointsLeft >= amountMoved + 1 + amountMoved + 2)
-            {
-                endHex.Add(new Vector2Int(endX, endY));
-                map.SetGoals(endHex);
-                map.getGrid().GetXY(startingPosition, out int x, out int y);
-                path.Clear();
-                bool foundEndPosition = false;
-                bool inFirstRangeBracket = false;
-                if (rangeBrackets.Count >= 1)
-                {
-                    inFirstRangeBracket = rangeBrackets[0].Contains(new Vector2Int(endX, endY));
-                }
-
-                for (int i = 0; i < movingUnit.moveSpeed; i++)
-                {
-                    DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y);
-                    x = nextLowestNode.x;
-                    y = nextLowestNode.y;
-                    path.Add(new Vector2Int(x, y));
-                    oneActionMoveAmount++;
-                    if (endHex[0] == path[i])
-                    {
-                        foundEndPosition = true;
-                        break;
-                    }
-                }
-
-                // SecondAction Movement
-                if (!foundEndPosition && !inFirstRangeBracket)
-                {
-                    for (int i = 0; i < movingUnit.moveSpeed; i++)
-                    {
-                        DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y);
-                        x = nextLowestNode.x;
-                        y = nextLowestNode.y;
-                        path.Add(new Vector2Int(x, y));
-                        twoActionMoveAmount++;
-                        if (endHex[0] == path[i + oneActionMoveAmount])
-                        {
-                            foundEndPosition = true;
-                            break;
-                        }
-                    }
-                }
-
-
-                // Redraw Path Through Unoptimal Terrain to Reach Target (Not Implemented)
-                if (!foundEndPosition)
-                {
-                    endHex.Add(new Vector2Int(endX, endY));
-                    map.SetGoals(endHex);
-                    map.getGrid().GetXY(movingUnit.transform.position, out x, out y);
-                    path.Clear();
-                    oneActionMoveAmount = 0;
-                    foundEndPosition = false;
-
-                    for (int i = 0; i < movingUnit.moveSpeed; i++)
-                    {
-                        DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y);
-                        x = nextLowestNode.x;
-                        y = nextLowestNode.y;
-                        path.Add(new Vector2Int(x, y));
-                        oneActionMoveAmount++;
-                        if (endHex[0] == path[i])
-                        {
-                            foundEndPosition = true;
-                            break;
-                        }
-                    }
-
-                    // SecondAction Movement
-                    if (!foundEndPosition && !inFirstRangeBracket)
-                    {
-                        twoActionMoveAmount = 0;
-                        for (int i = 0; i < movingUnit.moveSpeed; i++)
-                        {
-                            DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y);
-                            x = nextLowestNode.x;
-                            y = nextLowestNode.y;
-                            path.Add(new Vector2Int(x, y));
-                            twoActionMoveAmount++;
-                            if (endHex[0] == path[i + oneActionMoveAmount])
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            else if (actionPointsLeft >= amountMoved + 1)
-            {
-                endHex.Add(new Vector2Int(endX, endY));
-                map.SetGoals(endHex);
-                map.getGrid().GetXY(startingPosition, out int x, out int y);
-                path.Clear();
-                twoActionMoveAmount = 0;
-
-                for (int i = 0; i < movingUnit.moveSpeed; i++)
-                {
-                    DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y);
-                    x = nextLowestNode.x;
-                    y = nextLowestNode.y;
-                    path.Add(new Vector2Int(x, y));
-                    twoActionMoveAmount++;
-                    if (endHex[0] == path[i])
-                    {
-                        break;
-                    }
-                }
-            }
-            */
             DrawLine();
         }  
     }
     public override void EndTargeting()
     {
-        gameManager.grid.GetXY(endPosition, out int x, out int y);
+        int x = currentlySelectedHex.x;
+        int y = currentlySelectedHex.y;
 
         if (x >= gameManager.grid.GetWidth() || x < 0 || y >= gameManager.grid.GetHeight() || y < 0)
         {
@@ -509,11 +405,6 @@ public class MovementTargeting : TargetingSystem
 
     public override void DeactivateTargetingSystem()
     {
-        for (int i = 0; i < highlightedPositions.Count; i++)
-        {
-            gameManager.spriteManager.ChangeTile(highlightedPositions[i], 2, 0);
-        }
-
         ResetSetUp();
         ResetTargeting();
         map.ResetMap(true);
@@ -563,7 +454,7 @@ public class MovementTargeting : TargetingSystem
 
             for(int j = 0; j < actionMoveAmounts[i - IndexOfStartingActionLine]; j++)
             {
-                actionLines[i].Add(map.getGrid().GetWorldPosition(path[currentPathindex].x, path[currentPathindex].y));
+                actionLines[i].Add(gameManager.spriteManager.GetWorldPosition(path[currentPathindex].x, path[currentPathindex].y));
                 currentPathindex += 1;
             }
             gameManager.spriteManager.DrawLine(actionLines[i], i);
