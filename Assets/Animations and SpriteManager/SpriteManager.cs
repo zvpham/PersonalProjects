@@ -179,7 +179,6 @@ public class SpriteManager : MonoBehaviour
         }
         int hexElevation = elevationOfHexes[currentlySelectedHex.x, currentlySelectedHex.y] - combatGameManager.defaultElevation;
         currentlySelectedHexSprite.transform.position = spriteGrid.GetWorldPosition(currentlySelectedHex) + new Vector3(0, combatGameManager.terrainHeightDifference * hexElevation);
-        Debug.Log("current Hex Posiition:" + currentlySelectedHex);
         if(previousSelectedHex != currentlySelectedHex)
         {
             NewSelectedHex?.Invoke(currentlySelectedHex);
