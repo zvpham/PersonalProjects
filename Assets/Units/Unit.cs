@@ -72,6 +72,9 @@ public class Unit : UnitSuperClass, IInititiave
 
     public List<Unit> selfInTheseUnitsThreatenedZones = new List<Unit>();
 
+    public MoveModifier moveModifier;
+    public int moveModifierPriority = -1;
+
     public Team team;
     public UnitGroup group;
 

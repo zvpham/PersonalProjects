@@ -22,6 +22,7 @@ public class ResourceManager : ScriptableObject
 
 
     public List<Action> actions;
+    public List<MoveModifier> moveModifiers;    
 
     public List<UnitClass> job;
     public Unit emptyHero;

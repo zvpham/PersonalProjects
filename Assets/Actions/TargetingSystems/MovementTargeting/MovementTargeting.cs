@@ -59,13 +59,13 @@ public class MovementTargeting : TargetingSystem
         map.getGrid().GetXY(targetPosition, out int x, out int y);
         map.ResetMap(true);
 
-        for (int i = 0; i < gameManager.units.Count; i++)
+        if(movingUnit.moveModifier != null)
         {
-            if (gameManager.units[i].team != movingUnit.team)
-            {
-                map.getGrid().GetXY(gameManager.units[i].transform.position, out int unitX, out int unitY);
-                map.SetUnwalkable(new Vector2Int(unitX, unitY));
-            }
+            movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        }
+        else
+        {
+            gameManager.resourceManager.moveModifiers[0].SetUnwalkable(gameManager, movingUnit);
         }
 
         map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) });

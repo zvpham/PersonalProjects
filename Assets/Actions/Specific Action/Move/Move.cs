@@ -8,6 +8,8 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Action/Move")]
 public class Move : Action
 {
+
+
     public override void SelectAction(Unit self)
     {
         base.SelectAction(self);
@@ -37,8 +39,6 @@ public class Move : Action
             {
                 pathDebug += path[i].ToString() + ", ";
             }
-
-            Debug.Log(pathDebug);
 
             DijkstraMap map = movingUnit.gameManager.map;
             for (int i = 0; i < path.Count; i++)

@@ -52,6 +52,7 @@ public class MeleeTargeting : TargetingSystem
     public bool canStillMove;
     public bool keepCombatAttackUi = false;
     public bool selectOnTarget;
+    public bool unitAttemptingToMove = false;
 
     public int actionPointsLeft;
 
@@ -74,6 +75,7 @@ public class MeleeTargeting : TargetingSystem
         map = movingUnit.gameManager.map;
         startingPosition = movingUnit.transform.position;
         selectedTarget = false;
+        unitAttemptingToMove = false;
         prevEndHexPosition = new Vector2Int(-10, 0);
         path = new List<Vector2Int>();
         this.enabled = true;
@@ -126,21 +128,6 @@ public class MeleeTargeting : TargetingSystem
             canStillMove = true;
             for (int i = 1; i <= moveAmounts; i++)
             {
-
-                rangeBrackets.Add(new List<Vector2Int>());
-                for (int j = 0; j < unresolvedMapNodes.Count; j++)
-                {
-                    Vector2Int currentNodePosition = new Vector2Int(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y);
-                    if (map.getGrid().GetGridObject(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y).value <= moveSpeed * i)
-                    {
-                        groundHexes.Add(currentNodePosition);
-                        groundColorValues.Add(amountMoved + 1);
-                        rangeBrackets[i - 1].Add(currentNodePosition);
-                        unresolvedMapNodes.RemoveAt(j);
-                        j--;
-                    }
-                }
-
                 if(i == moveAmounts)
                 {
                     meleeAdjustment = meleeRange;
@@ -152,27 +139,10 @@ public class MeleeTargeting : TargetingSystem
                     for (int k = 0; k < mapNodes.Count; k++)
                     {
                         Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
-                        if (map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * i)
-                        {
-                            groundHexes.Add(currentNodePosition);
-                            groundColorValues.Add(amountMoved + 1);
-                            rangeBrackets[i - 1].Add(currentNodePosition);
-                        }
-                        else
-                        {
-
-                            unresolvedMapNodes.Add(mapNodes[k]);
-                        }
-
                         Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
-                        if (targetUnit != null && targetUnit.team != movingUnit.team && map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * j + meleeRange)
+                        if (targetUnit != null && targetUnit.team != movingUnit.team && map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= 
+                            moveSpeed * j + meleeRange)
                         {
-                            if (groundHexes.Contains(currentNodePosition))
-                            {
-                                int groundIndex = groundHexes.IndexOf(currentNodePosition);
-                                groundHexes.RemoveAt(groundIndex);
-                                groundColorValues.RemoveAt(groundIndex);
-                            }
                             enemyGroundHexes.Add(currentNodePosition);
                             unresolvedMapNodes.Remove(mapNodes[k]);
                             targetHexPositions.Add(currentNodePosition);
@@ -182,27 +152,32 @@ public class MeleeTargeting : TargetingSystem
                 }
             }
 
-            //Make Units Unwalkable
-            for (int i = 0; i < gameManager.units.Count; i++)
+            map.ResetMap(true);
+            currentRadius = 1;
+            if (movingUnit.moveModifier != null)
             {
-                if (gameManager.units[i].team != movingUnit.team)
-                {
-                    map.getGrid().GetXY(gameManager.units[i].transform.position, out x, out y);
-                    map.SetUnwalkable(new Vector2Int(x, y));
-                }
+                movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
             }
+            else
+            {
+                gameManager.resourceManager.moveModifiers[0].SetUnwalkable(gameManager, movingUnit);
+            }
+            map.getGrid().GetXY(targetPosition, out x, out y);
+            map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) });
 
             for (int i = 1; i <= moveAmounts; i++)
             {
-
                 rangeBrackets.Add(new List<Vector2Int>());
                 for (int j = 0; j < unresolvedMapNodes.Count; j++)
                 {
                     Vector2Int currentNodePosition = new Vector2Int(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y);
                     if (map.getGrid().GetGridObject(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y).value <= moveSpeed * i)
                     {
-                        groundHexes.Add(currentNodePosition);
-                        groundColorValues.Add(amountMoved + 1);
+                        if (!enemyGroundHexes.Contains(currentNodePosition))
+                        {
+                            groundHexes.Add(currentNodePosition);
+                            groundColorValues.Add(amountMoved + 1);
+                        }
                         rangeBrackets[i - 1].Add(currentNodePosition);
                         unresolvedMapNodes.RemoveAt(j);
                         j--;
@@ -222,34 +197,21 @@ public class MeleeTargeting : TargetingSystem
                         Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
                         if (map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * i)
                         {
-                            groundHexes.Add(currentNodePosition);
-                            groundColorValues.Add(amountMoved + 1);
+                            if (!enemyGroundHexes.Contains(currentNodePosition))
+                            {
+                                groundHexes.Add(currentNodePosition);
+                                groundColorValues.Add(amountMoved + 1);
+                            }
                             rangeBrackets[i - 1].Add(currentNodePosition);
                         }
                         else
                         {
-
                             unresolvedMapNodes.Add(mapNodes[k]);
-                        }
-
-                        Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
-                        if (targetUnit != null && targetUnit.team != movingUnit.team && map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * j + meleeRange)
-                        {
-                            if (groundHexes.Contains(currentNodePosition))
-                            {
-                                int groundIndex = groundHexes.IndexOf(currentNodePosition);
-                                groundHexes.RemoveAt(groundIndex);
-                                groundColorValues.RemoveAt(groundIndex);
-                            }
-                            enemyGroundHexes.Add(currentNodePosition);
-                            unresolvedMapNodes.Remove(mapNodes[k]);
-                            targetHexPositions.Add(currentNodePosition);
                         }
                     }
                     currentRadius += 1;
                 }
             }
-
         }
         else
         {
@@ -274,15 +236,15 @@ public class MeleeTargeting : TargetingSystem
                     }
                 }
             }
-        }
 
-        //Make Units Unwalkable
-        for (int i = 0; i < gameManager.units.Count; i++)
-        {
-            if (gameManager.units[i].team != movingUnit.team)
+            //Make Units Unwalkable
+            for (int i = 0; i < gameManager.units.Count; i++)
             {
-                map.getGrid().GetXY(gameManager.units[i].transform.position, out x, out y);
-                map.SetUnwalkable(new Vector2Int(x, y));
+                if (gameManager.units[i].team != movingUnit.team)
+                {
+                    map.getGrid().GetXY(gameManager.units[i].transform.position, out x, out y);
+                    map.SetUnwalkable(new Vector2Int(x, y));
+                }
             }
         }
 
@@ -638,7 +600,7 @@ public class MeleeTargeting : TargetingSystem
                     }
                     keepCombatAttackUi = true;
                     // Case target is within meleeRange
-                    if (targetInMeleeRange)
+                    if (targetInMeleeRange && !unitAttemptingToMove)
                     {
                         SetUp(startingPosition, 0, movingUnit.moveSpeed);
                         gameManager.spriteManager.ActivateActionConfirmationMenu(
@@ -657,6 +619,7 @@ public class MeleeTargeting : TargetingSystem
                     else
                     {
                         endPathHex = setPath[setPath.Count - 1];
+                        Destroy(tempMovingUnit);
                         tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
                         SetUp(map.getGrid().GetWorldPosition(setPath[setPath.Count - 1]), 0, movingUnit.moveSpeed);
                         gameManager.spriteManager.ActivateActionConfirmationMenu(
@@ -691,6 +654,7 @@ public class MeleeTargeting : TargetingSystem
                     Destroy(tempMovingUnit);
                     tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
                     SetUp(map.getGrid().GetWorldPosition(setPath[setPath.Count - 1]), actionPointsLeft, movingUnit.moveSpeed);
+                    unitAttemptingToMove = true;
                     gameManager.spriteManager.ActivateActionConfirmationMenu(
                         () => // Confirm Action
                         {

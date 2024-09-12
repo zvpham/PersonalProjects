@@ -76,7 +76,6 @@ public class CombatMapGenerator : MonoBehaviour
 
     public void GeneratePremadeTerrain()
     {
-        Debug.Log(gameManager.spriteManager.terrainTilePositions.Count + ", " + mapTerrain.prefabTerrain.terrainElevation.Count);
         for (int i = 0; i < mapTerrain.prefabTerrain.terrainElevation.Count; i++)
         {
             Vector3Int terrainHexData = mapTerrain.prefabTerrain.terrainElevation[i];

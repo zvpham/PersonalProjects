@@ -15,12 +15,19 @@ public class RangedTargeting : TargetingSystem
     public Vector2Int prevEndHexPosition;
     // For Selection/ Mouse Hover (Combat UI)
     public Vector2Int prevEndHexSelectedPosition;
+
     public List<Vector2Int> path = new List<Vector2Int>();
     public List<Vector2Int> setPath = new List<Vector2Int>();
-    public List<Vector2Int> highlightedHexes = new List<Vector2Int>();
-    public List<Vector2Int> highlightedPositions = new List<Vector2Int>();
-    public List<Vector2Int> highlightedTargetedPositions = new List<Vector2Int>();
-    public List<Vector2Int> highlightedCoverHexes = new List<Vector2Int>();
+    public List<Vector2Int> targetHexPositions = new List<Vector2Int>();
+        public List<Vector2Int> highlightedCoverHexes = new List<Vector2Int>();
+
+    public List<Vector2Int> enemyGroundHexes;
+    public List<Vector2Int> groundHexes;
+    public List<int> groundColorValues;
+    public List<GameObject> highlightedTargetedHexes = new List<GameObject>();
+    public List<GameObject> highlightedHexes = new List<GameObject>();
+    public List<GameObject> rangeHexes = new List<GameObject>();
+    public List<GameObject> coverHexes = new List<GameObject>();
     public GameObject tempMovingUnit;
     public int oneActionMoveAmount;
     public int twoActionMoveAmount;
@@ -87,7 +94,6 @@ public class RangedTargeting : TargetingSystem
 
     public void SetUp(Vector3 targetPosition, int numActionPoints, int moveSpeed)
     {
-
         ResetSetUp();
 
         DijkstraMap map = gameManager.map;
@@ -117,6 +123,9 @@ public class RangedTargeting : TargetingSystem
         List<DijkstraMapNode> mapNodes;
         List<DijkstraMapNode> unresolvedMapNodes = new List<DijkstraMapNode>();
         rangeBrackets = new List<List<Vector2Int>>();
+        groundHexes = new List<Vector2Int>();
+        groundColorValues = new List<int>();
+        enemyGroundHexes = new List<Vector2Int>();
 
         int meleeAdjustment = 0;
         amountOfPossibleMoves = moveAmounts;
@@ -126,16 +135,58 @@ public class RangedTargeting : TargetingSystem
             canStillMove = true;
             for (int i = 1; i <= moveAmounts; i++)
             {
+                if (i == moveAmounts)
+                {
+                    meleeAdjustment = meleeRange;
+                }
 
+                for (int j = currentRadius; j <= (moveSpeed * i) + meleeAdjustment; j++)
+                {
+                    mapNodes = map.getGrid().GetGridObjectsInRing(x, y, j);
+                    for (int k = 0; k < mapNodes.Count; k++)
+                    {
+                        Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
+                        Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
+                        if (targetUnit != null && targetUnit.team != movingUnit.team && map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <=
+                            moveSpeed * j + meleeRange)
+                        {
+                            enemyGroundHexes.Add(currentNodePosition);
+                            unresolvedMapNodes.Remove(mapNodes[k]);
+                            targetHexPositions.Add(currentNodePosition);
+                        }
+                    }
+                    currentRadius += 1;
+                }
+            }
+
+            map.ResetMap(true);
+            currentRadius = 1;
+            //Make Units Unwalkable
+            for (int i = 0; i < gameManager.units.Count; i++)
+            {
+                if (gameManager.units[i].team != movingUnit.team)
+                {
+                    map.getGrid().GetXY(gameManager.units[i].transform.position, out int enemyX, out int enemyY);
+                    map.SetUnwalkable(new Vector2Int(enemyX, enemyY));
+                }
+            }
+            map.getGrid().GetXY(targetPosition, out x, out y);
+            map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) });
+
+            for (int i = 1; i <= moveAmounts; i++)
+            {
                 rangeBrackets.Add(new List<Vector2Int>());
                 for (int j = 0; j < unresolvedMapNodes.Count; j++)
                 {
                     Vector2Int currentNodePosition = new Vector2Int(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y);
                     if (map.getGrid().GetGridObject(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y).value <= moveSpeed * i)
                     {
-                        gameManager.spriteManager.ChangeTile(currentNodePosition, 1, amountMoved + i + 1);
+                        if (!enemyGroundHexes.Contains(currentNodePosition))
+                        {
+                            groundHexes.Add(currentNodePosition);
+                            groundColorValues.Add(amountMoved + 1);
+                        }
                         rangeBrackets[i - 1].Add(currentNodePosition);
-                        highlightedPositions.Add(currentNodePosition);
                         unresolvedMapNodes.RemoveAt(j);
                         j--;
                     }
@@ -154,22 +205,16 @@ public class RangedTargeting : TargetingSystem
                         Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
                         if (map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * i)
                         {
-                            gameManager.spriteManager.ChangeTile(currentNodePosition, 1, amountMoved + i + 1);
+                            if (!enemyGroundHexes.Contains(currentNodePosition))
+                            {
+                                groundHexes.Add(currentNodePosition);
+                                groundColorValues.Add(amountMoved + 1);
+                            }
                             rangeBrackets[i - 1].Add(currentNodePosition);
-                            highlightedPositions.Add(currentNodePosition);
                         }
                         else
                         {
-
                             unresolvedMapNodes.Add(mapNodes[k]);
-                        }
-
-                        Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
-                        if (targetUnit != null && targetUnit.team != movingUnit.team && map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * j + meleeRange)
-                        {
-                            gameManager.spriteManager.ChangeTile(currentNodePosition, 1, 5);
-                            highlightedTargetedPositions.Add(currentNodePosition);
-                            unresolvedMapNodes.Remove(mapNodes[k]);
                         }
                     }
                     currentRadius += 1;
@@ -188,44 +233,78 @@ public class RangedTargeting : TargetingSystem
                     Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
                     if (targetUnit != null && targetUnit.team != movingUnit.team && map.getGrid().GetGridObject(mapNodes[j].x, mapNodes[j].y).value <= meleeRange)
                     {
-                        gameManager.spriteManager.ChangeTile(currentNodePosition, 1, 5);
-                        highlightedTargetedPositions.Add(currentNodePosition);
+                        if (groundHexes.Contains(currentNodePosition))
+                        {
+                            int groundIndex = groundHexes.IndexOf(currentNodePosition);
+                            groundHexes.RemoveAt(groundIndex);
+                            groundColorValues.RemoveAt(groundIndex);
+                        }
+                        enemyGroundHexes.Add(currentNodePosition);
+                        targetHexPositions.Add(currentNodePosition);
                     }
+                }
+            }
+
+            //Make Units Unwalkable
+            for (int i = 0; i < gameManager.units.Count; i++)
+            {
+                if (gameManager.units[i].team != movingUnit.team)
+                {
+                    map.getGrid().GetXY(gameManager.units[i].transform.position, out x, out y);
+                    map.SetUnwalkable(new Vector2Int(x, y));
                 }
             }
         }
 
-        //Make Units Unwalkable
-        for (int i = 0; i < gameManager.units.Count; i++)
+        PlaceGroundHexes();
+    }
+
+    public void PlaceGroundHexes()
+    {
+        for (int i = 0; i < groundColorValues.Count; i++)
         {
-            if (gameManager.units[i].team != movingUnit.team)
-            {
-                map.getGrid().GetXY(gameManager.units[i].transform.position, out x, out y);
-                map.SetUnwalkable(new Vector2Int(x, y));
-            }
+            GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
+            Vector2Int currentNodePosition = groundHexes[i];
+            newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+            newHighlightedHex.GetComponent<SpriteRenderer>().color = gameManager.resourceManager.highlightedHexColors[groundColorValues[i]];
+            newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
+                currentNodePosition.y].sprite.sortingOrder + 1;
+            highlightedTargetedHexes.Add(newHighlightedHex);
+        }
+
+        for (int i = 0; i < enemyGroundHexes.Count; i++)
+        {
+            GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
+            Vector2Int currentNodePosition = enemyGroundHexes[i];
+            newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+            newHighlightedHex.GetComponent<SpriteRenderer>().color = gameManager.resourceManager.highlightedHexColors[3];
+            newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
+                currentNodePosition.y].sprite.sortingOrder + 1;
+            highlightedTargetedHexes.Add(newHighlightedHex);
         }
     }
 
     // Clear Highlighted Hexes
     public void ResetSetUp()
     {
-        for (int i = 0; i < highlightedPositions.Count; i++)
-        {
-            gameManager.spriteManager.ChangeTile(highlightedPositions[i], 1, 0);
-        }
-        highlightedPositions = new List<Vector2Int>();
-
-        for (int i = 0; i < highlightedTargetedPositions.Count; i++)
-        {
-            gameManager.spriteManager.ChangeTile(highlightedTargetedPositions[i], 1, 0);
-        }
-
         for (int i = 0; i < highlightedHexes.Count; i++)
         {
-            gameManager.spriteManager.ChangeTile(highlightedHexes[i], 2, 0);
+            gameManager.spriteManager.DisableHighlightedHex(highlightedHexes[i]);
         }
+        highlightedHexes = new List<GameObject>();
 
-        highlightedTargetedPositions = new List<Vector2Int>();
+        for (int i = 0; i < highlightedTargetedHexes.Count; i++)
+        {
+            gameManager.spriteManager.DisableHighlightedHex(highlightedTargetedHexes[i]);
+        }
+        highlightedTargetedHexes = new List<GameObject>();
+
+        for (int i = 0; i < rangeHexes.Count; i++)
+        {
+            gameManager.spriteManager.DisableTargetHex(rangeHexes[i]);
+        }
+        rangeHexes.Clear();
+        targetHexPositions.Clear();
     }
 
     //Mouse Hover
@@ -420,22 +499,22 @@ public class RangedTargeting : TargetingSystem
 
                 if((prevEndHexPosition.x <= -1 ||prevEndHexPosition.y <= -1) && prevEndHexSelectedPosition != endHex[0])
                 {
-                    for (int i = 0; i < highlightedCoverHexes.Count; i++)
+                    for (int i = 0; i < coverHexes.Count; i++)
                     {
-                        gameManager.spriteManager.ChangeTile(highlightedCoverHexes[i], 3, 0);
+                        gameManager.spriteManager.DisableHighlightedHex(coverHexes[i]);
                     }
-                    highlightedCoverHexes = new List<Vector2Int> ();
-
+                    coverHexes = new List<GameObject>();
                 }
 
                 //Create Combat Attack UI and Cover
                 if (ChangeCombatAttackUI || (prevEndHexSelectedPosition != endHex[0] && !keepCombatAttackUi))
                 {
                     ChangeCombatAttackUI = false;
-                    for (int i = 0; i < highlightedCoverHexes.Count; i++)
+                    for (int i = 0; i < coverHexes.Count; i++)
                     {
-                        gameManager.spriteManager.ChangeTile(highlightedCoverHexes[i], 3, 0);
+                        gameManager.spriteManager.DisableHighlightedHex(coverHexes[i]);
                     }
+                    coverHexes = new List<GameObject>();
 
                     gameManager.spriteManager.ResetCombatAttackUI();
                     prevEndHexSelectedPosition = endHex[0];
@@ -451,7 +530,7 @@ public class RangedTargeting : TargetingSystem
                             highlightedCoverHexes = GetSpacesThatAreCover(new Vector2Int(x, y), endHex[0]);
                         }
 
-                        if (highlightedTargetedPositions.Contains(endHex[0]))
+                        if (targetHexPositions.Contains(endHex[0]))
                         {
                             AttackData currentAttackData = new AttackData(attackData.minDamage, attackData.maxDamage, 
                                 attackData.armorDamagePercentage, attackData.originUnit);
@@ -477,6 +556,17 @@ public class RangedTargeting : TargetingSystem
                                 coverAttackData.attackState = attackState.Benediction;
                                 coverAttackData.data = "Cover Penalty - 50%";
                                 attackDatas.Add(coverAttackData);
+
+                                for(int i = 0; i < highlightedCoverHexes.Count; i++)
+                                {
+                                    GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
+                                    Vector2Int currentNodePosition = highlightedCoverHexes[i];
+                                    newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+                                    newHighlightedHex.GetComponent<SpriteRenderer>().color = gameManager.resourceManager.highlightedHexColors[6];
+                                    newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
+                                        currentNodePosition.y].sprite.sortingOrder + 2;
+                                    coverHexes.Add(newHighlightedHex);
+                                }
                             }
                             gameManager.spriteManager.ActivateCombatAttackUI(targetUnit, attackDatas, targetUnit.transform.position);
                         }
@@ -689,7 +779,7 @@ public class RangedTargeting : TargetingSystem
                 spacesThatAreCover.Add(potentialSpacesThatAreCover[i]);
                 break;
             }
-            else if(Mathf.Abs(Mathf.DeltaAngle(angle, adjustedAngle)) < 60)
+            else if(Mathf.Abs(Mathf.DeltaAngle(adjustedAngle, potentialCoverAngles[i])) < 60)
             {
                 spacesThatAreCover.Add((potentialSpacesThatAreCover[i]));
             }
@@ -723,6 +813,11 @@ public class RangedTargeting : TargetingSystem
     {
         ResetTargeting();
         ResetSetUp();
+        for (int i = 0; i < coverHexes.Count; i++)
+        {
+            gameManager.spriteManager.DisableHighlightedHex(coverHexes[i]);
+        }
+        coverHexes = new List<GameObject>();
         map.ResetMap(true);
         OnFoundTarget = null;
     }
@@ -781,10 +876,6 @@ public class RangedTargeting : TargetingSystem
             actionMoveAmounts.RemoveAt(actionMoveAmounts.Count - 1);
         }
 
-        for (int i = 0; i < highlightedHexes.Count; i++)
-        {
-            gameManager.spriteManager.ChangeTile(highlightedHexes[i], 2, 0);
-        }
         // Draw meleeRange
         Vector2Int endHex;
 
@@ -797,23 +888,26 @@ public class RangedTargeting : TargetingSystem
         {
             endHex = path[path.Count - 1];
         }
-        highlightedHexes.Clear();
+
+        for (int i = 0; i < rangeHexes.Count; i++)
+        {
+            gameManager.spriteManager.DisableTargetHex(rangeHexes[i]);
+        }
+        rangeHexes.Clear();
+
         for (int i = 1; i <= meleeRange; i++)
         {
             List<DijkstraMapNode> mapNodes = map.getGrid().GetGridObjectsInRing(endHex.x, endHex.y, i);
             for (int j = 0; j < mapNodes.Count; j++)
             {
                 Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
-                gameManager.spriteManager.ChangeTile(currentNodePosition, 2, 3);
-                highlightedHexes.Add(currentNodePosition);
+                GameObject newTargetHex = gameManager.spriteManager.UseOpenTargetHex();
+                newTargetHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+                newTargetHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
+                    currentNodePosition.y].sprite.sortingOrder + 2;
+                rangeHexes.Add(newTargetHex);
             }
-        }
-        
-
-        for (int i = 0; i < highlightedCoverHexes.Count; i++)
-        {
-            gameManager.spriteManager.ChangeTile(highlightedCoverHexes[i], 3, 6);
-        }
+        }        
     }
 
     public override void NextItem()
