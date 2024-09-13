@@ -48,6 +48,10 @@ public class MovementTargeting : TargetingSystem
         this.enabled = true;
         amountMoved = movingUnit.amountMoveUsedDuringRound;
         highlightedHexes = new List<GameObject>();
+        if (movingUnit.moveModifier == null)
+        {
+            movingUnit.moveModifier = gameManager.resourceManager.moveModifiers[0];
+        }
         SetUp(startingPosition, actionPointsLeft, movingUnit.moveSpeed);
     }
 
@@ -59,16 +63,10 @@ public class MovementTargeting : TargetingSystem
         map.getGrid().GetXY(targetPosition, out int x, out int y);
         map.ResetMap(true);
 
-        if(movingUnit.moveModifier != null)
-        {
-            movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-        }
-        else
-        {
-            gameManager.resourceManager.moveModifiers[0].SetUnwalkable(gameManager, movingUnit);
-        }
+        movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
 
-        map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) });
+
+        map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) }, gameManager, movingUnit.moveModifier);
         startingPosition = targetPosition;
 
         actionPointsLeft = numActionPoints;

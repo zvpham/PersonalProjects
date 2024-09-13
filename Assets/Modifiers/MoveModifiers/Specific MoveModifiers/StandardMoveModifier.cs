@@ -18,4 +18,12 @@ public class StandardMoveModifier : MoveModifier
             }
         }
     }
+
+    public override bool ValidMovePosition(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode)
+    {
+        int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
+        int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];
+        int neighborNodeElevation = elevationGrid[neighborNode.x, neighborNode.y];
+        return currentNode.value + 1 < neighborNode.value && neighborNode.walkable && Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
+    }
 }
