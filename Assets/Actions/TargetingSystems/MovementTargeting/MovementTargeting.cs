@@ -164,7 +164,7 @@ public class MovementTargeting : TargetingSystem
         if (map.getGrid().GetGridObject(endX, endY) != null)
         {
             endHex.Add(new Vector2Int(endX, endY));
-            map.SetGoals(endHex);
+            map.SetGoals(endHex, gameManager, movingUnit.moveModifier);
             map.getGrid().GetXY(startingPosition, out int x, out int y);
             path.Clear();
             bool foundEndPosition = false;
@@ -179,13 +179,20 @@ public class MovementTargeting : TargetingSystem
                 bool inRangeBracket = rangeBrackets[i].Contains(new Vector2Int(endX, endY));
                 int startx = x;
                 int starty = y;
+                DijkstraMapNode currentNode = map.getGrid().GetGridObject(startx, starty);
 
                 // Attempt to find path Avoiding harmful Terrain
                 for (int j = 0; j < movingUnit.moveSpeed; j++)
                 {
-                    DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y);
-                    x = nextLowestNode.x;
-                    y = nextLowestNode.y;
+                    Debug.Log(currentNode.x + ", " + currentNode.y + ": " + currentNode.value);
+                    if(currentNode.value == int.MaxValue)
+                    {
+                        foundEndPosition = true;
+                        break;
+                    }
+                    currentNode = map.GetLowestNearbyNode(x, y);
+                    x = currentNode.x;
+                    y = currentNode.y;
                     path.Add(new Vector2Int(x, y));
                     actionMoveAmounts[i] = actionMoveAmounts[i] + 1;
                     if (endHex[0] == path[path.Count - 1])
@@ -222,9 +229,9 @@ public class MovementTargeting : TargetingSystem
                     //Try to find Path
                     for (int j = 0; j < movingUnit.moveSpeed; j++)
                     {
-                        DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y);
-                        x = nextLowestNode.x;
-                        y = nextLowestNode.y;
+                        currentNode = map.GetLowestNearbyNode(x, y);
+                        x = currentNode.x;
+                        y = currentNode.y;
                         path.Add(new Vector2Int(x, y));
                         actionMoveAmounts[i] = actionMoveAmounts[i] + 1;
                         if (endHex[0] == path[path.Count - 1])
@@ -254,7 +261,7 @@ public class MovementTargeting : TargetingSystem
                 }
                 amountActionLineIncreased = initialAmountPathMoveIncreased;
                 endHex.Add(new Vector2Int(endX, endY));
-                map.SetGoals(endHex);
+                map.SetGoals(endHex, gameManager, movingUnit.moveModifier);
                 map.getGrid().GetXY(startingPosition, out x, out y);
                 path.Clear();
                 foundEndPosition = false;
@@ -262,17 +269,13 @@ public class MovementTargeting : TargetingSystem
                 {
                     amountActionLineIncreased += 1;
                     actionMoveAmounts.Add(0);
-                    bool inRangeBracket = rangeBrackets[i].Contains(new Vector2Int(endX, endY));
-                    int startx = x;
-                    int starty = y;
-
                     // Attempt to find path Avoiding harmful Terrain
                     for (int j = 0; j < movingUnit.moveSpeed; j++)
                     {
-                        DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y);
-                        x = nextLowestNode.x;
-                        y = nextLowestNode.y;
-                        path.Add(new Vector2Int(nextLowestNode.x, nextLowestNode.y));
+                        DijkstraMapNode currentNode = map.GetLowestNearbyNode(x, y);
+                        x = currentNode.x;
+                        y = currentNode.y;
+                        path.Add(new Vector2Int(currentNode.x, currentNode.y));
                         actionMoveAmounts[i] = actionMoveAmounts[i] + 1;
                         if (endHex[0] == path[path.Count - 1])
                         {
@@ -302,7 +305,7 @@ public class MovementTargeting : TargetingSystem
         int x = currentlySelectedHex.x;
         int y = currentlySelectedHex.y;
 
-        if (x >= gameManager.grid.GetWidth() || x < 0 || y >= gameManager.grid.GetHeight() || y < 0)
+        if (x >= gameManager.grid.GetWidth() || x < 0 || y >= gameManager.grid.GetHeight() || y < 0 || path.Count == 0)
         {
             return;
         }

@@ -88,15 +88,15 @@ public class TestHexGrid : MonoBehaviour
         {
             gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, - 1, true);
         }
-        else if(Input.GetKeyDown(KeyCode.PageUp))
+        else if(Input.GetKeyDown(KeyCode.Z))
         {
             gameManager.spriteManager.SetViewElevation(gameManager.spriteManager.currentViewingElevation + 1);
         }
-        else if (Input.GetKeyDown(KeyCode.PageDown))
+        else if (Input.GetKeyDown(KeyCode.X))
         {
             gameManager.spriteManager.SetViewElevation(gameManager.spriteManager.currentViewingElevation - 1);
         }
-        else if (Input.GetMouseButtonDown(1))
+        else if (Input.GetMouseButtonDown(0))
         {
             if(mouseIndex == 0)
             {
