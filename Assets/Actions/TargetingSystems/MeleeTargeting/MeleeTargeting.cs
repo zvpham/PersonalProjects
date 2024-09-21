@@ -92,7 +92,7 @@ public class MeleeTargeting : TargetingSystem
         DijkstraMap map = gameManager.map;
         map.getGrid().GetXY(targetPosition, out int x, out int y);
         map.ResetMap(true);
-        map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) });
+        map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) }, gameManager, movingUnit.moveModifier);
         startingPosition = targetPosition;
 
         actionPointsLeft = numActionPoints;
@@ -163,7 +163,7 @@ public class MeleeTargeting : TargetingSystem
                 gameManager.resourceManager.moveModifiers[0].SetUnwalkable(gameManager, movingUnit);
             }
             map.getGrid().GetXY(targetPosition, out x, out y);
-            map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) });
+            map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) }, gameManager, movingUnit.moveModifier);
 
             for (int i = 1; i <= moveAmounts; i++)
             {
