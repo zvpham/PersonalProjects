@@ -135,6 +135,59 @@ public class DijkstraMap
         }
     }
 
+    public void SetGoals(List<Vector2Int> goals, CombatGameManager gameManager, AttackModifier attackModifier, int range)
+    {
+        if (goals.Count == 0)
+        {
+            Debug.LogWarning("Setting Goals without having any goals");
+        }
+
+        openList = new List<DijkstraMapNode>();
+        closedList = new List<DijkstraMapNode>();
+
+        for (int i = 0; i < goals.Count; i++)
+        {
+            DijkstraMapNode newNode = grid.GetGridObject(goals[i].x, goals[i].y);
+            if (newNode != null)
+            {
+                newNode.value = 0;
+                grid.SetGridObject(newNode.x, newNode.y, newNode);
+                openList.Add(newNode);
+            }
+
+        }
+
+
+        while (openList.Count > 0)
+        {
+            DijkstraMapNode currentNode = GetLowestValue(openList);
+            openList.Remove(currentNode);
+            foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+            {
+                if (attackModifier.ValidMovePosition(gameManager, currentNode, neighborNode, range))
+                {
+                    neighborNode.value = currentNode.value + 1;
+                    grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
+                    openList.Add(neighborNode);
+                }
+            }
+            closedList.Add(currentNode);
+        }
+
+        for (int i = 0; i < grid.GetHeight(); i++)
+        {
+            for (int j = 0; j < grid.GetWidth(); j++)
+            {
+                DijkstraMapNode tempNode = grid.GetGridObject(j, i);
+                if (tempNode.walkable == false)
+                {
+                    tempNode.value = int.MaxValue;
+                    grid.SetGridObject(j, i, tempNode);
+                }
+            }
+        }
+    }
+
     public void SetUnwalkable(Vector2Int unwalkableHex)
     {
         SetUnwalkable(new List<Vector2Int>() {  unwalkableHex });

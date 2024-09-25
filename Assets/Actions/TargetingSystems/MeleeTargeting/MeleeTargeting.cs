@@ -140,8 +140,8 @@ public class MeleeTargeting : TargetingSystem
                     {
                         Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
                         Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
-                        if (targetUnit != null && targetUnit.team != movingUnit.team && map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= 
-                            moveSpeed * j + meleeRange)
+                        if (targetUnit != null && ((targetUnit.team != movingUnit.team && !targetFriendly) || targetUnit.team == movingUnit.team && targetFriendly) &&
+                            map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * j + meleeRange)
                         {
                             enemyGroundHexes.Add(currentNodePosition);
                             unresolvedMapNodes.Remove(mapNodes[k]);

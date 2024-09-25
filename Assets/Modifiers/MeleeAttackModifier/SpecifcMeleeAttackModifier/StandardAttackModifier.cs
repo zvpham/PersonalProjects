@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StandardMeleeAttackModifer : MeleeAttackModifier
+[CreateAssetMenu(menuName = "Modifier/MeleeModifer/StandardMeleeAttackModifier")]
+public class StandardAttackModifier : AttackModifier
 {
     public override void SetUnwalkable(CombatGameManager gameManager, Unit movingUnit)
     {
@@ -18,7 +19,7 @@ public class StandardMeleeAttackModifer : MeleeAttackModifier
         }
     }
 
-    public override bool ValidMovePosition(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode)
+    public override bool ValidMovePosition(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode, int meleeRange)
     {
         int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
         int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];

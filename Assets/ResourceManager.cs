@@ -22,7 +22,8 @@ public class ResourceManager : ScriptableObject
 
 
     public List<Action> actions;
-    public List<MoveModifier> moveModifiers;    
+    public List<MoveModifier> moveModifiers;
+    public List<AttackModifier> meleeAttackModifiers;
 
     public List<UnitClass> job;
     public Unit emptyHero;
