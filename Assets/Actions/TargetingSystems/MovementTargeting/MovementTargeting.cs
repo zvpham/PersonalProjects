@@ -48,10 +48,6 @@ public class MovementTargeting : TargetingSystem
         this.enabled = true;
         amountMoved = movingUnit.amountMoveUsedDuringRound;
         highlightedHexes = new List<GameObject>();
-        if (movingUnit.moveModifier == null)
-        {
-            movingUnit.moveModifier = gameManager.resourceManager.moveModifiers[0];
-        }
         SetUp(startingPosition, actionPointsLeft, movingUnit.moveSpeed);
     }
 
@@ -190,7 +186,7 @@ public class MovementTargeting : TargetingSystem
                         foundEndPosition = true;
                         break;
                     }
-                    currentNode = map.GetLowestNearbyNode(x, y);
+                    currentNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
                     x = currentNode.x;
                     y = currentNode.y;
                     path.Add(new Vector2Int(x, y));
@@ -221,6 +217,10 @@ public class MovementTargeting : TargetingSystem
                     actionMoveAmounts[i] = 0;
                     for (int j = 0; j < movingUnit.moveSpeed; j++)
                     {
+                        if(path.Count == 0)
+                        {
+                            break;
+                        }
                         path.RemoveAt(path.Count - 1);
                     }
                     x = startx; 
@@ -229,8 +229,8 @@ public class MovementTargeting : TargetingSystem
                     //Try to find Path
                     for (int j = 0; j < movingUnit.moveSpeed; j++)
                     {
-                        currentNode = map.GetLowestNearbyNode(x, y);
-                        x = currentNode.x;
+                        currentNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
+                        x = currentNode.x;  
                         y = currentNode.y;
                         path.Add(new Vector2Int(x, y));
                         actionMoveAmounts[i] = actionMoveAmounts[i] + 1;
@@ -272,7 +272,7 @@ public class MovementTargeting : TargetingSystem
                     // Attempt to find path Avoiding harmful Terrain
                     for (int j = 0; j < movingUnit.moveSpeed; j++)
                     {
-                        DijkstraMapNode currentNode = map.GetLowestNearbyNode(x, y);
+                        DijkstraMapNode currentNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
                         x = currentNode.x;
                         y = currentNode.y;
                         path.Add(new Vector2Int(currentNode.x, currentNode.y));

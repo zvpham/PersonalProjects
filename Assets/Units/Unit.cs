@@ -190,6 +190,11 @@ public class Unit : UnitSuperClass, IInititiave
         ChangeDexterity(dexterity);
         if (!inOverWorld)
         {
+            if (moveModifier == null)
+            {
+                moveModifier = gameManager.resourceManager.moveModifiers[0];
+            }
+
             if (group == null)
             {
                 gameManager.allinitiativeGroups.Add(this);

@@ -29,6 +29,24 @@ public class DijkstraMap
         return lowestNode;
     }
 
+
+    public DijkstraMapNode GetLowestNearbyNode(int x, int y, MoveModifier moveModifier, CombatGameManager gameManager)
+    {
+        DijkstraMapNode lowestNode;
+        DijkstraMapNode currentNode = grid.GetGridObject(x, y);
+        lowestNode = currentNode;
+        int lowestValue = currentNode.value;
+        foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+        {
+            if (neighborNode.value < lowestValue && moveModifier.ValidMove(gameManager, currentNode, neighborNode))
+            {
+                lowestNode = neighborNode;
+                lowestValue = neighborNode.value;
+            }
+        }
+        return lowestNode;
+    }
+
     public void SetGoals(List<Vector2Int> goals)
     {
         if(goals.Count == 0)

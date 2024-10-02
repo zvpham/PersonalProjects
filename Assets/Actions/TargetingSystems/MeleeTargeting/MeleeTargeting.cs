@@ -115,6 +115,7 @@ public class MeleeTargeting : TargetingSystem
 
         List<DijkstraMapNode> mapNodes;
         List<DijkstraMapNode> unresolvedMapNodes = new List<DijkstraMapNode>();
+        List<DijkstraMapNode> unresolvedEnemyNodes = new List<DijkstraMapNode>();
         rangeBrackets = new List<List<Vector2Int>>();
         groundHexes = new List<Vector2Int>();
         groundColorValues = new List<int>();
@@ -140,12 +141,17 @@ public class MeleeTargeting : TargetingSystem
                     {
                         Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
                         Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
-                        if (targetUnit != null && ((targetUnit.team != movingUnit.team && !targetFriendly) || targetUnit.team == movingUnit.team && targetFriendly) &&
-                            map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * j + meleeRange)
+                        if (targetUnit != null && (targetUnit.team != movingUnit.team && !targetFriendly || targetUnit.team == movingUnit.team && targetFriendly))
                         {
-                            enemyGroundHexes.Add(currentNodePosition);
-                            unresolvedMapNodes.Remove(mapNodes[k]);
-                            targetHexPositions.Add(currentNodePosition);
+                            if(map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * j + meleeRange)
+                            {
+                                enemyGroundHexes.Add(currentNodePosition);
+                                targetHexPositions.Add(currentNodePosition);
+                            }
+                            else
+                            {
+                                unresolvedEnemyNodes.Add(mapNodes[k]);
+                            }
                         }
                     }
                     currentRadius += 1;
@@ -154,14 +160,7 @@ public class MeleeTargeting : TargetingSystem
 
             map.ResetMap(true);
             currentRadius = 1;
-            if (movingUnit.moveModifier != null)
-            {
-                movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-            }
-            else
-            {
-                gameManager.resourceManager.moveModifiers[0].SetUnwalkable(gameManager, movingUnit);
-            }
+            movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
             map.getGrid().GetXY(targetPosition, out x, out y);
             map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) }, gameManager, movingUnit.moveModifier);
 
@@ -210,6 +209,24 @@ public class MeleeTargeting : TargetingSystem
                         }
                     }
                     currentRadius += 1;
+                }
+            }
+            for(int i = 0; i < unresolvedEnemyNodes.Count; i++)
+            {
+                x = unresolvedEnemyNodes[i].x;
+                y = unresolvedEnemyNodes[i].y;
+                int targetElevation = gameManager.spriteManager.elevationOfHexes[x, y];
+                mapNodes = map.getGrid().GetGridObjectsInRing(x, y, 1);
+                for (int k = 0; k < mapNodes.Count; k++)
+                {
+                    Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
+
+                    if (enemyGroundHexes.Contains(currentNodePosition) &&
+                        Mathf.Abs(gameManager.spriteManager.elevationOfHexes[currentNodePosition.x, currentNodePosition.y] - targetElevation) <= meleeRange)
+                    {
+                        enemyGroundHexes.Add(currentNodePosition);
+                        targetHexPositions.Add(currentNodePosition);
+                    }
                 }
             }
         }
@@ -358,7 +375,7 @@ public class MeleeTargeting : TargetingSystem
                             // Attempt to find path Avoiding harmful Terrain
                             for (int j = 0; j < movingUnit.moveSpeed; j++)
                             {
-                                DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y);
+                                DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
                                 x = nextLowestNode.x;
                                 y = nextLowestNode.y;
                                 path.Add(new Vector2Int(x, y));
@@ -397,7 +414,7 @@ public class MeleeTargeting : TargetingSystem
                                 //Try to find Path
                                 for (int j = 0; j < movingUnit.moveSpeed; j++)
                                 {
-                                    DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y);
+                                    DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
                                     x = nextLowestNode.x;
                                     y = nextLowestNode.y;
                                     path.Add(new Vector2Int(x, y));
@@ -444,7 +461,7 @@ public class MeleeTargeting : TargetingSystem
                                 // Attempt to find path Avoiding harmful Terrain
                                 for (int j = 0; j < movingUnit.moveSpeed; j++)
                                 {
-                                    DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y);
+                                    DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
                                     x = nextLowestNode.x;
                                     y = nextLowestNode.y;
                                     path.Add(new Vector2Int(nextLowestNode.x, nextLowestNode.y));
