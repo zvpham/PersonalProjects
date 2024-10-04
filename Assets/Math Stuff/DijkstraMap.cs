@@ -153,7 +153,8 @@ public class DijkstraMap
         }
     }
 
-    public void SetGoals(List<Vector2Int> goals, CombatGameManager gameManager, AttackModifier attackModifier, int range)
+    public void SetGoalsMelee(List<Vector2Int> goals, List<Vector2Int> friendlyUnits, List<Vector2Int> permissableUnits,
+        CombatGameManager gameManager, MoveModifier moveModifier)
     {
         if (goals.Count == 0)
         {
@@ -182,10 +183,18 @@ public class DijkstraMap
             openList.Remove(currentNode);
             foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
             {
-                if (attackModifier.ValidMovePosition(gameManager, currentNode, neighborNode, range))
+                if (moveModifier.ValidMovePosition(gameManager, currentNode, neighborNode))
                 {
-                    neighborNode.value = currentNode.value + 1;
-                    grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
+                    if(permissableUnits.Contains(new Vector2Int(neighborNode.x, neighborNode.y)))
+                    {
+                        neighborNode.permissableMoves = currentNode.permissableMoves - 1;
+                        neighborNode.value = currentNode.value + 1;
+                        grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
+                        if (neighborNode.permissableMoves <= 0)
+                        {
+                            continue;
+                        }
+                    }
                     openList.Add(neighborNode);
                 }
             }
@@ -275,6 +284,7 @@ public class DijkstraMap
                     DijkstraMapNode tempNode = grid.GetGridObject(j, i);
                     tempNode.value = int.MaxValue;
                     tempNode.walkable = true;
+                    tempNode.permissableMoves = 1;
                     grid.SetGridObject(j, i, tempNode);
                 }
             }
@@ -287,6 +297,7 @@ public class DijkstraMap
                 {
                     DijkstraMapNode tempNode = grid.GetGridObject(j, i);
                     tempNode.value = int.MaxValue;
+                    tempNode.permissableMoves = 1;
                     grid.SetGridObject(j, i, tempNode);
                 }
             }

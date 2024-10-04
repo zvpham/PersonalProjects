@@ -8,6 +8,7 @@ public class DijkstraMapNode
     public int x;
     public int y;
     public int value;
+    public int permissableMoves;
     public bool walkable;
     
     public DijkstraMapNode(GridHex<DijkstraMapNode> grid, int x, int y)
