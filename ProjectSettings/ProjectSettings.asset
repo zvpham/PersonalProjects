@@ -631,11 +631,11 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
-  cloudProjectId: 
+  cloudProjectId: 83e8ea6e-a9e1-4fdf-8273-c380c69a05a8
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: 
-  organizationId: 
+  projectName: Try3
+  organizationId: zachben3
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   playerDataPath: 

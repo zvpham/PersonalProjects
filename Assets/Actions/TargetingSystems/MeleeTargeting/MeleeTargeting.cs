@@ -80,7 +80,6 @@ public class MeleeTargeting : TargetingSystem
         path = new List<Vector2Int>();
         this.enabled = true;
         amountMoved = movingUnit.amountMoveUsedDuringRound;
-
         SetUp(startingPosition, actionPointsLeft, movingUnit.moveSpeed);
     }
 
@@ -89,10 +88,22 @@ public class MeleeTargeting : TargetingSystem
 
         ResetSetUp();
 
+        List<Unit> units = gameManager.units;
+        SpriteManager spriteManager = gameManager.spriteManager;
+        List<Vector2> friendlyUnits = new List<Vector2>();
+        for(int i = 0; i < units.Count; i++)
+        {
+            if(units[i].team == movingUnit.team)
+            {
+                friendlyUnits.Add(new Vector2Int(units[i].x, units[i].y));
+            }
+        }
+
         DijkstraMap map = gameManager.map;
         map.getGrid().GetXY(targetPosition, out int x, out int y);
         map.ResetMap(true);
-        map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) }, gameManager, movingUnit.moveModifier);
+
+        //map.SetGoalsMelee(new List<Vector2Int>() { new Vector2Int(x, y) }, gameManager, movingUnit.moveModifier, meleeRange);
         startingPosition = targetPosition;
 
         actionPointsLeft = numActionPoints;

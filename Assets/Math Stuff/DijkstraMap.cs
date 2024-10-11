@@ -154,12 +154,29 @@ public class DijkstraMap
     }
 
     public void SetGoalsMelee(List<Vector2Int> goals, List<Vector2Int> friendlyUnits, List<Vector2Int> permissableUnits,
-        CombatGameManager gameManager, MoveModifier moveModifier)
+        CombatGameManager gameManager, MoveModifier moveModifier, int range)
     {
         if (goals.Count == 0)
         {
             Debug.LogWarning("Setting Goals without having any goals");
         }
+
+        int meleeRange = range;
+        if(range <= 0)
+        {
+            range = 1;
+        }
+
+        for (int i = 0; i < grid.GetHeight(); i++)
+        {
+            for (int j = 0; j < grid.GetWidth(); j++)
+            {
+                DijkstraMapNode tempNode = grid.GetGridObject(j, i);
+                tempNode.permissableMoves = range;
+                grid.SetGridObject(j, i, tempNode);
+            }
+        }
+
 
         openList = new List<DijkstraMapNode>();
         closedList = new List<DijkstraMapNode>();

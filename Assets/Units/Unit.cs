@@ -58,6 +58,9 @@ public class Unit : UnitSuperClass, IInititiave
     public float damageResistence = 0f;
     public float shieldDamageResistence = 0f;
 
+    public int x;
+    public int y;
+
     public Action endTurn;
     public Action move;
     public int amountMoveUsedDuringRound;
@@ -213,7 +216,6 @@ public class Unit : UnitSuperClass, IInititiave
             gameManager.SetGridObject(this, transform.position);
             gameManager.units.Add(this);
             gameManager.spriteManager.CreateSpriteRenderer(0, unitProfile, transform.position);
-            gameManager.grid.GetXY(transform.position, out int x, out int y);
             gameManager.StartCombat();
 
             move = gameManager.resourceManager.actions[0];
