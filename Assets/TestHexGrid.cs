@@ -79,12 +79,12 @@ public class TestHexGrid : MonoBehaviour
 
         int initalElevation = gameManager.spriteManager.elevationOfHexes[currentlySelectedHex.x, currentlySelectedHex.y];
         // Raise Elevation
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.O))
         {
             gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, 1, true);
         }
         // Drop Elevation
-        else if (Input.GetKeyDown(KeyCode.E))
+        else if (Input.GetKeyDown(KeyCode.P))
         {
             gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, - 1, true);
         }
