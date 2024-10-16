@@ -7,12 +7,14 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
+using Inventory.Model;
 using UnityEngine.UI;
 
 public class TestHexGrid : MonoBehaviour
 {
     GridHex<GridPosition> hexgrid;
     public PrefabTerrain prefabTerrain;
+    public PrefabUnitTerrain prefabUnitTerrain;
     public float cellSize;
     public Vector3 defaultGridAdjustment;
     //AStarPathfindingHex path;
@@ -42,6 +44,14 @@ public class TestHexGrid : MonoBehaviour
 
     public TerrainHolder newGroundHexPrefab;
 
+    // Start is called before the first frame update
+    void Start()
+    {
+        //hexgrid =  new GridHex<GridPosition>(10, 10, 1, new Vector3(-0.5f, -0.5f, 0), (GridHex<GridPosition> Grid, int x, int y) => new GridPosition(Grid, x, y, 3), true);
+        CreateGrid(32, 32, 7);
+        LoadUnits();
+    }
+
 
     public void CreateGrid(int mapWidth, int mapHeight, int amountOfTerrainLevels)
     {
@@ -62,13 +72,6 @@ public class TestHexGrid : MonoBehaviour
             gameManager.spriteManager.terrainTilePositions[terrainHexData.z].Add(new Vector2Int(terrainHexData.x, terrainHexData.y));
             gameManager.spriteManager.ChangeElevation(terrainHexData.x, terrainHexData.y, 0);
         }
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        //hexgrid =  new GridHex<GridPosition>(10, 10, 1, new Vector3(-0.5f, -0.5f, 0), (GridHex<GridPosition> Grid, int x, int y) => new GridPosition(Grid, x, y, 3), true);
-        CreateGrid(32, 32, 7);
     }
 
     // Update is called once per frame
@@ -159,7 +162,168 @@ public class TestHexGrid : MonoBehaviour
         }
         int hexElevation = gameManager.spriteManager.elevationOfHexes[currentlySelectedHex.x, currentlySelectedHex.y] - defaultElevation;
         currentlySelectedHexSprite.transform.position = hexgrid.GetWorldPosition(currentlySelectedHex) + new Vector3(0, terrainHeightDifference * hexElevation);
-    }     
+    }
+
+    private void LoadUnits()
+    {
+        int positionIndex = 0;
+        for(int i = 0; i < prefabUnitTerrain.unitTeam.Count; i++)
+        {
+            battleLineData newBattleLineUnit = prefabUnitTerrain.units[i];
+            // Load Player Unit
+            if (prefabUnitTerrain.unitTeam[i] == 0)
+            {
+                LoadPlayerUnitSuperGroupData(newBattleLineUnit);
+            }
+            else if(prefabUnitTerrain.unitTeam[i] == 1)
+            {
+                battleLineData enemyUnit = newBattleLineUnit;
+                if (enemyUnit.unitGroupData.mercenaryIndex != -1)
+                {
+                    UnitGroup newUnitGroup = Instantiate(resourceManager.mercenaries[enemyUnit.unitGroupData.mercenaryIndex]);
+                    newUnitGroup.gameManager = gameManager;
+                    newUnitGroup.team = Team.Team4;
+                    for (int j = 0; j < newUnitGroup.transform.childCount; j++)
+                    {
+                        Unit childUnit = newUnitGroup.transform.GetChild(j).GetComponent<Unit>();
+                        childUnit.team = Team.Team4;
+                        childUnit.gameManager = gameManager;
+                        childUnit.group = newUnitGroup;
+                        newUnitGroup.units.Add(childUnit);
+                        childUnit.transform.position = gameManager.spriteManager.GetWorldPosition(prefabUnitTerrain.unitPositions[positionIndex]);
+                        positionIndex += 1;
+
+                    }
+                }
+                else
+                {
+                    Unit newHero = Instantiate(resourceManager.heroes[enemyUnit.unitData.heroIndex]);
+                    newHero.gameManager = gameManager;
+                    newHero.team = Team.Team4;
+                    newHero.transform.SetParent(gameObject.transform);
+                    newHero.transform.position = gameManager.spriteManager.GetWorldPosition(prefabUnitTerrain.unitPositions[positionIndex]);
+                    positionIndex += 1;
+                }
+            }
+        }
+    }
+
+    private UnitSuperClass LoadPlayerUnitSuperGroupData(battleLineData backLineUnit)
+    {
+        if (backLineUnit.unitGroupData.mercenaryIndex != -1)
+        {
+            UnitGroup newUnitGroup = Instantiate(resourceManager.mercenaries[backLineUnit.unitGroupData.mercenaryIndex]);
+            newUnitGroup.gameManager = gameManager;
+            for (int j = 0; j < newUnitGroup.transform.childCount; j++)
+            {
+                Unit childUnit = newUnitGroup.transform.GetChild(j).GetComponent<Unit>();
+                childUnit.team = Team.Player;
+                childUnit.gameManager = gameManager;
+                childUnit.group = newUnitGroup;
+                newUnitGroup.units.Add(childUnit);
+            }
+            newUnitGroup.team = Team.Player;
+            return (newUnitGroup);
+        }
+        else
+        {
+            unitLoadoutData hero = backLineUnit.unitData;
+            Unit newHero = Instantiate(resourceManager.emptyHero);
+            newHero.gameManager = gameManager;
+            newHero.team = Team.Player;
+            newHero.transform.SetParent(gameObject.transform);
+            newHero.unitClass = resourceManager.job[hero.jobIndex];
+
+            for (int j = 0; j < hero.skillTree1Branch1Unlocks.Count; j++)
+            {
+                if (hero.skillTree1Branch1Unlocks[j])
+                {
+                    newHero.unitClass.skillTree1.branch1.BranchSkills[j].UnlockSkill(newHero);
+                }
+            }
+
+            for (int j = 0; j < hero.skillTree1Branch2Unlocks.Count; j++)
+            {
+                if (hero.skillTree1Branch2Unlocks[j])
+                {
+                    newHero.unitClass.skillTree1.branch2.BranchSkills[j].UnlockSkill(newHero);
+                }
+            }
+
+            for (int j = 0; j < hero.skillTree2Branch1Unlocks.Count; j++)
+            {
+                if (hero.skillTree2Branch1Unlocks[j])
+                {
+                    newHero.unitClass.skillTree2.branch1.BranchSkills[j].UnlockSkill(newHero);
+                }
+            }
+
+            for (int j = 0; j < hero.skillTree2Branch2Unlocks.Count; j++)
+            {
+                if (hero.skillTree2Branch2Unlocks[j])
+                {
+                    newHero.unitClass.skillTree2.branch2.BranchSkills[j].UnlockSkill(newHero);
+                }
+            }
+
+            if (hero.helmetIndex != -1)
+            {
+                EquipableItemSO item = resourceManager.allItems[hero.helmetIndex];
+                newHero.helmet = item;
+            }
+            if (hero.armorIndex != -1)
+            {
+                EquipableItemSO item = resourceManager.allItems[hero.armorIndex];
+                newHero.armor = item;
+            }
+            if (hero.bootsIndex != -1)
+            {
+                EquipableItemSO item = resourceManager.allItems[hero.bootsIndex];
+                newHero.legs = item;
+            }
+            if (hero.mainHandIndex != -1)
+            {
+                EquipableItemSO item = resourceManager.allItems[hero.mainHandIndex];
+                newHero.mainHand = item;
+            }
+            if (hero.offHandIndex != -1)
+            {
+                EquipableItemSO item = resourceManager.allItems[hero.offHandIndex];
+                newHero.offHand = item;
+            }
+            if (hero.item1Index != -1)
+            {
+                EquipableItemSO item = resourceManager.allItems[hero.item1Index];
+                newHero.Item1 = item;
+            }
+            if (hero.item2Index != -1)
+            {
+                EquipableItemSO item = resourceManager.allItems[hero.item2Index];
+                newHero.Item2 = item;
+            }
+            if (hero.item3Index != -1)
+            {
+                EquipableItemSO item = resourceManager.allItems[hero.item3Index];
+                newHero.Item3 = item;
+            }
+            if (hero.item4Index != -1)
+            {
+                EquipableItemSO item = resourceManager.allItems[hero.item4Index];
+                newHero.Item4 = item;
+            }
+            if (hero.backUpMainHandIndex != -1)
+            {
+                EquipableItemSO item = resourceManager.allItems[hero.backUpMainHandIndex];
+                newHero.backUpMainHand = item;
+            }
+            if (hero.backUpOffHandIndex != -1)
+            {
+                EquipableItemSO item = resourceManager.allItems[hero.backUpOffHandIndex];
+                newHero.backUpOffHand = item;
+            }
+            return (newHero);
+        }
+    }
 
     public void SaveTerrain()
     {

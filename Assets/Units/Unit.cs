@@ -216,7 +216,10 @@ public class Unit : UnitSuperClass, IInititiave
             gameManager.SetGridObject(this, transform.position);
             gameManager.units.Add(this);
             gameManager.spriteManager.CreateSpriteRenderer(0, unitProfile, transform.position);
-            gameManager.StartCombat();
+            if (!gameManager.testing)
+            {
+                gameManager.StartCombat();
+            }
 
             move = gameManager.resourceManager.actions[0];
             endTurn = gameManager.resourceManager.actions[1];
