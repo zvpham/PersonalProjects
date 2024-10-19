@@ -1,0 +1,19 @@
+public enum ItemTypes
+{
+    Weapon,
+    Armor,
+    Accessory,
+    Helmet,
+    Chest,
+    Legs,
+    Sword,
+    Axe,
+    Spear,
+    Hammer,
+    Mace,
+    Bow,
+    Crossbow,
+    Ammo,
+    Ring,
+    SkillBook
+}

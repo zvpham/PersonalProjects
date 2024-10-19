@@ -32,7 +32,7 @@ public class InventorySystem : MonoBehaviour
     public CharacterSystem characterSystem;
 
     [SerializeField]
-    public OverworldGameManager overworldGameManager;
+    public ResourceManager resourceManager;
 
     public Unit currentUnit;
 
@@ -41,7 +41,6 @@ public class InventorySystem : MonoBehaviour
         if (!dispalyOnly)
         {
             initialItems = new List<InventoryItem>();
-            ResourceManager resourceManager = overworldGameManager.resourceManager;
             for (int i = 0; i < resourceManager.allItems.Count; i++)
             {
                 InventoryItem newItem = new InventoryItem();
@@ -117,6 +116,7 @@ public class InventorySystem : MonoBehaviour
         {
             InventoryItem newItem = new InventoryItem();
             newItem.item = item;
+            newItem.quantity = itemQuantity;
             newItem.ChangeQuantity(itemQuantity);
             inventoryData.AddItem(newItem);
         }
@@ -712,14 +712,4 @@ public class InventorySystem : MonoBehaviour
             inventoryUI.equipSlots[i].disabledDueToMercenary = !heroButtonPressed;
         }
     }
-
-    /*
-    public void OnLoadEquipSoul(int soulSlotIndex, SoulItemSO soul)
-    {
-        player = Player.Instance;
-        inventoryUI = UIInventoryPage.Instance;
-        inventoryUI.soulSlots[soulSlotIndex].AddSoul(soul, player, true);
-        player.UpdatePlayerActions();
-    }
-    */
 }

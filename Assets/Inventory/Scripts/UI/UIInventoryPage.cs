@@ -8,6 +8,7 @@ using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using static UnityEditor.Progress;
 
 namespace Inventory.UI
 {
@@ -15,6 +16,9 @@ namespace Inventory.UI
     {
         [SerializeField]
         private UIInventoryItem itemPrefab;
+
+        public GameObject inventoryItemUIHolder;
+        public List<UIInventoryItem> unusedItemUIs;
 
         [SerializeField]
         private RectTransform contentPanel;
@@ -26,6 +30,14 @@ namespace Inventory.UI
         private MenuInputManager menuInputManager;
 
         public bool isMissionStart = false;
+
+        public List<TestCharacterTypeUI> mainitemFilters;
+        public List<GameObject> SubItemFilterPanels = new List<GameObject>();
+        public List<TestCharacterTypeUI> weaponSubFilters;
+        public List<TestCharacterTypeUI> armorSubFilters;
+        public List<TestCharacterTypeUI> AccessoriesSubFilters;
+        public List<TestCharacterTypeUI> SkillBookSubFilters;
+        public int mainItemFilterIndex;
 
         public List<UIInventoryItem> listOfUIItems = new List<UIInventoryItem>();
 
@@ -65,9 +77,10 @@ namespace Inventory.UI
 
         public event Action<int> OnDescriptionRequested,
             OnItemActionRequested,
-            OnStartDragging;
+            OnStartDragging,
+            OnMainFilterChanged;
 
-        public event Action<int, int> OnSwapItems;
+        public event Action<int, int> OnSwapItems, OnFiltersChanged;
 
         public event Action<int, EquipSlot> OnEquipItem;
         public event Action<EquipableItemSO, EquipSlot> OnProfileClicked;
@@ -88,16 +101,14 @@ namespace Inventory.UI
             menuInputManager.ResetDragUI += ResetDraggedItem;
         }
 
+        public void OnOpenMenu()
+        {
+            HandleMainItemTypeClicked(mainitemFilters[0]);
+        }
+
         public void AddInventoryUIItem()
         {
-            UIInventoryItem uiItem = Instantiate(itemPrefab, Vector3.zero, Quaternion.identity);
-            uiItem.transform.SetParent(contentPanel);
-            listOfUIItems.Add(uiItem);
-            uiItem.OnItemClicked += HandleItemSelection;
-            uiItem.OnItemBeginDrag += HandleBeginDrag;
-            uiItem.OnItemDroppedOn += HandleSwap;
-            uiItem.OnItemEndDrag += HandleEndDrag;
-            uiItem.OnRightMouseBtnClick += HandleShowItemActions;
+            listOfUIItems.Add(UseUIItem());
         }
 
         public void InitializeInventoryUI()
@@ -109,6 +120,31 @@ namespace Inventory.UI
 
                 equipSlots[i].OnItemBeginDrag -= HandleBeginDragEquip;
                 equipSlots[i].OnItemBeginDrag += HandleBeginDragEquip;
+            }
+
+            for(int i = 0; i < mainitemFilters.Count; i++)
+            {
+                mainitemFilters[i].OnCharacterTypeClicked += HandleMainItemTypeClicked;
+            }
+
+            for(int i = 0; i < weaponSubFilters.Count; i++)
+            {
+                weaponSubFilters[i].OnCharacterTypeClicked += HandleSubItemTypeClicked;
+            }
+
+            for (int i = 0; i < armorSubFilters.Count; i++)
+            {
+                armorSubFilters[i].OnCharacterTypeClicked += HandleSubItemTypeClicked;
+            }
+
+            for (int i = 0; i < AccessoriesSubFilters.Count; i++)
+            {
+                AccessoriesSubFilters[i].OnCharacterTypeClicked += HandleSubItemTypeClicked;
+            }
+
+            for (int i = 0; i < SkillBookSubFilters.Count; i++)
+            {
+                SkillBookSubFilters[i].OnCharacterTypeClicked += HandleSubItemTypeClicked;
             }
 
             backUpMainHand.OnItemDroppedOn -= HandleItemEquip;
@@ -435,6 +471,12 @@ namespace Inventory.UI
 
         internal void ResetAllItems(Dictionary<int, InventoryItem> inventoryState)
         {
+            List<UIInventoryItem> items = listOfUIItems;
+            for(int i = 0; i < items.Count; i++)
+            {
+                DeactivateUIItem(items[i]);
+            }
+            /*
             if (listOfUIItems.Count == 0 || listOfUIItems[0] == null)
             {
                 listOfUIItems = new List<UIInventoryItem>();
@@ -461,7 +503,158 @@ namespace Inventory.UI
                 item.ResetData();
                 item.Deselect();
             }
+            */
         }
+
+        internal void ResetAllItems()
+        {
+            List<UIInventoryItem> items = listOfUIItems;
+            for (int i = 0; i < items.Count; i++)
+            {
+                DeactivateUIItem(items[i]);
+            }
+        }
+
+        public void HandleMainItemTypeClicked(TestCharacterTypeUI mainFilterClicked)
+        {
+            ResetAllItems();
+            int mainFilterIndex = mainitemFilters.IndexOf(mainFilterClicked);
+
+            for(int i = 0; i < mainitemFilters.Count; i++)
+            {
+                mainitemFilters[i].Deselect();
+            }
+
+            mainitemFilters[mainFilterIndex].Select();
+            mainItemFilterIndex = mainFilterIndex;
+            MainItemFilterChanged(mainFilterIndex);
+            OnMainFilterChanged?.Invoke(mainFilterIndex);
+            OnFiltersChanged.Invoke(mainFilterIndex, 0);
+        }
+
+        public void MainItemFilterChanged(int  mainItemFilterIndex)
+        {
+            for (int i = 0; i < SubItemFilterPanels.Count; i++)
+            {
+                SubItemFilterPanels[i].SetActive(false);
+            }
+
+            switch (mainItemFilterIndex)
+            {
+                case 0:
+                    SubItemFilterPanels[0].SetActive(true);
+                    for(int i = 0; i < weaponSubFilters.Count; i++)
+                    {
+                        weaponSubFilters[i].Deselect();
+                    }
+                    weaponSubFilters[0].Select();
+                    break;
+                case 1:
+                    SubItemFilterPanels[1].SetActive(true);
+                    for (int i = 0; i < armorSubFilters.Count; i++)
+                    {
+                        armorSubFilters[i].Deselect();
+                    }
+                    armorSubFilters[0].Select();
+                    break;
+                case 2:
+                    SubItemFilterPanels[2].SetActive(true);
+                    for (int i = 0; i < AccessoriesSubFilters.Count; i++)
+                    {
+                        AccessoriesSubFilters[i].Deselect();
+                    }
+                    AccessoriesSubFilters[0].Select();
+                    break;
+                case 3:
+                    SubItemFilterPanels[3].SetActive(true);
+                    for (int i = 0; i < SkillBookSubFilters.Count; i++)
+                    {
+                        SkillBookSubFilters[i].Deselect();
+                    }
+                    SkillBookSubFilters[0].Select();
+                    break;
+            }
+
+        }
+
+        public void HandleSubItemTypeClicked(TestCharacterTypeUI subFilterClicked)
+        {
+            ResetAllItems();
+            int subfilterIndex = -1;
+            switch (mainItemFilterIndex)
+            {
+                case 0:
+                    subfilterIndex = weaponSubFilters.IndexOf(subFilterClicked);
+                    for (int i = 0; i < weaponSubFilters.Count; i++)
+                    {
+                        weaponSubFilters[i].Deselect();
+                    }
+                    weaponSubFilters[subfilterIndex].Select();
+                    break;
+                case 1:
+                    subfilterIndex = armorSubFilters.IndexOf(subFilterClicked);
+                    for (int i = 0; i < armorSubFilters.Count; i++)
+                    {
+                        armorSubFilters[i].Deselect();
+                    }
+                    armorSubFilters[subfilterIndex].Select();
+                    break;
+                case 2:
+                    subfilterIndex = AccessoriesSubFilters.IndexOf(subFilterClicked);
+                    for (int i = 0; i < AccessoriesSubFilters.Count; i++)
+                    {
+                        AccessoriesSubFilters[i].Deselect();
+                    }
+                    AccessoriesSubFilters[subfilterIndex].Select();
+                    break;
+                case 3:
+                    subfilterIndex = SkillBookSubFilters.IndexOf(subFilterClicked);
+                    for (int i = 0; i < SkillBookSubFilters.Count; i++)
+                    {
+                        SkillBookSubFilters[i].Deselect();
+                    }
+                    SkillBookSubFilters[subfilterIndex].Select();
+                    break;
+            }
+            OnFiltersChanged?.Invoke(mainItemFilterIndex, subfilterIndex);
+        }
+
+        public UIInventoryItem UseUIItem()
+        {
+            UIInventoryItem item;
+            if (unusedItemUIs.Count == 0)
+            {
+                UIInventoryItem uiItem = Instantiate(itemPrefab, Vector3.zero, Quaternion.identity);
+                uiItem.transform.SetParent(inventoryItemUIHolder.transform);
+                unusedItemUIs.Add(uiItem);
+            }
+
+            item = unusedItemUIs[0];
+            item.transform.SetParent(contentPanel.transform);
+            item.OnItemClicked += HandleItemSelection;
+            item.OnItemBeginDrag += HandleBeginDrag;
+            item.OnItemDroppedOn += HandleSwap;
+            item.OnItemEndDrag += HandleEndDrag;
+            item.OnRightMouseBtnClick += HandleShowItemActions;
+            unusedItemUIs.RemoveAt(0);
+            return item;
+        }
+
+        public void DeactivateUIItem(UIInventoryItem item)
+        {
+            item.OnItemClicked -= HandleItemSelection;
+            item.OnItemBeginDrag -= HandleBeginDrag;
+            item.OnItemDroppedOn -= HandleSwap;
+            item.OnItemEndDrag -= HandleEndDrag;
+            item.OnRightMouseBtnClick -= HandleShowItemActions;
+            item.transform.SetParent(inventoryItemUIHolder.transform);
+            item.ResetData();
+            item.Deselect();
+            listOfUIItems.Remove(item);
+            unusedItemUIs.Add(item);
+        }
+
+
 
         internal void AddAction(string v, Func<object> value)
         {

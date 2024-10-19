@@ -52,7 +52,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   canvas: {fileID: 0}
   item: {fileID: 3331908476090133446}
-  unitItem: {fileID: 0}
 --- !u!1001 &8469886794768775851
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -174,27 +173,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7917112791146014640, guid: 1d6950515021f364796f93b45969ca8a, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7917112791146014640, guid: 1d6950515021f364796f93b45969ca8a, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7917112791146014640, guid: 1d6950515021f364796f93b45969ca8a, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 83.48
       objectReference: {fileID: 0}
     - target: {fileID: 7917112791146014640, guid: 1d6950515021f364796f93b45969ca8a, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 80.573
       objectReference: {fileID: 0}
     - target: {fileID: 7917112791146014640, guid: 1d6950515021f364796f93b45969ca8a, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 51.74
       objectReference: {fileID: 0}
     - target: {fileID: 7917112791146014640, guid: 1d6950515021f364796f93b45969ca8a, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1d6950515021f364796f93b45969ca8a, type: 3}

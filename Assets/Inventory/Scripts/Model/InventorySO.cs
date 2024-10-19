@@ -16,6 +16,7 @@ namespace Inventory.Model
         public List<InventoryItem> inventoryItems;
 
         public event Action<Dictionary<int, InventoryItem>> OnInventoryUpdated;
+        public event Action<ItemSO, int> OnAddItem, OnAddItemToNewSlot, OnRemoveItem;
 
         public void Initialize()
         {
@@ -24,6 +25,7 @@ namespace Inventory.Model
 
         public void AddItem(InventoryItem item)
         {
+            Debug.Log(item.ToString() + "," + item.quantity);
             AddItem(item.item, item.quantity);
         }
 
@@ -49,6 +51,7 @@ namespace Inventory.Model
             };
 
             inventoryItems.Add(newItem);
+            OnAddItemToNewSlot?.Invoke(item, quantity);
             InformAboutChange();
             return;
         }
@@ -74,6 +77,7 @@ namespace Inventory.Model
                     else
                     {
                         inventoryItems[i] = inventoryItems[i].ChangeQuantity(inventoryItems[i].quantity + quantity);
+                        OnAddItem?.Invoke(item, quantity);
                         InformAboutChange();
                         return;
                     }
@@ -128,6 +132,7 @@ namespace Inventory.Model
         {
             if(inventoryItems.Count > itemIndex)
             {
+                ItemSO removedItem = inventoryItems[itemIndex].item;
                 if (inventoryItems[itemIndex].isEmpty)
                 {
                     return;
@@ -142,6 +147,7 @@ namespace Inventory.Model
                     inventoryItems[itemIndex] = inventoryItems[itemIndex]
                         .ChangeQuantity(remainder);
                 }
+                OnRemoveItem?.Invoke(removedItem, amount);
                 InformAboutChange();
             }
         }
@@ -158,7 +164,16 @@ namespace Inventory.Model
 
         public InventoryItem ChangeQuantity(int newQuantity)
         {
-            return new InventoryItem
+            InventoryItem newItem = new InventoryItem ()
+            {
+                item = this.item,
+                quantity = newQuantity,
+                itemState = new List<ItemParameter>(this.itemState)
+            };
+
+            Debug.Log(newItem.item);
+            Debug.Log(newItem.quantity);
+            return new InventoryItem ()
             {
                 item = this.item,
                 quantity = newQuantity,

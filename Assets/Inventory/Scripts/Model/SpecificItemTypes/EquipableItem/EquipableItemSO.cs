@@ -27,6 +27,7 @@ namespace Inventory.Model
 
         // Data
         public EquipType equipType;
+        public List<ItemTypes> itemTypes;
         public List<Action> actions = new List<Action>();
         public List<Passive> passives = new List<Passive>();
 

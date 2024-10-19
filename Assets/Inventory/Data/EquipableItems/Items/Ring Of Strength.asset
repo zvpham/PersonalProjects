@@ -31,4 +31,6 @@ MonoBehaviour:
   mainThreeMin: 0
   mainThreeMax: 0
   equipType: 6
+  itemTypes: 020000000e000000
   actions: []
+  passives: []

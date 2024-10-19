@@ -43,9 +43,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ffa3891b4d5f9d842887a5c06841887f, type: 2}
   - {fileID: 11400000, guid: 29276f5da199c884c9da68d5d6e4e929, type: 2}
   - {fileID: 11400000, guid: 18a4528d0668ec54da9aab5fde4d7f4b, type: 2}
-  weapons:
-  - {fileID: 11400000, guid: 13ee536ec8366ac4288a806a6048091b, type: 2}
-  - {fileID: 11400000, guid: d00d31aa2f28a174fa9b65f2dedd844f, type: 2}
+  weapons: []
   offHands:
   - {fileID: 11400000, guid: c27e4b3a37033de43b07bcefb2e4a3c5, type: 2}
   helmets:
@@ -61,6 +59,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 505f164067487ae478219d6f6d836e62, type: 2}
   moveModifiers:
   - {fileID: 11400000, guid: 531cada6c602bfb4cbbb205fd089dba9, type: 2}
+  meleeAttackModifiers: []
   job:
   - {fileID: 11400000, guid: c1ca7bf8262889c428a7297004360abd, type: 2}
   emptyHero: {fileID: 5597699536523439801, guid: f7c79c7ae599b6845a03d8c2a05306e1, type: 3}

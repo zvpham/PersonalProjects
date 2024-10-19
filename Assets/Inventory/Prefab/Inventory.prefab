@@ -9730,6 +9730,7 @@ MonoBehaviour:
   contentPanel: {fileID: 8619417201697843088}
   mouseFollower: {fileID: 0}
   menuInputManager: {fileID: 0}
+  isMissionStart: 0
   listOfUIItems: []
   equipSlots:
   - {fileID: 6547522707987822293}

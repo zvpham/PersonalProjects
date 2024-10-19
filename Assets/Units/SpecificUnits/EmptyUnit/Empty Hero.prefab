@@ -44,10 +44,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f21da1e08098054f98acfd513359fba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testingUnitClassifications: 00000000
   unitType: 0
   powerLevel: 0
   inOverWorld: 0
   unitProfile: {fileID: 0}
+  combatAttackUi: {fileID: 0}
   heroIndex: -1
   unitClass: {fileID: 0}
   skillTreeOneBranchOne: 00000000
@@ -59,12 +61,15 @@ MonoBehaviour:
   legs: {fileID: 0}
   mainHand: {fileID: 0}
   offHand: {fileID: 0}
+  backUpMainHand: {fileID: 0}
+  backUpOffHand: {fileID: 0}
   Item1: {fileID: 0}
   Item2: {fileID: 0}
   Item3: {fileID: 0}
   Item4: {fileID: 0}
   itemUses: 00000000000000000000000000000000
   currentWeight: 0
+  backUpWeight: 0
   overWieght: 0
   lowWeight: 0
   mediumWeight: 0
@@ -78,10 +83,13 @@ MonoBehaviour:
   moveSpeed: 3
   damageResistence: 0
   shieldDamageResistence: 0
+  x: 0
+  y: 0
   endTurn: {fileID: 0}
   move: {fileID: 0}
   amountMoveUsedDuringRound: 0
   actions: []
+  actionsActives: 
   passives: []
   maxActionsPoints: 2
   currentActionsPoints: 0
@@ -89,6 +97,8 @@ MonoBehaviour:
   actionUses: 
   amountActionUsedDuringRound: 
   selfInTheseUnitsThreatenedZones: []
+  moveModifier: {fileID: 0}
+  moveModifierPriority: -1
   team: 0
   group: {fileID: 0}
   confirmDeath: 0

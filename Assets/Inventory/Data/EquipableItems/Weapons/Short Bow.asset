@@ -31,6 +31,7 @@ MonoBehaviour:
   mainThreeMin: 0
   mainThreeMax: 0
   equipType: 5
+  itemTypes: 000000000b000000
   actions:
   - {fileID: 11400000, guid: 03b4ba35bb9fe9648b726ec4c8852c37, type: 2}
   passives: []

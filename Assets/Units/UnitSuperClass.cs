@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class UnitSuperClass: MonoBehaviour
 {
+    public List<TestingUnitClassifications> testingUnitClassifications;
     public UnitType unitType;
     public int powerLevel;
 }

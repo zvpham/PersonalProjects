@@ -191,7 +191,7 @@ public class Unit : UnitSuperClass, IInititiave
 
         ChangeStrength(strength);
         ChangeDexterity(dexterity);
-        if (!inOverWorld)
+        if (!inOverWorld && !gameManager.testing)
         {
             if (moveModifier == null)
             {
@@ -216,10 +216,7 @@ public class Unit : UnitSuperClass, IInititiave
             gameManager.SetGridObject(this, transform.position);
             gameManager.units.Add(this);
             gameManager.spriteManager.CreateSpriteRenderer(0, unitProfile, transform.position);
-            if (!gameManager.testing)
-            {
-                gameManager.StartCombat();
-            }
+            gameManager.StartCombat();
 
             move = gameManager.resourceManager.actions[0];
             endTurn = gameManager.resourceManager.actions[1];

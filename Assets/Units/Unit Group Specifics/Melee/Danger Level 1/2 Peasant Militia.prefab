@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec98db4d8e5627d4699797d2b296fb90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testingUnitClassifications: 00000000
   unitType: 0
   powerLevel: 1
   mercenaryIndex: 0
