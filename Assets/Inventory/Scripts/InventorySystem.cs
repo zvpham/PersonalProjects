@@ -117,7 +117,6 @@ public class InventorySystem : MonoBehaviour
             InventoryItem newItem = new InventoryItem();
             newItem.item = item;
             newItem.quantity = itemQuantity;
-            newItem.ChangeQuantity(itemQuantity);
             inventoryData.AddItem(newItem);
         }
     }

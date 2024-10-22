@@ -73,6 +73,7 @@ namespace Inventory.Model
                 inventoryData.OnAddItem += HandleAddItem;
                 inventoryData.OnAddItemToNewSlot += HandleAddItemToNewSlot;
                 inventoryData.OnRemoveItem += HandleRemoveItem;
+                inventoryData.ReadyInventory(CheckIfCanAddItemToNewSot);
             }
         }
 
@@ -353,13 +354,13 @@ namespace Inventory.Model
                 }
                 inventoryUI.ConfirmItemEquip(mainHandEquipSlot);
                 inventoryUI.ConfirmItemEquip(offHandEquipSlot);
-                inventoryData.RemoveItem(itemIndex, 1);
+                inventoryData.RemoveItem(itemIndex, 1, true);
             }
             else if (newItem.equipType == EquipType.Accessory && (equipSlot.equipType == EquipType.Accessory1 || equipSlot.equipType == EquipType.Accessory2 || equipSlot.equipType == EquipType.Accessory3 || equipSlot.equipType == EquipType.Accessory4))
             {
                 equipSlot.AddItem(newItem, currentUnit);
                 inventoryUI.ConfirmItemEquip(equipSlot);
-                inventoryData.RemoveItem(itemIndex, 1);
+                inventoryData.RemoveItem(itemIndex, 1, true);
             }
             else if (newItem.equipType == equipSlot.equipType)
             {
@@ -385,7 +386,7 @@ namespace Inventory.Model
 
                 equipSlot.AddItem(newItem, currentUnit);
                 inventoryUI.ConfirmItemEquip(equipSlot);
-                inventoryData.RemoveItem(itemIndex, 1);
+                inventoryData.RemoveItem(itemIndex, 1, true);
             }
             inventoryUI.UpdateUnitInfo(currentUnit);
             inventoryUI.UpdateWeight(currentUnit.currentWeight, currentUnit.lowWeight, currentUnit.mediumWeight, currentUnit.highWeight);
@@ -399,7 +400,7 @@ namespace Inventory.Model
                 return;
             }
 
-            inventoryData.AddItem(equipSlot.currentItem, 1);
+            inventoryData.AddItem(equipSlot.currentItem, 1, null, true);
             if (equipSlot.currentItem.equipType == EquipType.BothHands)
             {
 
@@ -802,8 +803,7 @@ namespace Inventory.Model
                         continue;
                     }
 
-                    inventoryData.inventoryItems.Add(inventoryItems[i]);
-                    //inventoryData.AddItem(inventoryItems[i]);
+                    inventoryData.AddItem(inventoryItems[i]);
 
                     string ammoExtension = "";
                     if (equipData.GetType() == typeof(EquipableAmmoSO))
@@ -821,11 +821,13 @@ namespace Inventory.Model
 
         private void HandleAddItem(ItemSO item, int quantity)
         {
-            for(int i = 0; i < inventoryItems.Count; i++)
+            Debug.Log("Add Item: " + item + ", " + quantity);
+            for (int i = 0; i < inventoryItems.Count; i++)
             {
                 if (inventoryItems[i].item == item)
                 {
-                    inventoryItems[i].ChangeQuantity(quantity + inventoryItems[i].quantity);
+                    Debug.Log(inventoryItems[i].item + ", " + quantity);
+                    inventoryItems[i] = new InventoryItem() { item = item, quantity = quantity + inventoryItems[i].quantity, itemState = null }; 
                 }
             }
         }
@@ -840,11 +842,12 @@ namespace Inventory.Model
 
         private void HandleRemoveItem(ItemSO item, int quantity)
         {
+            Debug.Log("Remove Item: " + item +  ", " + quantity);
             for (int i = 0; i < inventoryItems.Count; i++)
             {
                 if (inventoryItems[i].item == item)
                 {
-                    inventoryItems[i].ChangeQuantity(inventoryItems[i].quantity - quantity);
+                    inventoryItems[i] = new InventoryItem() { item = item, quantity = inventoryItems[i].quantity - quantity, itemState = null };
                 }
             }
         }
@@ -854,6 +857,34 @@ namespace Inventory.Model
             {
                 inventoryUI.equipSlots[i].disabledDueToMercenary = !heroButtonPressed;
             }
+        }
+
+        public bool CheckIfCanAddItemToNewSot(ItemSO item, int quantity)
+        {
+            EquipableItemSO equipData = (EquipableItemSO)item;
+            bool foundSubfilters = false;
+            for (int j = 0; j < subItemFilters.Count; j++)
+            {
+                if (equipData.itemTypes.Contains(subItemFilters[j]))
+                {
+                    foundSubfilters = true;
+                    break;
+                }
+            }
+
+            if (!equipData.itemTypes.Contains(mainItemFilter) || !foundSubfilters)
+            {
+                for (int i = 0; i < inventoryItems.Count; i++)
+                {
+                    if (inventoryItems[i].item == item)
+                    {
+                        Debug.Log(inventoryItems[i].item + ", " + quantity);
+                        inventoryItems[i] = new InventoryItem() { item = item, quantity = quantity + inventoryItems[i].quantity, itemState = null };
+                    }
+                }
+                return false;
+            }
+            return true ;
         }
     }
 }

@@ -35,6 +35,7 @@ namespace Inventory.UI
         public List<UICharacterProfile> listOfUIProfiles = new List<UICharacterProfile>();
         public List<TestCharacterTypeUI> characterTypes;
         public List<TestCharacterTypeUI> characterLevels;
+        public TestCharacterTypeUI newHeroButton;
 
         public bool allowCharacterSwap = true;
 
@@ -44,11 +45,11 @@ namespace Inventory.UI
             OnItemActionRequested,
             OnStartDragging,
             OnCharacterLevelPressed,
-            OnCharacterTypePressed;
+            OnCharacterTypePressed,
+            OnItemDropped,
+            OnNewHeroPressed;
 
         public event Action<int, int> OnSwapItems;
-        public event Action<int> OnItemDropped;
-        public event Action<int>  OnNewHeroPressed;
 
         // true = hero button pressed, false = merc button pressed
         public event Action<bool> OnCategoryButtonPressed;
@@ -64,6 +65,7 @@ namespace Inventory.UI
             {
                 characterLevels[i].OnCharacterTypeClicked += CharacterLevelPressed;
             }
+            newHeroButton.OnCharacterTypeClicked += NewCharacterButtonPressed;
         }
 
         public void Start()
@@ -285,6 +287,11 @@ namespace Inventory.UI
             ClearCharacterProfiles();
             OnCategoryButtonPressed?.Invoke(false);
 
+        }
+        
+        public void NewCharacterButtonPressed(TestCharacterTypeUI ignoreThisParameter)
+        {
+            OnNewHeroPressed?.Invoke(-1);
         }
 
         public int GetCurrentlyDraggedIndex()

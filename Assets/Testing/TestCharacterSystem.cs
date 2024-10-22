@@ -28,6 +28,9 @@ public class TestCharacterSystem : MonoBehaviour
     [SerializeField]
     public AudioSource audioSource;
 
+    public List<Unit> allUnits;
+    public List<UnitGroup> allUnitGroups = new List<UnitGroup>();
+
     public List<int> activeUnitLevelFilters;
     public List<TestingUnitClassifications> unitClassificationsFilters;
 
@@ -112,18 +115,28 @@ public class TestCharacterSystem : MonoBehaviour
             {
                 continue;
             }
-            characterSelectionUI.UpdateData(i, units[i].unitClass.UIUnitProfile);
+            Sprite validSprite;
+            if(units[i].unitClass == null)
+            {
+                validSprite = units[i].unitProfile;
+            }
+            else
+            {
+                validSprite = units[i].unitClass.UIUnitProfile;
+            }
+
+            characterSelectionUI.UpdateData(i, validSprite);
         }
     }
 
     private void UpdateCharacterMenuMerc(List<UnitGroup> unitGroups)
     {
         List<Unit> units = new List<Unit>();
-        for (int i = 0; i < companyData.mercenaries.Count; i++)
+        for (int i = 0; i < unitGroups.Count; i++)
         {
-            if (companyData.mercenaries[i] != null)
+            if (unitGroups[i] != null)
             {
-                units.Add(companyData.mercenaries[i].units[0]);
+                units.Add(unitGroups[i].units[0]);
             }
             else
             {
@@ -141,6 +154,7 @@ public class TestCharacterSystem : MonoBehaviour
         this.characterSelectionUI.OnCategoryButtonPressed += HandleCategoryButtonPressed;
         this.characterSelectionUI.OnCharacterLevelPressed += HandleCharacterLevelPressed;
         this.characterSelectionUI.OnCharacterTypePressed += HandleCharacterTypePressed;
+        this.characterSelectionUI.OnNewHeroPressed += HandleNewCharacterButtonPressed;
     }
 
     public void LoadInitialUnits()
@@ -150,8 +164,7 @@ public class TestCharacterSystem : MonoBehaviour
             Unit unit  = Instantiate(resourceManager.heroes[i]);
             unit.transform.SetParent(this.transform);
             unit.gameManager = combatGameManager;
-            companyData.IncreaseSize();
-            companyData.AddHero(unit);
+            allUnits.Add(unit);
         }
 
         for(int i = 0; i < resourceManager.mercenaries.Count; i++)
@@ -166,8 +179,7 @@ public class TestCharacterSystem : MonoBehaviour
                 unitGroup.units.Add(unitChildren[j]);
                 unitChildren[j].gameManager = combatGameManager;
             }
-            companyData.IncreaseMercenarySize();
-            companyData.AddMercenary(unitGroup);
+            allUnitGroups.Add(unitGroup);
         }   
     }
 
@@ -272,6 +284,7 @@ public class TestCharacterSystem : MonoBehaviour
             HandleProfileClicked(profileIndex);
         }
 
+        UpdateCharacterFilters();
         OnChangedUnitCategory?.Invoke(heroButtonPressed);
     }
 
@@ -332,10 +345,12 @@ public class TestCharacterSystem : MonoBehaviour
     {
         if (manageHeroes)
         {
+            companyData.size = 0;
+            companyData.heroes = new List<Unit>();
             List<Unit> displayedUnits = new List<Unit>();
-            for (int i = 0; i < companyData.heroes.Count; i++)
+            for (int i = 0; i < allUnits.Count; i++)
             {
-                Unit tempUnit = companyData.heroes[i];
+                Unit tempUnit = allUnits[i];
                 bool matchingClassification = false;
                 for (int j = 0; j < tempUnit.testingUnitClassifications.Count; j++)
                 {
@@ -347,17 +362,21 @@ public class TestCharacterSystem : MonoBehaviour
                 }
                 if (matchingClassification && activeUnitLevelFilters.Contains(tempUnit.powerLevel))
                 {
+                    companyData.IncreaseSize();
                     displayedUnits.Add(tempUnit);
+                    companyData.AddHero(tempUnit);
                 }
             }
             UpdateCharacterMenu(displayedUnits);
         }
         else
         {
+            companyData.mercSize = 0;
+            companyData.mercenaries = new List<UnitGroup>();
             List<UnitGroup> displayedUnitGroups = new List<UnitGroup>();
-            for (int i = 0; i < companyData.mercenaries.Count; i++)
+            for (int i = 0; i < allUnitGroups.Count; i++)
             {
-                UnitGroup tempUnitGroup = companyData.mercenaries[i];
+                UnitGroup tempUnitGroup = allUnitGroups[i];
                 bool matchingClassification = false;
                 for (int j = 0; j < tempUnitGroup.testingUnitClassifications.Count; j++)
                 {
@@ -369,11 +388,21 @@ public class TestCharacterSystem : MonoBehaviour
                 }
                 if (matchingClassification && activeUnitLevelFilters.Contains(tempUnitGroup.powerLevel))
                 {
+                    companyData.IncreaseMercenarySize();
+                    companyData.AddMercenary(tempUnitGroup);
                     displayedUnitGroups.Add(tempUnitGroup);
                 }
             }
             UpdateCharacterMenuMerc(displayedUnitGroups);
         }
+    }
+
+    public void HandleNewCharacterButtonPressed(int ignoreThisParameter)
+    {
+        Unit newHero = Instantiate(resourceManager.emptyHero);
+        newHero.gameManager = combatGameManager;
+        allUnits.Add(newHero);
+        UpdateCharacterFilters();
     }
 
     public UnitSuperClass GetUnitSuperClass(int index)

@@ -95,7 +95,10 @@ public class Unit : UnitSuperClass, IInititiave
     // Start is called before the first frame update
     void Start()
     {
-        unitProfile = unitClass.UIUnitProfile;
+        if(unitClass != null)
+        {
+            unitProfile = unitClass.UIUnitProfile;
+        }
         for (int j = 0; j < skillTreeOneBranchOne.Count; j++)
         {
             if (skillTreeOneBranchOne[j])

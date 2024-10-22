@@ -51,7 +51,6 @@ namespace Inventory.Model
 
         public void AddHero(Unit hero)
         {
-            Debug.Log("Add Hero:" + hero);
             AddHeroFirstAvailableSlot(hero);
             InformAboutChange();
             return;

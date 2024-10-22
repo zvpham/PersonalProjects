@@ -315,6 +315,7 @@ namespace Inventory.UI
 
         private void HandleSwap(UIInventoryItem inventoryItemUI)
         {
+            /*
             int index = listOfUIItems.IndexOf(inventoryItemUI);
             if (index == -1)
             {
@@ -322,6 +323,7 @@ namespace Inventory.UI
             }
             OnSwapItems?.Invoke(currentlyDraggedItemIndex, index);
             HandleItemSelection(inventoryItemUI);
+            */
         }
 
         public void ItemEquip(EquipableItemSO item, EquipSlot equipSlot)

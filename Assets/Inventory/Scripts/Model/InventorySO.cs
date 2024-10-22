@@ -15,6 +15,9 @@ namespace Inventory.Model
         [SerializeField]
         public List<InventoryItem> inventoryItems;
 
+        public delegate bool CanAddItem(ItemSO item, int quantity);
+        CanAddItem CheckIfCanAddItemToNewSlot;
+
         public event Action<Dictionary<int, InventoryItem>> OnInventoryUpdated;
         public event Action<ItemSO, int> OnAddItem, OnAddItemToNewSlot, OnRemoveItem;
 
@@ -23,25 +26,29 @@ namespace Inventory.Model
             inventoryItems = new List<InventoryItem>();
         }
 
-        public void AddItem(InventoryItem item)
+        public void ReadyInventory(CanAddItem canAddItem)
         {
-            Debug.Log(item.ToString() + "," + item.quantity);
-            AddItem(item.item, item.quantity);
+            CheckIfCanAddItemToNewSlot = canAddItem;
         }
 
-        public void AddItem(ItemSO item, int quantity, List<ItemParameter> itemState = null)
+        public void AddItem(InventoryItem item, bool affectMainInventory = false)
+        {
+            AddItem(item.item, item.quantity, null, affectMainInventory);
+        }
+
+        public void AddItem(ItemSO item, int quantity, List<ItemParameter> itemState = null, bool affectMainInventory = false)
         {
             if (item.isStackable == false)
             {
                 Debug.LogError("Shouldn't Happen");
                 return;
             }
-            AddStackableItem(item, quantity);
+            AddStackableItem(item, quantity, affectMainInventory);
             InformAboutChange();
             return;
         }
 
-        private void AddItemToNewSlot(ItemSO item, int quantity, List<ItemParameter> itemState = null)
+        private void AddItemToNewSlot(ItemSO item, int quantity, List<ItemParameter> itemState = null, bool affectMainInventory = false)
         {
             InventoryItem newItem = new InventoryItem()
             {
@@ -50,13 +57,19 @@ namespace Inventory.Model
                 itemState = new List<ItemParameter>(itemState == null ? item.DefaultParameterList : itemState)
             };
 
-            inventoryItems.Add(newItem);
-            OnAddItemToNewSlot?.Invoke(item, quantity);
-            InformAboutChange();
+            if(CheckIfCanAddItemToNewSlot(item, quantity))
+            {
+                inventoryItems.Add(newItem);
+                if (affectMainInventory)
+                {
+                    OnAddItemToNewSlot?.Invoke(item, quantity);
+                }
+                InformAboutChange();
+            }
             return;
         }
 
-        private void AddStackableItem(ItemSO item, int quantity)
+        private void AddStackableItem(ItemSO item, int quantity, bool affectMainInventory = false)
         {
             for(int i = 0; i < inventoryItems.Count; i++)
             {
@@ -77,7 +90,10 @@ namespace Inventory.Model
                     else
                     {
                         inventoryItems[i] = inventoryItems[i].ChangeQuantity(inventoryItems[i].quantity + quantity);
-                        OnAddItem?.Invoke(item, quantity);
+                        if (affectMainInventory)
+                        {
+                            OnAddItem?.Invoke(item, quantity);
+                        }
                         InformAboutChange();
                         return;
                     }
@@ -87,7 +103,7 @@ namespace Inventory.Model
             {
                 int newQuantity = Mathf.Clamp(quantity, 0, item.maxStackSize);
                 quantity -= newQuantity;
-                AddItemToNewSlot(item, newQuantity); 
+                AddItemToNewSlot(item, newQuantity, null, affectMainInventory); 
             }
             return;
         }
@@ -128,8 +144,9 @@ namespace Inventory.Model
             OnInventoryUpdated?.Invoke(GetCurrentInventoryState());
         }
 
-        public void RemoveItem(int itemIndex, int amount)
+        public void RemoveItem(int itemIndex, int amount, bool affectMainInventory = false)
         {
+            Debug.Log("Remove Item Invetory Data: " + itemIndex + ", " +  amount + ", " + affectMainInventory);
             if(inventoryItems.Count > itemIndex)
             {
                 ItemSO removedItem = inventoryItems[itemIndex].item;
@@ -147,7 +164,10 @@ namespace Inventory.Model
                     inventoryItems[itemIndex] = inventoryItems[itemIndex]
                         .ChangeQuantity(remainder);
                 }
-                OnRemoveItem?.Invoke(removedItem, amount);
+                if (affectMainInventory)
+                {
+                    OnRemoveItem?.Invoke(removedItem, amount);
+                }
                 InformAboutChange();
             }
         }
@@ -164,16 +184,7 @@ namespace Inventory.Model
 
         public InventoryItem ChangeQuantity(int newQuantity)
         {
-            InventoryItem newItem = new InventoryItem ()
-            {
-                item = this.item,
-                quantity = newQuantity,
-                itemState = new List<ItemParameter>(this.itemState)
-            };
-
-            Debug.Log(newItem.item);
-            Debug.Log(newItem.quantity);
-            return new InventoryItem ()
+            return new InventoryItem () 
             {
                 item = this.item,
                 quantity = newQuantity,
