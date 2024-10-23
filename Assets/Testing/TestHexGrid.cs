@@ -32,6 +32,9 @@ public class TestHexGrid : MonoBehaviour
     public Vector2Int startHex;
     public Vector2Int endHex;
 
+    public InputManager inputManager;
+    public MenuInputManager menuInputManager;
+
     public int defaultElevation = 3;
     public float terrainHeightDifference = 0.16125f;
     public TerrainElevationChangeAnimation ChangeElevationAnimation;
@@ -46,6 +49,7 @@ public class TestHexGrid : MonoBehaviour
     void Start()
     {
         //hexgrid =  new GridHex<GridPosition>(10, 10, 1, new Vector3(-0.5f, -0.5f, 0), (GridHex<GridPosition> Grid, int x, int y) => new GridPosition(Grid, x, y, 3), true);
+        inputManager.gameObject.SetActive(false);
         CreateGrid(32, 32, 7);
         LoadUnitsToBoard();
         inventoryUI.SetActive(false);
