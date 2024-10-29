@@ -7,14 +7,14 @@ public class PassiveGridObject
     public GridHex<PassiveGridObject> passiveGrid;
     public int x;
     public int y;
-    public List<PassiveObjects> passiveObjects;    
+    public List<PassiveEffectArea> passiveObjects;    
 
     public PassiveGridObject(GridHex<PassiveGridObject> grid, int x, int y)
     {
         this.passiveGrid = grid;
         this.x = x;
         this.y = y;
-        passiveObjects = new List<PassiveObjects>();
+        passiveObjects = new List<PassiveEffectArea>();
     }
 
     public override string ToString()

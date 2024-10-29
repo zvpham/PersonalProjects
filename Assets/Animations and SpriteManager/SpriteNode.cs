@@ -8,8 +8,8 @@ public class SpriteNode
     public int x;
     public int y;
     public GameManager gameManager;
-    // [ Unit]
-    public SpriteRenderer[] sprites = new SpriteRenderer[2];
+    // [ Unit, TempUnit for Targeting, TempUnit for Units beingMovedAcross]
+    public SpriteRenderer[] sprites = new SpriteRenderer[3];
     public SpriteNode(GridHex<SpriteNode> grid, int x, int y)
     {
         this.grid = grid;

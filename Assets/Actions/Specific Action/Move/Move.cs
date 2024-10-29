@@ -89,7 +89,7 @@ public class Move : Action
             Vector3 newPosition = movingUnit.gameManager.spriteManager.GetWorldPosition(path[i].x, path[i].y);
             MoveAnimation moveAnimation = (MoveAnimation)Instantiate(animation);
             moveAnimation.SetParameters(movingUnit.gameManager, movingUnit.transform.position, newPosition, new Vector2Int(path[i].x, path[i].y));
-            movingUnit.MovePositions(movingUnit.transform.position, newPosition);
+            movingUnit.MovePositions(movingUnit.transform.position, newPosition, i == path.Count -1);
         }
         int actionPointsUsed = 0;
         for (int i = 0; i < amountMoved; i++)
@@ -119,7 +119,7 @@ public class Move : Action
             Vector3 newPosition = movingUnit.gameManager.spriteManager.GetWorldPosition(path[i].x, path[i].y);
             MoveAnimation moveAnimation = (MoveAnimation)Instantiate(animation);
             moveAnimation.SetParameters(movingUnit.gameManager, movingUnit.transform.position, newPosition, new Vector2Int(path[i].x, path[i].y));
-            movingUnit.MovePositions(movingUnit.transform.position, newPosition);
+            movingUnit.MovePositions(movingUnit.transform.position, newPosition, i == path.Count - 1);
 
         }
         int actionPointsUsed = this.intialActionPointUsage + this.actionPointGrowth * movingUnit.amountMoveUsedDuringRound;

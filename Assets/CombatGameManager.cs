@@ -20,8 +20,8 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public SpriteManager spriteManager;
     public DijkstraMap map;
     public GridHex<GridPosition> grid;
-    public GridHex<PassiveGridObject> passiveGrid;
 
+    public List<PassiveEffectArea> passiveAreas;
     public List<Unit> units = new List<Unit>();
     public List<IInititiave> allinitiativeGroups = new List<IInititiave>();
     public List<IInititiave> initiativeOrder = new List<IInititiave>();
@@ -429,10 +429,11 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         if(unit == null)
         {
             gridPosition.unit =  gridPosition.tempUnit;
+            gridPosition.tempUnit = null;
         }
         else
         {
-            if(gridPosition.unit != null)
+            if(gridPosition.unit != null && gridPosition.unit != unit)
             {
                 gridPosition.tempUnit = gridPosition.unit;
             }
@@ -446,7 +447,6 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         grid = new GridHex<GridPosition>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<GridPosition> g, int x, int y) =>
         new GridPosition(g, x, y, defaultElevation), false);
         map = new DijkstraMap(mapWidth, mapHeight, cellSize, defaultGridAdjustment, false);
-        passiveGrid = new GridHex<PassiveGridObject>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<PassiveGridObject> g, int x, int y) => new PassiveGridObject(g, x, y), false);
         spriteManager.CreateGrid(mapWidth, mapHeight, amountOfElevations, cellSize, defaultGridAdjustment);
     }
 

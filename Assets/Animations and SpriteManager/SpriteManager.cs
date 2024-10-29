@@ -31,6 +31,9 @@ public class SpriteManager : MonoBehaviour
     public List<GameObject> activeHighlightedHexes;
     public List<GameObject> inactiveTargetHexes;
     public List<GameObject> activeTargetHexes;
+    public List<SpriteHolder> inactiveSpriteHolders;
+    public List<SpriteHolder> activeSpriteHolders;
+    public List<SpriteHolder> unitPassiveAreaSpriteHolders;
     public TerrainHolder newGroundprefab;
     public TerrainHolder wallPrefab;
     public GameObject highlightedHexPrefab;
@@ -38,6 +41,7 @@ public class SpriteManager : MonoBehaviour
     public GameObject wallHolder;
     public GameObject targetHexPrefab;
     public GameObject targetHexHolder;
+    public GameObject spriteHolderHolder;
     public TerrainElevationChangeAnimation ChangeElevationAnimation;
 
     public int currentViewingElevation;
@@ -50,7 +54,7 @@ public class SpriteManager : MonoBehaviour
     public ConeTargeting coneTargeting;
 
     public ActionConfirmationMenu actionConfirmationMenu;
-    public GameObject spriteHolderPrefab;
+    public SpriteHolder spriteHolderPrefab;
 
     // 0 - Ground Level, 1 GroundLevelHighlights, 2 GrondLevelTargetingHighlights, 3 Ground Level Units
     [SerializeField] private List<Tilemap> tileMaps;
@@ -179,9 +183,37 @@ public class SpriteManager : MonoBehaviour
         }
         int hexElevation = elevationOfHexes[currentlySelectedHex.x, currentlySelectedHex.y] - combatGameManager.defaultElevation;
         currentlySelectedHexSprite.transform.position = spriteGrid.GetWorldPosition(currentlySelectedHex) + new Vector3(0, combatGameManager.terrainHeightDifference * hexElevation);
-        if(previousSelectedHex != currentlySelectedHex)
+        DisplayUnitPassiveAreas();
+        if (previousSelectedHex != currentlySelectedHex)
         {
             NewSelectedHex?.Invoke(currentlySelectedHex);
+        }
+    }
+
+    public void DisplayUnitPassiveAreas()
+    {
+        for(int i = 0; i < unitPassiveAreaSpriteHolders.Count; i++)
+        {
+            DisableSpriteHolder(unitPassiveAreaSpriteHolders[i]);
+        }
+        unitPassiveAreaSpriteHolders.Clear();
+        Unit unit = combatGameManager.grid.GetGridObject(currentlySelectedHex).unit;
+        if(unit != null)
+        {
+            for(int i = 0; i < unit.passiveEffects.Count; i++)
+            {
+                PassiveEffectArea passiveArea =  unit.passiveEffects[i];
+                for (int j = 0; j < passiveArea.passiveLocations.Count; j++)
+                {
+                    Vector2Int passivePosition = passiveArea.passiveLocations[j];
+                    SpriteHolder currentSpriteHolder = UseOpenSpriteHolder();
+                    unitPassiveAreaSpriteHolders.Add(currentSpriteHolder);
+                    currentSpriteHolder.gameObject.transform.parent = transform;
+                    currentSpriteHolder.gameObject.transform.position = GetWorldPosition(passiveArea.passiveLocations[j]);
+                    currentSpriteHolder.spriteRenderer.sortingOrder = terrain[passivePosition.x, passivePosition.y].sprite.sortingOrder + 2;
+                    currentSpriteHolder.spriteRenderer.sprite = passiveArea.passive.UISkillImage;
+                }
+            }
         }
     }
     
@@ -602,5 +634,30 @@ public class SpriteManager : MonoBehaviour
         activeTargetHexes.Remove(hex);
         inactiveTargetHexes.Add(hex);
         hex.transform.position = new Vector3(-20, -20);
+    }
+
+    public SpriteHolder UseOpenSpriteHolder()
+    {
+        if (inactiveSpriteHolders.Count <= 0)
+        {
+            Debug.Log("Create SpriteHolder");
+            SpriteHolder newSpriteHolder = Instantiate(spriteHolderPrefab);
+            newSpriteHolder.transform.position = new Vector3(-20, -20);
+            newSpriteHolder.transform.parent = spriteHolderHolder.transform;
+            inactiveSpriteHolders.Add(newSpriteHolder);
+        }
+
+        SpriteHolder openSpriteHolder = inactiveSpriteHolders[0];
+        inactiveSpriteHolders.RemoveAt(0);
+        activeSpriteHolders.Add(openSpriteHolder);
+        return openSpriteHolder;
+    }
+    public void DisableSpriteHolder(SpriteHolder hex)
+    {
+        activeSpriteHolders.Remove(hex);
+        inactiveSpriteHolders.Add(hex);
+        hex.transform.position = new Vector3(-20, -20);
+        hex.spriteRenderer.sprite = null;
+        hex.transform.parent = spriteHolderHolder.transform;
     }
 }

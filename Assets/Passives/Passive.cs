@@ -18,7 +18,7 @@ public abstract class Passive : ScriptableObject
     public virtual void AddPassive(Unit unit)
     {
         unit.passives.Add(this);
-        unit.activePassiveLocations.Add(new List<Vector2Int>());
+        //unit.activePassiveLocations.Add(new List<Vector2Int>());
     }
 
     public abstract void RemovePassive(Unit unit);

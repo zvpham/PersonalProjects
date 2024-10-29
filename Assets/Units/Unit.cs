@@ -70,7 +70,8 @@ public class Unit : UnitSuperClass, IInititiave
     public List<Action> actions;
     public List<bool> actionsActives;
     public List<Passive> passives;
-    public List<List<Vector2Int>> activePassiveLocations = new List<List<Vector2Int>>();
+    public List<PassiveEffectArea> passiveEffects = new List<PassiveEffectArea>();
+    //public List<List<Vector2Int>> activePassiveLocations = new List<List<Vector2Int>>();
     public int maxActionsPoints = 2;
     public int currentActionsPoints = 0;
     public List<int> actionCooldowns = new List<int>();
@@ -88,7 +89,7 @@ public class Unit : UnitSuperClass, IInititiave
     public bool confirmDeath;
 
     public UnityAction onTurnStart;
-    public UnityAction<Vector2Int, Vector2Int, Unit> OnPositionChanged;
+    public UnityAction<Vector2Int, Vector2Int, Unit, bool> OnPositionChanged;
     public UnityAction<Unit> OnDeath;
     // Self Unit, Damage Dealing Unit, Damage, IsMelee, isFirstInstanceOfDamage
     public UnityAction<Unit, Unit, bool, bool> OnDamage;
@@ -210,7 +211,7 @@ public class Unit : UnitSuperClass, IInititiave
         else
         {
             List<Passive> tempPassives = new List<Passive>();
-            activePassiveLocations.Clear();
+            passiveEffects.Clear();
             for(int i = 0; i < passives.Count; i++)
             {
                 tempPassives.Add(passives[i]);
@@ -388,7 +389,7 @@ public class Unit : UnitSuperClass, IInititiave
         }
     }
 
-    public void MovePositions(Vector3 originalPosition, Vector3 newPosition)
+    public void MovePositions(Vector3 originalPosition, Vector3 newPosition, bool finalMove)
     {
         /*
         Debug.Log("Move Position");
@@ -401,7 +402,7 @@ public class Unit : UnitSuperClass, IInititiave
         x = unitX;
         y = unitY;
         this.transform.position = newPosition;
-        OnPositionChanged?.Invoke(oldPosition,  new Vector2Int(x, y), this);
+        OnPositionChanged?.Invoke(oldPosition,  new Vector2Int(x, y), this, finalMove);
     }
 
     public void AddAction(Action newAction)

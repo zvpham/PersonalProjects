@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: New Opportunity Attack
   m_EditorClassIdentifier: 
   passiveIndex: 0
-  UISkillImage: {fileID: 0}
+  UISkillImage: {fileID: -884502133, guid: 4ca42cc387825f64aba3746dd3e68e71, type: 3}
   description: 
   unit: {fileID: 0}

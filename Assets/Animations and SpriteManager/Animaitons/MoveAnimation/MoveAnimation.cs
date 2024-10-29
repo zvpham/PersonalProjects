@@ -31,6 +31,8 @@ public class MoveAnimation : CustomAnimations
         base.PlayAnimation();
         attackingNode = gameManager.spriteManager.spriteGrid.GetGridObject(originalPosition);
         attackingSprite = attackingNode.sprites[0];
+        attackingNode.sprites[0] = attackingNode.sprites[2];
+        attackingNode.sprites[2] = null;
         newSortingOrder = spriteManager.terrain[newXY.x, newXY.y].sprite.sortingOrder + 3;
         if (attackingSprite.sortingOrder < newSortingOrder)
         {
@@ -65,9 +67,11 @@ public class MoveAnimation : CustomAnimations
 
     public override void EndAnimation()
     {
-        gameManager.spriteManager.spriteGrid.GetGridObject(newPosition).sprites[0] = attackingSprite;
+        SpriteNode currentSpriteNode = gameManager.spriteManager.spriteGrid.GetGridObject(newPosition);
+        currentSpriteNode.sprites[2] = currentSpriteNode.sprites[0];
+        currentSpriteNode.sprites[0] = attackingSprite;
         attackingSprite.sortingOrder = newSortingOrder;
-        attackingNode.sprites[0] = null;
+        //attackingNode.sprites[0] = null;
         base.EndAnimation();
     }
 }
