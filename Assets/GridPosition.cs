@@ -28,6 +28,6 @@ public class GridPosition
         }
         return unit.ToString();
         */
-        return x.ToString() + ", " + y.ToString();
+        return x.ToString() + ", " + y.ToString() + ", " + unit;
     }
 }

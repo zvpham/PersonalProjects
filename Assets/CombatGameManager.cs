@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Diagnostics;
+using UnityEngine.Events;
 using UnityEngine.Tilemaps;
 
 public class CombatGameManager : MonoBehaviour, IDataPersistence
@@ -19,11 +20,12 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public SpriteManager spriteManager;
     public DijkstraMap map;
     public GridHex<GridPosition> grid;
-    public List<AStarPathNode> movement;
+    public GridHex<PassiveGridObject> passiveGrid;
 
     public List<Unit> units = new List<Unit>();
     public List<IInititiave> allinitiativeGroups = new List<IInititiave>();
     public List<IInititiave> initiativeOrder = new List<IInititiave>();
+    public List<ActionData> actionsInQueue = new List<ActionData>();
     
     public bool playerTurnActive = false;
     public PlayerTurn playerTurn;
@@ -33,6 +35,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public bool startOfCombat = true;
     public bool playingAnimation = false;
     public bool testing = false;
+    public bool addedAction = false;
 
     public int mapSize = 32;
     public float terrainHeightDifference = 0.16125f;
@@ -41,6 +44,8 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
 
     public Vector3 defaultGridAdjustment = Vector3.zero;
     public float cellSize;
+    public UnityAction<ActionData> OnActivateAction;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -381,6 +386,42 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         Quicksort(initiatives, 0, initiatives.Count - 1);
     }
 
+    public void AddActionToQueue(ActionData newAction, bool addToStart)
+    {
+        if (addToStart)
+        {
+            actionsInQueue.Insert(0, newAction);
+        }
+        else
+        {
+            actionsInQueue.Add(newAction);
+        }
+    }
+
+    public void PlayActions()
+    {
+        Unit initialMovingUnit = actionsInQueue[0].actingUnit;
+        while(actionsInQueue.Count != 0)
+        {
+            OnActivateAction?.Invoke(actionsInQueue[0]);
+
+            if (!addedAction)
+            {
+                actionsInQueue[0].action.ConfirmAction(actionsInQueue[0]);
+                actionsInQueue.RemoveAt(0);
+            }
+        }
+
+        if(initialMovingUnit != null)
+        {
+            initialMovingUnit.ActionsFinishedActivating();
+        }
+        else
+        {
+            Debug.LogError("try to finish actions but unit died");
+        }
+    }
+
     public void SetGridObject(Unit unit, Vector3 unitPosition)
     {
         GridPosition gridPosition = grid.GetGridObject(unitPosition);
@@ -405,6 +446,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         grid = new GridHex<GridPosition>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<GridPosition> g, int x, int y) =>
         new GridPosition(g, x, y, defaultElevation), false);
         map = new DijkstraMap(mapWidth, mapHeight, cellSize, defaultGridAdjustment, false);
+        passiveGrid = new GridHex<PassiveGridObject>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<PassiveGridObject> g, int x, int y) => new PassiveGridObject(g, x, y), false);
         spriteManager.CreateGrid(mapWidth, mapHeight, amountOfElevations, cellSize, defaultGridAdjustment);
     }
 

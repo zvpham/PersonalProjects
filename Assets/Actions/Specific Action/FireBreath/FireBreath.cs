@@ -20,4 +20,9 @@ public class FireBreath : Action
         }
         movingUnit.gameManager.spriteManager.DeactiveTargetingSystem();
     }
+
+    public override void ConfirmAction(ActionData actionData)
+    {
+        throw new System.NotImplementedException();
+    }
 }

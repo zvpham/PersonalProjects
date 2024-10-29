@@ -12,6 +12,8 @@ public class Unit : UnitSuperClass, IInititiave
     // Class Selection UI
     public bool inOverWorld = false;
 
+    public bool isLoaded = false;
+
     public Sprite unitProfile;
     public CombatAttackUI combatAttackUi;
 
@@ -63,10 +65,12 @@ public class Unit : UnitSuperClass, IInititiave
 
     public Action endTurn;
     public Action move;
+    public MeleeAttack MeleeAttack;
     public int amountMoveUsedDuringRound;
     public List<Action> actions;
     public List<bool> actionsActives;
     public List<Passive> passives;
+    public List<List<Vector2Int>> activePassiveLocations = new List<List<Vector2Int>>();
     public int maxActionsPoints = 2;
     public int currentActionsPoints = 0;
     public List<int> actionCooldowns = new List<int>();
@@ -84,6 +88,7 @@ public class Unit : UnitSuperClass, IInititiave
     public bool confirmDeath;
 
     public UnityAction onTurnStart;
+    public UnityAction<Vector2Int, Vector2Int, Unit> OnPositionChanged;
     public UnityAction<Unit> OnDeath;
     // Self Unit, Damage Dealing Unit, Damage, IsMelee, isFirstInstanceOfDamage
     public UnityAction<Unit, Unit, bool, bool> OnDamage;
@@ -95,136 +100,165 @@ public class Unit : UnitSuperClass, IInititiave
     // Start is called before the first frame update
     void Start()
     {
-        if(unitClass != null)
+        if (!isLoaded)
         {
-            unitProfile = unitClass.UIUnitProfile;
-        }
-        for (int j = 0; j < skillTreeOneBranchOne.Count; j++)
-        {
-            if (skillTreeOneBranchOne[j])
+            if (unitClass != null)
             {
-                unitClass.skillTree1.branch1.BranchSkills[j].UnlockSkill(this);
+                unitProfile = unitClass.UIUnitProfile;
             }
-        }
-
-        for (int j = 0; j < skillTreeOneBranchTwo.Count; j++)
-        {
-            if (skillTreeOneBranchTwo[j])
+            for (int j = 0; j < skillTreeOneBranchOne.Count; j++)
             {
-                unitClass.skillTree1.branch2.BranchSkills[j].UnlockSkill(this);
-            }
-        }
-
-        for (int j = 0; j < skillTreeTwoBranchOne.Count; j++)
-        {
-            if (skillTreeTwoBranchOne[j])
-            {
-                unitClass.skillTree2.branch1.BranchSkills[j].UnlockSkill(this);
-            }
-        }
-
-        for (int j = 0; j < skillTreeTwoBranchTwo.Count; j++)
-        {
-            if (skillTreeTwoBranchTwo[j])
-            {
-                unitClass.skillTree2.branch2.BranchSkills[j].UnlockSkill(this);
-            }
-        }
-
-        if (helmet != null)
-        {
-            helmet.EquipItem(this);
-        }
-        if (armor != null)
-        {
-            armor.EquipItem(this);
-        }
-        if (legs != null)
-        {
-            legs.EquipItem(this);
-        }
-        if (mainHand != null)
-        {
-            mainHand.EquipItem(this);
-        }
-        if (offHand != null)
-        {
-            offHand.EquipItem(this);
-        }
-        if (Item1 != null)
-        {
-            Item1.EquipItem(this);
-            if(Item1.GetType() == typeof(EquipableAmmoSO))
-            {
-                itemUses[0] = Item1.mainThreeMin;
-            }
-        }
-        if (Item2 != null)
-        {
-            Item2.EquipItem(this);
-            if (Item1.GetType() == typeof(EquipableAmmoSO))
-            {
-                itemUses[1] = Item2.mainThreeMin;
-            }
-        }
-        if (Item3 != null)
-        {
-            Item3.EquipItem(this);
-            if (Item1.GetType() == typeof(EquipableAmmoSO))
-            {
-                itemUses[2] = Item3.mainThreeMin;
-            }
-        }
-        if (Item4 != null)
-        {
-            Item4.EquipItem(this);
-            if (Item1.GetType() == typeof(EquipableAmmoSO))
-            {
-                itemUses[3] = Item4.mainThreeMin;
-            }
-        }
-        if (backUpMainHand != null)
-        {
-            backUpMainHand.EquipItem(this, true);
-        }
-        if (backUpOffHand != null)
-        {
-            backUpOffHand.EquipItem(this, true);
-        }
-
-        ChangeStrength(strength);
-        ChangeDexterity(dexterity);
-        if (!inOverWorld && !gameManager.testing)
-        {
-            if (moveModifier == null)
-            {
-                moveModifier = gameManager.resourceManager.moveModifiers[0];
+                if (skillTreeOneBranchOne[j])
+                {
+                    unitClass.skillTree1.branch1.BranchSkills[j].UnlockSkill(this);
+                }
             }
 
-            if (group == null)
+            for (int j = 0; j < skillTreeOneBranchTwo.Count; j++)
             {
-                gameManager.allinitiativeGroups.Add(this);
+                if (skillTreeOneBranchTwo[j])
+                {
+                    unitClass.skillTree1.branch2.BranchSkills[j].UnlockSkill(this);
+                }
             }
 
-            if (team == Team.Player)
+            for (int j = 0; j < skillTreeTwoBranchOne.Count; j++)
             {
-                gameManager.playerTurn.playerUnits.Add(this);
+                if (skillTreeTwoBranchOne[j])
+                {
+                    unitClass.skillTree2.branch1.BranchSkills[j].UnlockSkill(this);
+                }
             }
 
-            for (int i = 0; i < actions.Count; i++)
+            for (int j = 0; j < skillTreeTwoBranchTwo.Count; j++)
             {
-                actionCooldowns.Add(0);
-                actionUses.Add(actions[i].maxUses);
+                if (skillTreeTwoBranchTwo[j])
+                {
+                    unitClass.skillTree2.branch2.BranchSkills[j].UnlockSkill(this);
+                }
             }
-            gameManager.SetGridObject(this, transform.position);
-            gameManager.units.Add(this);
+
+            if (helmet != null)
+            {
+                helmet.EquipItem(this);
+            }
+            if (armor != null)
+            {
+                armor.EquipItem(this);
+            }
+            if (legs != null)
+            {
+                legs.EquipItem(this);
+            }
+            if (mainHand != null)
+            {
+                mainHand.EquipItem(this);
+            }
+            if (offHand != null)
+            {
+                offHand.EquipItem(this);
+            }
+            if (Item1 != null)
+            {
+                Item1.EquipItem(this);
+                if (Item1.GetType() == typeof(EquipableAmmoSO))
+                {
+                    itemUses[0] = Item1.mainThreeMin;
+                }
+            }
+            if (Item2 != null)
+            {
+                Item2.EquipItem(this);
+                if (Item1.GetType() == typeof(EquipableAmmoSO))
+                {
+                    itemUses[1] = Item2.mainThreeMin;
+                }
+            }
+            if (Item3 != null)
+            {
+                Item3.EquipItem(this);
+                if (Item1.GetType() == typeof(EquipableAmmoSO))
+                {
+                    itemUses[2] = Item3.mainThreeMin;
+                }
+            }
+            if (Item4 != null)
+            {
+                Item4.EquipItem(this);
+                if (Item1.GetType() == typeof(EquipableAmmoSO))
+                {
+                    itemUses[3] = Item4.mainThreeMin;
+                }
+            }
+            if (backUpMainHand != null)
+            {
+                backUpMainHand.EquipItem(this, true);
+            }
+            if (backUpOffHand != null)
+            {
+                backUpOffHand.EquipItem(this, true);
+            }
+
+            ChangeStrength(strength);
+            ChangeDexterity(dexterity);
+            if (!inOverWorld && !gameManager.testing)
+            {
+                GetReadyForCombat();
+            }
+            isLoaded = true;
+        }
+        else
+        {
+            List<Passive> tempPassives = new List<Passive>();
+            activePassiveLocations.Clear();
+            for(int i = 0; i < passives.Count; i++)
+            {
+                tempPassives.Add(passives[i]);
+            }
+            passives.Clear();
+            for(int i = 0; i < tempPassives.Count; i++)
+            {
+                tempPassives[i].AddPassive(this);
+            }
+        }
+    }
+
+    public void GetReadyForCombat()
+    {
+        if (moveModifier == null)
+        {
+            moveModifier = gameManager.resourceManager.moveModifiers[0];
+        }
+
+        if (group == null)
+        {
+            gameManager.allinitiativeGroups.Add(this);
+        }
+
+        if (team == Team.Player)
+        {
+            gameManager.playerTurn.playerUnits.Add(this);
+        }
+
+        for (int i = 0; i < actions.Count; i++)
+        {
+            actionCooldowns.Add(0);
+            actionUses.Add(actions[i].maxUses);
+        }
+        gameManager.SetGridObject(this, transform.position);
+        gameManager.units.Add(this);
+        if (!gameManager.testing)
+        {
             gameManager.spriteManager.CreateSpriteRenderer(0, unitProfile, transform.position);
-            gameManager.StartCombat();
-
-            move = gameManager.resourceManager.actions[0];
-            endTurn = gameManager.resourceManager.actions[1];
-            currentHealth = maxHealth;
         }
+        gameManager.StartCombat();
+
+        move = gameManager.resourceManager.actions[0];
+        endTurn = gameManager.resourceManager.actions[1];
+        currentHealth = maxHealth;
+        gameManager.spriteManager.spriteGrid.GetXY(transform.position, out int xUnit, out int yUnit);
+        x = xUnit;
+        y = yUnit;
     }
 
     public void ChangeStrength(int newStrength)
@@ -299,6 +333,7 @@ public class Unit : UnitSuperClass, IInititiave
         else
         {
             UseActionPoints(currentActionsPoints);
+            ActionsFinishedActivating();
         }
     }
 
@@ -316,18 +351,22 @@ public class Unit : UnitSuperClass, IInititiave
         OnSelectedAction?.Invoke(selectedAction, actionTargetingSystem);
     }
 
-    public void UseActionPoints(int usedActionPoints, bool isAnotherActionMoveAndOnlyMoved = true)
+    public void UseActionPoints(int usedActionPoints)
     {
         if(team == Team.Player)
         {
             Debug.Log("Used Action Points: " + usedActionPoints);
         }
         currentActionsPoints -= usedActionPoints;
-        if(currentActionsPoints <= 0)
+    }
+
+    public void ActionsFinishedActivating()
+    {
+        if (currentActionsPoints <= 0)
         {
             EndTurn();
         }
-        else if(team == Team.Player &&  isAnotherActionMoveAndOnlyMoved)
+        else if (team == Team.Player )
         {
             gameManager.playerTurn.SelectAction(gameManager.playerTurn.currentlySelectedAction);
         }
@@ -351,9 +390,18 @@ public class Unit : UnitSuperClass, IInititiave
 
     public void MovePositions(Vector3 originalPosition, Vector3 newPosition)
     {
+        /*
+        Debug.Log("Move Position");
+        passives[0].AddPassive(this);
+        */
+        Vector2Int oldPosition = new Vector2Int(x, y);
         gameManager.SetGridObject(null, originalPosition);
         gameManager.SetGridObject(this, newPosition);
+        gameManager.spriteManager.spriteGrid.GetXY(newPosition, out int unitX, out int unitY);
+        x = unitX;
+        y = unitY;
         this.transform.position = newPosition;
+        OnPositionChanged?.Invoke(oldPosition,  new Vector2Int(x, y), this);
     }
 
     public void AddAction(Action newAction)

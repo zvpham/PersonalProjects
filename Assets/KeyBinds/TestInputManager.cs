@@ -3,6 +3,7 @@ using Inventory.UI;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using TMPro.Examples;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -12,7 +13,12 @@ public class TestInputManager : MonoBehaviour
 {
     public static TestInputManager instance;
 
-    public KeyBindings keyBindings;
+    public TestHexGrid testHexGrid;
+    public CombatGameManager gameManager;
+    public CameraControllerPlayer cameraController;
+    public PlayerTurn player;
+
+    private KeyBindings keyBindings;
 
     public bool isDragging = false;
     public bool startDragging = false;
@@ -20,19 +26,18 @@ public class TestInputManager : MonoBehaviour
     public Vector3 prevMousePosition;
     public Vector3 currentMousePosition;
 
-    public List<MenuAction> menuActions;
+    public float amountOfTimeMouseInSamePosition = 0;
+    public float amountOfTimeMouseNeedsToStayInPlaceToCallEvent = 1.5f;
 
-    [SerializeField] public OverWorldMenu overWorldMenu;
+    public List<TestAction> testActions;
+
     [SerializeField] GraphicRaycaster m_Raycaster;
     PointerEventData m_PointerEventData;
     [SerializeField] EventSystem m_EventSystem;
     [SerializeField] RectTransform canvasRect;
-    [SerializeField] UICharacterProfile mouseFollerItem;
     public List<RaycastResult> results;
 
-    public UnityAction<UICharacterProfile> OnMouseUp;
-    public UnityAction<EquipSlot> ResetDragUI;
-    public UnityAction<Vector3> TargetPositionMoved;
+    public UnityAction FoundPosition, MouseMoved, MouseStayedInPlace, TargetPositionMoved;
 
     private void Awake()
     {
@@ -44,7 +49,24 @@ public class TestInputManager : MonoBehaviour
 
     public void Update()
     {
+        Vector3 tempCurrentMousePosition = currentMousePosition;
         currentMousePosition = Input.mousePosition;
+
+        if (tempCurrentMousePosition == currentMousePosition)
+        {
+            amountOfTimeMouseInSamePosition += Time.deltaTime;
+            if (amountOfTimeMouseInSamePosition > amountOfTimeMouseNeedsToStayInPlaceToCallEvent)
+            {
+                MouseStayedInPlace?.Invoke();
+            }
+        }
+        else
+        {
+            amountOfTimeMouseInSamePosition = 0;
+            MouseMoved?.Invoke();
+        }
+
+        cameraController.ChangeCameraZoom(Input.mouseScrollDelta.y);
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -78,6 +100,7 @@ public class TestInputManager : MonoBehaviour
         {
             m_PointerEventData = new PointerEventData(m_EventSystem);
             //Set the Pointer Event Position to that of the game object
+
             m_PointerEventData.position = Input.mousePosition;
 
             //Create a list of Raycast Results
@@ -86,36 +109,22 @@ public class TestInputManager : MonoBehaviour
             //Raycast using the Graphics Raycaster and mouse click position
             m_Raycaster.Raycast(m_PointerEventData, results);
 
-            EquipSlot mouseHoverEquipSlot = null;
-            UICharacterProfile mouseOverCharacterProfile = null;
             if (results.Count > 0)
             {
                 for (int i = 0; i < results.Count; i++)
                 {
-                    EquipSlot equipSlot = results[i].gameObject.GetComponent<EquipSlot>();
-                    UICharacterProfile characterProfile = results[i].gameObject.GetComponent<UICharacterProfile>();
-                    if (equipSlot != null)
+                    BaseUiObject UIObject = results[i].gameObject.GetComponent<BaseUiObject>();
+                    if (UIObject != null)
                     {
-                        mouseHoverEquipSlot = equipSlot;
-                        equipSlot.OnDrop(null);
-                    }
-                    else if (characterProfile != null && characterProfile != mouseFollerItem)
-                    {
-                        mouseOverCharacterProfile = characterProfile;
-                        characterProfile.OnDrop(null);
+                        mouseOverUI = true;
                     }
                 }
             }
 
             if (!isDragging && !mouseOverUI)
             {
-                OnMouseUp?.Invoke(mouseOverCharacterProfile);
-            }
-
-
-            if (!isDragging && !mouseOverUI)
-            {
-                ResetDragUI?.Invoke(mouseHoverEquipSlot);
+                //gameManager.grid.GetXY(currentMousePosition, out int x, out int y);
+                FoundPosition?.Invoke();
             }
             isDragging = false;
             startDragging = false;
@@ -126,7 +135,7 @@ public class TestInputManager : MonoBehaviour
         {
             if (startDragging)
             {
-
+                isDragging = cameraController.MoveCamera(currentMousePosition - prevMousePosition);
             }
             else
             {
@@ -135,20 +144,19 @@ public class TestInputManager : MonoBehaviour
             prevMousePosition = currentMousePosition;
         }
 
-        for (int i = 0; i < menuActions.Count; i++)
+        for (int i = 0; i < testActions.Count; i++)
         {
-            if (GetKeyDown(menuActions[i].actionName))
+            if (GetKeyDown(testActions[i].actionName))
             {
-                //menuActions[i].Activate(this);
+                testActions[i].Activate(this);
                 break;
             }
         }
-
     }
 
     public void ChangeTargetPosition()
     {
-        TargetPositionMoved?.Invoke(UtilsClass.GetMouseWorldPosition());
+        TargetPositionMoved?.Invoke();
     }
 
     private void Start()
@@ -156,13 +164,13 @@ public class TestInputManager : MonoBehaviour
         keyBindings = KeyBindings.instance;
     }
 
-    public List<KeyCode> GetKeyForAction(PlayerActionName KeyBindingAction)
+    public List<KeyCode> GetKeyForAction(TestActionName KeyBindingAction)
     {
-        foreach (PlayerActionName key in keyBindings.defaultActionKeyBinds.Keys)
+        foreach (TestActionName key in keyBindings.defaultActionKeyBinds.Keys)
         {
             if (key == KeyBindingAction)
             {
-                return keyBindings.defaultActionKeyBinds[key];
+                return keyBindings.testActionKeyBinds[key];
             }
         }
         KeyCode[] input = { KeyCode.None };
@@ -170,25 +178,25 @@ public class TestInputManager : MonoBehaviour
         return temp;
     }
 
-    public bool GetKeyDown(MenuActionName action)
+    public bool GetKeyDown(TestActionName action)
     {
         // detects if player is pressing button
         if (!Input.anyKey)
             return false;
 
-        foreach (MenuActionName key in keyBindings.menuActionKeyBinds.Keys)
+        foreach (TestActionName key in keyBindings.testActionKeyBinds.Keys)
         {
             if (key == action)
             {
-                for (int i = 0; i < keyBindings.menuActionKeyBinds[key].Count; i++)
+                for (int i = 0; i < keyBindings.testActionKeyBinds[key].Count; i++)
                 {
-                    if (i == keyBindings.menuActionKeyBinds[key].Count - 1)
+                    if (i == keyBindings.testActionKeyBinds[key].Count - 1)
                     {
-                        return (Input.GetKeyDown(keyBindings.menuActionKeyBinds[key][i]));
+                        return (Input.GetKeyDown(keyBindings.testActionKeyBinds[key][i]));
                     }
                     else
                     {
-                        if (!Input.GetKey(keyBindings.menuActionKeyBinds[key][i]))
+                        if (!Input.GetKey(keyBindings.testActionKeyBinds[key][i]))
                         {
                             return false;
                         }
@@ -201,26 +209,26 @@ public class TestInputManager : MonoBehaviour
 
 
 
-    public bool GetKey(MenuActionName action)
+    public bool GetKey(TestActionName action)
     {
         // detects if player is pressing button
         if (!Input.anyKey)
             return false;
 
-        foreach (MenuActionName key in keyBindings.menuActionKeyBinds.Keys)
+        foreach (TestActionName key in keyBindings.testActionKeyBinds.Keys)
         {
             if (key.Equals(action))
             {
-                for (int i = 0; i < keyBindings.menuActionKeyBinds[key].Count; i++)
+                for (int i = 0; i < keyBindings.testActionKeyBinds[key].Count; i++)
                 {
-                    if (i == keyBindings.menuActionKeyBinds[key].Count - 1)
+                    if (i == keyBindings.testActionKeyBinds[key].Count - 1)
                     {
 
-                        return (Input.GetKey(keyBindings.menuActionKeyBinds[key][i]));
+                        return (Input.GetKey(keyBindings.testActionKeyBinds[key][i]));
                     }
                     else
                     {
-                        if (!Input.GetKey(keyBindings.menuActionKeyBinds[key][i]))
+                        if (!Input.GetKey(keyBindings.testActionKeyBinds[key][i]))
                         {
                             return false;
                         }
@@ -231,26 +239,26 @@ public class TestInputManager : MonoBehaviour
         return false;
     }
 
-    public bool GetKeyUp(MenuActionName action)
+    public bool GetKeyUp(TestActionName action)
     {
         // detects if player is pressing button
         if (!Input.anyKey)
             return false;
 
-        foreach (MenuActionName key in keyBindings.menuActionKeyBinds.Keys)
+        foreach (TestActionName key in keyBindings.testActionKeyBinds.Keys)
         {
             if (key.Equals(action))
             {
-                for (int i = 0; i < keyBindings.menuActionKeyBinds[key].Count; i++)
+                for (int i = 0; i < keyBindings.testActionKeyBinds[key].Count; i++)
                 {
-                    if (i == keyBindings.menuActionKeyBinds[key].Count - 1)
+                    if (i == keyBindings.testActionKeyBinds[key].Count - 1)
                     {
 
-                        return (Input.GetKeyUp(keyBindings.menuActionKeyBinds[key][i]));
+                        return (Input.GetKeyUp(keyBindings.testActionKeyBinds[key][i]));
                     }
                     else
                     {
-                        if (!Input.GetKey(keyBindings.menuActionKeyBinds[key][i]))
+                        if (!Input.GetKey(keyBindings.testActionKeyBinds[key][i]))
                         {
                             return false;
                         }

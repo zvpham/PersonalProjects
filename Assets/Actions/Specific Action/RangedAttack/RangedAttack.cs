@@ -139,6 +139,11 @@ public class RangedAttack : Action
 
         return allAttackData;
     }
+
+    public override void ConfirmAction(ActionData actionData)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 [SerializeField]
@@ -204,6 +209,5 @@ public struct AttackData
 
         return allAttackData;
     }
-
 }
 

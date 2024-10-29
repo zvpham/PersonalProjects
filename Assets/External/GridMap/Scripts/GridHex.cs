@@ -63,7 +63,7 @@ public class GridHex<TGridObject>
             {
                 for (int y = 0; y < gridArray.GetLength(1); y++)
                 {
-                    debugTextArray[x, y] = UtilsClass.CreateWorldText(gridArray[x, y]?.ToString(), null, GetWorldPosition(x, y), 30, Color.white, TextAnchor.MiddleCenter);
+                    debugTextArray[x, y] = UtilsClass.CreateWorldText(gridArray[x, y]?.ToString(), null, GetWorldPosition(x, y), 30, Color.green, TextAnchor.MiddleCenter);
                     Vector3 cellPosition = GetWorldPosition(x, y);
                     //Draw Top 3 Sides of a Hexagon
                     Debug.DrawLine(cellPosition + new Vector3(-cellSize / 2, 0, 0), cellPosition + new Vector3(-cellSize / 4, (cellSize / 4) * (float)Math.Sqrt(3), 0), Color.white, 100f);
@@ -306,6 +306,38 @@ public class GridHex<TGridObject>
             if (hexObject != null)
             {
                 hexes.Add(hexObject);
+            }
+        }
+        return hexes;
+    }
+
+    public List<Vector2Int> GetGridPositionsInRing(int x, int y, int radius)
+    {
+        Vector3Int centerCube = OffsetToCube(x, y);
+        return GetGridPositionsInRing(centerCube, radius);
+    }
+
+    public List<Vector2Int> GetGridPositionsInRing(Vector3Int centerCubePosition, int radius)
+    {
+        Vector3Int centerCube = centerCubePosition;
+        List<Vector3Int> results = new List<Vector3Int>();
+        Vector3Int hex = CubeAdd(centerCube, CubeScale(CubeDirection(4), radius));
+        for (int i = 0; i < 6; i++)
+        {
+            for (int j = 0; j < radius; j++)
+            {
+                results.Add(hex);
+                hex = CubeNeighbor(hex, i);
+            }
+        }
+
+        List<Vector2Int> hexes = new List<Vector2Int>();
+        for (int i = 0; i < results.Count; i++)
+        {
+            Vector2Int offsetPosition = CubeToOffset(results[i]);
+            if(offsetPosition.x > 0 && offsetPosition.y > 0 && offsetPosition.x < width && offsetPosition.y < height)
+            {
+                hexes.Add(offsetPosition);
             }
         }
         return hexes;

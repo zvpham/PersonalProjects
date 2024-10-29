@@ -68,9 +68,14 @@ public class UnitGroup : UnitSuperClass, IInititiave
 
     public void Start()
     {
-        if (!inOverWorld)
+        if (!inOverWorld && !gameManager.testing)
         {
-            gameManager.allinitiativeGroups.Add(this);
+            GetReadyForCombat();
         }
+    }
+
+    public void GetReadyForCombat()
+    {
+        gameManager.allinitiativeGroups.Add(this);
     }
 }

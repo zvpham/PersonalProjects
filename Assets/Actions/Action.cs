@@ -50,6 +50,8 @@ public abstract class Action : ScriptableObject
         return false;
     }
 
+    public abstract void ConfirmAction(ActionData actionData);
+
     public virtual bool SpecificCheckActionUsable(Unit self)
     {
         return true;

@@ -34,4 +34,12 @@ public class StandardMoveModifier : MoveModifier
         int neighborNodeElevation = elevationGrid[neighborNode.x, neighborNode.y];
         return neighborNode.walkable && Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
     }
-}
+
+    public override bool ValidMeleeAttack(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int maxRange)
+    {
+        int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
+        int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];
+        int neighborNodeElevation = elevationGrid[nextNode.x, nextNode.y];
+        return Mathf.Abs(currentNode.value - nextNode.value) <= maxRange  && Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
+    }
+}   

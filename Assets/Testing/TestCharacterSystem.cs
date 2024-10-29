@@ -178,6 +178,7 @@ public class TestCharacterSystem : MonoBehaviour
             {
                 unitGroup.units.Add(unitChildren[j]);
                 unitChildren[j].gameManager = combatGameManager;
+                unitChildren[j].group = unitGroup;
             }
             allUnitGroups.Add(unitGroup);
         }   

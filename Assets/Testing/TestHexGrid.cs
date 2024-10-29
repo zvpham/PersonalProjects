@@ -9,47 +9,50 @@ using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
 using Inventory.Model;
 using UnityEngine.UI;
+using JetBrains.Annotations;
+using static UnityEngine.UI.CanvasScaler;
 
 public class TestHexGrid : MonoBehaviour
 {
     public PrefabTerrain prefabTerrain;
     public PrefabUnitTerrain prefabUnitTerrain;
     public GameObject inventoryUI;
+    public GameObject startCombatButton;
     public TestCharacterSystem characterSystem;
     public TestInventorySystem inventorySystem;
     public float cellSize;
     public Vector3 defaultGridAdjustment;
     public List<Vector3Int> highlightedHexws = new List<Vector3Int>();
-    public Vector2Int cubeStartHex;
-    public Vector2Int cubeEndHex;
-    public Vector3 currentMouse;
-    public Vector3 prevMouse;
-    public Tilemap tileMap;
     public ResourceManager resourceManager;
-    public LineController lineController;
     public int index = 0;
     public int mouseIndex;
     public Vector2Int startHex;
     public Vector2Int endHex;
 
     public InputManager inputManager;
+    public TestInputManager testInputManager;
     public MenuInputManager menuInputManager;
 
     public int defaultElevation = 3;
     public float terrainHeightDifference = 0.16125f;
-    public TerrainElevationChangeAnimation ChangeElevationAnimation;
 
+    public List<Unit> unitsinCombat =  new List<Unit>();
     public CombatGameManager gameManager;
     public Vector2Int currentlySelectedHex;
     public GameObject currentlySelectedHexSprite;
 
-    public TerrainHolder newGroundHexPrefab;
+    public bool inInventory = false;
+    public int earthWallIndex = 0;
+
+    public UnitGroup currentlyPlacingUnitGroup;
+    public int unitInUnitGroupIndex = 0;
 
     // Start is called before the first frame update
     void Start()
     {
         //hexgrid =  new GridHex<GridPosition>(10, 10, 1, new Vector3(-0.5f, -0.5f, 0), (GridHex<GridPosition> Grid, int x, int y) => new GridPosition(Grid, x, y, 3), true);
         inputManager.gameObject.SetActive(false);
+        testInputManager.MouseMoved += SelectMouseHex;
         CreateGrid(32, 32, 7);
         LoadUnitsToBoard();
         inventoryUI.SetActive(false);
@@ -57,9 +60,34 @@ public class TestHexGrid : MonoBehaviour
 
     public void StartCombat()
     {
-        gameManager.StartCombat();
-    }
+        if(currentlyPlacingUnitGroup != null || unitsinCombat.Count ==0)
+        {
+            return;
+        }
 
+        List<UnitGroup> unitGroupsInCombat = new List<UnitGroup>();
+
+        for(int i = 0; i < unitsinCombat.Count; i++)
+        {
+            unitsinCombat[i].GetReadyForCombat();
+            if (unitsinCombat[i].group != null && !unitGroupsInCombat.Contains(unitsinCombat[i].group))
+            {
+                unitGroupsInCombat.Add(unitsinCombat[i].group);
+            }
+        }
+
+        for(int i = 0; i < unitGroupsInCombat.Count; i++)
+        {
+            unitGroupsInCombat[i].GetReadyForCombat();
+        }
+
+        gameManager.StartCombat();
+        inputManager.gameObject.SetActive(true);
+        testInputManager.gameObject.SetActive(false);
+        menuInputManager.gameObject.SetActive(false);
+        inventoryUI.SetActive(false);
+        startCombatButton.SetActive(false);
+    }
 
     public void CreateGrid(int mapWidth, int mapHeight, int amountOfTerrainLevels)
     {
@@ -81,6 +109,8 @@ public class TestHexGrid : MonoBehaviour
         }
         gameManager.grid = new GridHex<GridPosition>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<GridPosition> g, int x, int y) =>
         new GridPosition(g, x, y, defaultElevation), false);
+        gameManager.passiveGrid = new GridHex<PassiveGridObject>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<PassiveGridObject> g, int x, int y) =>
+        new PassiveGridObject(g, x, y), true);
         gameManager.map = new DijkstraMap(mapWidth, mapHeight, cellSize, defaultGridAdjustment, false);
         inventorySystem.LoadInitialItems();
         characterSystem.LoadInitialUnits();
@@ -90,65 +120,181 @@ public class TestHexGrid : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        int initalElevation = gameManager.spriteManager.elevationOfHexes[currentlySelectedHex.x, currentlySelectedHex.y];
-        // Raise Elevation
-        if (Input.GetKeyDown(KeyCode.O))
+        if (currentlyPlacingUnitGroup != null)
         {
-            gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, 1, true);
-        }
-        // Drop Elevation
-        else if (Input.GetKeyDown(KeyCode.P))
-        {
-            gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, - 1, true);
-        }
-        else if(Input.GetKeyDown(KeyCode.Z))
-        {
-            gameManager.spriteManager.SetViewElevation(gameManager.spriteManager.currentViewingElevation + 1);
-        }
-        else if (Input.GetKeyDown(KeyCode.X))
-        {
-            gameManager.spriteManager.SetViewElevation(gameManager.spriteManager.currentViewingElevation - 1);
-        }
-        else if (Input.GetKeyDown(KeyCode.I))
-        {
-            if (inventoryUI.activeInHierarchy)
+            if(Input.GetMouseButtonDown(0))
             {
-                inventorySystem.CloseMenu();
+                Unit currentlyPlacingUnit = currentlyPlacingUnitGroup.units[unitInUnitGroupIndex];
+                HandlePlaceUnit(currentlyPlacingUnit);
             }
-            else
-            {
-                inventorySystem.OpenMenu();
-            }
-        }
-        else if (Input.GetMouseButtonDown(0))
-        {
-            if(mouseIndex == 0)
-            {
-                startHex = currentlySelectedHex;
-                mouseIndex = 1;
-            }
-            else
-            {
-                endHex = currentlySelectedHex;
-
-                Vector3Int startCube = gameManager.spriteManager.spriteGrid.OffsetToCube(startHex.x, startHex.y);
-                Vector3Int endCube = gameManager.spriteManager.spriteGrid.OffsetToCube(endHex.x, endHex.y);
-
-                List<Vector3Int> cubePath = gameManager.spriteManager.spriteGrid.CubeLineDraw(startCube, endCube);
-
-                for(int i = 0; i < cubePath.Count; i++)
-                {
-                    Vector2Int offSetPosition = gameManager.spriteManager.spriteGrid.CubeToOffset(cubePath[i]);
-                    gameManager.spriteManager.ChangeElevation(offSetPosition.x, offSetPosition.y, 2, true, false);
-                }
-                mouseIndex = 0;
-            }
-
-
         }
     }
-    /*
+
+    public void HandlePlaceUnit(Unit unit)
+    {
+        Vector3 newUnitPosition = gameManager.spriteManager.GetWorldPosition(currentlySelectedHex);
+        if (gameManager.spriteManager.spriteGrid.GetGridObject(newUnitPosition).sprites[0] != null)
+        {
+            if(gameManager.grid.GetGridObject(newUnitPosition).unit.group != null)
+            {
+                UnitGroup unitGroup = gameManager.grid.GetGridObject(newUnitPosition).unit.group;
+                if(unitGroup == currentlyPlacingUnitGroup)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < unitGroup.units.Count; i++)
+                {
+                    unitsinCombat.Remove(unitGroup.units[i]);
+                    Vector3 UnitInExistingUnitGroupPosition = unitGroup.units[i].transform.position;
+                    Destroy(gameManager.spriteManager.spriteGrid.GetGridObject(UnitInExistingUnitGroupPosition).sprites[0].gameObject);
+                    Destroy(gameManager.grid.GetGridObject(UnitInExistingUnitGroupPosition).unit.gameObject);
+                    gameManager.grid.GetGridObject(UnitInExistingUnitGroupPosition).unit = null;
+                }
+                Destroy(unitGroup.gameObject);
+            }
+            else
+            {
+                unitsinCombat.Remove(gameManager.grid.GetGridObject(newUnitPosition).unit);
+                Destroy(gameManager.spriteManager.spriteGrid.GetGridObject(newUnitPosition).sprites[0].gameObject);
+                Destroy(gameManager.grid.GetGridObject(newUnitPosition).unit.gameObject);
+                gameManager.grid.GetGridObject(newUnitPosition).unit = null;
+            }
+        }
+        if(unit.group != null)
+        {
+            unitInUnitGroupIndex += 1;
+            if (currentlyPlacingUnitGroup.units.Count <= unitInUnitGroupIndex)
+            {
+                currentlyPlacingUnitGroup = null;
+            }
+        }
+
+        unit.transform.position = newUnitPosition;
+        gameManager.SetGridObject(unit, unit.transform.position);
+        gameManager.spriteManager.CreateSpriteRenderer(0, unit.unitProfile, unit.transform.position);
+        unitsinCombat.Add(unit);
+    }
+
+    public void PlaceUnit(int teamIndex)
+    {
+        if (currentlyPlacingUnitGroup != null)
+        {
+            return;
+        }
+
+        if (characterSystem.currentUnit != null)
+        {
+            if(characterSystem.currentUnit.group != null)
+            {
+                UnitGroup unitGroup = Instantiate(characterSystem.currentUnit.group);
+                currentlyPlacingUnitGroup = unitGroup;
+                unitInUnitGroupIndex = 0;
+                Team unitTeam = Team.Player;
+                switch (teamIndex)
+                {
+                    case 0:
+                        unitTeam = Team.Player;
+                        break;
+                    case 1:
+                        unitTeam = Team.Team2;
+                        break;
+                    case 2:
+                        unitTeam = Team.Team3;
+                        break;
+                    case 3:
+                        unitTeam = Team.Team4;
+                        break;
+                }
+
+                for (int i = 0; i < unitGroup.units.Count; i++)
+                {
+                    unitGroup.units[i].team = unitTeam;
+                }
+                HandlePlaceUnit(unitGroup.units[unitInUnitGroupIndex]);
+            }
+            else
+            {
+                Unit newUnit = Instantiate(characterSystem.currentUnit);
+                switch (teamIndex)
+                {
+                    case 0:
+                        newUnit.team = Team.Player;
+                        break;
+                    case 1:
+                        newUnit.team = Team.Team2;
+                        break;
+                    case 2:
+                        newUnit.team = Team.Team3;
+                        break;
+                    case 3:
+                        newUnit.team = Team.Team4;
+                        break;
+                }
+                HandlePlaceUnit(newUnit);
+            }
+        }
+    }
+
+    public void ChangeViewElevation(int viewChangeAmount)
+    {
+        gameManager.spriteManager.SetViewElevation(gameManager.spriteManager.currentViewingElevation + viewChangeAmount);
+    }
+
+    public void ChangeElevation(int elevationChangeAmount)
+    {
+        if (inInventory || currentlyPlacingUnitGroup != null)
+        {
+            return;
+        }
+        gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, elevationChangeAmount, true);
+    }
+
+    public void EarthWall()
+    {
+        if (earthWallIndex == 0)
+        {
+            startHex = currentlySelectedHex;
+            earthWallIndex = 1;
+        }
+        else
+        {
+            endHex = currentlySelectedHex;
+
+            Vector3Int startCube = gameManager.spriteManager.spriteGrid.OffsetToCube(startHex.x, startHex.y);
+            Vector3Int endCube = gameManager.spriteManager.spriteGrid.OffsetToCube(endHex.x, endHex.y);
+
+            List<Vector3Int> cubePath = gameManager.spriteManager.spriteGrid.CubeLineDraw(startCube, endCube);
+
+            for (int i = 0; i < cubePath.Count; i++)
+            {
+                Vector2Int offSetPosition = gameManager.spriteManager.spriteGrid.CubeToOffset(cubePath[i]);
+                gameManager.spriteManager.ChangeElevation(offSetPosition.x, offSetPosition.y, 2, true, false);
+            }
+            earthWallIndex = 0;
+        }
+    }
+
+    public void InteractWithInventory()
+    {
+        if(currentlyPlacingUnitGroup != null)
+        {
+            return;
+        }
+
+        if (inventoryUI.activeInHierarchy)
+        {
+            inInventory = false;
+            inventorySystem.CloseMenu();
+            startCombatButton.SetActive(true);
+        }
+        else
+        {
+            inInventory = true;
+            inventorySystem.OpenMenu();
+            startCombatButton.SetActive(false);
+        }
+    }
 
     public void SelectMouseHex()
     {
@@ -158,7 +304,7 @@ public class TestHexGrid : MonoBehaviour
         if(hit.GetLength(0) == 0)
         {
             Vector3 worldMousePosition = UtilsClass.GetMouseWorldPosition();
-            hexgrid.GetXY(worldMousePosition, out int endX, out int endY);
+            gameManager.grid.GetXY(worldMousePosition, out int endX, out int endY);
             if(endX < 0 || endY < 0 || endX >= 32 || endY >= 32)
             {
                 endX = 0; 
@@ -184,10 +330,9 @@ public class TestHexGrid : MonoBehaviour
             currentlySelectedHex = new Vector2Int(terrainHolder.x, terrainHolder.y);
         }
         int hexElevation = gameManager.spriteManager.elevationOfHexes[currentlySelectedHex.x, currentlySelectedHex.y] - defaultElevation;
-        currentlySelectedHexSprite.transform.position = hexgrid.GetWorldPosition(currentlySelectedHex) + new Vector3(0, terrainHeightDifference * hexElevation);
+        currentlySelectedHexSprite.transform.position = gameManager.grid.GetWorldPosition(currentlySelectedHex) + new Vector3(0, terrainHeightDifference * hexElevation);
     }
 
-    */
     private void LoadUnitsToBoard()
     {
         int positionIndex = 0;

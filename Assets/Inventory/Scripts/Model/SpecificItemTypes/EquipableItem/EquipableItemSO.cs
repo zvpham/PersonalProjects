@@ -102,7 +102,7 @@ namespace Inventory.Model
 
                 for (int i = 0; i < passives.Count; i++)
                 {
-
+                    passives[i].AddPassive(unit);
                 }
 
                 unit.ChangeStrength(unit.strength);

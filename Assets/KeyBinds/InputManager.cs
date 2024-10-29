@@ -150,7 +150,6 @@ public class InputManager : MonoBehaviour
                 break;
             }
         }
-
     }
 
     public void ChangeTargetPosition()

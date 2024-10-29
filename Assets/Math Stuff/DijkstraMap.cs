@@ -162,9 +162,9 @@ public class DijkstraMap
         }
 
         int meleeRange = range;
-        if(range <= 0)
+        if(meleeRange <= 0)
         {
-            range = 1;
+            meleeRange = 1;
         }
 
         for (int i = 0; i < grid.GetHeight(); i++)
@@ -172,7 +172,7 @@ public class DijkstraMap
             for (int j = 0; j < grid.GetWidth(); j++)
             {
                 DijkstraMapNode tempNode = grid.GetGridObject(j, i);
-                tempNode.permissableMoves = range;
+                tempNode.permissableMoves = meleeRange;
                 grid.SetGridObject(j, i, tempNode);
             }
         }
@@ -193,7 +193,6 @@ public class DijkstraMap
 
         }
 
-
         while (openList.Count > 0)
         {
             DijkstraMapNode currentNode = GetLowestValue(openList);
@@ -204,14 +203,14 @@ public class DijkstraMap
                 {
                     if(permissableUnits.Contains(new Vector2Int(neighborNode.x, neighborNode.y)))
                     {
-                        neighborNode.permissableMoves = currentNode.permissableMoves - 1;
-                        neighborNode.value = currentNode.value + 1;
-                        grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
-                        if (neighborNode.permissableMoves <= 0)
+                        if (currentNode.permissableMoves <= 0)
                         {
                             continue;
                         }
+                        neighborNode.permissableMoves = currentNode.permissableMoves - 1;
                     }
+                    neighborNode.value = currentNode.value + 1;
+                    grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
                     openList.Add(neighborNode);
                 }
             }

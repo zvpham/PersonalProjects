@@ -34,4 +34,5 @@ MonoBehaviour:
   itemTypes: 0000000006000000
   actions:
   - {fileID: 11400000, guid: 309e784039db1b8458f4dfd899d7de7e, type: 2}
-  passives: []
+  passives:
+  - {fileID: 11400000, guid: dbac2c3ce2ddf3849a3f2a10cf8575ec, type: 2}

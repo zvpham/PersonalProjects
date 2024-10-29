@@ -16,6 +16,8 @@ public class MovementTargeting : TargetingSystem
     public Vector2Int currentlySelectedHex;
     public List<Vector2Int> path = new List<Vector2Int>();
     public List<Vector2Int> setPath = new List<Vector2Int>();
+    public List<int> startOfNewMoveIndexes = new List<int>();
+    public List<int> setStartOfNewMoveIndexes = new List<int>();
     public GameObject tempMovingUnit;
 
     public List<int> actionMoveAmounts;
@@ -33,7 +35,7 @@ public class MovementTargeting : TargetingSystem
 
     public int actionPointsLeft;
 
-    public UnityAction<List<Vector2Int>, Unit, int,  bool> OnFoundTarget;
+    public UnityAction<List<Vector2Int>, List<int>,  Unit,  bool> OnFoundTarget;
 
     public void SetParameters(Unit movingUnit, bool targetFriendly, int actionPointsLeft)
     {
@@ -163,6 +165,7 @@ public class MovementTargeting : TargetingSystem
             map.SetGoals(endHex, gameManager, movingUnit.moveModifier);
             map.getGrid().GetXY(startingPosition, out int x, out int y);
             path.Clear();
+            startOfNewMoveIndexes = new List<int>();
             bool foundEndPosition = false;
             bool findMostDirectPath = false;
             int initialAmountPathMoveIncreased = amountActionLineIncreased;
@@ -170,6 +173,7 @@ public class MovementTargeting : TargetingSystem
             // loop through possible move amounts to find a path to end hex
             for (int i = 0; i < amountOfPossibleMoves; i++)
             {
+                startOfNewMoveIndexes.Add(path.Count);
                 actionMoveAmounts.Add(0);
                 amountActionLineIncreased += 1;
                 bool inRangeBracket = rangeBrackets[i].Contains(new Vector2Int(endX, endY));
@@ -180,7 +184,6 @@ public class MovementTargeting : TargetingSystem
                 // Attempt to find path Avoiding harmful Terrain
                 for (int j = 0; j < movingUnit.moveSpeed; j++)
                 {
-                    Debug.Log(currentNode.x + ", " + currentNode.y + ": " + currentNode.value);
                     if(currentNode.value == int.MaxValue)
                     {
                         foundEndPosition = true;
@@ -264,11 +267,13 @@ public class MovementTargeting : TargetingSystem
                 map.SetGoals(endHex, gameManager, movingUnit.moveModifier);
                 map.getGrid().GetXY(startingPosition, out x, out y);
                 path.Clear();
+                startOfNewMoveIndexes = new List<int>();
                 foundEndPosition = false;
                 for (int i = 0; i < amountOfPossibleMoves; i++)
                 {
                     amountActionLineIncreased += 1;
                     actionMoveAmounts.Add(0);
+                    startOfNewMoveIndexes.Add(path.Count);
                     // Attempt to find path Avoiding harmful Terrain
                     for (int j = 0; j < movingUnit.moveSpeed; j++)
                     {
@@ -332,7 +337,7 @@ public class MovementTargeting : TargetingSystem
             // Select Player Unit when you aren't using a friendly ability like heal
             if (!targetFriendly && gameManager.playerTurn.CheckSpaceForFriendlyUnit(endHexPosition))
             {
-                OnFoundTarget?.Invoke(null, movingUnit, -1, false);
+                OnFoundTarget?.Invoke(null, null, movingUnit, false);
                 gameManager.playerTurn.SelectUnit(endHexPosition);
             }
             else
@@ -340,6 +345,10 @@ public class MovementTargeting : TargetingSystem
                 //if there is still action Points left Add temp Path to Set Path
                 if (actionPointsLeft > 0)
                 {
+                    for(int i = 0; i< startOfNewMoveIndexes.Count; i++)
+                    {
+                        setStartOfNewMoveIndexes.Add(startOfNewMoveIndexes[i]);
+                    }
                     prevEndHexPosition = endHexPosition;
                     for (int i = 0; i < path.Count; i++)
                     {
@@ -370,12 +379,12 @@ public class MovementTargeting : TargetingSystem
                     {
                         if(setPath.Count == 1 && movingUnit.gameManager.map.getGrid().GetWorldPosition(setPath[0].x, setPath[0].y) == movingUnit.transform.position)
                         {
-                            OnFoundTarget?.Invoke(null, movingUnit, -1, false);
+                            OnFoundTarget?.Invoke(null, null, movingUnit, false);
                             gameManager.playerTurn.SelectUnit(endHexPosition);
                         }
                         else
                         {
-                            OnFoundTarget?.Invoke(setPath, movingUnit, IndexOfStartingActionLine, true);
+                            OnFoundTarget?.Invoke(setPath, setStartOfNewMoveIndexes, movingUnit, true);
                             Destroy(tempMovingUnit);
                         }
                     },
@@ -398,6 +407,7 @@ public class MovementTargeting : TargetingSystem
         prevEndHexPosition = new Vector2Int(-1, -1);
         actionMoveAmounts = new List<int>();
         actionLines = new List<List<Vector3>>();
+        setStartOfNewMoveIndexes = new List<int>();
         amountActionLineIncreased = 0;
         IndexOfStartingActionLine = 0;
         amountMoved = 0;

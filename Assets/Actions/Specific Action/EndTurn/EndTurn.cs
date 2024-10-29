@@ -11,11 +11,21 @@ public class EndTurn : Action
         self.gameManager.spriteManager.ActivateActionConfirmationMenu(
             () =>
             {
-                self.UseActionPoints(self.currentActionsPoints);
+                ActionData newData =  new ActionData();
+                newData.action = this;
+                newData.actingUnit = self;
+                self.gameManager.AddActionToQueue(newData, false);
+                self.gameManager.PlayActions();
             },
             () =>
             {
 
             });
+    }
+
+    public override void ConfirmAction(ActionData actionData)
+    {
+        Unit self = actionData.actingUnit;
+        self.UseActionPoints(self.currentActionsPoints);
     }
 }
