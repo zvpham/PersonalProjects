@@ -98,6 +98,42 @@ public class Unit : UnitSuperClass, IInititiave
 
     public UnityAction<Action, TargetingSystem> OnSelectedAction;
 
+    // [Unwalkable, BadWalkin, GoodWalkin]
+    public List<List<PassiveEffectArea>> CalculuatePassiveAreas()
+    {
+        List<List<PassiveEffectArea>> classifiedPassives = new List<List<PassiveEffectArea>>() { new List<PassiveEffectArea>(),
+        new List<PassiveEffectArea>(), new List<PassiveEffectArea>()};
+        List<PassiveEffectArea> allPassiveAreas = gameManager.passiveAreas;
+        Debug.Log("Anything Here: ");
+        for (int i = 0; i < allPassiveAreas.Count; i++)
+        {
+            PassiveAreaClassification classification = allPassiveAreas[i].passive.passiveClassification;
+            Debug.Log("Anything Here: " + allPassiveAreas[i]);
+            switch(classification)
+            {
+                case (PassiveAreaClassification.EnemyUnwalkable):
+                    if (allPassiveAreas[i].originUnit.team != this.team)
+                    {
+                        classifiedPassives[0].Add(allPassiveAreas[i]);
+                    }
+                    break;
+                case (PassiveAreaClassification.EnemyBadWalkIn):
+                    if (allPassiveAreas[i].originUnit.team != this.team)
+                    {
+                        classifiedPassives[1].Add(allPassiveAreas[i]);
+                    }
+                    break;
+                case (PassiveAreaClassification.AllyWantToWalk):
+                    if (allPassiveAreas[i].originUnit.team == this.team)
+                    {
+                        classifiedPassives[2].Add(allPassiveAreas[i]);
+                    }
+                    break;
+            }
+        }
+        return classifiedPassives;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -260,6 +296,7 @@ public class Unit : UnitSuperClass, IInititiave
         gameManager.spriteManager.spriteGrid.GetXY(transform.position, out int xUnit, out int yUnit);
         x = xUnit;
         y = yUnit;
+        MovePositions(this.transform.position, this.transform.position, true);
     }
 
     public void ChangeStrength(int newStrength)

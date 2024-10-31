@@ -153,6 +153,68 @@ public class DijkstraMap
         }
     }
 
+
+    public void SetGoals(List<Vector2Int> goals, CombatGameManager gameManager, MoveModifier moveModifier, bool[,] badWalkinPassiveEffects)
+    {
+        if (goals.Count == 0)
+        {
+            Debug.LogWarning("Setting Goals without having any goals");
+        }
+
+        openList = new List<DijkstraMapNode>();
+        closedList = new List<DijkstraMapNode>();
+
+        for (int i = 0; i < goals.Count; i++)
+        {
+            DijkstraMapNode newNode = grid.GetGridObject(goals[i].x, goals[i].y);
+            if (newNode != null)
+            {
+                newNode.value = 0;
+                grid.SetGridObject(newNode.x, newNode.y, newNode);
+                openList.Add(newNode);
+            }
+        }
+
+
+        while (openList.Count > 0)
+        {
+            DijkstraMapNode currentNode = GetLowestValue(openList);
+            openList.Remove(currentNode);
+            foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+            { 
+
+                if (moveModifier.ValidMovePosition(gameManager, currentNode, neighborNode))
+                {
+                    neighborNode.value = currentNode.value + 1;
+
+                    if (!badWalkinPassiveEffects[neighborNode.x, neighborNode.y])
+                    {
+                        openList.Add(neighborNode);
+                    }
+                    else
+                    {
+                        neighborNode.value = int.MaxValue;
+                    }
+                    grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
+                }
+            }
+            closedList.Add(currentNode);
+        }
+
+        for (int i = 0; i < grid.GetHeight(); i++)
+        {
+            for (int j = 0; j < grid.GetWidth(); j++)
+            {
+                DijkstraMapNode tempNode = grid.GetGridObject(j, i);
+                if (tempNode.walkable == false)
+                {
+                    tempNode.value = int.MaxValue;
+                    grid.SetGridObject(j, i, tempNode);
+                }
+            }
+        }
+    }
+
     public void SetGoalsMelee(List<Vector2Int> goals, List<Vector2Int> friendlyUnits, List<Vector2Int> permissableUnits,
         CombatGameManager gameManager, MoveModifier moveModifier, int range)
     {

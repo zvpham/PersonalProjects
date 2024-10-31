@@ -110,6 +110,8 @@ public class TestHexGrid : MonoBehaviour
         gameManager.grid = new GridHex<GridPosition>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<GridPosition> g, int x, int y) =>
         new GridPosition(g, x, y, defaultElevation), false);
         gameManager.map = new DijkstraMap(mapWidth, mapHeight, cellSize, defaultGridAdjustment, false);
+        gameManager.passiveGrid = new GridHex<PassiveGridObject>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<PassiveGridObject> g, int x, int y) =>
+        new PassiveGridObject(g, x, y), false);
         inventorySystem.LoadInitialItems();
         characterSystem.LoadInitialUnits();
 

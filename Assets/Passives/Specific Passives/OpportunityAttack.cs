@@ -50,6 +50,14 @@ public class OpportunityAttack : AreaPassive
                 break;
             }
         }
+        GridHex<PassiveGridObject> passiveGrid = movingUnit.gameManager.passiveGrid;
+        for (int i = 0; i < movingUnit.passiveEffects[passiveIndex].passiveLocations.Count; i++)
+        {
+            Vector2Int passiveLocation = movingUnit.passiveEffects[passiveIndex].passiveLocations[i];
+            PassiveGridObject passiveGridObject = passiveGrid.GetGridObject(passiveLocation);
+            passiveGridObject.passiveObjects.Remove(movingUnit.passiveEffects[passiveIndex]);
+            passiveGrid.SetGridObject(passiveLocation, passiveGridObject);
+        }
 
         movingUnit.passiveEffects[passiveIndex].passiveLocations.Clear();
 
@@ -66,8 +74,48 @@ public class OpportunityAttack : AreaPassive
                 Vector2Int surroundingNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
                 DijkstraMapNode surroundingUnitNode = movingUnit.gameManager.map.getGrid().GetGridObject(surroundingNodePosition);
                 if (movingUnit.moveModifier.ValidMeleeAttack(movingUnit.gameManager, currentunitNode, surroundingUnitNode, meleeAttack.range))
-                movingUnit.passiveEffects[passiveIndex].passiveLocations.Add(surroundingNodePosition);
+                {
+                    movingUnit.passiveEffects[passiveIndex].passiveLocations.Add(surroundingNodePosition);
+                    PassiveGridObject passiveGridObject = passiveGrid.GetGridObject(surroundingNodePosition);
+                    passiveGridObject.passiveObjects.Add(movingUnit.passiveEffects[passiveIndex]);
+                    passiveGrid.SetGridObject(surroundingNodePosition, passiveGridObject);
+                }
             }
         }
+    }
+
+    public override System.Tuple<Passive, Vector2Int> GetTargetingData(List<Vector2Int> path, List<Vector2Int> setPath, List<Vector2Int> passiveArea)
+    {
+        bool foundPosition = false;
+        Vector2Int spriteLocation = new Vector2Int(-1, -1);
+        for(int i = 0;  i< setPath.Count; i++)
+        {
+            if (passiveArea.Contains(setPath[i]))
+            {
+                if( i < setPath.Count - 1 || path.Count != 0)
+                {
+                    foundPosition = true;
+                    spriteLocation = setPath[i];
+                    break;
+                }
+            }
+        }
+
+        if(!foundPosition)
+        {
+            for (int i = 0; i < path.Count; i++)
+            {
+                if (passiveArea.Contains(path[i]))
+                {
+                    if (i < path.Count - 1)
+                    {
+                        spriteLocation = path[i];
+                        break;
+                    }
+                }
+            }
+        }
+
+        return new System.Tuple<Passive, Vector2Int>(this, spriteLocation);
     }
 }

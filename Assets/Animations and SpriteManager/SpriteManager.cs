@@ -34,6 +34,8 @@ public class SpriteManager : MonoBehaviour
     public List<SpriteHolder> inactiveSpriteHolders;
     public List<SpriteHolder> activeSpriteHolders;
     public List<SpriteHolder> unitPassiveAreaSpriteHolders;
+    public List<SpriteHolder> inactivetargetingPassiveSpriteHolders;
+    public List<SpriteHolder> activetargetingPassiveSpriteHolders;
     public TerrainHolder newGroundprefab;
     public TerrainHolder wallPrefab;
     public GameObject highlightedHexPrefab;
@@ -42,6 +44,7 @@ public class SpriteManager : MonoBehaviour
     public GameObject targetHexPrefab;
     public GameObject targetHexHolder;
     public GameObject spriteHolderHolder;
+    public GameObject targetSpriteHolderHolder;
     public TerrainElevationChangeAnimation ChangeElevationAnimation;
 
     public int currentViewingElevation;
@@ -55,6 +58,7 @@ public class SpriteManager : MonoBehaviour
 
     public ActionConfirmationMenu actionConfirmationMenu;
     public SpriteHolder spriteHolderPrefab;
+    public SpriteHolder targetSpriteHolderPrefab;
 
     // 0 - Ground Level, 1 GroundLevelHighlights, 2 GrondLevelTargetingHighlights, 3 Ground Level Units
     [SerializeField] private List<Tilemap> tileMaps;
@@ -659,5 +663,30 @@ public class SpriteManager : MonoBehaviour
         hex.transform.position = new Vector3(-20, -20);
         hex.spriteRenderer.sprite = null;
         hex.transform.parent = spriteHolderHolder.transform;
+    }
+
+    public SpriteHolder UseOpenTargetingSpriteHolder()
+    {
+        if (inactivetargetingPassiveSpriteHolders.Count <= 0)
+        {
+            Debug.Log("Create SpriteHolder");
+            SpriteHolder newSpriteHolder = Instantiate(targetSpriteHolderPrefab);
+            newSpriteHolder.transform.position = new Vector3(-20, -20);
+            newSpriteHolder.transform.parent = targetSpriteHolderHolder.transform;
+            inactivetargetingPassiveSpriteHolders.Add(newSpriteHolder);
+        }
+
+        SpriteHolder openSpriteHolder = inactivetargetingPassiveSpriteHolders[0];
+        inactivetargetingPassiveSpriteHolders.RemoveAt(0);
+        activetargetingPassiveSpriteHolders.Add(openSpriteHolder);
+        return openSpriteHolder;
+    }
+    public void DisableTargetingSpriteHolder(SpriteHolder hex)
+    {
+        activetargetingPassiveSpriteHolders.Remove(hex);
+        inactivetargetingPassiveSpriteHolders.Add(hex);
+        hex.transform.position = new Vector3(-20, -20);
+        hex.spriteRenderer.sprite = null;
+        hex.transform.parent = targetSpriteHolderHolder.transform;
     }
 }

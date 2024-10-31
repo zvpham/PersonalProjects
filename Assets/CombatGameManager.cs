@@ -20,8 +20,9 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public SpriteManager spriteManager;
     public DijkstraMap map;
     public GridHex<GridPosition> grid;
+    public GridHex<PassiveGridObject> passiveGrid; // This is for when actions play
 
-    public List<PassiveEffectArea> passiveAreas;
+    public List<PassiveEffectArea> passiveAreas = new List<PassiveEffectArea>(); // This makes targeting easier
     public List<Unit> units = new List<Unit>();
     public List<IInititiave> allinitiativeGroups = new List<IInititiave>();
     public List<IInititiave> initiativeOrder = new List<IInititiave>();
