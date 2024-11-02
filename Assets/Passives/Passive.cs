@@ -22,9 +22,11 @@ public abstract class Passive : ScriptableObject
         //unit.activePassiveLocations.Add(new List<Vector2Int>());
     }
 
+    public abstract void ActivatePassive(Unit unit, ActionData actionData);
+
     public abstract void RemovePassive(Unit unit);
 
     public abstract void OnSelectedAction(Action action, TargetingSystem targetingSystem);
 
-    public abstract Tuple<Passive, Vector2Int> GetTargetingData(List<Vector2Int> path, List<Vector2Int> setPath, List<Vector2Int> passiveArea);
+    public abstract Tuple<Passive, Vector2Int> GetTargetingData(Vector2Int originalPosition, List<Vector2Int> path, List<Vector2Int> setPath, List<Vector2Int> passiveArea);
 }

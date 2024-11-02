@@ -13,8 +13,8 @@ public class PassiveEffectArea
         return passive.passiveIndex.ToString() + ", " + originUnit.ToString();
     }
 
-    public Tuple<Passive, Vector2Int> GetTargetingData(List<Vector2Int> path, List<Vector2Int> setPath, List<Vector2Int> passiveArea)
+    public Tuple<Passive, Vector2Int> GetTargetingData(Vector2Int orignalPosition, List<Vector2Int> path, List<Vector2Int> setPath, List<Vector2Int> passiveArea)
     {
-        return passive.GetTargetingData(path, setPath, passiveArea);
+        return passive.GetTargetingData(orignalPosition, path, setPath, passiveArea);
     }
 }

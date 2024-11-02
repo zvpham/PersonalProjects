@@ -36,6 +36,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public bool startOfCombat = true;
     public bool playingAnimation = false;
     public bool testing = false;
+    public bool playing = false;
     public bool addedAction = false;
 
     public int mapSize = 32;
@@ -79,6 +80,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         }
         enabled = true;
         startOfCombat = false;
+        playing = true;
     }
 
     public void LoadData(WorldMapData mapData = null)
@@ -387,16 +389,21 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         Quicksort(initiatives, 0, initiatives.Count - 1);
     }
 
-    public void AddActionToQueue(ActionData newAction, bool addToStart)
+    public void AddActionToQueue(ActionData newAction, bool addToStart, bool afterCurrent)
     {
         if (addToStart)
         {
             actionsInQueue.Insert(0, newAction);
         }
+        else if (afterCurrent)
+        {
+            actionsInQueue.Insert(1, newAction);
+        }
         else
         {
             actionsInQueue.Add(newAction);
         }
+        addedAction = true;
     }
 
     public void PlayActions()
@@ -404,7 +411,11 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         Unit initialMovingUnit = actionsInQueue[0].actingUnit;
         while(actionsInQueue.Count != 0)
         {
-            OnActivateAction?.Invoke(actionsInQueue[0]);
+            addedAction = false;
+            if (!actionsInQueue[0].actionCalculated)
+            {
+                OnActivateAction?.Invoke(actionsInQueue[0]);
+            }
 
             if (!addedAction)
             {

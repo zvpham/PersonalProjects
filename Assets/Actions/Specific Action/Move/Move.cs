@@ -28,7 +28,6 @@ public class Move : Action
                     indexOfStartingMoves[i] -= 1;
                 }
             }
-
             if (path.Count == 0)
             {
                 movingUnit.gameManager.spriteManager.DeactiveTargetingSystem();
@@ -41,7 +40,7 @@ public class Move : Action
                 ActionData actionData= new ActionData();
                 actionData.action = this;
                 actionData.actingUnit = movingUnit;
-                actionData.originLocation = path[indexOfStartingMoves[i]];
+                actionData.originLocation = new Vector2Int(movingUnit.x, movingUnit.y);
                 int startPathIndex = -1;
                 int endPathIndex = -1;
                 if(i ==  indexOfStartingMoves.Count - 1)
@@ -64,7 +63,7 @@ public class Move : Action
                 }
                 actionData.path = tempPath;
                 actionData.intReturnData = endPathIndex - startPathIndex;
-                movingUnit.gameManager.AddActionToQueue(actionData, false);
+                movingUnit.gameManager.AddActionToQueue(actionData, false, false);
             }
             movingUnit.gameManager.PlayActions();
         }
@@ -113,7 +112,6 @@ public class Move : Action
             path.Add(actionData.path[i]);
         }
 
-        DijkstraMap map = movingUnit.gameManager.map;
         for (int i = 0; i < path.Count; i++)
         {
             Vector3 newPosition = movingUnit.gameManager.spriteManager.GetWorldPosition(path[i].x, path[i].y);

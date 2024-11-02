@@ -71,7 +71,9 @@ public class Unit : UnitSuperClass, IInititiave
     public List<bool> actionsActives;
     public List<Passive> passives;
     public List<PassiveEffectArea> passiveEffects = new List<PassiveEffectArea>();
-    //public List<List<Vector2Int>> activePassiveLocations = new List<List<Vector2Int>>();
+    
+    public List<StatusData> statuses;
+
     public int maxActionsPoints = 2;
     public int currentActionsPoints = 0;
     public List<int> actionCooldowns = new List<int>();
@@ -238,7 +240,7 @@ public class Unit : UnitSuperClass, IInititiave
 
             ChangeStrength(strength);
             ChangeDexterity(dexterity);
-            if (!inOverWorld && !gameManager.testing)
+            if (!inOverWorld && (!gameManager.testing || (gameManager.testing && gameManager.playing)))
             {
                 GetReadyForCombat();
             }
@@ -292,6 +294,7 @@ public class Unit : UnitSuperClass, IInititiave
 
         move = gameManager.resourceManager.actions[0];
         endTurn = gameManager.resourceManager.actions[1];
+        gameManager.OnActivateAction += CheckPassives;
         currentHealth = maxHealth;
         gameManager.spriteManager.spriteGrid.GetXY(transform.position, out int xUnit, out int yUnit);
         x = xUnit;
@@ -410,8 +413,41 @@ public class Unit : UnitSuperClass, IInititiave
         }
     }
 
+    public void CheckPassives(ActionData actionData)
+    {
+        for(int i = 0; i < passives.Count; i++)
+        {
+            passives[i].ActivatePassive(this, actionData);
+        }
+    }
+
+    public bool CheckStatuses(Action occuringAction, Passive occuringPassive)
+    {
+        bool actionOrPassiveContinue = true;
+
+        for(int i = 0; i < statuses.Count; i++)
+        {
+            if(!statuses[i].status.ContinueEvent(occuringAction, occuringPassive))
+            {
+                actionOrPassiveContinue = false; break;
+            }
+        }
+
+        return actionOrPassiveContinue;
+    }
+
     public void EndTurn()
     {
+        for(int i = 0; i < statuses.Count; i++)
+        {
+            statuses[i].duration -= 1;
+            if (statuses[i].duration <= 0)
+            {
+                statuses.RemoveAt(i);
+                i--;
+            }
+        }
+
         if (group != null)
         {
             group.EndTurn(this);
@@ -428,10 +464,6 @@ public class Unit : UnitSuperClass, IInititiave
 
     public void MovePositions(Vector3 originalPosition, Vector3 newPosition, bool finalMove)
     {
-        /*
-        Debug.Log("Move Position");
-        passives[0].AddPassive(this);
-        */
         Vector2Int oldPosition = new Vector2Int(x, y);
         gameManager.SetGridObject(null, originalPosition);
         gameManager.SetGridObject(this, newPosition);

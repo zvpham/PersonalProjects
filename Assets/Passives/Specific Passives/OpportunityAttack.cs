@@ -84,11 +84,22 @@ public class OpportunityAttack : AreaPassive
         }
     }
 
-    public override System.Tuple<Passive, Vector2Int> GetTargetingData(List<Vector2Int> path, List<Vector2Int> setPath, List<Vector2Int> passiveArea)
+    public override System.Tuple<Passive, Vector2Int> GetTargetingData(Vector2Int orignalPosition, List<Vector2Int> path,
+        List<Vector2Int> setPath, List<Vector2Int> passiveArea)
     {
         bool foundPosition = false;
         Vector2Int spriteLocation = new Vector2Int(-1, -1);
-        for(int i = 0;  i< setPath.Count; i++)
+
+        if (passiveArea.Contains(orignalPosition))
+        {
+            if (setPath.Count != 0 || path.Count != 0)
+            {
+                foundPosition = true;
+                spriteLocation = orignalPosition;
+            }
+        }
+
+        for (int i = 0;  i< setPath.Count; i++)
         {
             if (passiveArea.Contains(setPath[i]))
             {
@@ -117,5 +128,58 @@ public class OpportunityAttack : AreaPassive
         }
 
         return new System.Tuple<Passive, Vector2Int>(this, spriteLocation);
+    }
+
+    public override void ActivatePassive(Unit unit, ActionData actionData)
+    {
+        actionData.actionCalculated = true;
+        if (actionData.action.actionTypes.Contains(ActionType.Movement) && unit.team != actionData.actingUnit.team
+            && unit.CheckStatuses(null, this));
+        {
+            int passiveAreaIndex = -1;
+            for (int i = 0; i < unit.passiveEffects.Count; i++)
+            {
+                if (unit.passiveEffects[i].passive = this)
+                {
+                    passiveAreaIndex = i;
+                    break;
+                }
+            }
+
+            List<Vector2Int> passiveArea = unit.passiveEffects[passiveAreaIndex].passiveLocations;
+            List<Vector2Int> path = actionData.path;
+
+            if (passiveArea.Contains(actionData.originLocation) && path.Count != 0)
+            {
+                unit.gameManager.grid.GetXY(unit.transform.position, out int x, out int y);
+                actionData.intReturnData = 0;
+                ActionData newActionData = new ActionData();
+                newActionData.action = unit.MeleeAttack;
+                newActionData.actingUnit = unit;
+                newActionData.affectedUnits.Add(actionData.actingUnit);
+                newActionData.originLocation = new Vector2Int(x, y);
+                unit.gameManager.AddActionToQueue(newActionData, false, true);
+            }
+
+            for (int i = 0; i < actionData.path.Count; i++)
+            {
+                if (passiveArea.Contains(path[i]))
+                {
+                    if (i < path.Count - 1 &&  i < actionData.intReturnData )
+                    {
+                        unit.gameManager.grid.GetXY(unit.transform.position, out int x, out int y);
+                        actionData.intReturnData = i + 1;
+                        ActionData newActionData = new ActionData();
+                        newActionData.action = unit.MeleeAttack;
+                        newActionData.actingUnit = unit;
+                        newActionData.affectedUnits.Add(actionData.actingUnit);
+                        newActionData.originLocation = new Vector2Int(x, y);
+                        unit.gameManager.AddActionToQueue(newActionData, false, true);
+                        break;
+                    }
+                }
+            }
+
+        }
     }
 }

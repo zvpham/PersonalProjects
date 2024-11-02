@@ -10,5 +10,6 @@ public class ActionData
     public Vector2Int originLocation;
     public Vector2Int targetLocation;
     public List<Vector2Int> path = new List<Vector2Int>();
+    public bool actionCalculated;
     public int intReturnData;
 }

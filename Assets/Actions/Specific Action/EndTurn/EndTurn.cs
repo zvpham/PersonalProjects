@@ -14,7 +14,7 @@ public class EndTurn : Action
                 ActionData newData =  new ActionData();
                 newData.action = this;
                 newData.actingUnit = self;
-                self.gameManager.AddActionToQueue(newData, false);
+                self.gameManager.AddActionToQueue(newData, false, false);
                 self.gameManager.PlayActions();
             },
             () =>

@@ -19,6 +19,8 @@ public class MovementTargeting : TargetingSystem
     public List<Vector2Int> setPath = new List<Vector2Int>();
 
     public List<PassiveEffectArea>[,] passives;
+    List<PassiveEffectArea> passiveEffectAreas = new List<PassiveEffectArea>();
+    List<Tuple<Passive, Vector2Int>> passiveSprites = new List<Tuple<Passive, Vector2Int>>();
 
     public bool[,] unwalkablePassivesValues;
     public bool[,] badWalkInPassivesValues;
@@ -469,6 +471,11 @@ public class MovementTargeting : TargetingSystem
         IndexOfStartingActionLine = 0;
         amountMoved = 0;
         gameManager.spriteManager.ClearLines();
+        for (int i = 0; i < targetingPassiveSpriteHolder.Count; i++)
+        {
+            gameManager.spriteManager.DisableTargetingSpriteHolder(targetingPassiveSpriteHolder[i]);
+        }
+        targetingPassiveSpriteHolder.Clear();
     }
 
     public override void DeactivateTargetingSystem()
@@ -533,8 +540,8 @@ public class MovementTargeting : TargetingSystem
             actionMoveAmounts.RemoveAt(actionMoveAmounts.Count - 1);
         }
 
-        List<PassiveEffectArea> passiveEffectAreas = new List<PassiveEffectArea>();
-        List<Tuple<Passive, Vector2Int>> passiveSprites = new List<Tuple<Passive, Vector2Int>>();
+        passiveEffectAreas = new List<PassiveEffectArea>();
+        passiveSprites = new List<Tuple<Passive, Vector2Int>>();
 
         for(int i = 0; i < targetingPassiveSpriteHolder.Count; i++)
         {
@@ -542,45 +549,9 @@ public class MovementTargeting : TargetingSystem
         }
         targetingPassiveSpriteHolder.Clear();
 
-        for (int i = 0; i < setPath.Count; i++)
-        {
-            Vector2Int pathLocation = setPath[i];
-            List<PassiveEffectArea> passivesOnLocation = passives[pathLocation.x, pathLocation.y];
-            List<Passive> passivesUsed = new List<Passive>(); // For no repat passive Diplay on one location
-            for (int j = 0; j < passivesOnLocation.Count; j++)
-            {
-                if (!passiveEffectAreas.Contains(passivesOnLocation[j]) && !passivesUsed.Contains(passivesOnLocation[j].passive))
-                {
-                    passiveEffectAreas.Add(passivesOnLocation[j]);
-                    Tuple<Passive, Vector2Int> tempPassiveSprite = passivesOnLocation[j].GetTargetingData(path, setPath, passivesOnLocation[j].passiveLocations);
-                    if (tempPassiveSprite.Item2.x != -1)
-                    {
-                        passiveSprites.Add(tempPassiveSprite);
-                    }
-                    passivesUsed.Add(passivesOnLocation[j].passive);
-                }
-            }
-        }
-
-        for (int i = 0; i < path.Count; i++)
-        {
-            Vector2Int pathLocation = path[i];
-            List<PassiveEffectArea> passivesOnLocation = passives[pathLocation.x, pathLocation.y];
-            List<Passive> passivesUsed = new List<Passive>();
-            for (int j = 0; j < passivesOnLocation.Count; j++)
-            {
-                if (!passiveEffectAreas.Contains(passivesOnLocation[j]) && !passivesUsed.Contains(passivesOnLocation[j].passive) )
-                {
-                    passiveEffectAreas.Add(passivesOnLocation[j]);
-                    Tuple<Passive, Vector2Int> tempPassiveSprite = passivesOnLocation[j].GetTargetingData(path, setPath, passivesOnLocation[j].passiveLocations);
-                    if(tempPassiveSprite.Item2.x != -1)
-                    {
-                        passiveSprites.Add(tempPassiveSprite);
-                    }
-                    passivesUsed.Add(passivesOnLocation[j].passive);
-                }
-            }
-        }
+        CheckPassives(new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) });
+        CheckPassives(setPath);
+        CheckPassives(path);
 
         //Hex Position, num Passives
         Dictionary<Vector2Int, int> passivesGrid =  new Dictionary<Vector2Int, int>();
@@ -599,6 +570,30 @@ public class MovementTargeting : TargetingSystem
             tempTargetPassiveSprite.spriteRenderer.sortingOrder = gameManager.spriteManager.terrain[passiveSprites[i].Item2.x, passiveSprites[i].Item2.y].sprite.sortingOrder + 10;
             tempTargetPassiveSprite.spriteRenderer.sprite = passiveSprites[i].Item1.UISkillImage;
             targetingPassiveSpriteHolder.Add(tempTargetPassiveSprite);
+        }
+    }
+
+    public void CheckPassives(List<Vector2Int> moveLocations)
+    {
+        for (int i = 0; i < moveLocations.Count; i++)
+        {
+            Vector2Int pathLocation = moveLocations[i];
+            List<PassiveEffectArea> passivesOnLocation = passives[pathLocation.x, pathLocation.y];
+            List<Passive> passivesUsed = new List<Passive>();
+            for (int j = 0; j < passivesOnLocation.Count; j++)
+            {
+                if (!passiveEffectAreas.Contains(passivesOnLocation[j]) && !passivesUsed.Contains(passivesOnLocation[j].passive))
+                {
+                    passiveEffectAreas.Add(passivesOnLocation[j]);
+                    Tuple<Passive, Vector2Int> tempPassiveSprite = passivesOnLocation[j].GetTargetingData(new Vector2Int(movingUnit.x, movingUnit.y), path, 
+                        setPath, passivesOnLocation[j].passiveLocations);
+                    if (tempPassiveSprite.Item2.x != -1)
+                    {
+                        passiveSprites.Add(tempPassiveSprite);
+                    }
+                    passivesUsed.Add(passivesOnLocation[j].passive);
+                }
+            }
         }
     }
 
