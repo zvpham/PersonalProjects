@@ -81,7 +81,6 @@ namespace Inventory.Model
         private void PrepareUI()
         {
             inventoryUI.InitializeInventoryUI();
-            this.inventoryUI.OnSwapItems += HandleSwapItems;
             this.inventoryUI.OnStartDragging += HandleDragging;
             this.inventoryUI.OnEquipItem += HandleEquipItem;
             this.inventoryUI.OnUnequipItem += HandleUnequipItem;
@@ -253,11 +252,6 @@ namespace Inventory.Model
                 return;
             }
             inventoryUI.CreateDraggedItem(inventoryItem.item.itemImage);
-        }
-
-        private void HandleSwapItems(int itemIndex1, int itemIndex2)
-        {
-            inventoryData.SwapItems(itemIndex1, itemIndex2);
         }
 
         private void HandleProfileClicked(EquipableItemSO item, EquipSlot equipSlot)

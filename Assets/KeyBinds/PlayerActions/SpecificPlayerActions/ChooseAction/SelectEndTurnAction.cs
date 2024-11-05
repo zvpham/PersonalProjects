@@ -8,13 +8,13 @@ public class SelectEndTurnAction : PlayerAction
 {
     public override void Activate(InputManager input)
     {
-        if (input.player.currentlySelectedAction != input.player.currentlySelectedUnit.endTurn)
+        if (input.player.currentlySelectedAction != input.player.currentlySelectedUnit.actions[1].action)
         {
-            input.player.SelectAction(input.player.currentlySelectedUnit.endTurn);
+            input.player.SelectAction(input.player.currentlySelectedUnit.actions[1].action);
         }
         else
         {
-            input.player.SelectAction(input.player.currentlySelectedUnit.move);
+            input.player.SelectAction(input.player.currentlySelectedUnit.actions[0].action);
         }
     }
 }

@@ -22,4 +22,4 @@ MonoBehaviour:
   actionTypes: 
   animation: {fileID: 0}
   targetingSystem: {fileID: 0}
-  status: {fileID: 0}
+  status: {fileID: 11400000, guid: 08a4990dd1bbf534fbeacf23cfceee90, type: 2}

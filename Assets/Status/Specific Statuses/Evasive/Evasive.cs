@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Stops attacks of oppurtunity from activating
+[CreateAssetMenu(menuName = "Status/Evasive")]
 public class Evasive : Status
 { 
     public override void AddStatus(Unit target, int newDuration)
@@ -15,6 +16,7 @@ public class Evasive : Status
 
     public override bool ContinueEvent(Action occuringAction, Passive occuringPassive)
     {
+        Debug.Log("Checck: " + occuringPassive.GetType());
         if(occuringPassive.GetType() == typeof(OpportunityAttack))
         {
             return false;

@@ -15,8 +15,8 @@ public class MeleeAttack : Action
     public override void SelectAction(Unit self)
     {
         base.SelectAction(self);
-        int actionIndex = self.actions.IndexOf(this);
-        int amountOfActionPointsUsed = this.intialActionPointUsage + actionPointGrowth * self.amountActionUsedDuringRound[actionIndex];
+        int actionIndex = GetActionIndex(self);
+        int amountOfActionPointsUsed = this.intialActionPointUsage + actionPointGrowth * self.actions[actionIndex].amountUsedDuringRound;
         self.gameManager.spriteManager.ActivateMeleeAttackTargeting(self, false, self.currentActionsPoints, amountOfActionPointsUsed, range,
             CalculateAttackData);
         self.gameManager.spriteManager.meleeTargeting.OnFoundTarget += FoundTarget;

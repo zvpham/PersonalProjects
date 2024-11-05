@@ -8,11 +8,11 @@ public class SelectActionFour : PlayerAction
     public override void Activate(InputManager input)
     {
         if (input.player.currentlySelectedUnit.actions.Count >= 4 &&
-            input.player.currentlySelectedAction != input.player.currentlySelectedUnit.actions[3])
-            input.player.SelectAction(input.player.currentlySelectedUnit.actions[3]);
+            input.player.currentlySelectedAction != input.player.currentlySelectedUnit.actions[3].action)
+            input.player.SelectAction(input.player.currentlySelectedUnit.actions[3].action);
         else
         {
-            input.player.SelectAction(input.player.currentlySelectedUnit.move);
+            input.player.SelectAction(input.player.currentlySelectedUnit.actions[0].action);
         }
     }
 }

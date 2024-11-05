@@ -25,8 +25,10 @@ public class Evade : StatusAction
 
     public override void ConfirmAction(ActionData actionData)
     {
+        Debug.Log("Confirm Action");
         Evade action = (Evade) actionData.action;
         action.status.AddStatus(actionData.actingUnit, 1);
+        UseActionPreset(actionData.actingUnit);
     }
 
 }

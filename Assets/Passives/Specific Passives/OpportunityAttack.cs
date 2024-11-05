@@ -7,14 +7,13 @@ public class OpportunityAttack : AreaPassive
 {
     public override void AddPassive(Unit unit)
     {
-        Debug.Log("add Passive: "  +  unit);
         base.AddPassive(unit);
         unit.OnPositionChanged += OnPositionChanged;
         if(unit.MeleeAttack == null)
         {
             for(int i = 0; i < unit.actions.Count; i++)
             {
-                Action action = unit.actions[i];
+                Action action = unit.actions[i].action;
                 if (action.GetType() == typeof(MeleeAttack))
                 {
                     unit.MeleeAttack = (MeleeAttack)action;
@@ -134,7 +133,7 @@ public class OpportunityAttack : AreaPassive
     {
         actionData.actionCalculated = true;
         if (actionData.action.actionTypes.Contains(ActionType.Movement) && unit.team != actionData.actingUnit.team
-            && unit.CheckStatuses(null, this));
+            && actionData.actingUnit.CheckStatuses(null, this))
         {
             int passiveAreaIndex = -1;
             for (int i = 0; i < unit.passiveEffects.Count; i++)

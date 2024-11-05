@@ -54,6 +54,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1d74f37f4f62311478991f762fb2e791, type: 2}
   accessories:
   - {fileID: 11400000, guid: 0568be4482c37884f9f83fb696c4ea71, type: 2}
+  standardUnitActions: {fileID: 11400000, guid: 4bdc78d4e2d3efd4b9b50c5ae671e8d5, type: 2}
   actions:
   - {fileID: 11400000, guid: dde7f548d5bdadd498b511eb0268b8f3, type: 2}
   - {fileID: 11400000, guid: 505f164067487ae478219d6f6d836e62, type: 2}

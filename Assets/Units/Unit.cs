@@ -63,22 +63,16 @@ public class Unit : UnitSuperClass, IInititiave
     public int x;
     public int y;
 
-    public Action endTurn;
-    public Action move;
     public MeleeAttack MeleeAttack;
-    public int amountMoveUsedDuringRound;
-    public List<Action> actions;
-    public List<bool> actionsActives;
-    public List<Passive> passives;
+    public List<UnitActionData> actions = new List<UnitActionData>();
+
+    public List<Passive> passives = new List<Passive>();
     public List<PassiveEffectArea> passiveEffects = new List<PassiveEffectArea>();
     
-    public List<StatusData> statuses;
+    public List<StatusData> statuses = new List<StatusData>();
 
     public int maxActionsPoints = 2;
     public int currentActionsPoints = 0;
-    public List<int> actionCooldowns = new List<int>();
-    public List<int> actionUses = new List<int>();
-    public List<int> amountActionUsedDuringRound = new List<int>();
 
     public List<Unit> selfInTheseUnitsThreatenedZones = new List<Unit>();
 
@@ -106,31 +100,34 @@ public class Unit : UnitSuperClass, IInititiave
         List<List<PassiveEffectArea>> classifiedPassives = new List<List<PassiveEffectArea>>() { new List<PassiveEffectArea>(),
         new List<PassiveEffectArea>(), new List<PassiveEffectArea>()};
         List<PassiveEffectArea> allPassiveAreas = gameManager.passiveAreas;
-        Debug.Log("Anything Here: ");
         for (int i = 0; i < allPassiveAreas.Count; i++)
         {
             PassiveAreaClassification classification = allPassiveAreas[i].passive.passiveClassification;
-            Debug.Log("Anything Here: " + allPassiveAreas[i]);
+            int classificationIndex = -1;
             switch(classification)
             {
                 case (PassiveAreaClassification.EnemyUnwalkable):
                     if (allPassiveAreas[i].originUnit.team != this.team)
                     {
-                        classifiedPassives[0].Add(allPassiveAreas[i]);
+                        classificationIndex = 0;
                     }
                     break;
                 case (PassiveAreaClassification.EnemyBadWalkIn):
                     if (allPassiveAreas[i].originUnit.team != this.team)
                     {
-                        classifiedPassives[1].Add(allPassiveAreas[i]);
+                        classificationIndex = 1;
                     }
                     break;
                 case (PassiveAreaClassification.AllyWantToWalk):
                     if (allPassiveAreas[i].originUnit.team == this.team)
                     {
-                        classifiedPassives[2].Add(allPassiveAreas[i]);
+                        classificationIndex = 2;
                     }
                     break;
+            }
+            if(classificationIndex != -1 && CheckStatuses(null, allPassiveAreas[i].passive))
+            {
+                classifiedPassives[classificationIndex].Add(allPassiveAreas[i]);
             }
         }
         return classifiedPassives;
@@ -279,11 +276,6 @@ public class Unit : UnitSuperClass, IInititiave
             gameManager.playerTurn.playerUnits.Add(this);
         }
 
-        for (int i = 0; i < actions.Count; i++)
-        {
-            actionCooldowns.Add(0);
-            actionUses.Add(actions[i].maxUses);
-        }
         gameManager.SetGridObject(this, transform.position);
         gameManager.units.Add(this);
         if (!gameManager.testing)
@@ -292,8 +284,7 @@ public class Unit : UnitSuperClass, IInititiave
         }
         gameManager.StartCombat();
 
-        move = gameManager.resourceManager.actions[0];
-        endTurn = gameManager.resourceManager.actions[1];
+        gameManager.resourceManager.standardUnitActions.AddActions(this);
         gameManager.OnActivateAction += CheckPassives;
         currentHealth = maxHealth;
         gameManager.spriteManager.spriteGrid.GetXY(transform.position, out int xUnit, out int yUnit);
@@ -380,10 +371,9 @@ public class Unit : UnitSuperClass, IInititiave
 
     public void CheckActionsDisabled()
     {
-        actionsActives = new List<bool>();
         for(int i = 0; i < actions.Count; i++)
         {
-            actionsActives.Add(actions[i].CheckActionUsable(this));
+            actions[i].active = actions[i].action.CheckActionUsable(this);
         }
     }
 
@@ -399,6 +389,7 @@ public class Unit : UnitSuperClass, IInititiave
             Debug.Log("Used Action Points: " + usedActionPoints);
         }
         currentActionsPoints -= usedActionPoints;
+        CheckActionsDisabled();
     }
 
     public void ActionsFinishedActivating()
@@ -424,12 +415,13 @@ public class Unit : UnitSuperClass, IInititiave
     public bool CheckStatuses(Action occuringAction, Passive occuringPassive)
     {
         bool actionOrPassiveContinue = true;
-
+        Debug.Log("Check Status: " + occuringPassive);
         for(int i = 0; i < statuses.Count; i++)
         {
             if(!statuses[i].status.ContinueEvent(occuringAction, occuringPassive))
             {
-                actionOrPassiveContinue = false; break;
+                actionOrPassiveContinue = false; 
+                break;
             }
         }
 
@@ -472,14 +464,6 @@ public class Unit : UnitSuperClass, IInititiave
         y = unitY;
         this.transform.position = newPosition;
         OnPositionChanged?.Invoke(oldPosition,  new Vector2Int(x, y), this, finalMove);
-    }
-
-    public void AddAction(Action newAction)
-    {
-        actions.Add(newAction);
-        actionCooldowns.Add(0);
-        actionUses.Add(newAction.maxUses);
-        amountActionUsedDuringRound.Add(0);
     }
 
     public Tuple<int, int, List<AttackDataUI>> CalculateEstimatedDamage(int minDamageValue, int maxDamageValue, bool ignoreShield)

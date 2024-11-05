@@ -368,10 +368,9 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     {
         for(int i = 0; i < units.Count; i++)
         {
-            units[i].amountMoveUsedDuringRound = 0;
-            for(int j = 0; j < units[i].amountActionUsedDuringRound.Count; j++)
+            for(int j = 0; j < units[i].actions.Count; j++)
             {
-                units[i].amountActionUsedDuringRound[j] = 0;
+                units[i].actions[j].amountUsedDuringRound = 0;
             }
         }
     }
@@ -391,6 +390,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
 
     public void AddActionToQueue(ActionData newAction, bool addToStart, bool afterCurrent)
     {
+        Debug.Log("Add Action TO Queue: " + newAction.action);
         if (addToStart)
         {
             actionsInQueue.Insert(0, newAction);

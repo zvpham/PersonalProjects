@@ -6,7 +6,6 @@ using UnityEngine.Events;
 public abstract class Status : ScriptableObject
 {
     public int statusPrefabIndex;
-    public Unit affectedUnit;
 
     public int currentStatusDuration;
     public bool nonStandardDuration = false;
@@ -18,8 +17,6 @@ public abstract class Status : ScriptableObject
     public bool ApplyEveryTurn;
     public bool isFirstApply;
     public bool isFirstWorldTurn = true;
-
-    public event UnityAction animationEnd;
 
     // Start is called before the first frame update
     abstract public void AddStatus(Unit target, int newDuration);

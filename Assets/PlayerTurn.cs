@@ -84,7 +84,7 @@ public class PlayerTurn : MonoBehaviour
         if (activeUnits.Contains(unit))
         {
             currentlySelectedUnit = unit;
-            SelectAction(unit.move);
+            SelectAction(unit.actions[0].action);
         }
         else
         {
@@ -95,7 +95,8 @@ public class PlayerTurn : MonoBehaviour
         actionBar.ResetActionBarList();
         for(int i = 0; i < currentlySelectedUnit.actions.Count; i++)
         {
-            actionBar.AddAction(currentlySelectedUnit.actions[i].actionSprite, currentlySelectedUnit.actionCooldowns[i], currentlySelectedUnit.actionUses[i]);
+            actionBar.AddAction(currentlySelectedUnit.actions[i].action.actionSprite, currentlySelectedUnit.actions[i].actionCoolDown,
+                currentlySelectedUnit.actions[i].actionUsesLeft);
         }
     }
 
@@ -115,7 +116,7 @@ public class PlayerTurn : MonoBehaviour
 
     public void OnActionButtonPresed(int actionIndex)
     {
-        SelectAction(currentlySelectedUnit.actions[actionIndex]);
+        SelectAction(currentlySelectedUnit.actions[actionIndex].action);
     }
 
     public void UnitGroupTurnEnd()

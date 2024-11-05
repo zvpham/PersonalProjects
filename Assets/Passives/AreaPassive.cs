@@ -10,7 +10,6 @@ public abstract class AreaPassive : Passive
         Debug.LogWarning("REmove this if Test statement for real game");
         if(unit.isLoaded == true)
         {
-            Debug.Log("is this Registersed");
             PassiveEffectArea newPassiveEffectArea = new PassiveEffectArea();
             newPassiveEffectArea.passive = this;
             newPassiveEffectArea.originUnit = unit;

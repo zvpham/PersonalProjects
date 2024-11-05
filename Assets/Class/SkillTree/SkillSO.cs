@@ -12,14 +12,14 @@ public class SkillSO : ScriptableObject
 
     public void UnlockSkill(Unit unit)
     {
-        unit.actions.Add(action);
+        action.AddAction(unit);
         unit.passives.Add(passive);
         passive.AddPassive(unit);
     }
 
     public void LockSkill(Unit unit)
     {
-        unit.actions.Remove(action);
+        action.RemoveAction(unit);
         unit.passives.Remove(passive);
         passive.RemovePassive(unit);
     }

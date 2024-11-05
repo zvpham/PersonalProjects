@@ -80,7 +80,7 @@ namespace Inventory.UI
             OnStartDragging,
             OnMainFilterChanged;
 
-        public event Action<int, int> OnSwapItems, OnFiltersChanged;
+        public event Action<int, int> OnFiltersChanged;
 
         public event Action<int, EquipSlot> OnEquipItem;
         public event Action<EquipableItemSO, EquipSlot> OnProfileClicked;

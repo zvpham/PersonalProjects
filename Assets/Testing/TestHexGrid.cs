@@ -91,16 +91,13 @@ public class TestHexGrid : MonoBehaviour
 
     public void CreateGrid(int mapWidth, int mapHeight, int amountOfTerrainLevels)
     {
-        Debug.Log("Create Grid");
         gameManager.spriteManager.CreateGrid(mapWidth, mapHeight, amountOfTerrainLevels, cellSize, defaultGridAdjustment);
         for (int i = 0; i < prefabTerrain.terrainElevation.Count; i++)
         {
             Vector3Int terrainHexData = prefabTerrain.terrainElevation[i];
             gameManager.spriteManager.elevationOfHexes[terrainHexData.x, terrainHexData.y] = terrainHexData.z;
         }
-
-
-        Debug.Log(gameManager.spriteManager.terrainTilePositions.Count);
+    
         for (int i = 0; i < prefabTerrain.terrainElevation.Count; i++)
         {
             Vector3Int terrainHexData = prefabTerrain.terrainElevation[i];

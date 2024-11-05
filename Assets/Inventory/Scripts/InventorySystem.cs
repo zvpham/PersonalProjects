@@ -86,7 +86,6 @@ public class InventorySystem : MonoBehaviour
     private void PrepareUI()
     {
         inventoryUI.InitializeInventoryUI();
-        this.inventoryUI.OnSwapItems += HandleSwapItems;
         this.inventoryUI.OnStartDragging += HandleDragging;
         this.inventoryUI.OnEquipItem += HandleEquipItem;
         this.inventoryUI.OnUnequipItem += HandleUnequipItem;

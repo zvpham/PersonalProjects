@@ -18,8 +18,8 @@ public class RangedAttack : Action
     {
         Debug.Log("select Ranged ATtack");
         base.SelectAction(self);
-        int actionIndex = self.actions.IndexOf(this);
-        int amountOfActionPointsUsed = this.intialActionPointUsage + actionPointGrowth * self.amountActionUsedDuringRound[actionIndex];
+        int actionIndex = GetActionIndex(self);
+        int amountOfActionPointsUsed = this.intialActionPointUsage + actionPointGrowth * self.actions[actionIndex].amountUsedDuringRound;
 
         List<EquipableAmmoSO> unitAmmo = new List<EquipableAmmoSO>();
 

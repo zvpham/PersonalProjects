@@ -21,6 +21,7 @@ public class ResourceManager : ScriptableObject
     public List<EquipableItemSO> accessories;
 
 
+    public StandardUnitActions standardUnitActions;
     public List<Action> actions;
     public List<MoveModifier> moveModifiers;
     public List<AttackModifier> meleeAttackModifiers;

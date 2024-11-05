@@ -11,6 +11,7 @@ public abstract class Action : ScriptableObject
     public int intialActionPointUsage = 1;
     public int actionPointGrowth = 1;
     public bool consumableAction = false;
+    public bool oneTimeUsePerRound = false;
     public List<ActionType> actionTypes;
 
     public CustomAnimations animation;
@@ -28,32 +29,74 @@ public abstract class Action : ScriptableObject
 
     public void UseActionPreset(Unit self)
     {
-        int actionIndex = self.actions.IndexOf(this);
-        Debug.Log("Action Uses: " + self.amountActionUsedDuringRound[actionIndex]);
-        self.UseActionPoints(intialActionPointUsage + actionPointGrowth * self.amountActionUsedDuringRound[actionIndex]);
-        self.amountActionUsedDuringRound[actionIndex] += 1;
+        int actionIndex = GetActionIndex(self);
+        Debug.Log("Action Uses: " + self.actions[actionIndex].amountUsedDuringRound);
+        self.UseActionPoints(intialActionPointUsage + actionPointGrowth * self.actions[actionIndex].amountUsedDuringRound);
+        self.actions[actionIndex].amountUsedDuringRound += 1;
         if (consumableAction)
         {
-            self.actionUses[actionIndex] -= 1;
+            self.actions[actionIndex].actionUsesLeft -= 1;
         }
     }
 
     public bool CheckActionUsable(Unit self)
     {
-        int actionIndex = self.actions.IndexOf(this);
+        int actionIndex = GetActionIndex(self);
 
-        if (actionIndex != -1 && self.actionCooldowns[actionIndex] == 0 && self.actionUses[actionIndex] > 0 && SpecificCheckActionUsable(self) &&
-            this.intialActionPointUsage + actionPointGrowth * self.amountActionUsedDuringRound[actionIndex] <= self.currentActionsPoints)
+        if (actionIndex != -1 && self.actions[actionIndex].actionCoolDown == 0 && self.actions[actionIndex].actionUsesLeft > 0 && 
+            SpecificCheckActionUsable(self) && this.intialActionPointUsage + actionPointGrowth * self.actions[actionIndex].amountUsedDuringRound
+            <= self.currentActionsPoints && (!oneTimeUsePerRound || (oneTimeUsePerRound && self.actions[actionIndex].amountUsedDuringRound == 0)))
         {
             return true;
         }
         return false;
     }
 
+
     public abstract void ConfirmAction(ActionData actionData);
 
     public virtual bool SpecificCheckActionUsable(Unit self)
     {
         return true;
+    }
+    public void AddAction(Unit unit)
+    {
+        UnitActionData actionData = new UnitActionData();
+        actionData.action = this;
+        actionData.active = true;
+        actionData.actionCoolDown = 0;
+        actionData.amountUsedDuringRound = 0;
+        actionData.actionUsesLeft = maxUses;
+        unit.actions.Add(actionData);
+    }
+
+    public void AddAction(Unit unit, int actionIndex)
+    {
+        UnitActionData actionData = new UnitActionData();
+        actionData.action = this;
+        actionData.active = true;
+        actionData.actionCoolDown = 0;
+        actionData.amountUsedDuringRound = 0;
+        actionData.actionUsesLeft = maxUses;
+        unit.actions.Insert(actionIndex, actionData);
+    }
+
+
+    public void RemoveAction(Unit unit)
+    {
+        int unitActionIndex = GetActionIndex(unit);
+        unit.actions.RemoveAt(unitActionIndex);
+    }
+
+    public int GetActionIndex(Unit unit)
+    {
+        for(int i = 0; i < unit.actions.Count; i++)
+        {
+            if (unit.actions[i].action == this)
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 }

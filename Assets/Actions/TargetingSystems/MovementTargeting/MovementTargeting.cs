@@ -21,10 +21,10 @@ public class MovementTargeting : TargetingSystem
     public List<PassiveEffectArea>[,] passives;
     List<PassiveEffectArea> passiveEffectAreas = new List<PassiveEffectArea>();
     List<Tuple<Passive, Vector2Int>> passiveSprites = new List<Tuple<Passive, Vector2Int>>();
-
     public bool[,] unwalkablePassivesValues;
     public bool[,] badWalkInPassivesValues;
     public bool[,] goodWalkinPassivesValues;
+
     public List<int> startOfNewMoveIndexes = new List<int>();
     public List<int> setStartOfNewMoveIndexes = new List<int>();
     public GameObject tempMovingUnit;
@@ -58,7 +58,7 @@ public class MovementTargeting : TargetingSystem
         prevEndHexPosition = new Vector2Int(-10, 0);
         path = new List<Vector2Int>();
         this.enabled = true;
-        amountMoved = movingUnit.amountMoveUsedDuringRound;
+        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
         highlightedHexes = new List<GameObject>();
         SetUp(startingPosition, actionPointsLeft, movingUnit.moveSpeed);
 

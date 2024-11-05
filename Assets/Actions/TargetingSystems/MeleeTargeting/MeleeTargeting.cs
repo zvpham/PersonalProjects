@@ -1,4 +1,5 @@
 using Mono.Cecil;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -7,6 +8,7 @@ using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Windows;
 
 public class MeleeTargeting : TargetingSystem
 {
@@ -22,18 +24,32 @@ public class MeleeTargeting : TargetingSystem
     public List<Vector2Int> path = new List<Vector2Int>();
     public List<Vector2Int> setPath = new List<Vector2Int>();
     public List<Vector2Int> targetHexPositions =  new List<Vector2Int>();
-
     public List<Vector2Int> enemyGroundHexes;
     public List<Vector2Int> groundHexes;
+    List<Vector2Int> friendlyUnits = new List<Vector2Int>();
+    List<Vector2Int> validTargetPositions = new List<Vector2Int>();
+
+    public List<int> startOfNewMoveIndexes = new List<int>();
+    public List<int> setStartOfNewMoveIndexes = new List<int>();
+
+    public List<PassiveEffectArea>[,] passives;
+    List<PassiveEffectArea> passiveEffectAreas = new List<PassiveEffectArea>();
+    List<Tuple<Passive, Vector2Int>> passiveSprites = new List<Tuple<Passive, Vector2Int>>();
+    public bool[,] unwalkablePassivesValues;
+    public bool[,] badWalkInPassivesValues;
+    public bool[,] goodWalkinPassivesValues;
+
     public List<int> groundColorValues;
     public List<GameObject> highlightedTargetedHexes = new List<GameObject>();
     public List<GameObject> highlightedHexes = new List<GameObject>();
     public List<GameObject> rangeHexes = new List<GameObject>();
+    public List<SpriteHolder> targetingPassiveSpriteHolder = new List<SpriteHolder>();
     public GameObject tempMovingUnit;
     public int oneActionMoveAmount;
     public int twoActionMoveAmount;
     public int meleeRange;
     public int actionPointUseAmount;
+
 
     public List<int> actionMoveAmounts;
     public int amountOfPossibleMoves;
@@ -79,7 +95,53 @@ public class MeleeTargeting : TargetingSystem
         prevEndHexPosition = new Vector2Int(-10, 0);
         path = new List<Vector2Int>();
         this.enabled = true;
-        amountMoved = movingUnit.amountMoveUsedDuringRound;
+        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
+
+        passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < gameManager.mapSize; i++)
+        {
+            for (int j = 0; j < gameManager.mapSize; j++)
+            {
+                passives[i, j] = new List<PassiveEffectArea>();
+            }
+        }
+
+        List<List<PassiveEffectArea>> classifiedPassiveEffectArea = movingUnit.CalculuatePassiveAreas();
+        unwalkablePassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+
+        for (int i = 0; i < classifiedPassiveEffectArea[0].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[0][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[0][i].passiveLocations[j];
+                unwalkablePassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[0][i]);
+            }
+        }
+
+        badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < classifiedPassiveEffectArea[1].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[1][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[1][i].passiveLocations[j];
+                badWalkInPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[1][i]);
+            }
+        }
+
+        goodWalkinPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < classifiedPassiveEffectArea[2].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[2][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[2][i].passiveLocations[j];
+                goodWalkinPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[2][i]);
+            }
+        }
+
+
         SetUp(startingPosition, actionPointsLeft, movingUnit.moveSpeed);
     }
 
@@ -89,8 +151,7 @@ public class MeleeTargeting : TargetingSystem
         ResetSetUp();
 
         List<Unit> units = gameManager.units;
-        SpriteManager spriteManager = gameManager.spriteManager;
-        List<Vector2Int> friendlyUnits = new List<Vector2Int>();
+        friendlyUnits = new List<Vector2Int>();
         for(int i = 0; i < units.Count; i++)
         {
             if(units[i].team == movingUnit.team)
@@ -100,7 +161,7 @@ public class MeleeTargeting : TargetingSystem
         }
 
         List<Unit> validTargets = GetValidTargets();
-        List<Vector2Int> validTargetPositions =  new List<Vector2Int>();
+        validTargetPositions =  new List<Vector2Int>();
         for(int i = 0; i < validTargets.Count; i++)
         {
             validTargetPositions.Add(new Vector2Int(validTargets[i].x, validTargets[i].y));
@@ -374,9 +435,10 @@ public class MeleeTargeting : TargetingSystem
             if (map.getGrid().GetGridObject(endX, endY) != null)
             {
                 endHex.Add(new Vector2Int(endX, endY));
-                map.SetGoals(endHex);
+                map.SetGoals(endHex, gameManager, movingUnit.moveModifier, badWalkInPassivesValues);
                 map.getGrid().GetXY(startingPosition, out int x, out int y);
                 path.Clear();
+                startOfNewMoveIndexes = new List<int>();
                 bool foundEndPosition = false;
                 bool findMostDirectPath = false;
                 int initialAmountPathMoveIncreased = amountActionLineIncreased;
@@ -410,6 +472,7 @@ public class MeleeTargeting : TargetingSystem
                         // loop through possible move amounts to find a path to end hex
                         for (int i = 0; i < amountOfPossibleMoves; i++)
                         {
+                            startOfNewMoveIndexes.Add(path.Count);
                             actionMoveAmounts.Add(0);
                             amountActionLineIncreased += 1;
                             bool inRangeBracket = rangeBrackets[i].Contains(new Vector2Int(endX, endY));
@@ -455,6 +518,10 @@ public class MeleeTargeting : TargetingSystem
                                 x = startx;
                                 y = starty;
 
+                                map.ResetMap(true);
+                                movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+                                map.SetGoals(endHex, gameManager, movingUnit.moveModifier);
+
                                 //Try to find Path
                                 for (int j = 0; j < movingUnit.moveSpeed; j++)
                                 {
@@ -490,17 +557,18 @@ public class MeleeTargeting : TargetingSystem
                             }
                             amountActionLineIncreased = initialAmountPathMoveIncreased;
                             endHex.Add(new Vector2Int(endX, endY));
-                            map.SetGoals(endHex);
+                            map.ResetMap(true);
+                            movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+                            map.SetGoals(endHex, gameManager, movingUnit.moveModifier);
                             map.getGrid().GetXY(startingPosition, out x, out y);
                             path.Clear();
+                            startOfNewMoveIndexes = new List<int>();
                             foundEndPosition = false;
                             for (int i = 0; i < amountOfPossibleMoves; i++)
                             {
                                 amountActionLineIncreased += 1;
                                 actionMoveAmounts.Add(0);
-                                bool inRangeBracket = rangeBrackets[i].Contains(new Vector2Int(endX, endY));
-                                int startx = x;
-                                int starty = y;
+                                startOfNewMoveIndexes.Add(path.Count);
 
                                 // Attempt to find path Avoiding harmful Terrain
                                 for (int j = 0; j < movingUnit.moveSpeed; j++)
@@ -623,6 +691,11 @@ public class MeleeTargeting : TargetingSystem
                 {
                     if (actionPointsLeft > 0)
                     {
+                        for (int i = 0; i < startOfNewMoveIndexes.Count; i++)
+                        {
+                            setStartOfNewMoveIndexes.Add(startOfNewMoveIndexes[i]);
+                        }
+
                         prevEndHexPosition = endHexPosition;
                         for (int i = 0; i < path.Count; i++)
                         {
@@ -687,7 +760,7 @@ public class MeleeTargeting : TargetingSystem
                             () => // Confirm Action
                             {
                                 selectedTarget = true;
-                                gameManager.move.AnotherActionMove(setPath, IndexOfStartingActionLine, movingUnit, false);
+                                gameManager.move.AnotherActionMove(setPath, setStartOfNewMoveIndexes, movingUnit, false);
                                 OnFoundTarget?.Invoke(movingUnit, targetUnit, true);
                                 Destroy(tempMovingUnit);
                             },
@@ -727,7 +800,7 @@ public class MeleeTargeting : TargetingSystem
                             }
                             else
                             {
-                                gameManager.move.AnotherActionMove(setPath, amountMoved, movingUnit, true);
+                                gameManager.move.AnotherActionMove(setPath, setStartOfNewMoveIndexes, movingUnit, true);
                                 Destroy(tempMovingUnit);
                             }
                         },
@@ -751,13 +824,19 @@ public class MeleeTargeting : TargetingSystem
         path = new List<Vector2Int>();
         setPath = new List<Vector2Int>();
         actionMoveAmounts = new List<int>();
+        setStartOfNewMoveIndexes = new List<int>();
         actionLines = new List<List<Vector3>>();
         amountActionLineIncreased = 0;
         IndexOfStartingActionLine = 0;
         actionPointsLeft = movingUnit.currentActionsPoints;
-        amountMoved = movingUnit.amountMoveUsedDuringRound;
+        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
         gameManager.spriteManager.ResetCombatAttackUI();
         gameManager.spriteManager.ClearLines();
+        for (int i = 0; i < targetingPassiveSpriteHolder.Count; i++)
+        {
+            gameManager.spriteManager.DisableTargetingSpriteHolder(targetingPassiveSpriteHolder[i]);
+        }
+        targetingPassiveSpriteHolder.Clear();
         SetUp(movingUnit.transform.position, actionPointsLeft, movingUnit.moveSpeed);
     }
 
@@ -842,17 +921,47 @@ public class MeleeTargeting : TargetingSystem
         }
         rangeHexes.Clear();
 
-        /*
-        gameManager.map.ResetMap();
-        gameManager.map.SetGoals(new List<Vector2Int>() { endHex });
-        */
+        passiveEffectAreas = new List<PassiveEffectArea>();
+        passiveSprites = new List<Tuple<Passive, Vector2Int>>();
+
+        for (int i = 0; i < targetingPassiveSpriteHolder.Count; i++)
+        {
+            gameManager.spriteManager.DisableTargetingSpriteHolder(targetingPassiveSpriteHolder[i]);
+        }
+        targetingPassiveSpriteHolder.Clear();
+
+        CheckPassives(new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) });
+        CheckPassives(setPath);
+        CheckPassives(path);
+
+        //Hex Position, num Passives
+        Dictionary<Vector2Int, int> passivesGrid = new Dictionary<Vector2Int, int>();
+        for (int i = 0; i < passiveSprites.Count; i++)
+        {
+            SpriteHolder tempTargetPassiveSprite = gameManager.spriteManager.UseOpenTargetingSpriteHolder();
+            if (passivesGrid.ContainsKey(passiveSprites[i].Item2))
+            {
+                passivesGrid[passiveSprites[i].Item2] += 1;
+            }
+            else
+            {
+                passivesGrid.Add(passiveSprites[i].Item2, 1);
+            }
+            tempTargetPassiveSprite.transform.position = gameManager.spriteManager.GetWorldPosition(passiveSprites[i].Item2) + new Vector3(-0.6f + (0.3f * passivesGrid[passiveSprites[i].Item2]), -0.4f, 0);
+            tempTargetPassiveSprite.spriteRenderer.sortingOrder = gameManager.spriteManager.terrain[passiveSprites[i].Item2.x, passiveSprites[i].Item2.y].sprite.sortingOrder + 10;
+            tempTargetPassiveSprite.spriteRenderer.sprite = passiveSprites[i].Item1.UISkillImage;
+            targetingPassiveSpriteHolder.Add(tempTargetPassiveSprite);
+        }
+
+        gameManager.map.ResetMap(true);
+        map.SetGoalsMelee(new List<Vector2Int>() { endHex }, friendlyUnits, validTargetPositions, gameManager, movingUnit.moveModifier, meleeRange);
 
         for (int i = 1; i <= meleeRange; i++)
         {
             List<DijkstraMapNode> mapNodes = map.getGrid().GetGridObjectsInRing(endHex.x, endHex.y, i);
             for (int j = 0; j < mapNodes.Count; j++)
             {
-                if(movingUnit.moveModifier.ValidMeleeAttack(gameManager, map.getGrid().GetGridObject(endHex), mapNodes[j], meleeRange))
+                if (movingUnit.moveModifier.ValidMeleeAttack(gameManager, map.getGrid().GetGridObject(endHex), mapNodes[j], meleeRange))
                 {
                     Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
                     GameObject newTargetHex = gameManager.spriteManager.UseOpenTargetHex();
@@ -860,6 +969,30 @@ public class MeleeTargeting : TargetingSystem
                     newTargetHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
                         currentNodePosition.y].sprite.sortingOrder + 2;
                     rangeHexes.Add(newTargetHex);
+                }
+            }
+        }
+    }
+
+    public void CheckPassives(List<Vector2Int> moveLocations)
+    {
+        for (int i = 0; i < moveLocations.Count; i++)
+        {
+            Vector2Int pathLocation = moveLocations[i];
+            List<PassiveEffectArea> passivesOnLocation = passives[pathLocation.x, pathLocation.y];
+            List<Passive> passivesUsed = new List<Passive>();
+            for (int j = 0; j < passivesOnLocation.Count; j++)
+            {
+                if (!passiveEffectAreas.Contains(passivesOnLocation[j]) && !passivesUsed.Contains(passivesOnLocation[j].passive))
+                {
+                    passiveEffectAreas.Add(passivesOnLocation[j]);
+                    Tuple<Passive, Vector2Int> tempPassiveSprite = passivesOnLocation[j].GetTargetingData(new Vector2Int(movingUnit.x, movingUnit.y), path,
+                        setPath, passivesOnLocation[j].passiveLocations);
+                    if (tempPassiveSprite.Item2.x != -1)
+                    {
+                        passiveSprites.Add(tempPassiveSprite);
+                    }
+                    passivesUsed.Add(passivesOnLocation[j].passive);
                 }
             }
         }
