@@ -9,9 +9,12 @@ public class AITurn : MonoBehaviour
     public List<UnitSuperClass> enemyUnitSuperClasses;
 
     public int totalRangedValue;
+    public CombatGameManager gameManager;
     //For randomization
     private int seed;
-    public List<List<UnitSuperClass>> LoadEnemyPositions(MissionUnitPlacementName unitFormation, List<UnitSuperClass> units)
+
+
+    public List<List<UnitSuperClass>> LoadEnemyPositions (MissionUnitPlacementName unitFormation, List<UnitSuperClass> units)
     {
         switch(unitFormation)
         {
@@ -21,7 +24,6 @@ public class AITurn : MonoBehaviour
         Debug.LogError("Sorting AIUnits into battle positions failed: " + gameObject.name);
         return null;
     }
-
 
     private int UseSeed()
     {
@@ -125,7 +127,40 @@ public class AITurn : MonoBehaviour
         return totalRangedValue;
     }
 
-    public void CalculateEnemyState()
+    public void ReadyCombat()
+    {
+        totalRangedValue = CalculateRangedValue();
+    }
+
+    public AITurnStates CalculateEnemyState()
+    {
+        if(AIState == AITurnStates.Combat)
+        {
+            return AIState;
+        }
+        else if(totalRangedValue  - gameManager.playerTurn.totalRangedValue > 5)
+        {
+            AIState = AITurnStates.SuperiorRanged;
+        }
+        else if (gameManager.playerTurn.totalRangedValue - totalRangedValue > 5)
+        {
+            AIState = AITurnStates.Agressive;
+        }
+        else
+        {
+            AIState = AITurnStates.Skirmish;
+        }  
+
+
+        return AIState;
+    }
+
+    public void ChaffAI()
+    {
+
+    }
+
+    public void FrontLineAI(Unit unit)
     {
 
     }

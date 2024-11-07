@@ -1,5 +1,6 @@
 public enum UnitType
 { 
+    Chaff,
     // Frontline
     FrontLine,
     //Frontline with 2 or more range
