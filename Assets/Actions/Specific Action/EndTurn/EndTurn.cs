@@ -5,6 +5,16 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Action/EndTurn")]
 public class EndTurn : Action
 {
+    public override int CalculateWeight(AIActionData actionData)
+    {
+        return 1;
+    }
+
+    public override void FindOptimalPosition(AIActionData actionData)
+    {
+        return;
+    }
+
     public override void SelectAction(Unit self)
     {
         base.SelectAction(self);

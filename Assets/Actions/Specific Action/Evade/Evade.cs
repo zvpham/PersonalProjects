@@ -5,6 +5,16 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Action/Evade")]
 public class Evade : StatusAction
 {
+    public override int CalculateWeight(AIActionData actionData)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void FindOptimalPosition(AIActionData actionData)
+    {
+        return;
+    }
+
     public override void SelectAction(Unit self)
     {
         base.SelectAction(self);

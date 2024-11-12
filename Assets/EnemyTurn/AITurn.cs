@@ -7,6 +7,7 @@ public class AITurn : MonoBehaviour
 {
     public AITurnStates AIState;
     public List<UnitSuperClass> enemyUnitSuperClasses;
+    public List<Unit> visibleUnits = new List<Unit>();
 
     public int totalRangedValue;
     public CombatGameManager gameManager;
@@ -157,11 +158,97 @@ public class AITurn : MonoBehaviour
 
     public void ChaffAI()
     {
-
+        switch (AIState)
+        {
+            case (AITurnStates.Combat):
+                break;
+            case (AITurnStates.Agressive):
+                break;
+            case (AITurnStates.Skirmish):
+                break;
+            case (AITurnStates.Convoy):
+                break;
+            case (AITurnStates.SuperiorRanged):
+                break;
+            case (AITurnStates.Unaware):
+                break;
+        }
     }
 
     public void FrontLineAI(Unit unit)
     {
+        visibleUnits = unit.gameManager.playerTurn.playerUnits;
+        bool inMelee = false;
+        Vector2Int originalPosition = new Vector2Int(unit.x, unit.y);
+        unit.gameManager.map.ResetMap(true);
+        unit.gameManager.map.SetGoals(new List<Vector2Int> { originalPosition }, unit.gameManager, unit.moveModifier);
+        DijkstraMapNode currentunitNode = unit.gameManager.map.getGrid().GetGridObject(originalPosition);
+        List<Vector2Int> mapNodes = unit.gameManager.map.getGrid().GetGridPositionsInRing(originalPosition.x, originalPosition.y, 1);
+        for (int k = 0; k < mapNodes.Count; k++)
+        {
+            Vector2Int surroundingNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
+            DijkstraMapNode surroundingUnitNode = unit.gameManager.map.getGrid().GetGridObject(surroundingNodePosition);
+            Unit tempUnit = gameManager.grid.GetGridObject(surroundingNodePosition).unit;
+            if (unit.moveModifier.ValidMeleeAttack(unit.gameManager, currentunitNode, surroundingUnitNode, 1) &&
+               tempUnit != null && tempUnit.team != unit.team)
+            {
+                inMelee = true;
+                break;
+            }
+        }
+        AIActionData actionData =  new AIActionData();
+        actionData.unit = unit;
+        actionData.originalPosition = originalPosition;
+        int actionIndex = -1;
+        if (inMelee)
+        {
+            actionIndex = GetHighestActionIndex(actionData, unit);
+        }
+        else
+        {
+            List<Vector2Int> enemyUnitHexPositions = new List<Vector2Int>();
+            for(int i = 0; i < visibleUnits.Count; i++)
+            {
+                enemyUnitHexPositions.Add(new Vector2Int(visibleUnits[i].x, visibleUnits[i].y));
+            }
 
+            switch (AIState)
+            {
+                case (AITurnStates.Combat):
+                    actionIndex = GetHighestActionIndex(actionData, unit);
+                    break;
+                case (AITurnStates.Agressive):
+                    actionIndex = GetHighestActionIndex(actionData, unit);
+                    break;
+                case (AITurnStates.Skirmish):
+                    actionIndex = GetHighestActionIndex(actionData, unit);
+                    break;
+                case (AITurnStates.Convoy):
+                    actionIndex = GetHighestActionIndex(actionData, unit);
+                    break;
+                case (AITurnStates.SuperiorRanged):
+                    actionIndex = GetHighestActionIndex(actionData, unit);
+                    break;
+                case (AITurnStates.Unaware):
+                    actionIndex = GetHighestActionIndex(actionData, unit);
+                    break;
+            }
+        }
+    }
+
+    public int GetHighestActionIndex(AIActionData actionData, Unit unit)
+    {
+        int actionIndex = -1;
+        int highestActionWeight = -1;
+        for (int i = 0; i < unit.actions.Count; i++)
+        {
+            int actionWieght = unit.actions[i].action.CalculateWeight(actionData);
+            if (highestActionWeight < actionWieght)
+            {
+                actionIndex = i;
+                highestActionWeight = actionIndex;
+            }
+        }
+        return actionIndex;
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 public abstract class Action : ScriptableObject
 {
     public Sprite actionSprite;
-    public int weight;
+    public int baseActionWeight;
     public int coolDown;
     public int maxUses = 1;
     public int intialActionPointUsage = 1;
@@ -16,6 +16,10 @@ public abstract class Action : ScriptableObject
 
     public CustomAnimations animation;
     public TargetingSystem targetingSystem;
+
+    public abstract int CalculateWeight(AIActionData actionData);
+
+    public abstract void FindOptimalPosition(AIActionData actionData);
 
     public virtual void SelectAction(Unit self)
     {

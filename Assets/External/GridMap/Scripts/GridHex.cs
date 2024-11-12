@@ -17,6 +17,8 @@ using System.Numerics;
 using Vector3 = UnityEngine.Vector3;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
+using Bresenhams;
 
 public class GridHex<TGridObject>
 {
@@ -72,11 +74,11 @@ public class GridHex<TGridObject>
                 }
             }
 
-            for(int x = 0; x < gridArray.GetLength(0); x++)
+            for (int x = 0; x < gridArray.GetLength(0); x++)
             {
                 Vector3 cellPosition = GetWorldPosition(x, 0);
                 Debug.DrawLine(cellPosition + new Vector3(-cellSize / 4, -(cellSize / 4) * (float)Math.Sqrt(3), 0), cellPosition + new Vector3(cellSize / 4, -(cellSize / 4) * (float)Math.Sqrt(3), 0), Color.white, 100f);
-                if(x % 2 == 0)
+                if (x % 2 == 0)
                 {
                     Debug.DrawLine(cellPosition + new Vector3(-cellSize / 2, 0, 0), cellPosition + new Vector3(-cellSize / 4, -(cellSize / 4) * (float)Math.Sqrt(3), 0), Color.white, 100f);
                     Debug.DrawLine(cellPosition + new Vector3(cellSize / 4, -(cellSize / 4) * (float)Math.Sqrt(3), 0), cellPosition + new Vector3(cellSize / 2, 0, 0), Color.white, 100f);
@@ -91,10 +93,16 @@ public class GridHex<TGridObject>
                 Debug.DrawLine(cellPosition + new Vector3(cellSize / 4, -(cellSize / 4) * (float)Math.Sqrt(3), 0), cellPosition + new Vector3(cellSize / 2, 0, 0), Color.white, 100f);
             }
 
-            OnGridObjectChanged += (object sender, OnGridObjectChangedEventArgs eventArgs) => {
+            OnGridObjectChanged += (object sender, OnGridObjectChangedEventArgs eventArgs) =>
+            {
                 debugTextArray[eventArgs.x, eventArgs.y].text = gridArray[eventArgs.x, eventArgs.y]?.ToString();
             };
         }
+    }
+
+    public TGridObject[,] GetGridArray()
+    {
+        return gridArray;
     }
 
     public int GetWidth()
@@ -121,9 +129,9 @@ public class GridHex<TGridObject>
     {
         float xPos = x * .75f * cellSize;
         float yPos;
-        if(x % 2 == 0)
+        if (x % 2 == 0)
         {
-            yPos = y  * cellSize * ((float)Math.Sqrt(3) / 2);
+            yPos = y * cellSize * ((float)Math.Sqrt(3) / 2);
         }
         else
         {
@@ -142,17 +150,17 @@ public class GridHex<TGridObject>
         }
         else
         {
-            roughY = Mathf.RoundToInt(((worldPosition - originPosition).y - 0.5f ) / (cellSize * ((float)Math.Sqrt(3) / 2)));
+            roughY = Mathf.RoundToInt(((worldPosition - originPosition).y - 0.5f) / (cellSize * ((float)Math.Sqrt(3) / 2)));
         }
         List<Vector3Int> neighborNodes = GetNeighborNodesLimited(roughX, roughY);
 
-        float leastDistance  = Vector3.Distance(worldPosition, GetWorldPosition(roughX, roughY));
+        float leastDistance = Vector3.Distance(worldPosition, GetWorldPosition(roughX, roughY));
         x = roughX;
         y = roughY;
-        for(int i =  0; i < neighborNodes.Count; i++)
+        for (int i = 0; i < neighborNodes.Count; i++)
         {
             float distance = Vector3.Distance(worldPosition, GetWorldPosition(neighborNodes[i].x, neighborNodes[i].y));
-            if(distance < leastDistance)
+            if (distance < leastDistance)
             {
                 leastDistance = distance;
                 x = neighborNodes[i].x;
@@ -171,7 +179,7 @@ public class GridHex<TGridObject>
 
         neighborNodes.Add(currentPosition + new Vector3Int(-1, oddRow ? 1 : -1, 0));
         neighborNodes.Add(currentPosition + new Vector3Int(-1, 0, 0));
-        neighborNodes.Add(currentPosition + new Vector3Int(1, oddRow? 1 : -1, 0));
+        neighborNodes.Add(currentPosition + new Vector3Int(1, oddRow ? 1 : -1, 0));
         neighborNodes.Add(currentPosition + new Vector3Int(1, 0, 0));
         return neighborNodes;
     }
@@ -247,7 +255,7 @@ public class GridHex<TGridObject>
     {
         int q = x;
         int r = y - (x + (x % 1)) / 2;
-        return new Vector3Int(q, r, -q-r);
+        return new Vector3Int(q, r, -q - r);
     }
 
     public Vector2Int CubeToOffset(Vector3Int cube)
@@ -266,7 +274,7 @@ public class GridHex<TGridObject>
     {
         return cube + vector;
     }
-    
+
     public Vector3Int CubeNeighbor(Vector3Int cube, int direction)
     {
         return CubeAdd(cube, cubeDirectionVectors[direction]);
@@ -335,7 +343,7 @@ public class GridHex<TGridObject>
         for (int i = 0; i < results.Count; i++)
         {
             Vector2Int offsetPosition = CubeToOffset(results[i]);
-            if(offsetPosition.x > 0 && offsetPosition.y > 0 && offsetPosition.x < width && offsetPosition.y < height)
+            if (offsetPosition.x > 0 && offsetPosition.y > 0 && offsetPosition.x < width && offsetPosition.y < height)
             {
                 hexes.Add(offsetPosition);
             }
@@ -357,7 +365,7 @@ public class GridHex<TGridObject>
 
     public Vector3Int CubeRound(Vector3 cube)
     {
-        int q = (int) Math.Round(cube.x);
+        int q = (int)Math.Round(cube.x);
         int r = (int)Math.Round(cube.y);
         int s = (int)Math.Round(cube.z);
 
@@ -365,7 +373,7 @@ public class GridHex<TGridObject>
         float rDiff = Math.Abs(r - cube.y);
         float sDiff = Math.Abs(s - cube.z);
 
-        if(qDiff > rDiff && qDiff > sDiff)
+        if (qDiff > rDiff && qDiff > sDiff)
         {
             q = -r - s;
         }
@@ -390,19 +398,186 @@ public class GridHex<TGridObject>
         return new Vector3(CubeLerp(a.x, b.x, t),
             CubeLerp(a.y, b.y, t),
             CubeLerp(a.z, b.z, t));
-             
+
     }
-    
+
 
     public List<Vector3Int> CubeLineDraw(Vector3Int a, Vector3Int b)
     {
         int hexDistance = CubeDistance(a, b);
         List<Vector3Int> hexes = new List<Vector3Int>();
-        for(int i = 0; i < hexDistance; i++)
+        for (int i = 0; i < hexDistance; i++)
         {
             hexes.Add(CubeRound(CubeHexLerp(a, b, 1.0f / hexDistance * i)));
         }
         hexes.Add(b);
         return hexes;
+    }
+
+    public List<List<Vector2Int>> LineOfSightSuperCover(Vector2Int originalPosition, Vector2Int targetPosition)
+    {
+        Vector3 startPosition = GetWorldPosition(originalPosition);
+        Vector3 endPosition = GetWorldPosition(targetPosition);
+        int xAdjustmentFirst = 0;
+        int yAdjustmentFirst = 0;
+        int xAdjustmentSecond = 0;
+        int yAdjustmentSecond = 0;
+
+        float angle = (Mathf.Atan2(endPosition.y - startPosition.y, endPosition.x - startPosition.x) * Mathf.Rad2Deg);
+        int adjustedAngle = Mathf.RoundToInt(angle);
+        if(adjustedAngle < 0)
+        {
+            adjustedAngle = 360 - adjustedAngle;
+        }
+
+        if(adjustedAngle == 0)
+        {
+            xAdjustmentFirst = 1;
+            yAdjustmentFirst = 1;
+            xAdjustmentSecond = 1;
+            yAdjustmentSecond = 0;
+        }
+        else if (adjustedAngle < 60)
+        {
+            xAdjustmentFirst = 0;
+            yAdjustmentFirst = 1;
+            xAdjustmentSecond = 1;
+            yAdjustmentSecond = 0;
+        }
+        else if( adjustedAngle ==  60)
+        {
+            xAdjustmentFirst = 0;
+            yAdjustmentFirst = 1;
+            xAdjustmentSecond = 2;
+            yAdjustmentSecond = 0;
+        }
+        else if(adjustedAngle < 120)
+        {
+            xAdjustmentFirst = 0;
+            yAdjustmentFirst = 0;
+            xAdjustmentSecond = 2;
+            yAdjustmentSecond = 0;
+        }
+        else if(adjustedAngle == 120)
+        {
+            xAdjustmentFirst = 0;
+            yAdjustmentFirst = 0;
+            xAdjustmentSecond = 2;
+            yAdjustmentSecond = 1;
+        }
+        else if (adjustedAngle < 180)
+        {
+            xAdjustmentFirst = 2;
+            yAdjustmentFirst = 1;
+            xAdjustmentSecond = 1;
+            yAdjustmentSecond = 0;
+        }
+        else if (adjustedAngle == 180)
+        {
+            xAdjustmentFirst = 1;
+            yAdjustmentFirst = 1;
+            xAdjustmentSecond = 1;
+            yAdjustmentSecond = 0;
+        }
+        else if (adjustedAngle < 240)
+        {
+            xAdjustmentFirst = 1;
+            yAdjustmentFirst = 1;
+            xAdjustmentSecond = 2;
+            yAdjustmentSecond = 0;
+        }
+        else if (adjustedAngle == 240)
+        {
+            xAdjustmentFirst = 0;
+            yAdjustmentFirst = 1;
+            xAdjustmentSecond = 2;
+            yAdjustmentSecond = 0;
+        }
+        else if (adjustedAngle < 300)
+        {
+            xAdjustmentFirst = 0;
+            yAdjustmentFirst = 1;
+            xAdjustmentSecond = 2;
+            yAdjustmentSecond = 1;
+        }
+        else if (adjustedAngle == 300)
+        {
+            xAdjustmentFirst = 0;
+            yAdjustmentFirst = 0;
+            xAdjustmentSecond = 2;
+            yAdjustmentSecond = 1;
+        }
+        else if (adjustedAngle < 360)
+        {
+            xAdjustmentFirst = 0;
+            yAdjustmentFirst = 0;
+            xAdjustmentSecond = 1;
+            yAdjustmentSecond = 1;
+        }
+        else if (adjustedAngle == 360)
+        {
+            xAdjustmentFirst = 1;
+            yAdjustmentFirst = 1;
+            xAdjustmentSecond = 1;
+            yAdjustmentSecond = 0;
+        }
+        int yAdjustment = 0;
+        if(originalPosition.x % 2 == 1)
+        {
+            yAdjustment = 1;
+        }
+
+        int firstx = originalPosition.x * 3 + xAdjustmentFirst;
+        int firsty = originalPosition.y * 2 + yAdjustmentFirst + yAdjustment;
+        int secondx = originalPosition.x * 3 + xAdjustmentSecond;
+        int secondy = originalPosition.y * 2 + yAdjustmentSecond + yAdjustment;
+
+        int endfirstx = targetPosition.x * 3 + xAdjustmentFirst;
+        int endfirsty = targetPosition.y * 2 + yAdjustmentFirst + yAdjustment;
+        int endsecondx = targetPosition.x * 3 + xAdjustmentSecond;
+        int endsecondy = targetPosition.y * 2 + yAdjustmentSecond + yAdjustment;
+        //Debug.Log("First:" +  firsty + ", " + endfirsty);
+       // Debug.Log("First:" + secondy + ", " + endsecondy);
+        List<Vector2Int> trianglePathOne = BresenhamsAlgorithm.GetPath(firstx, firsty, endfirstx, endfirsty);
+        List<Vector2Int> trianglePathTwo = BresenhamsAlgorithm.GetPath(secondx, secondy, endsecondx, endsecondy);
+
+        Debug.Log(trianglePathOne.Count + ", " + trianglePathTwo.Count);
+        List<Vector2Int> hexPathOne = new List<Vector2Int>();
+        List<Vector2Int> hexPathTwo = new List<Vector2Int>();
+        for (int i = 0; i < trianglePathOne.Count; i++) 
+        { 
+            Vector2Int hex = TriangleToOffset(trianglePathOne[i]);
+            //Debug.Log("PAth ONe Values: " +  hex + ", " + !hexPathOne.Contains(hex) + ", " + (hex.x >= 0) + ", " + (hex.y >= 0)); 
+            if (!hexPathOne.Contains(hex) && hex.x >= 0 && hex.y >= 0)
+            {
+                hexPathOne.Add(hex);
+            }
+        }
+
+        for (int i = 0; i < trianglePathTwo.Count; i++)
+        {
+            Vector2Int hex = TriangleToOffset(trianglePathTwo[i]);
+            if (!hexPathTwo.Contains(hex) && hex.x >= 0 && hex.y >= 0)
+            {
+                hexPathTwo.Add(hex);
+            }
+        }
+
+        //Debug.Log("hex Path Length: " + hexPathOne.Count + ", " + hexPathTwo.Count);
+        return new List<List<Vector2Int>>() { hexPathOne, hexPathTwo };
+    }
+
+    public Vector2Int TriangleToOffset(Vector2Int triangle)
+    {
+        int x = triangle.x / 3;
+        int yAdjustment = 0;
+        if (x % 2 == 1)
+        {
+            yAdjustment = 1;
+        }
+        int y = triangle.y - yAdjustment;
+        y = y / 2;
+        //Debug.Log("Triangle: " + triangle);
+        return new Vector2Int(x, y);
     }
 }

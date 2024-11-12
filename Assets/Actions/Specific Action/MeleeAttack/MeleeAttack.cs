@@ -12,6 +12,45 @@ public class MeleeAttack : Action
     public int range = 1;
     public float effectAgainstArmorPercentage;
     public bool ignoreArmor = false;
+
+    public override int CalculateWeight(AIActionData actionData)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void FindOptimalPosition(AIActionData actionData)
+    {
+        /*
+        Dictionary<Vector2Int, int> gridValues =  new Dictionary<Vector2Int, int>();
+        Unit movingUnit =  actionData.unit;
+        List<Vector2Int> mapNodes;
+        Vector2Int newPosition;
+        for(int i = 0; i < actionData.enemyUnits.Count; i++)
+        {
+            newPosition = new Vector2Int(actionData.enemyUnits[i].x, actionData.enemyUnits[i].y);
+            for (int j = 1; j <= range; j++)
+            {
+                mapNodes = movingUnit.gameManager.map.getGrid().GetGridPositionsInRing(newPosition.x, newPosition.y, j);
+                if (j == 1)
+                {
+
+                }
+                else
+                {
+                    for (int k = 0; k < mapNodes.Count; k++)
+                    {
+                        Vector2Int surroundingNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
+                        if (movingUnit.moveModifier.ValidMeleeAttack(movingUnit.gameManager, currentunitNode, surroundingUnitNode, range))
+                        {
+                            movingUnit.passiveEffects[passiveIndex].passiveLocations.Add(surroundingNodePosition);
+                        }
+                    }
+                }
+            }
+        }
+        */
+    }
+
     public override void SelectAction(Unit self)
     {
         base.SelectAction(self);

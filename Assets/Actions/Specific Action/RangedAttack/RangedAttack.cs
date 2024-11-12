@@ -14,6 +14,17 @@ public class RangedAttack : Action
     public float effectAgainstArmorPercentage;
     public bool ignoreArmor = false;
     public AmmoType ammoType;
+
+    public override int CalculateWeight(AIActionData actionData)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void FindOptimalPosition(AIActionData actionData)
+    {
+        return;
+    }
+
     public override void SelectAction(Unit self)
     {
         Debug.Log("select Ranged ATtack");

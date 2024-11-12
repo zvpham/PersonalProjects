@@ -47,6 +47,10 @@ public class TestHexGrid : MonoBehaviour
     public UnitGroup currentlyPlacingUnitGroup;
     public int unitInUnitGroupIndex = 0;
 
+    public Vector2Int mouseHex;
+    public Vector2Int prevMouseHex;
+    public List<Vector2Int> lineOfSightHexes= new List<Vector2Int>();   
+
     // Start is called before the first frame update
     void Start()
     {
@@ -117,6 +121,12 @@ public class TestHexGrid : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            mouseHex = currentlySelectedHex;
+        }
+
         if (currentlyPlacingUnitGroup != null)
         {
             if(Input.GetMouseButtonDown(0))
@@ -125,6 +135,60 @@ public class TestHexGrid : MonoBehaviour
                 HandlePlaceUnit(currentlyPlacingUnit);
             }
         }
+        if(prevMouseHex != currentlySelectedHex)
+        {
+            LineOfSight(mouseHex, currentlySelectedHex);
+            prevMouseHex = currentlySelectedHex;
+        }
+    }
+
+
+    public bool LineOfSight(Vector2Int originalPosition, Vector2Int targetPosiiton)
+    {
+        for(int i = 0; i < lineOfSightHexes.Count; i++)
+        {
+            gameManager.spriteManager.terrain[lineOfSightHexes[i].x, lineOfSightHexes[i].y].sprite.color = Color.white;
+        }
+
+        List<List<Vector2Int>> sightLines = gameManager.grid.LineOfSightSuperCover(originalPosition, targetPosiiton);
+        int originalElevation = gameManager.spriteManager.elevationOfHexes[originalPosition.x, originalPosition.y];
+        bool reachedEndHex = false;
+        for(int i = 0; i < sightLines.Count; i++)
+        {
+            /*
+            string debug = " " + i + ": ";
+            for (int j = 0; j < sightLines[i].Count; j++)
+            {
+                debug += sightLines[i][j] + ", ";
+            }
+            Debug.Log(debug);
+            */
+                reachedEndHex = true;
+            for (int j = 0; j < sightLines[i].Count; j++)
+            {
+                Vector2Int currentHex = sightLines[i][j];
+                if(gameManager.spriteManager.elevationOfHexes[currentHex.x, currentHex.y] > originalElevation)
+                {
+                    reachedEndHex = false;
+                    break;
+                }
+                lineOfSightHexes.Add(currentHex);
+                gameManager.spriteManager.terrain[currentHex.x, currentHex.y].sprite.color = Color.cyan;
+            }
+            if(reachedEndHex)
+            {
+                break;
+            }
+        }
+        return reachedEndHex;
+    }
+
+    public void FindAngle(Vector2Int a, Vector2Int b)
+    {
+        Vector3 startPosition = gameManager.grid.GetWorldPosition(a);
+        Vector3 endPosition = gameManager.grid.GetWorldPosition(b);
+        float angle = (Mathf.Atan2(endPosition.y - startPosition.y, endPosition.x - startPosition.x) * Mathf.Rad2Deg);
+        Debug.Log(Mathf.RoundToInt(angle));
     }
 
     public void HandlePlaceUnit(Unit unit)

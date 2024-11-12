@@ -9,6 +9,16 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Action/Move")]
 public class Move : Action
 {
+    public override int CalculateWeight(AIActionData actionData)
+    {
+        return 0;
+    }
+
+    public override void FindOptimalPosition(AIActionData actionData)
+    {
+        return;
+    }
+
     public override void SelectAction(Unit self)
     {
         base.SelectAction(self);

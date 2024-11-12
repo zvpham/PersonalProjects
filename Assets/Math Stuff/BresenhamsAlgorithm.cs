@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-
+using System.Numerics;
+using UnityEngine;
 
 namespace Bresenhams
 {
@@ -88,7 +90,61 @@ namespace Bresenhams
                     }
                 }
             }
+        }
 
+
+        public static List<Vector2Int> GetPath(int x0, int y0, int x1, int y1)
+        {
+            List<Vector2Int> path = new List<Vector2Int>(); 
+            int numberMarkers = 0;
+            bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
+            if (steep)
+            {
+                Swap<int>(ref x0, ref y0);
+                Swap<int>(ref x1, ref y1);
+            }
+            if (x0 > x1)
+            {
+                int dX = (x0 - x1),
+                dY = Math.Abs(y0 - y1),
+                err = (dX / 2),
+                ystep = (y0 < y1 ? 1 : -1),
+                y = y0;
+
+                for (int x = x0; x >= x1; --x)
+                {
+
+                    path.Add(steep ? new Vector2Int(y, x) : new Vector2Int(x, y));
+                    numberMarkers += 1;
+                    err = err - dY;
+                    if (err < 0)
+                    {
+                        y += ystep;
+                        err += dX;
+                    }
+                }
+            }
+            else
+            {
+                int dX = (x1 - x0),
+                    dY = Math.Abs(y1 - y0),
+                    err = (dX / 2),
+                    ystep = (y0 < y1 ? 1 : -1),
+                    y = y0;
+
+                for (int x = x0; x <= x1; ++x)
+                {
+                    path.Add(steep ? new Vector2Int(y, x) : new Vector2Int(x, y));
+                    numberMarkers += 1;
+                    err = err - dY;
+                    if (err < 0)
+                    {
+                        y += ystep;
+                        err += dX;
+                    }
+                }
+            }
+            return path;
         }
     }
 }
