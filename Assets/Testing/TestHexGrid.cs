@@ -110,7 +110,7 @@ public class TestHexGrid : MonoBehaviour
         }
         gameManager.grid = new GridHex<GridPosition>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<GridPosition> g, int x, int y) =>
         new GridPosition(g, x, y, defaultElevation), false);
-        gameManager.map = new DijkstraMap(mapWidth, mapHeight, cellSize, defaultGridAdjustment, false);
+        gameManager.map = new DijkstraMap(mapWidth, mapHeight, cellSize, defaultGridAdjustment, true);
         gameManager.passiveGrid = new GridHex<PassiveGridObject>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<PassiveGridObject> g, int x, int y) =>
         new PassiveGridObject(g, x, y), false);
         inventorySystem.LoadInitialItems();
@@ -129,15 +129,16 @@ public class TestHexGrid : MonoBehaviour
 
         if (currentlyPlacingUnitGroup != null)
         {
-            if(Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(0))
             {
                 Unit currentlyPlacingUnit = currentlyPlacingUnitGroup.units[unitInUnitGroupIndex];
                 HandlePlaceUnit(currentlyPlacingUnit);
             }
         }
-        if(prevMouseHex != currentlySelectedHex)
+        //if(Input.GetMouseButtonDown(1))
+        if (prevMouseHex != currentlySelectedHex)
         {
-            LineOfSight(mouseHex, currentlySelectedHex);
+            //LineOfSight(mouseHex, currentlySelectedHex);
             prevMouseHex = currentlySelectedHex;
         }
     }
@@ -145,6 +146,7 @@ public class TestHexGrid : MonoBehaviour
 
     public bool LineOfSight(Vector2Int originalPosition, Vector2Int targetPosiiton)
     {
+
         for(int i = 0; i < lineOfSightHexes.Count; i++)
         {
             gameManager.spriteManager.terrain[lineOfSightHexes[i].x, lineOfSightHexes[i].y].sprite.color = Color.white;
@@ -163,7 +165,7 @@ public class TestHexGrid : MonoBehaviour
             }
             Debug.Log(debug);
             */
-                reachedEndHex = true;
+            reachedEndHex = true;
             for (int j = 0; j < sightLines[i].Count; j++)
             {
                 Vector2Int currentHex = sightLines[i][j];
@@ -180,7 +182,25 @@ public class TestHexGrid : MonoBehaviour
                 break;
             }
         }
+
         return reachedEndHex;
+    }
+
+    public void GetTriangels()
+    {
+                    /*
+            gameManager.spriteManager.ResetTriangle();
+            List<List<Vector2Int>> sightLines = gameManager.grid.GetTriangles(originalPosition, targetPosiiton);
+            for (int i = 0; i < sightLines.Count; i++)
+            {
+                for (int j = 0; j < sightLines[i].Count; j++)
+                {
+                    Vector2Int currentTriangle = sightLines[i][j];
+                    gameManager.spriteManager.UseTriangle(currentTriangle);
+                }
+                gameManager.spriteManager.SetTriangleLine(i, sightLines[i][0], sightLines[i][sightLines[i].Count - 1]);
+            }
+            */
     }
 
     public void FindAngle(Vector2Int a, Vector2Int b)

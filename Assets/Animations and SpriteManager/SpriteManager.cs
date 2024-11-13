@@ -31,6 +31,8 @@ public class SpriteManager : MonoBehaviour
     public List<GameObject> activeHighlightedHexes;
     public List<GameObject> inactiveTargetHexes;
     public List<GameObject> activeTargetHexes;
+    public List<GameObject> inactiveTriangles;
+    public List<GameObject> activeTriangles;
     public List<SpriteHolder> inactiveSpriteHolders;
     public List<SpriteHolder> activeSpriteHolders;
     public List<SpriteHolder> unitPassiveAreaSpriteHolders;
@@ -45,6 +47,10 @@ public class SpriteManager : MonoBehaviour
     public GameObject targetHexHolder;
     public GameObject spriteHolderHolder;
     public GameObject targetSpriteHolderHolder;
+    public GameObject triangleHolder;
+    public GameObject trianglePrefab;
+    public LineController triangleLineOne;
+    public LineController triangleLineTwo;
     public TerrainElevationChangeAnimation ChangeElevationAnimation;
 
     public int currentViewingElevation;
@@ -71,6 +77,9 @@ public class SpriteManager : MonoBehaviour
     public List<float> timeBetweenAnimations = new List<float>();
     public float currentTime;
     public string debugWord;
+    // BL, B, BR, TL, T, TR
+    public Vector2[] triangleAdjustmenst = new Vector2[6] { new Vector2(-0.38f, -0.21f), new Vector2(0, -.435f), 
+        new Vector2(0.38f, -0.21f), new Vector2(-0.38f, .235f), new Vector2(0, .45f), new Vector2(0.38f, .235f) };
 
     public UnityAction<Vector2Int> NewSelectedHex;
 
@@ -688,5 +697,127 @@ public class SpriteManager : MonoBehaviour
         hex.transform.position = new Vector3(-20, -20);
         hex.spriteRenderer.sprite = null;
         hex.transform.parent = targetSpriteHolderHolder.transform;
+    }
+
+    public void UseTriangle(Vector2Int trianglePos)
+    {
+        if (inactiveTriangles.Count <= 0)
+        {
+            GameObject newSpriteHolder = Instantiate(trianglePrefab);
+            newSpriteHolder.transform.position = new Vector3(-20, -20);
+            newSpriteHolder.transform.parent = triangleHolder.transform;
+            inactiveTriangles.Add(newSpriteHolder);
+        }
+
+        GameObject openTriangle = inactiveTriangles[0];
+        inactiveTriangles.RemoveAt(0);
+        activeTriangles.Add(openTriangle);
+        int x = trianglePos.x / 3;
+        int yAdjustment = 0;
+        if (x % 2 == 1)
+        {
+            yAdjustment = 1;
+        }
+        int y = trianglePos.y - yAdjustment;
+        y = y / 2;
+
+        int xValue = trianglePos.x - (x * 3);
+        int yValue = trianglePos.y - (y  * 2) - yAdjustment;
+        int triValue =  xValue + (yValue * 3);
+        Debug.Log("TriValue: " + trianglePos + ", " +  triValue + ", " + x + ", " + y); 
+        if(triValue > 5 || triValue < 0)
+        {
+            return;
+        }
+
+        switch (triValue)
+        {
+            case 0:
+                openTriangle.transform.SetPositionAndRotation(Vector3.zero, new Quaternion(0, 0, 60, 0));
+                break;
+            case 1:
+                openTriangle.transform.SetPositionAndRotation(Vector3.zero, new Quaternion(0, 0, 0, 0));
+                break;
+            case 2:
+                openTriangle.transform.SetPositionAndRotation(Vector3.zero, new Quaternion(0, 0, 60, 0));
+                break;
+            case 3:
+                openTriangle.transform.SetPositionAndRotation(Vector3.zero, new Quaternion(0, 0, 0, 0));
+                break;
+            case 4:
+                openTriangle.transform.SetPositionAndRotation(Vector3.zero, new Quaternion(0, 0, 60, 0));
+                break;
+            case 5:
+                openTriangle.transform.SetPositionAndRotation(Vector3.zero, new Quaternion(0, 0, 0, 0));
+                break;
+        }
+
+        openTriangle.gameObject.transform.position = spriteGrid.GetWorldPosition(x, y) + (Vector3) triangleAdjustmenst[triValue];
+    }
+
+    public void ResetTriangle()
+    {
+        triangleLineOne.SetLine(new List<Vector3>());
+        triangleLineTwo.SetLine(new List<Vector3>());
+        for (int i = 0; i < activeTriangles.Count; i++)
+        {
+            GameObject triangle = activeTriangles[0];
+            inactiveTriangles.Add(activeTriangles[0]);
+            activeTriangles.RemoveAt(0);
+            triangle.transform.position = new Vector3(-20, -20);
+            triangle.transform.parent = triangleHolder.transform;
+            i--;
+        }
+    }
+
+    public void SetTriangleLine(int lineIndex, Vector2Int startTrainglePos, Vector2Int endTrianglePos)
+    {
+
+        int x = startTrainglePos.x / 3;
+        int yAdjustment = 0;
+        if (x % 2 == 1)
+        {
+            yAdjustment = 1;
+        }
+        int y = startTrainglePos.y - yAdjustment;
+        y = y / 2;
+
+        int xValue = startTrainglePos.x - (x * 3);
+        int yValue = startTrainglePos.y - (y * 2) - yAdjustment;
+        int triValue = xValue + (yValue * 3);
+        Debug.Log("TriValue: " + startTrainglePos + ", " + triValue + ", " + x + ", " + y);
+        if (triValue > 5 || triValue < 0)
+        {
+            return;
+        }
+        Vector3 startPosition = spriteGrid.GetWorldPosition(x, y) + (Vector3)triangleAdjustmenst[triValue];
+
+        x = endTrianglePos.x / 3;
+        yAdjustment = 0;
+        if (x % 2 == 1)
+        {
+            yAdjustment = 1;
+        }
+        y = endTrianglePos.y - yAdjustment;
+        y = y / 2;
+
+        xValue = endTrianglePos.x - (x * 3);
+        yValue = endTrianglePos.y - (y * 2) - yAdjustment;
+        triValue = xValue + (yValue * 3);
+        Debug.Log("TriValue: " + endTrianglePos + ", " + triValue + ", " + x + ", " + y);
+        if (triValue > 5 || triValue < 0)
+        {
+            return;
+        }
+        Vector3 endPosition = spriteGrid.GetWorldPosition(x, y) + (Vector3)triangleAdjustmenst[triValue];
+
+        if (lineIndex == 0)
+        {
+            triangleLineOne.SetLine(new List<Vector3> { startPosition, endPosition });
+        }
+        else
+        {
+            triangleLineTwo.SetLine(new List<Vector3> { startPosition, endPosition });
+        }
     }
 }

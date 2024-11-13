@@ -466,6 +466,32 @@ public class Unit : UnitSuperClass, IInititiave
         OnPositionChanged?.Invoke(oldPosition,  new Vector2Int(x, y), this, finalMove);
     }
 
+    public bool LineOfSight(Vector2Int unitPosition, Vector2Int targetPosition)
+    {
+        List<List<Vector2Int>> sightLines = gameManager.grid.LineOfSightSuperCover(unitPosition, targetPosition);
+        int originalElevation = gameManager.spriteManager.elevationOfHexes[unitPosition.x, unitPosition.y];
+        bool reachedEndHex = false;
+        for (int i = 0; i < sightLines.Count; i++)
+        {
+            reachedEndHex = true;
+            for (int j = 0; j < sightLines[i].Count; j++)
+            {
+                Vector2Int currentHex = sightLines[i][j];
+                if (gameManager.spriteManager.elevationOfHexes[currentHex.x, currentHex.y] > originalElevation)
+                {
+                    reachedEndHex = false;
+                    break;
+                }
+            }
+            if (reachedEndHex)
+            {
+                break;
+            }
+        }
+
+        return reachedEndHex;
+    }
+
     public Tuple<int, int, List<AttackDataUI>> CalculateEstimatedDamage(int minDamageValue, int maxDamageValue, bool ignoreShield)
     {
         float combatDamageResistenceValue = damageResistence;
