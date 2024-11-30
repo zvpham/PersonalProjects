@@ -11,7 +11,8 @@ public abstract class AreaPassive : Passive
         if(unit.isLoaded == true)
         {
             PassiveEffectArea newPassiveEffectArea = new PassiveEffectArea();
-            newPassiveEffectArea.passive = this;
+            int passiveIndex = GetPassiveIndex(unit);
+            newPassiveEffectArea.passive = unit.passives[passiveIndex];
             newPassiveEffectArea.originUnit = unit;
             newPassiveEffectArea.passiveLocations = new List<Vector2Int>();
             unit.passiveEffects.Add(newPassiveEffectArea);
@@ -24,7 +25,7 @@ public abstract class AreaPassive : Passive
         int passiveAreaIndex = -1;
         for(int i = 0; i < unit.passiveEffects.Count; i++)
         {
-            if (unit.passiveEffects[passiveAreaIndex].passive == this)
+            if (unit.passiveEffects[passiveAreaIndex].passive.passive == this)
             {
                 passiveAreaIndex = i;
                 break;

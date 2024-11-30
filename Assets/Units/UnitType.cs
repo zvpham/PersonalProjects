@@ -12,5 +12,7 @@ public enum UnitType
     // Fighter with group buffs
     MeleeSupport,
     // Clerics and other sutuff
-    RangedSupport
+    RangedSupport,
+    // Mixed Range Damage
+    Mixed
 }

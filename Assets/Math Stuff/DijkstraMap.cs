@@ -47,6 +47,24 @@ public class DijkstraMap
         return lowestNode;
     }
 
+    // targetPosition is where the object moving Wants to go / Final end Posotiion
+    public DijkstraMapNode GetLowestNearbyNode(int x, int y, Vector2Int targetPosition,  MoveModifier moveModifier, CombatGameManager gameManager)
+    {
+        DijkstraMapNode lowestNode;
+        DijkstraMapNode currentNode = grid.GetGridObject(x, y);
+        lowestNode = currentNode;
+        int lowestValue = currentNode.value;
+        foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+        {
+            if (neighborNode.value < lowestValue && moveModifier.ValidMove(gameManager, currentNode, neighborNode) && (!neighborNode.endPositionOnly ||  targetPosition == new Vector2Int(neighborNode.x, neighborNode.y)))
+            {
+                lowestNode = neighborNode;
+                lowestValue = neighborNode.value;
+            }
+        }
+        return lowestNode;
+    }
+
     public void SetGoals(List<Vector2Int> goals)
     {
         if(goals.Count == 0)
@@ -156,6 +174,7 @@ public class DijkstraMap
 
     public void SetGoals(List<Vector2Int> goals, CombatGameManager gameManager, MoveModifier moveModifier, bool[,] badWalkinPassiveEffects)
     {
+        Debug.Log("Set Goal");
         if (goals.Count == 0)
         {
             Debug.LogWarning("Setting Goals without having any goals");
@@ -193,7 +212,8 @@ public class DijkstraMap
                     }
                     else
                     {
-                        neighborNode.value = int.MaxValue;
+                        neighborNode.endPositionOnly = true;
+                        //neighborNode.value = int.MaxValue;
                     }
                     grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
                 }
@@ -362,6 +382,7 @@ public class DijkstraMap
                     DijkstraMapNode tempNode = grid.GetGridObject(j, i);
                     tempNode.value = int.MaxValue;
                     tempNode.walkable = true;
+                    tempNode.endPositionOnly = false;
                     tempNode.permissableMoves = 1;
                     grid.SetGridObject(j, i, tempNode);
                 }
@@ -376,6 +397,7 @@ public class DijkstraMap
                     DijkstraMapNode tempNode = grid.GetGridObject(j, i);
                     tempNode.value = int.MaxValue;
                     tempNode.permissableMoves = 1;
+                    tempNode.endPositionOnly = false;
                     grid.SetGridObject(j, i, tempNode);
                 }
             }
@@ -396,6 +418,19 @@ public class DijkstraMap
         }
 
         return nodeList[index];
+    }
+
+    public int[,] GetGridValues()
+    {
+        int[,] gridValues =  new int[grid.GetWidth(), grid.GetHeight()];
+        for(int i = 0; i < grid.GetHeight(); i++)
+        {
+            for(int j = 0; j < grid.GetWidth(); j++)
+            {
+                gridValues[j, i] =  grid.GetGridObject(j, i).value;
+            }
+        }
+        return gridValues;
     }
 
     public GridHex<DijkstraMapNode> getGrid()

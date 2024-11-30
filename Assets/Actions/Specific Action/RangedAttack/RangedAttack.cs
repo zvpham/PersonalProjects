@@ -25,6 +25,11 @@ public class RangedAttack : Action
         return;
     }
 
+    public override bool CheckIfActionIsInRange(AIActionData actionData)
+    {
+        return false;
+    }
+
     public override void SelectAction(Unit self)
     {
         Debug.Log("select Ranged ATtack");

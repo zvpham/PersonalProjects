@@ -238,7 +238,7 @@ public class MovementTargeting : TargetingSystem
                 // Attempt to find path Avoiding harmful Terrain
                 for (int j = 0; j < movingUnit.moveSpeed; j++)
                 {
-                    currentNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
+                    currentNode = map.GetLowestNearbyNode(x, y, endHex[0], movingUnit.moveModifier, gameManager);
                     x = currentNode.x;
                     y = currentNode.y;
                     if (currentNode.value == int.MaxValue)
@@ -288,7 +288,7 @@ public class MovementTargeting : TargetingSystem
                     map.SetGoals(endHex, gameManager, movingUnit.moveModifier);
                     for (int j = 0; j < movingUnit.moveSpeed; j++)
                     {
-                        currentNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
+                        currentNode = map.GetLowestNearbyNode(x, y, endHex[0], movingUnit.moveModifier, gameManager);
                         x = currentNode.x;  
                         y = currentNode.y;
                         path.Add(new Vector2Int(x, y));
@@ -336,7 +336,7 @@ public class MovementTargeting : TargetingSystem
                     // Attempt to find path Avoiding harmful Terrain
                     for (int j = 0; j < movingUnit.moveSpeed; j++)
                     {
-                        DijkstraMapNode currentNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
+                        DijkstraMapNode currentNode = map.GetLowestNearbyNode(x, y, endHex[0], movingUnit.moveModifier, gameManager);
                         x = currentNode.x;
                         y = currentNode.y;
                         path.Add(new Vector2Int(currentNode.x, currentNode.y));
@@ -582,7 +582,7 @@ public class MovementTargeting : TargetingSystem
             List<Passive> passivesUsed = new List<Passive>();
             for (int j = 0; j < passivesOnLocation.Count; j++)
             {
-                if (!passiveEffectAreas.Contains(passivesOnLocation[j]) && !passivesUsed.Contains(passivesOnLocation[j].passive))
+                if (!passiveEffectAreas.Contains(passivesOnLocation[j]) && !passivesUsed.Contains(passivesOnLocation[j].passive.passive))
                 {
                     passiveEffectAreas.Add(passivesOnLocation[j]);
                     Tuple<Passive, Vector2Int> tempPassiveSprite = passivesOnLocation[j].GetTargetingData(new Vector2Int(movingUnit.x, movingUnit.y), path, 
@@ -591,7 +591,7 @@ public class MovementTargeting : TargetingSystem
                     {
                         passiveSprites.Add(tempPassiveSprite);
                     }
-                    passivesUsed.Add(passivesOnLocation[j].passive);
+                    passivesUsed.Add(passivesOnLocation[j].passive.passive);
                 }
             }
         }

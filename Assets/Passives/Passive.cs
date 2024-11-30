@@ -9,16 +9,17 @@ public abstract class Passive : ScriptableObject
     public Sprite UISkillImage;
     public string description;
     public PassiveAreaClassification passiveClassification;
-    public Unit unit;
-
-    public void Start()
-    {
-        unit.OnSelectedAction += OnSelectedAction;
-    }
+    public int maxUseAmount = 1;
 
     public virtual void AddPassive(Unit unit)
     {
-        unit.passives.Add(this);
+        UnitPassiveData unitPassiveData = new UnitPassiveData();
+        unitPassiveData.passive = this;
+        unitPassiveData.active = true;
+        unitPassiveData.passiveUseAmount = 0;
+        unitPassiveData.passiveMaxUseAmount = maxUseAmount;
+        unit.passives.Add(unitPassiveData);
+
         //unit.activePassiveLocations.Add(new List<Vector2Int>());
     }
 
@@ -26,7 +27,17 @@ public abstract class Passive : ScriptableObject
 
     public abstract void RemovePassive(Unit unit);
 
-    public abstract void OnSelectedAction(Action action, TargetingSystem targetingSystem);
-
     public abstract Tuple<Passive, Vector2Int> GetTargetingData(Vector2Int originalPosition, List<Vector2Int> path, List<Vector2Int> setPath, List<Vector2Int> passiveArea);
+
+    public int GetPassiveIndex(Unit unit)
+    {
+        for(int i = 0; i < unit.passives.Count; i++)
+        {
+            if (unit.passives[i].passive == this)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
 }

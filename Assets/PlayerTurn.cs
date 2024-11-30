@@ -81,6 +81,7 @@ public class PlayerTurn : MonoBehaviour
 
     public void SelectUnit(Unit unit)
     {
+        Debug.Log("Select Unit: " + unit.team);
         if (activeUnits.Contains(unit))
         {
             currentlySelectedUnit = unit;
@@ -111,11 +112,13 @@ public class PlayerTurn : MonoBehaviour
         {
             index += 1;
         }
+        Debug.Log("Select Unit: " + activeUnits[index].team);
         SelectUnit(activeUnits[index]);
     }
 
     public void OnActionButtonPresed(int actionIndex)
     {
+        Debug.Log(currentlySelectedUnit + ", " + currentlySelectedUnit.currentActionsPoints + ", " + currentlySelectedUnit.team);
         SelectAction(currentlySelectedUnit.actions[actionIndex].action);
     }
 

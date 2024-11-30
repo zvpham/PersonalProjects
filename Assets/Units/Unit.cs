@@ -66,7 +66,7 @@ public class Unit : UnitSuperClass, IInititiave
     public MeleeAttack MeleeAttack;
     public List<UnitActionData> actions = new List<UnitActionData>();
 
-    public List<Passive> passives = new List<Passive>();
+    public List<UnitPassiveData> passives = new List<UnitPassiveData>();
     public List<PassiveEffectArea> passiveEffects = new List<PassiveEffectArea>();
     
     public List<StatusData> statuses = new List<StatusData>();
@@ -84,6 +84,10 @@ public class Unit : UnitSuperClass, IInititiave
 
     public bool confirmDeath;
 
+    //AI Help Data
+    public float targetValue;
+    public List<AIUnitResponses> AIResponseToUnit = new List<AIUnitResponses>();
+
     public UnityAction onTurnStart;
     public UnityAction<Vector2Int, Vector2Int, Unit, bool> OnPositionChanged;
     public UnityAction<Unit> OnDeath;
@@ -95,14 +99,15 @@ public class Unit : UnitSuperClass, IInititiave
     public UnityAction<Action, TargetingSystem> OnSelectedAction;
 
     // [Unwalkable, BadWalkin, GoodWalkin]
-    public List<List<PassiveEffectArea>> CalculuatePassiveAreas()
+    // AIStatus is for AI checking to see if a status will improve movement by causing passive areas to be ignored
+    public List<List<PassiveEffectArea>> CalculuatePassiveAreas(Status AIStatus = null)
     {
         List<List<PassiveEffectArea>> classifiedPassives = new List<List<PassiveEffectArea>>() { new List<PassiveEffectArea>(),
         new List<PassiveEffectArea>(), new List<PassiveEffectArea>()};
         List<PassiveEffectArea> allPassiveAreas = gameManager.passiveAreas;
         for (int i = 0; i < allPassiveAreas.Count; i++)
         {
-            PassiveAreaClassification classification = allPassiveAreas[i].passive.passiveClassification;
+            PassiveAreaClassification classification = allPassiveAreas[i].passive.passive.passiveClassification;
             int classificationIndex = -1;
             switch(classification)
             {
@@ -125,7 +130,7 @@ public class Unit : UnitSuperClass, IInititiave
                     }
                     break;
             }
-            if(classificationIndex != -1 && CheckStatuses(null, allPassiveAreas[i].passive))
+            if(classificationIndex != -1 && CheckStatuses(null, allPassiveAreas[i].passive.passive, AIStatus))
             {
                 classifiedPassives[classificationIndex].Add(allPassiveAreas[i]);
             }
@@ -245,7 +250,7 @@ public class Unit : UnitSuperClass, IInititiave
         }
         else
         {
-            List<Passive> tempPassives = new List<Passive>();
+            List<UnitPassiveData> tempPassives = new List<UnitPassiveData>();
             passiveEffects.Clear();
             for(int i = 0; i < passives.Count; i++)
             {
@@ -254,7 +259,7 @@ public class Unit : UnitSuperClass, IInititiave
             passives.Clear();
             for(int i = 0; i < tempPassives.Count; i++)
             {
-                tempPassives[i].AddPassive(this);
+                tempPassives[i].passive.AddPassive(this);
             }
         }
     }
@@ -353,6 +358,14 @@ public class Unit : UnitSuperClass, IInititiave
         return 2;
     }
 
+    public void CalculateTargetPrioritySelf()
+    {
+        targetValue = powerLevel / .33f;
+        targetValue += 1;
+    }
+
+    // ----------------------------------------------------------------------------
+    // Turn Management/ Action Management
     public void StartTurn()
     {
         onTurnStart?.Invoke();
@@ -389,6 +402,10 @@ public class Unit : UnitSuperClass, IInititiave
             Debug.Log("Used Action Points: " + usedActionPoints);
         }
         currentActionsPoints -= usedActionPoints;
+        if (team == Team.Player)
+        {
+            Debug.Log("current ACtion Points: " + currentActionsPoints);
+        }
         CheckActionsDisabled();
     }
 
@@ -408,20 +425,33 @@ public class Unit : UnitSuperClass, IInititiave
     {
         for(int i = 0; i < passives.Count; i++)
         {
-            passives[i].ActivatePassive(this, actionData);
+            passives[i].passive.ActivatePassive(this, actionData);
         }
     }
 
-    public bool CheckStatuses(Action occuringAction, Passive occuringPassive)
+    // AI Status is for AI Statuses checking passiveFields so they can move in the best way
+    public bool CheckStatuses(Action occuringAction, Passive occuringPassive, Status AIstatus = null)
     {
         bool actionOrPassiveContinue = true;
-        Debug.Log("Check Status: " + occuringPassive);
         for(int i = 0; i < statuses.Count; i++)
         {
             if(!statuses[i].status.ContinueEvent(occuringAction, occuringPassive))
             {
                 actionOrPassiveContinue = false; 
                 break;
+            }
+        }
+
+        if(!actionOrPassiveContinue  || AIstatus != null)
+        {
+            if (!AIstatus.ContinueEvent(occuringAction, occuringPassive))
+            {
+                Debug.Log("False");
+                actionOrPassiveContinue = false;
+            }
+            else
+            {
+                Debug.Log("True");
             }
         }
 
@@ -474,7 +504,7 @@ public class Unit : UnitSuperClass, IInititiave
         for (int i = 0; i < sightLines.Count; i++)
         {
             reachedEndHex = true;
-            for (int j = 0; j < sightLines[i].Count; j++)
+            for (int j = 0; j < sightLines[i].Count - 1; j++)
             {
                 Vector2Int currentHex = sightLines[i][j];
                 if (gameManager.spriteManager.elevationOfHexes[currentHex.x, currentHex.y] > originalElevation)
@@ -491,7 +521,8 @@ public class Unit : UnitSuperClass, IInititiave
 
         return reachedEndHex;
     }
-
+    //-----------------------------------------------------
+    //Damage Calculation and Death
     public Tuple<int, int, List<AttackDataUI>> CalculateEstimatedDamage(int minDamageValue, int maxDamageValue, bool ignoreShield)
     {
         float combatDamageResistenceValue = damageResistence;
@@ -518,6 +549,7 @@ public class Unit : UnitSuperClass, IInititiave
         Tuple<int, int, List<AttackDataUI>> attackedData = new Tuple<int, int, List<AttackDataUI>> (newMinDamageValue, newMaxDamageValue, unitAttackedData);
         return attackedData;
     }
+   
 
     public void TakeDamage(Unit damageDealingUnit, List<int> minDamage, List<int> maxDamage, bool meleeContact, bool ignoreShield, bool ignoreArmor,
         bool firstInstanceOfDamageSetUp)

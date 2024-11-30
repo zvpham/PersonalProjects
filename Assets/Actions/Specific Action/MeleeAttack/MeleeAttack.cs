@@ -15,7 +15,56 @@ public class MeleeAttack : Action
 
     public override int CalculateWeight(AIActionData actionData)
     {
-        throw new System.NotImplementedException();
+        CombatGameManager gameManager = actionData.unit.gameManager;
+        Unit originUnit = actionData.unit;
+        int x = actionData.desiredEndPosition.x;
+        int y = actionData.desiredEndPosition.y;
+        int originElevation = gameManager.spriteManager.elevationOfHexes[x, y];
+        for (int i = 1; i <= range; i++)
+        {
+            List<DijkstraMapNode> mapNodes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, i);
+            for (int j = 0; j < mapNodes.Count; j++)
+            {
+                Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
+                Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
+                int targetElevation = gameManager.spriteManager.elevationOfHexes[mapNodes[j].x, mapNodes[j].y];
+                if (targetUnit != null && targetUnit.team != originUnit.team &&
+                    (originElevation == targetElevation || (i == 1 && Mathf.Abs(originElevation - targetElevation) <= range))
+                    && originUnit.LineOfSight(new Vector2Int(x, y), currentNodePosition))
+                {
+                    CalculateAttackData(originUnit, targetUnit, null);
+                }
+            }
+        }
+        return 0;
+    }
+
+    public override bool CheckIfActionIsInRange(AIActionData actionData)
+    {
+        CombatGameManager gameManager = actionData.unit.gameManager;
+        for(int k = 0; k < actionData.enemyUnits.Count; k++)
+        {
+            int x = actionData.enemyUnits[k].x;
+            int y = actionData.enemyUnits[k].y; 
+            int originElevation = gameManager.spriteManager.elevationOfHexes[x, y];
+            for (int i = 1; i <= range; i++)
+            {
+                List<DijkstraMapNode> mapNodes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, i);
+                for (int j = 0; j < mapNodes.Count; j++)
+                {
+                    Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
+                    Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
+                    int targetElevation = gameManager.spriteManager.elevationOfHexes[mapNodes[j].x, mapNodes[j].y];
+                    if (gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).CheckIfTileIsEmpty() &&
+                        (originElevation == targetElevation || (i == 1 && Mathf.Abs(originElevation - targetElevation) <= range))
+                        && CheckIfTileIsInRange(currentNodePosition, actionData))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public override void FindOptimalPosition(AIActionData actionData)
@@ -81,6 +130,7 @@ public class MeleeAttack : Action
         movingUnit.gameManager.spriteManager.DeactiveTargetingSystem();
     }
 
+    //Ignore Path
     public List<AttackDataUI> CalculateAttackData(Unit movingUnit, Unit targetUnit, List<Vector2Int> path)
     {
         AttackDataUI mainAttack = new AttackDataUI();

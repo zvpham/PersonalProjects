@@ -10,6 +10,7 @@ public class DijkstraMapNode
     public int value;
     public int permissableMoves;
     public bool walkable;
+    public bool endPositionOnly;
     
     public DijkstraMapNode(GridHex<DijkstraMapNode> grid, int x, int y)
     {
@@ -17,6 +18,7 @@ public class DijkstraMapNode
         this.x = x;
         this.y = y;
         this.walkable = true;
+        this.endPositionOnly = false;
         value = int.MaxValue;
     }
 

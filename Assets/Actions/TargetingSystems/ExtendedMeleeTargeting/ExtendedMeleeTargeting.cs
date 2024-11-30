@@ -1,0 +1,964 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Events;
+
+public class ExtendedMeleeTargeting : TargetingSystem
+{
+    public DijkstraMap map;
+    public CombatGameManager gameManager;
+    public Unit movingUnit;
+    public Vector2Int startingPosition;
+    public Vector2Int currentlySelectedhex;
+    // For End Targeting/ Mouse Up
+    public Vector2Int prevEndHexPosition;
+    // For Selection/ Mouse Hover (Combat UI)
+    public Vector2Int prevEndHexSelectedPosition;
+    public List<Vector2Int> path = new List<Vector2Int>();
+    public List<Vector2Int> setPath = new List<Vector2Int>();
+    public List<Vector2Int> targetHexPositions = new List<Vector2Int>();
+    public List<Vector2Int> enemyGroundHexes;
+    public List<Vector2Int> groundHexes;
+    List<Vector2Int> friendlyUnits = new List<Vector2Int>();
+    List<Vector2Int> validTargetPositions = new List<Vector2Int>();
+
+    public List<int> startOfNewMoveIndexes = new List<int>();
+    public List<int> setStartOfNewMoveIndexes = new List<int>();
+
+    public List<PassiveEffectArea>[,] passives;
+    List<PassiveEffectArea> passiveEffectAreas = new List<PassiveEffectArea>();
+    List<Tuple<Passive, Vector2Int>> passiveSprites = new List<Tuple<Passive, Vector2Int>>();
+    public bool[,] unwalkablePassivesValues;
+    public bool[,] badWalkInPassivesValues;
+    public bool[,] goodWalkinPassivesValues;
+
+    public List<int> groundColorValues;
+    public List<GameObject> highlightedTargetedHexes = new List<GameObject>();
+    public List<GameObject> highlightedHexes = new List<GameObject>();
+    public List<GameObject> rangeHexes = new List<GameObject>();
+    public List<SpriteHolder> targetingPassiveSpriteHolder = new List<SpriteHolder>();
+    public GameObject tempMovingUnit;
+    public int oneActionMoveAmount;
+    public int twoActionMoveAmount;
+    public int meleeRange;
+    public int actionPointUseAmount;
+
+
+    public List<int> actionMoveAmounts;
+    public int amountOfPossibleMoves;
+    public int amountMoved = 0;
+
+
+    public int amountActionLineIncreased = 0;
+    public int IndexOfStartingActionLine = 0;
+    List<List<Vector3>> actionLines = new List<List<Vector3>>();
+
+    List<List<Vector2Int>> rangeBrackets = new List<List<Vector2Int>>();
+
+    public bool EnoughActionPointsForMeleeActionOnly;
+    public bool selectedTarget = false;
+    public bool targetFriendly = false;
+    public bool canStillMove;
+    public bool keepCombatAttackUi = false;
+    public bool selectOnTarget;
+    public bool unitAttemptingToMove = false;
+
+    public int actionPointsLeft;
+
+    public delegate List<AttackDataUI> CalculateAttackData(Unit movingUnit, Unit targetUnit, List<Vector2Int> movementPath);
+    public CalculateAttackData calculateAttackData;
+
+    //Path, MovingUnit, TargetUnit, FoundTarget
+    public UnityAction<Unit, Unit, bool> OnFoundTarget;
+
+    public void SetParameters(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int actionPointUseAmount, int meleeRange,
+        CalculateAttackData calculateAttackData)
+    {
+        Debug.Log("Moving Unit: " + movingUnit.currentActionsPoints + ", " + actionPointsLeft);
+        this.targetFriendly = targetFriendly;
+        this.movingUnit = movingUnit;
+        this.gameManager = movingUnit.gameManager;
+        this.actionPointsLeft = actionPointsLeft;
+        this.actionPointUseAmount = actionPointUseAmount;
+        this.meleeRange = meleeRange;
+        this.calculateAttackData = calculateAttackData;
+        map = movingUnit.gameManager.map;
+        startingPosition = new Vector2Int(movingUnit.x, movingUnit.y);
+        selectedTarget = false;
+        unitAttemptingToMove = false;
+        prevEndHexPosition = new Vector2Int(-10, 0);
+        path = new List<Vector2Int>();
+        this.enabled = true;
+        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
+
+        passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < gameManager.mapSize; i++)
+        {
+            for (int j = 0; j < gameManager.mapSize; j++)
+            {
+                passives[i, j] = new List<PassiveEffectArea>();
+            }
+        }
+
+        List<List<PassiveEffectArea>> classifiedPassiveEffectArea = movingUnit.CalculuatePassiveAreas();
+        unwalkablePassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+
+        for (int i = 0; i < classifiedPassiveEffectArea[0].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[0][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[0][i].passiveLocations[j];
+                unwalkablePassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[0][i]);
+            }
+        }
+
+        badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < classifiedPassiveEffectArea[1].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[1][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[1][i].passiveLocations[j];
+                badWalkInPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[1][i]);
+            }
+        }
+
+        goodWalkinPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < classifiedPassiveEffectArea[2].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[2][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[2][i].passiveLocations[j];
+                goodWalkinPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[2][i]);
+            }
+        }
+
+
+        SetUp(startingPosition, actionPointsLeft, movingUnit.moveSpeed);
+    }
+
+    public void SetUp(Vector2Int targetPosition, int numActionPoints, int moveSpeed)
+    {
+
+        ResetSetUp();
+
+        List<Unit> units = gameManager.units;
+        friendlyUnits = new List<Vector2Int>();
+        for (int i = 0; i < units.Count; i++)
+        {
+            if (units[i].team == movingUnit.team)
+            {
+                friendlyUnits.Add(new Vector2Int(units[i].x, units[i].y));
+            }
+        }
+
+        List<Unit> validTargets = GetValidTargets();
+        validTargetPositions = new List<Vector2Int>();
+        for (int i = 0; i < validTargets.Count; i++)
+        {
+            validTargetPositions.Add(new Vector2Int(validTargets[i].x, validTargets[i].y));
+        }
+
+        DijkstraMap map = gameManager.map;
+        int x = targetPosition.x;
+        int y = targetPosition.y;
+        startingPosition = targetPosition;
+        actionPointsLeft = numActionPoints;
+        int initialActionPoints = numActionPoints;
+        initialActionPoints -= actionPointUseAmount;
+        int moveAmounts = 0;
+        while (initialActionPoints > 0)
+        {
+            if (initialActionPoints >= amountMoved + moveAmounts + 1)
+            {
+                moveAmounts += 1;
+                initialActionPoints -= amountMoved + moveAmounts;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        List<DijkstraMapNode> mapNodes;
+        rangeBrackets = new List<List<Vector2Int>>();
+        groundHexes = new List<Vector2Int>();
+        groundColorValues = new List<int>();
+        enemyGroundHexes = new List<Vector2Int>();
+
+        amountOfPossibleMoves = moveAmounts;
+        if (moveAmounts > 0)
+        {
+            canStillMove = true;
+            int originElevation = gameManager.spriteManager.elevationOfHexes[x, y];
+            for (int i = 1; i <= meleeRange; i++)
+            {
+                mapNodes = map.getGrid().GetGridObjectsInRing(x, y, i);
+                for (int j = 0; j < mapNodes.Count; j++)
+                {
+                    Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
+                    Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
+                    int targetElevation = gameManager.spriteManager.elevationOfHexes[mapNodes[j].x, mapNodes[j].y];
+                    if (targetUnit != null && targetUnit.team != movingUnit.team && 
+                        (originElevation == targetElevation || (i == 1 && Mathf.Abs(originElevation - targetElevation) <= meleeRange))
+                        && movingUnit.LineOfSight(new Vector2Int(x, y), currentNodePosition))
+                    {
+                            enemyGroundHexes.Add(currentNodePosition);
+                            targetHexPositions.Add(currentNodePosition);
+                    }
+                }
+            }
+
+            map.ResetMap(true);
+            int currentRadius = 1;
+            movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+            x = targetPosition.x;
+            y = targetPosition.y;
+            map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) }, gameManager, movingUnit.moveModifier);
+
+            for (int i = 1; i <= moveAmounts; i++)
+            {
+                rangeBrackets.Add(new List<Vector2Int>());
+                for (int j = currentRadius; j <= (moveSpeed * i); j++)
+                {
+                    mapNodes = map.getGrid().GetGridObjectsInRing(x, y, j);
+                    for (int k = 0; k < mapNodes.Count; k++)
+                    {
+                        Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
+                        if (map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * i)
+                        {
+                            if (!enemyGroundHexes.Contains(currentNodePosition))
+                            {
+                                groundHexes.Add(currentNodePosition);
+                                groundColorValues.Add(amountMoved + 1);
+                            }
+                            rangeBrackets[i - 1].Add(currentNodePosition);
+                        }
+                    }
+                    currentRadius += 1;
+                }
+            }
+        }
+        else
+        {
+            canStillMove = false;
+            for (int i = 1; i <= meleeRange; i++)
+            {
+                mapNodes = map.getGrid().GetGridObjectsInRing(x, y, i);
+                for (int j = 0; j < mapNodes.Count; j++)
+                {
+                    Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
+                    Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
+                    if (targetUnit != null && targetUnit.team != movingUnit.team &&
+                        map.getGrid().GetGridObject(mapNodes[j].x, mapNodes[j].y).value <= meleeRange
+                        && movingUnit.LineOfSight(new Vector2Int(x, y), currentNodePosition))
+                    {
+                        if (groundHexes.Contains(currentNodePosition))
+                        {
+                            int groundIndex = groundHexes.IndexOf(currentNodePosition);
+                            groundHexes.RemoveAt(groundIndex);
+                            groundColorValues.RemoveAt(groundIndex);
+                        }
+                        enemyGroundHexes.Add(currentNodePosition);
+                        targetHexPositions.Add(currentNodePosition);
+                    }
+                }
+            }
+
+            //Make Units Unwalkable
+            for (int i = 0; i < gameManager.units.Count; i++)
+            {
+                if (gameManager.units[i].team != movingUnit.team)
+                {
+                    map.getGrid().GetXY(gameManager.units[i].transform.position, out x, out y);
+                    map.SetUnwalkable(new Vector2Int(x, y));
+                }
+            }
+        }
+
+        PlaceGroundHexes();
+    }
+
+    public List<Unit> GetValidTargets()
+    {
+        List<Unit> units = gameManager.units;
+        List<Unit> validTargets = new List<Unit>();
+        if (targetFriendly)
+        {
+            for (int i = 0; i < units.Count; i++)
+            {
+                if (units[i].team == movingUnit.team)
+                {
+                    validTargets.Add(units[i]);
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < units.Count; i++)
+            {
+                if (units[i].team != movingUnit.team)
+                {
+                    validTargets.Add(units[i]);
+                }
+            }
+        }
+        return validTargets;
+    }
+
+    public void PlaceGroundHexes()
+    {
+        for (int i = 0; i < groundColorValues.Count; i++)
+        {
+            GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
+            Vector2Int currentNodePosition = groundHexes[i];
+            newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+            newHighlightedHex.GetComponent<SpriteRenderer>().color = gameManager.resourceManager.highlightedHexColors[groundColorValues[i]];
+            newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
+                currentNodePosition.y].sprite.sortingOrder + 1;
+            highlightedTargetedHexes.Add(newHighlightedHex);
+        }
+
+        for (int i = 0; i < enemyGroundHexes.Count; i++)
+        {
+            GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
+            Vector2Int currentNodePosition = enemyGroundHexes[i];
+            newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+            newHighlightedHex.GetComponent<SpriteRenderer>().color = gameManager.resourceManager.highlightedHexColors[3];
+            newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
+                currentNodePosition.y].sprite.sortingOrder + 1;
+            highlightedTargetedHexes.Add(newHighlightedHex);
+        }
+    }
+
+
+    // Clear Highlighted Hexes
+    public void ResetSetUp()
+    {
+        for (int i = 0; i < highlightedHexes.Count; i++)
+        {
+            gameManager.spriteManager.DisableHighlightedHex(highlightedHexes[i]);
+        }
+        highlightedHexes = new List<GameObject>();
+
+        for (int i = 0; i < highlightedTargetedHexes.Count; i++)
+        {
+            gameManager.spriteManager.DisableHighlightedHex(highlightedTargetedHexes[i]);
+        }
+        highlightedTargetedHexes = new List<GameObject>();
+
+        for (int i = 0; i < rangeHexes.Count; i++)
+        {
+            gameManager.spriteManager.DisableTargetHex(rangeHexes[i]);
+        }
+        rangeHexes.Clear();
+        targetHexPositions.Clear();
+    }
+
+    //Mouse Hover
+    public override void SelectNewPosition(Vector2Int newHex)
+    {
+        if (!selectedTarget)
+        {
+            currentlySelectedhex = newHex;
+            map.ResetMap();
+            List<Vector2Int> endHex = new List<Vector2Int>();
+            int endX = currentlySelectedhex.x;
+            int endY = currentlySelectedhex.y;
+            amountActionLineIncreased = 0;
+            if (map.getGrid().GetGridObject(endX, endY) != null)
+            {
+                endHex.Add(new Vector2Int(endX, endY));
+                map.SetGoals(endHex, gameManager, movingUnit.moveModifier, badWalkInPassivesValues);
+                int x = startingPosition.x;
+                int y = startingPosition.y;
+                path.Clear();
+                startOfNewMoveIndexes = new List<int>();
+                bool foundEndPosition = false;
+                bool findMostDirectPath = false;
+                int initialAmountPathMoveIncreased = amountActionLineIncreased;
+
+                //Target Unit
+                bool endHexIsValidTargetUnit = false;
+
+                Unit targetUnit = null;
+                if (gameManager.grid.GetGridObject(endX, endY) != null)
+                {
+                    targetUnit = gameManager.grid.GetGridObject(endX, endY).unit;
+                }
+
+                if (targetUnit != null && (targetUnit.team != Team.Player || (targetFriendly && targetUnit.team == Team.Player)))
+                {
+                    endHexIsValidTargetUnit = true;
+                }
+
+                if (amountOfPossibleMoves > 0)
+                {
+                    EnoughActionPointsForMeleeActionOnly = false;
+
+                    if (enemyGroundHexes.Contains(new Vector2Int(endX, endY)))
+                    {
+                        Debug.Log("Found End Position");
+                        foundEndPosition = true;
+                        selectOnTarget = true;
+                    }
+                    else
+                    {
+                        selectOnTarget = false;
+                        // loop through possible move amounts to find a path to end hex
+                        for (int i = 0; i < amountOfPossibleMoves; i++)
+                        {
+                            startOfNewMoveIndexes.Add(path.Count);
+                            actionMoveAmounts.Add(0);
+                            amountActionLineIncreased += 1;
+                            bool inRangeBracket = rangeBrackets[i].Contains(new Vector2Int(endX, endY));
+                            int startx = x;
+                            int starty = y;
+
+                            // Attempt to find path Avoiding harmful Terrain
+                            for (int j = 0; j < movingUnit.moveSpeed; j++)
+                            {
+                                DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
+                                x = nextLowestNode.x;
+                                y = nextLowestNode.y;
+                                path.Add(new Vector2Int(x, y));
+                                actionMoveAmounts[i] = actionMoveAmounts[i] + 1;
+                                if (endHex[0] == path[path.Count - 1] || (endHexIsValidTargetUnit &&
+                                    map.getGrid().GetGridObject(path[i]).value <= meleeRange))
+                                {
+                                    foundEndPosition = true;
+                                    break;
+                                }
+                                else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
+                                {
+                                    path.RemoveAt(path.Count - 1);
+                                    foundEndPosition = false;
+                                    actionMoveAmounts[i] = actionMoveAmounts[i] - 1;
+                                    break;
+                                }
+                            }
+
+                            if (foundEndPosition)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                findMostDirectPath = true;
+                            }
+
+                            // If it is possible to reach end position in range bracket Reset data and try again
+                            if (inRangeBracket && !foundEndPosition)
+                            {
+                                // Reset Data From Initial attempt to find path
+                                for (int j = 0; j < actionMoveAmounts[i]; j++)
+                                {
+                                    path.RemoveAt(path.Count - 1);
+                                }
+                                actionMoveAmounts[i] = 0;
+                                x = startx;
+                                y = starty;
+
+                                map.ResetMap(true);
+                                movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+                                map.SetGoals(endHex, gameManager, movingUnit.moveModifier);
+
+                                //Try to find Path
+                                for (int j = 0; j < movingUnit.moveSpeed; j++)
+                                {
+                                    DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
+                                    x = nextLowestNode.x;
+                                    y = nextLowestNode.y;
+                                    path.Add(new Vector2Int(x, y));
+                                    actionMoveAmounts[i] = actionMoveAmounts[i] + 1;
+                                    if (endHex[0] == path[path.Count - 1] || (endHexIsValidTargetUnit && map.getGrid().GetGridObject(path[i]).value <= meleeRange))
+                                    {
+                                        foundEndPosition = true;
+                                        break;
+                                    }
+                                    else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
+                                    {
+                                        path.RemoveAt(path.Count - 1);
+                                        foundEndPosition = false;
+                                        actionMoveAmounts[i] = actionMoveAmounts[i] - 1;
+                                        break;
+                                    }
+                                }
+
+                                findMostDirectPath = !foundEndPosition;
+                                break;
+                            }
+                        }
+                        // Unable to find path in its rangebracket, redo entire path taking most direct route
+                        if (findMostDirectPath)
+                        {
+                            for (int i = 0; i < amountActionLineIncreased; i++)
+                            {
+                                actionMoveAmounts.RemoveAt(actionMoveAmounts.Count - 1);
+                            }
+                            amountActionLineIncreased = initialAmountPathMoveIncreased;
+                            endHex.Add(new Vector2Int(endX, endY));
+                            map.ResetMap(true);
+                            movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+                            map.SetGoals(endHex, gameManager, movingUnit.moveModifier);
+                            x = startingPosition.x;
+                            y = startingPosition.y;
+                            path.Clear();
+                            startOfNewMoveIndexes = new List<int>();
+                            foundEndPosition = false;
+                            for (int i = 0; i < amountOfPossibleMoves; i++)
+                            {
+                                amountActionLineIncreased += 1;
+                                actionMoveAmounts.Add(0);
+                                startOfNewMoveIndexes.Add(path.Count);
+
+                                // Attempt to find path Avoiding harmful Terrain
+                                for (int j = 0; j < movingUnit.moveSpeed; j++)
+                                {
+                                    DijkstraMapNode nextLowestNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
+                                    x = nextLowestNode.x;
+                                    y = nextLowestNode.y;
+                                    path.Add(new Vector2Int(nextLowestNode.x, nextLowestNode.y));
+                                    actionMoveAmounts[i] = actionMoveAmounts[i] + 1;
+                                    if (endHex[0] == path[path.Count - 1] || (endHexIsValidTargetUnit && map.getGrid().GetGridObject(path[i]).value <= meleeRange))
+                                    {
+                                        foundEndPosition = true;
+                                        break;
+                                    }
+                                    else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
+                                    {
+                                        path.RemoveAt(path.Count - 1);
+                                        foundEndPosition = false;
+                                        actionMoveAmounts[i] = actionMoveAmounts[i] - 1;
+                                        break;
+                                    }
+                                }
+
+                                if (foundEndPosition)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                // Case - Only have enough action points to perform action
+                else if (actionPointsLeft >= actionPointUseAmount)
+                {
+                    EnoughActionPointsForMeleeActionOnly = true;
+                    endHex.Add(new Vector2Int(endX, endY));
+                    map.SetGoals(endHex);
+                    path.Clear();
+                    oneActionMoveAmount = 0;
+                    x = startingPosition.x;
+                    y = startingPosition.y;
+                    path.Add(new Vector2Int(x, y));
+                }
+                else
+                {
+                    Debug.Log("this SHouldn't happen");
+                }
+
+
+                if (prevEndHexSelectedPosition != endHex[0] && !keepCombatAttackUi)
+                {
+                    gameManager.spriteManager.ResetCombatAttackUI();
+                    prevEndHexSelectedPosition = endHex[0];
+                    if (targetUnit != null)
+                    {
+                        if (targetHexPositions.Contains(endHex[0]))
+                        {
+                            List<AttackDataUI> attackDatas = calculateAttackData(movingUnit, targetUnit, path);
+                            gameManager.spriteManager.ActivateCombatAttackUI(targetUnit, attackDatas, targetUnit.transform.position);
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                }
+                DrawLine();
+            }
+        }
+    }
+
+    // On Mouse UP
+    public override void EndTargeting()
+    {
+        int x = currentlySelectedhex.x;
+        int y = currentlySelectedhex.y;
+        if (x >= gameManager.grid.GetWidth() || x < 0 || y >= gameManager.grid.GetHeight() || y < 0)
+        {
+            return;
+        }
+        // Determine Latest Action Line
+        for (int i = actionLines.Count - 1; i >= 0; i--)
+        {
+            if (actionLines[i].Count != 0)
+            {
+                IndexOfStartingActionLine = i + 1;
+                break;
+            }
+        }
+        Vector2Int endHexPosition = new Vector2Int(x, y);
+
+        bool targetInRange = false;
+        int startingPositionDistanceFromMouse = map.getGrid().GetGridObject(startingPosition).value;
+        if (startingPositionDistanceFromMouse <= meleeRange + movingUnit.moveSpeed * amountOfPossibleMoves)
+        {
+            targetInRange = true;
+        }
+
+        // Case -  Player Clicks on previously selected Hex
+        // Confirms action
+        if (prevEndHexPosition.x >= 0 && endHexPosition == prevEndHexPosition)
+        {
+            gameManager.spriteManager.ConfirmAction();
+        }
+        //Case - Player clicks on hex that has not been previously selected
+        else
+        {
+            Vector2Int endPathHex;
+            // Select Player Unit when you aren't using a friendly ability like heal
+            if (!targetFriendly && gameManager.playerTurn.CheckSpaceForFriendlyUnit(endHexPosition))
+            {
+                OnFoundTarget?.Invoke(movingUnit, null, false);
+                gameManager.playerTurn.SelectUnit(endHexPosition);
+            }
+            else
+            {
+                Unit targetUnit = gameManager.grid.GetGridObject(endHexPosition.x, endHexPosition.y).unit;
+                // if still able to move set PRevious Path Normally
+                if (canStillMove)
+                {
+                    if (actionPointsLeft > 0)
+                    {
+                        for (int i = 0; i < startOfNewMoveIndexes.Count; i++)
+                        {
+                            setStartOfNewMoveIndexes.Add(startOfNewMoveIndexes[i]);
+                        }
+
+                        prevEndHexPosition = endHexPosition;
+                        for (int i = 0; i < path.Count; i++)
+                        {
+                            setPath.Add(path[i]);
+                        }
+                    }
+                }
+                // If not able to move then only check if Mouse Path is in melee Range
+                else if (startingPositionDistanceFromMouse <= meleeRange && targetUnit != null)
+                {
+                    prevEndHexPosition = endHexPosition;
+                }
+
+                Vector2Int lineOfSightStartHex = startingPosition;
+                if (setPath.Count > 0)
+                {
+                    lineOfSightStartHex = setPath[setPath.Count - 1];
+                }
+
+                //Case -  MouseHex contains a Unit that is a valid Target
+                if (targetUnit != null && targetInRange &&
+                    movingUnit.LineOfSight(lineOfSightStartHex, new Vector2Int(targetUnit.x, targetUnit.y)))
+                {
+                    bool targetInMeleeRange = false;
+                    if (startingPositionDistanceFromMouse <= meleeRange)
+                    {
+                        targetInMeleeRange = true;
+                        actionPointsLeft -= actionPointUseAmount;
+                    }
+                    else
+                    {
+                        for (int i = 0; i <= rangeBrackets.Count; i++)
+                        {
+                            if (startingPositionDistanceFromMouse <= meleeRange + movingUnit.moveSpeed * i)
+                            {
+                                actionPointsLeft -= actionPointUseAmount;
+                                for (int j = 0; j <= i; j++)
+                                {
+                                    actionPointsLeft -= amountMoved + (j + 1);
+                                }
+                                amountMoved += i;
+                            }
+                        }
+                    }
+                    keepCombatAttackUi = true;
+                    // Case target is within meleeRange
+                    if (targetInMeleeRange && !unitAttemptingToMove)
+                    {
+                        SetUp(startingPosition, 0, movingUnit.moveSpeed);
+                        gameManager.spriteManager.ActivateActionConfirmationMenu(
+                            () => // Confirm Action
+                            {
+                                selectedTarget = true;
+                                OnFoundTarget?.Invoke(movingUnit, targetUnit, true);
+                                Destroy(tempMovingUnit);
+                            },
+                            () => // Cancel Action
+                            {
+                                ResetTargeting();
+                            });
+                    }
+                    // Case - Target Unit is in movement +  Melee Range
+                    else
+                    {
+                        endPathHex = setPath[setPath.Count - 1];
+                        Destroy(tempMovingUnit);
+                        tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
+                        SetUp(setPath[setPath.Count - 1], 0, movingUnit.moveSpeed);
+                        gameManager.spriteManager.ActivateActionConfirmationMenu(
+                            () => // Confirm Action
+                            {
+                                selectedTarget = true;
+                                gameManager.move.AnotherActionMove(setPath, setStartOfNewMoveIndexes, movingUnit, false);
+                                OnFoundTarget?.Invoke(movingUnit, targetUnit, true);
+                                Destroy(tempMovingUnit);
+                            },
+                            () => // Cancel Action
+                            {
+                                ResetTargeting();
+                            });
+                    }
+                }
+                // Case - Mouse Hex doesn't contain a valid Target and Moving Unit Can Still move
+                else if (prevEndHexPosition == endHexPosition && canStillMove)
+                {
+                    endPathHex = setPath[setPath.Count - 1];
+                    for (int i = 0; i < rangeBrackets.Count; i++)
+                    {
+                        if (rangeBrackets[i].Contains(endPathHex))
+                        {
+                            for (int j = 0; j <= i; j++)
+                            {
+                                actionPointsLeft -= amountMoved + (j + 1);
+                            }
+                            amountMoved += i + 1;
+                        }
+                    }
+                    Destroy(tempMovingUnit);
+                    tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
+                    SetUp(setPath[setPath.Count - 1], actionPointsLeft, movingUnit.moveSpeed);
+                    unitAttemptingToMove = true;
+                    gameManager.spriteManager.ActivateActionConfirmationMenu(
+                        () => // Confirm Action
+                        {
+                            //gameManager.move.AnotherActionMove(setPath, amountMoved movingUnit);
+                            if (setPath.Count == 1 && movingUnit.gameManager.map.getGrid().GetWorldPosition(setPath[0].x, setPath[0].y) == movingUnit.transform.position)
+                            {
+                                OnFoundTarget?.Invoke(movingUnit, null, false);
+                                gameManager.playerTurn.SelectUnit(movingUnit);
+                            }
+                            else
+                            {
+                                gameManager.move.AnotherActionMove(setPath, setStartOfNewMoveIndexes, movingUnit, true);
+                                Destroy(tempMovingUnit);
+                            }
+                        },
+                        () => // Cancel Action
+                        {
+                            SetUp(new Vector2Int(movingUnit.x, movingUnit.y), movingUnit.currentActionsPoints, movingUnit.moveSpeed);
+                            ResetTargeting();
+                        });
+                }
+            }
+        }
+    }
+
+    public void ResetTargeting()
+    {
+        Destroy(tempMovingUnit);
+        tempMovingUnit = null;
+        selectedTarget = false;
+        keepCombatAttackUi = false;
+        prevEndHexPosition = new Vector2Int(-1, -1);
+        path = new List<Vector2Int>();
+        setPath = new List<Vector2Int>();
+        actionMoveAmounts = new List<int>();
+        setStartOfNewMoveIndexes = new List<int>();
+        actionLines = new List<List<Vector3>>();
+        amountActionLineIncreased = 0;
+        IndexOfStartingActionLine = 0;
+        actionPointsLeft = movingUnit.currentActionsPoints;
+        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
+        gameManager.spriteManager.ResetCombatAttackUI();
+        gameManager.spriteManager.ClearLines();
+        for (int i = 0; i < targetingPassiveSpriteHolder.Count; i++)
+        {
+            gameManager.spriteManager.DisableTargetingSpriteHolder(targetingPassiveSpriteHolder[i]);
+        }
+        targetingPassiveSpriteHolder.Clear();
+        SetUp(new Vector2Int(movingUnit.x, movingUnit.y), actionPointsLeft, movingUnit.moveSpeed);
+    }
+
+    public override void DeactivateTargetingSystem()
+    {
+        ResetTargeting();
+        ResetSetUp();
+        map.ResetMap(true);
+        OnFoundTarget = null;
+    }
+
+    public void DrawLine()
+    {
+        if (actionPointsLeft <= 0)
+        {
+            return;
+        }
+
+        if (IndexOfStartingActionLine > 0)
+        {
+            for (int i = 0; i < amountActionLineIncreased; i++)
+            {
+                if (i > IndexOfStartingActionLine)
+                {
+                    actionLines.RemoveAt(actionLines.Count - 1);
+                }
+            }
+        }
+
+        for (int i = IndexOfStartingActionLine; i < actionLines.Count; i++)
+        {
+            actionLines[i] = new List<Vector3>();
+            gameManager.spriteManager.DrawLine(actionLines[i], i);
+        }
+
+        int currentPathindex = 0;
+        for (int i = IndexOfStartingActionLine; i < IndexOfStartingActionLine + amountActionLineIncreased; i++)
+        {
+            if (actionLines.Count <= i)
+            {
+                actionLines.Add(new List<Vector3>());
+            }
+
+            if (i == 0)
+            {
+                actionLines[i].Add(movingUnit.transform.position);
+            }
+            else
+            {
+                actionLines[i].Add(actionLines[i - 1][actionLines[i - 1].Count - 1]);
+            }
+
+            for (int j = 0; j < actionMoveAmounts[i - IndexOfStartingActionLine]; j++)
+            {
+                actionLines[i].Add(map.getGrid().GetWorldPosition(path[currentPathindex].x, path[currentPathindex].y));
+                currentPathindex += 1;
+            }
+            gameManager.spriteManager.DrawLine(actionLines[i], i);
+        }
+
+        for (int i = 0; i < amountActionLineIncreased; i++)
+        {
+            actionMoveAmounts.RemoveAt(actionMoveAmounts.Count - 1);
+        }
+
+        // Draw meleeRange
+        Vector2Int endHex;
+
+        if (EnoughActionPointsForMeleeActionOnly || selectOnTarget)
+        {
+            int x = startingPosition.x;
+            int y = startingPosition.y;
+            endHex = new Vector2Int(x, y);
+        }
+        else
+        {
+            endHex = path[path.Count - 1];
+        }
+
+        for (int i = 0; i < rangeHexes.Count; i++)
+        {
+            gameManager.spriteManager.DisableTargetHex(rangeHexes[i]);
+        }
+        rangeHexes.Clear();
+
+        passiveEffectAreas = new List<PassiveEffectArea>();
+        passiveSprites = new List<Tuple<Passive, Vector2Int>>();
+
+        for (int i = 0; i < targetingPassiveSpriteHolder.Count; i++)
+        {
+            gameManager.spriteManager.DisableTargetingSpriteHolder(targetingPassiveSpriteHolder[i]);
+        }
+        targetingPassiveSpriteHolder.Clear();
+
+        CheckPassives(new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) });
+        CheckPassives(setPath);
+        CheckPassives(path);
+
+        //Hex Position, num Passives
+        Dictionary<Vector2Int, int> passivesGrid = new Dictionary<Vector2Int, int>();
+        for (int i = 0; i < passiveSprites.Count; i++)
+        {
+            SpriteHolder tempTargetPassiveSprite = gameManager.spriteManager.UseOpenTargetingSpriteHolder();
+            if (passivesGrid.ContainsKey(passiveSprites[i].Item2))
+            {
+                passivesGrid[passiveSprites[i].Item2] += 1;
+            }
+            else
+            {
+                passivesGrid.Add(passiveSprites[i].Item2, 1);
+            }
+            tempTargetPassiveSprite.transform.position = gameManager.spriteManager.GetWorldPosition(passiveSprites[i].Item2) + new Vector3(-0.6f + (0.3f * passivesGrid[passiveSprites[i].Item2]), -0.4f, 0);
+            tempTargetPassiveSprite.spriteRenderer.sortingOrder = gameManager.spriteManager.terrain[passiveSprites[i].Item2.x, passiveSprites[i].Item2.y].sprite.sortingOrder + 10;
+            tempTargetPassiveSprite.spriteRenderer.sprite = passiveSprites[i].Item1.UISkillImage;
+            targetingPassiveSpriteHolder.Add(tempTargetPassiveSprite);
+        }
+
+        gameManager.map.ResetMap(true);
+        map.SetGoalsMelee(new List<Vector2Int>() { endHex }, friendlyUnits, validTargetPositions, gameManager, movingUnit.moveModifier, meleeRange);
+
+        for (int i = 1; i <= meleeRange; i++)
+        {
+            List<DijkstraMapNode> mapNodes = map.getGrid().GetGridObjectsInRing(endHex.x, endHex.y, i);
+            for (int j = 0; j < mapNodes.Count; j++)
+            {
+                if (movingUnit.moveModifier.ValidMeleeAttack(gameManager, map.getGrid().GetGridObject(endHex), mapNodes[j], meleeRange))
+                {
+                    Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
+                    GameObject newTargetHex = gameManager.spriteManager.UseOpenTargetHex();
+                    newTargetHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+                    newTargetHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
+                        currentNodePosition.y].sprite.sortingOrder + 2;
+                    rangeHexes.Add(newTargetHex);
+                }
+            }
+        }
+    }
+
+    public void CheckPassives(List<Vector2Int> moveLocations)
+    {
+        for (int i = 0; i < moveLocations.Count; i++)
+        {
+            Vector2Int pathLocation = moveLocations[i];
+            List<PassiveEffectArea> passivesOnLocation = passives[pathLocation.x, pathLocation.y];
+            List<Passive> passivesUsed = new List<Passive>();
+            for (int j = 0; j < passivesOnLocation.Count; j++)
+            {
+                if (!passiveEffectAreas.Contains(passivesOnLocation[j]) && !passivesUsed.Contains(passivesOnLocation[j].passive.passive))
+                {
+                    passiveEffectAreas.Add(passivesOnLocation[j]);
+                    Tuple<Passive, Vector2Int> tempPassiveSprite = passivesOnLocation[j].GetTargetingData(new Vector2Int(movingUnit.x, movingUnit.y), path,
+                        setPath, passivesOnLocation[j].passiveLocations);
+                    if (tempPassiveSprite.Item2.x != -1)
+                    {
+                        passiveSprites.Add(tempPassiveSprite);
+                    }
+                    passivesUsed.Add(passivesOnLocation[j].passive.passive);
+                }
+            }
+        }
+    }
+
+    public override void NextItem()
+    {
+
+    }
+
+    public override void PreviousItem()
+    {
+
+    }
+}

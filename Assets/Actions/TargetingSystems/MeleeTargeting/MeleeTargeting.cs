@@ -86,7 +86,11 @@ public class MeleeTargeting : TargetingSystem
         this.gameManager = movingUnit.gameManager;  
         this.actionPointsLeft = actionPointsLeft;
         this.actionPointUseAmount = actionPointUseAmount;
-        this.meleeRange = meleeRange;
+        if(meleeRange != 1)
+        {
+            Debug.LogError("This SHould only be used for melee Range 1 action");
+        }
+        this.meleeRange = 1;
         this.calculateAttackData = calculateAttackData;
         map = movingUnit.gameManager.map;
         startingPosition = new Vector2Int(movingUnit.x, movingUnit.y);
@@ -171,7 +175,8 @@ public class MeleeTargeting : TargetingSystem
         int x = targetPosition.x;
         int y = targetPosition.y;
         map.ResetMap(true);
-        map.SetGoalsMelee(new List<Vector2Int>() { new Vector2Int(x, y) }, friendlyUnits, validTargetPositions,  gameManager, movingUnit.moveModifier, meleeRange);
+        map.SetGoalsMelee(new List<Vector2Int>() { new Vector2Int(x, y) }, friendlyUnits, validTargetPositions,
+            gameManager, movingUnit.moveModifier, meleeRange);
 
         startingPosition = targetPosition;
         actionPointsLeft = numActionPoints;
@@ -301,7 +306,8 @@ public class MeleeTargeting : TargetingSystem
                     Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
 
                     if (enemyGroundHexes.Contains(currentNodePosition) &&
-                        Mathf.Abs(gameManager.spriteManager.elevationOfHexes[currentNodePosition.x, currentNodePosition.y] - targetElevation) <= meleeRange)
+                        Mathf.Abs(gameManager.spriteManager.elevationOfHexes[currentNodePosition.x, currentNodePosition.y] - 
+                        targetElevation) <= meleeRange)
                     {
                         enemyGroundHexes.Add(currentNodePosition);
                         targetHexPositions.Add(currentNodePosition);
@@ -817,7 +823,7 @@ public class MeleeTargeting : TargetingSystem
                             if (setPath.Count == 1 && movingUnit.gameManager.map.getGrid().GetWorldPosition(setPath[0].x, setPath[0].y) == movingUnit.transform.position)
                             {
                                 OnFoundTarget?.Invoke(movingUnit, null, false);
-                                gameManager.playerTurn.SelectUnit(endHexPosition);
+                                gameManager.playerTurn.SelectUnit(movingUnit);
                             }
                             else
                             {
@@ -1005,7 +1011,7 @@ public class MeleeTargeting : TargetingSystem
             List<Passive> passivesUsed = new List<Passive>();
             for (int j = 0; j < passivesOnLocation.Count; j++)
             {
-                if (!passiveEffectAreas.Contains(passivesOnLocation[j]) && !passivesUsed.Contains(passivesOnLocation[j].passive))
+                if (!passiveEffectAreas.Contains(passivesOnLocation[j]) && !passivesUsed.Contains(passivesOnLocation[j].passive.passive))
                 {
                     passiveEffectAreas.Add(passivesOnLocation[j]);
                     Tuple<Passive, Vector2Int> tempPassiveSprite = passivesOnLocation[j].GetTargetingData(new Vector2Int(movingUnit.x, movingUnit.y), path,
@@ -1014,7 +1020,7 @@ public class MeleeTargeting : TargetingSystem
                     {
                         passiveSprites.Add(tempPassiveSprite);
                     }
-                    passivesUsed.Add(passivesOnLocation[j].passive);
+                    passivesUsed.Add(passivesOnLocation[j].passive.passive);
                 }
             }
         }

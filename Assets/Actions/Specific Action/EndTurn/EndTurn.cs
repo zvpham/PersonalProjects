@@ -15,6 +15,11 @@ public class EndTurn : Action
         return;
     }
 
+    public override bool CheckIfActionIsInRange(AIActionData actionData)
+    {
+        return false;
+    }
+
     public override void SelectAction(Unit self)
     {
         base.SelectAction(self);
@@ -38,4 +43,5 @@ public class EndTurn : Action
         Unit self = actionData.actingUnit;
         self.UseActionPoints(self.currentActionsPoints);
     }
+
 }

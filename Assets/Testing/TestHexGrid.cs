@@ -135,13 +135,46 @@ public class TestHexGrid : MonoBehaviour
                 HandlePlaceUnit(currentlyPlacingUnit);
             }
         }
-        //if(Input.GetMouseButtonDown(1))
-        if (prevMouseHex != currentlySelectedHex)
+
+        if (Input.GetMouseButtonDown(1))
         {
+            TestAiTime();
+        }
+
+
+        /* Testing Get MovementMaps of Unit Actions: IE - Get Evade Movement Map and displaying it
+        if(Input.GetMouseButtonDown(1))
+        //if (prevMouseHex != currentlySelectedHex)
+        {
+            int[,] testMovementMap;
             //LineOfSight(mouseHex, currentlySelectedHex);
+            Unit currentUnit =  gameManager.playerTurn.currentlySelectedUnit;
+            for(int i =0; i < currentUnit.actions.Count; i++)
+            {
+                if (currentUnit.actions[i].action.GetType() == typeof(Evade))
+                {
+                        AIActionData data = new AIActionData();
+                    data.unit = currentUnit;
+                    data.originalPosition = new Vector2Int(currentUnit.x, currentUnit.y);
+                    testMovementMap = currentUnit.actions[i].action.GetMovementMap(data);
+                    DijkstraMap map = gameManager.map;
+
+                    for(int k = 0; k < testMovementMap.GetLength(0); k++)
+                    {
+                        for(int j  = 0; j < testMovementMap.GetLength(1); j++)
+                        {
+                            DijkstraMapNode node = map.getGrid().GetGridObject(k, j);
+                            node.value = testMovementMap[k, j];
+                            map.getGrid().SetGridObject(k, j, node);
+                        }
+                    }
+                }
+            }
             prevMouseHex = currentlySelectedHex;
         }
+        */
     }
+ 
 
 
     public bool LineOfSight(Vector2Int originalPosition, Vector2Int targetPosiiton)
@@ -185,6 +218,90 @@ public class TestHexGrid : MonoBehaviour
 
         return reachedEndHex;
     }
+
+    public void TestAiTime()
+    {
+        Unit unit = gameManager.playerTurn.currentlySelectedUnit;
+        List<int[,]> movementData = new List<int[,]>();
+        AIActionData actionData = new AIActionData();
+        actionData.unit = unit;
+        actionData.originalPosition = new Vector2Int(unit.x, unit.y);
+        actionData.AIState = AITurnStates.Combat;
+
+        List<Unit> visibleUnits = new List<Unit>();
+        List<Vector2Int> enemyUnits =  new List<Vector2Int>();
+        for (int i = 0; i < gameManager.units.Count; i++)
+        {
+            if (gameManager.units[i].team != Team.Player)
+            {
+                visibleUnits.Add(gameManager.units[i]);
+                enemyUnits.Add(new Vector2Int(gameManager.units[i].x, gameManager.units[i].y));
+            }
+        }
+        actionData.enemyUnits = enemyUnits;
+
+        int actionIndex = -1;
+        for (int i = 0; i < unit.actions.Count; i++)
+        {
+            if (unit.actions[i].action.actionTypes.Contains(ActionType.Movement))
+            {
+                AIActionData data = new AIActionData();
+                data.unit = unit;
+                data.originalPosition = new Vector2Int(unit.x, unit.y);
+                movementData.Add(unit.actions[i].action.GetMovementMap(data));
+            }
+        }
+        
+        actionData.inMelee = false;
+        actionData.movementData = movementData;
+        List<Vector2Int> enemyUnitHexPositions = new List<Vector2Int>();
+        for (int i = 0; i < visibleUnits.Count; i++)
+        {
+            enemyUnitHexPositions.Add(new Vector2Int(visibleUnits[i].x, visibleUnits[i].y));
+        }
+
+        List<int> actionsInRange = GetActionsInRange(actionData, unit);
+        if (actionsInRange.Count <= 0)
+        {
+            Debug.LogWarning("Testing Change This");
+        }
+        else
+        {
+            actionIndex = GetHighestActionIndex(actionData, unit, actionsInRange);
+            Debug.Log(actionIndex);
+        }
+    }
+
+
+    public int GetHighestActionIndex(AIActionData actionData, Unit unit, List<int> actionsInRange)
+    {
+        int actionIndex = -1;
+        int highestActionWeight = -1;
+        for (int i = 0; i < actionsInRange.Count; i++)
+        {
+            int actionWieght = unit.actions[actionsInRange[i]].action.CalculateWeight(actionData);
+            if (highestActionWeight < actionWieght)
+            {
+                actionIndex = i;
+                highestActionWeight = actionIndex;
+            }
+        }
+        return actionIndex;
+    }
+
+    public List<int> GetActionsInRange(AIActionData actionData, Unit unit)
+    {
+        List<int> actionsInRange = new List<int>();
+        for (int i = 0; i < unit.actions.Count; i++)
+        {
+            if (unit.actions[i].action.CheckIfActionIsInRange(actionData))
+            {
+                actionsInRange.Add(i);
+            }
+        }
+        return actionsInRange;
+    }
+
 
     public void GetTriangels()
     {

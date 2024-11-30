@@ -23,11 +23,6 @@ public class OpportunityAttack : AreaPassive
         }
     }
 
-    public override void OnSelectedAction(Action action, TargetingSystem targetingSystem)
-    {
-
-    }
-
     public override void RemovePassive(Unit unit)
     {   
         Debug.Log("remove Passive");
@@ -40,10 +35,10 @@ public class OpportunityAttack : AreaPassive
         {
             return;
         }
-        int passiveIndex = movingUnit.passives.IndexOf(this);
+        int passiveIndex = movingUnit.passives[0].passive.GetPassiveIndex(movingUnit);
         for (int i = 0; i < movingUnit.passiveEffects.Count; i++)
         {
-            if (movingUnit.passiveEffects[i].passive == this)
+            if (movingUnit.passiveEffects[i].passive.passive == this)
             {
                 passiveIndex = i;
                 break;
@@ -138,7 +133,7 @@ public class OpportunityAttack : AreaPassive
             int passiveAreaIndex = -1;
             for (int i = 0; i < unit.passiveEffects.Count; i++)
             {
-                if (unit.passiveEffects[i].passive = this)
+                if (unit.passiveEffects[i].passive.passive = this)
                 {
                     passiveAreaIndex = i;
                     break;

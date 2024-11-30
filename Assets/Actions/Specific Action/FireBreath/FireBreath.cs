@@ -15,6 +15,11 @@ public class FireBreath : Action
         return;
     }
 
+    public override bool CheckIfActionIsInRange(AIActionData actionData)
+    {
+        return false;
+    }
+
     public override void SelectAction(Unit self)
     {
         base.SelectAction(self);

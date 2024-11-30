@@ -33,5 +33,5 @@ MonoBehaviour:
   equipType: 3
   itemTypes: 0000000008000000
   actions:
-  - {fileID: 11400000, guid: 7e425663ee9962443884780892b87ebe, type: 2}
+  - {fileID: 11400000, guid: 5ab53f2fd22c65b4c947b25b2c37b7f7, type: 2}
   passives: []

@@ -30,4 +30,13 @@ public class GridPosition
         */
         return x.ToString() + ", " + y.ToString() + ", " + unit;
     }
+
+    public bool CheckIfTileIsEmpty()
+    {
+        if(unit != null || tempUnit != null)
+        {
+            return false;
+        }
+        return true;
+    }
 }

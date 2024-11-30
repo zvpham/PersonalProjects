@@ -59,6 +59,7 @@ public class SpriteManager : MonoBehaviour
     public GameObject currentlySelectedHexSprite;
     public MovementTargeting movementTargeting;
     public MeleeTargeting meleeTargeting;
+    public ExtendedMeleeTargeting extendedMeleeTargeting;
     public RangedTargeting rangedTargeting;
     public ConeTargeting coneTargeting;
 
@@ -224,7 +225,7 @@ public class SpriteManager : MonoBehaviour
                     currentSpriteHolder.gameObject.transform.parent = transform;
                     currentSpriteHolder.gameObject.transform.position = GetWorldPosition(passiveArea.passiveLocations[j]);
                     currentSpriteHolder.spriteRenderer.sortingOrder = terrain[passivePosition.x, passivePosition.y].sprite.sortingOrder + 2;
-                    currentSpriteHolder.spriteRenderer.sprite = passiveArea.passive.UISkillImage;
+                    currentSpriteHolder.spriteRenderer.sprite = passiveArea.passive.passive.UISkillImage;
                 }
             }
         }
@@ -297,6 +298,17 @@ public class SpriteManager : MonoBehaviour
         activeTargetingSystems = meleeTargeting;
         meleeTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft, actionPointUseAmount, meleeRange, calculateAttackData);
         meleeTargeting.SelectNewPosition(currentlySelectedHex);
+    }
+
+    public void ActivateExtendedMeleeAttackTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, 
+        int actionPointUseAmount, int meleeRange, ExtendedMeleeTargeting.CalculateAttackData calculateAttackData)
+    {
+        combatUI.OnActivateTargetingSystem();
+        NewSelectedHex += extendedMeleeTargeting.SelectNewPosition;
+        inputManager.FoundPosition += extendedMeleeTargeting.EndTargeting;
+        activeTargetingSystems = extendedMeleeTargeting;
+        extendedMeleeTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft, actionPointUseAmount, meleeRange, calculateAttackData);
+        extendedMeleeTargeting.SelectNewPosition(currentlySelectedHex);
     }
     public void ActivateRangedTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int actionPointUseAmount, int range,
    AttackData attackData, List<EquipableAmmoSO> unitAmmo)

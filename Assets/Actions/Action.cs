@@ -15,11 +15,12 @@ public abstract class Action : ScriptableObject
     public List<ActionType> actionTypes;
 
     public CustomAnimations animation;
-    public TargetingSystem targetingSystem;
 
     public abstract int CalculateWeight(AIActionData actionData);
 
     public abstract void FindOptimalPosition(AIActionData actionData);
+
+    public abstract bool CheckIfActionIsInRange(AIActionData actionData);
 
     public virtual void SelectAction(Unit self)
     {
@@ -29,6 +30,21 @@ public abstract class Action : ScriptableObject
         }
 
         //self.OnSelectedAction(this, targetingSystem);
+    }
+
+    public bool CheckIfTileIsInRange(Vector2Int tile, AIActionData actionData)
+    {
+        Unit unit = actionData.unit;
+        for(int i = 0; i < actionData.movementData.Count; i++)
+        {
+            int actionIndex = GetActionIndex(actionData.unit);
+            if (actionData.movementData[i][tile.x, tile.y] + intialActionPointUsage + 
+                (actionPointGrowth * unit.actions[actionIndex].amountUsedDuringRound) <= unit.currentActionsPoints)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void UseActionPreset(Unit self)
@@ -102,5 +118,12 @@ public abstract class Action : ScriptableObject
             }
         }
         return -1;
+    }
+
+    // For Movement Actions Only
+    public virtual int[,] GetMovementMap(AIActionData actionData)
+    {
+        Debug.LogError("The Abtract version should never be called");
+        return null;
     }
 }

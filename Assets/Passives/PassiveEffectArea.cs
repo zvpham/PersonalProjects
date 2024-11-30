@@ -6,15 +6,15 @@ using UnityEngine;
 public class PassiveEffectArea
 {
     public Unit originUnit;
-    public Passive passive; 
+    public UnitPassiveData passive; 
     public List<Vector2Int> passiveLocations = new List<Vector2Int>();
     public override string ToString()
     {
-        return passive.passiveIndex.ToString() + ", " + originUnit.ToString();
+        return passive.passive.passiveIndex.ToString() + ", " + originUnit.ToString();
     }
 
     public Tuple<Passive, Vector2Int> GetTargetingData(Vector2Int orignalPosition, List<Vector2Int> path, List<Vector2Int> setPath, List<Vector2Int> passiveArea)
     {
-        return passive.GetTargetingData(orignalPosition, path, setPath, passiveArea);
+        return passive.passive.GetTargetingData(orignalPosition, path, setPath, passiveArea);
     }
 }
