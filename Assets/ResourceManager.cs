@@ -38,6 +38,7 @@ public class ResourceManager : ScriptableObject
 
     public List<MapTerrain> mapTerrains;
     public List<PrefabTerrain> prefabTerrains;
+    public List<TerrainTile> terrainTiles;
 
     public DamageAnimation damageAnimation;
     public AttackedAnimation attackedAnimation;

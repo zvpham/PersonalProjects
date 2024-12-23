@@ -19,12 +19,24 @@ public class StandardMoveModifier : MoveModifier
         }
     }
 
-    public override bool ValidMovePosition(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode)
+    public override bool ValidMovePosition(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode,
+        int moveAmountChange)
     {
         int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
         int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];
         int neighborNodeElevation = elevationGrid[neighborNode.x, neighborNode.y];
-        return currentNode.value + 1 < neighborNode.value && neighborNode.walkable && Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
+        return currentNode.value + moveAmountChange < neighborNode.value && neighborNode.walkable && 
+            Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
+    }
+
+    public override bool CheckIfHexIsInMovementRange(CombatGameManager gameManager, DijkstraMapNode currentNode, 
+        DijkstraMapNode nextNode, int moveAmountChange)
+    {
+        int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
+        int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];
+        int neighborNodeElevation = elevationGrid[nextNode.x, nextNode.y];
+        return currentNode.value - moveAmountChange > nextNode.value && nextNode.walkable &&
+            Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
     }
 
     public override bool ValidMove(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode)

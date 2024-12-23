@@ -144,7 +144,15 @@ public class MeleeTargeting : TargetingSystem
                 passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[2][i]);
             }
         }
-
+        List<Unit> units = gameManager.units;
+        friendlyUnits = new List<Vector2Int>();
+        for (int i = 0; i < units.Count; i++)
+        {
+            if (units[i].team == movingUnit.team)
+            {
+                friendlyUnits.Add(new Vector2Int(units[i].x, units[i].y));
+            }
+        }
 
         SetUp(startingPosition, actionPointsLeft, movingUnit.moveSpeed);
     }
@@ -153,16 +161,6 @@ public class MeleeTargeting : TargetingSystem
     {
 
         ResetSetUp();
-
-        List<Unit> units = gameManager.units;
-        friendlyUnits = new List<Vector2Int>();
-        for(int i = 0; i < units.Count; i++)
-        {
-            if(units[i].team == movingUnit.team)
-            {
-                friendlyUnits.Add(new Vector2Int(units[i].x, units[i].y));
-            }
-        }
 
         List<Unit> validTargets = GetValidTargets();
         validTargetPositions =  new List<Vector2Int>();

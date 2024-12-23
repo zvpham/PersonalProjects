@@ -87,7 +87,7 @@ public class Move : Action
             }
         }
 
-            for (int i = 0; i < movementGridValues.GetLength(0); i++)
+        for (int i = 0; i < movementGridValues.GetLength(0); i++)
         {
             for(int j = 0; j < movementGridValues.GetLength(1); j++)
             {
@@ -105,6 +105,13 @@ public class Move : Action
 
     public override void SelectAction(Unit self)
     {
+        /*
+        if (SpecificCheckActionUsable(self) && (this.intialActionPointUsage + actionPointGrowth * self.actions[actionIndex].amountUsedDuringRound
+    <= self.currentActionsPoints || self.CanMove()))
+        {
+            return;
+        }
+        */
         base.SelectAction(self);
         self.gameManager.spriteManager.ActivateMovementTargeting(self, false, self.currentActionsPoints);
         self.gameManager.spriteManager.movementTargeting.OnFoundTarget += FoundTarget;
@@ -129,34 +136,15 @@ public class Move : Action
                 movingUnit.gameManager.spriteManager.movementTargeting.OnFoundTarget += FoundTarget;
                 return;
             }
-            for(int i = 0; i < indexOfStartingMoves.Count; i++)
+            for(int i = 0; i < path.Count; i++)
             {
                 ActionData actionData= new ActionData();
                 actionData.action = this;
                 actionData.actingUnit = movingUnit;
                 actionData.originLocation = new Vector2Int(movingUnit.x, movingUnit.y);
-                int startPathIndex = -1;
-                int endPathIndex = -1;
-                if(i ==  indexOfStartingMoves.Count - 1)
-                {
-                    startPathIndex = indexOfStartingMoves[i];
-                    endPathIndex = path.Count;
-                    actionData.targetLocation = path[path.Count - 1];
-                }
-                else
-                {
-                    startPathIndex = indexOfStartingMoves[i];
-                    endPathIndex = indexOfStartingMoves[i + 1];
-                    actionData.targetLocation = path[indexOfStartingMoves[i + 1]];
-                }
 
-                List<Vector2Int> tempPath =  new List<Vector2Int>();
-                for(int j = startPathIndex; j < endPathIndex; j++)
-                {
-                    tempPath.Add(path[j]);
-                }
+                List<Vector2Int> tempPath =  new List<Vector2Int>() { path[i] };
                 actionData.path = tempPath;
-                actionData.intReturnData = endPathIndex - startPathIndex;
                 movingUnit.gameManager.AddActionToQueue(actionData, false, false);
             }
             movingUnit.gameManager.PlayActions();   
@@ -217,25 +205,23 @@ public class Move : Action
     }
 
     public override void ConfirmAction(ActionData actionData)
-    {
+    { 
         Unit movingUnit = actionData.actingUnit;
-        List<Vector2Int> path = new List<Vector2Int>();
-        for (int i = 0; i < actionData.intReturnData; i++)
+        Vector2Int nextHexPosition = actionData.path[0];
+        Vector3 newPosition = movingUnit.gameManager.spriteManager.GetWorldPosition(nextHexPosition.x, nextHexPosition.y);
+        if (movingUnit.currentMoveSpeed < movingUnit.gameManager.moveCostMap[nextHexPosition.x, nextHexPosition.y])
         {
-            path.Add(actionData.path[i]);
+            int actionPointsUsed = this.intialActionPointUsage + this.actionPointGrowth * movingUnit.actions[0].amountUsedDuringRound;
+            movingUnit.actions[0].amountUsedDuringRound += 1;
+            movingUnit.UseActionPoints(actionPointsUsed);
+            movingUnit.currentMoveSpeed += movingUnit.moveSpeedPerMoveAction;
         }
+        movingUnit.currentMoveSpeed -= movingUnit.gameManager.moveCostMap[nextHexPosition.x, nextHexPosition.y];
+        MoveAnimation moveAnimation = (MoveAnimation)Instantiate(animation);
+        moveAnimation.SetParameters(movingUnit.gameManager, movingUnit.transform.position, newPosition, 
+            new Vector2Int(nextHexPosition.x, nextHexPosition.y));
+        movingUnit.MovePositions(movingUnit.transform.position, newPosition, true);
 
-        for (int i = 0; i < path.Count; i++)
-        {
-            Vector3 newPosition = movingUnit.gameManager.spriteManager.GetWorldPosition(path[i].x, path[i].y);
-            MoveAnimation moveAnimation = (MoveAnimation)Instantiate(animation);
-            moveAnimation.SetParameters(movingUnit.gameManager, movingUnit.transform.position, newPosition, new Vector2Int(path[i].x, path[i].y));
-            movingUnit.MovePositions(movingUnit.transform.position, newPosition, i == path.Count - 1);
-
-        }
-        int actionPointsUsed = this.intialActionPointUsage + this.actionPointGrowth * movingUnit.actions[0].amountUsedDuringRound;
-        movingUnit.actions[0].amountUsedDuringRound += 1;
         movingUnit.gameManager.spriteManager.DeactiveTargetingSystem();
-        movingUnit.UseActionPoints(actionPointsUsed);
     }
 }

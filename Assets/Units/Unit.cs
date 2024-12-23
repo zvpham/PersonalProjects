@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using Inventory.Model;
 using JetBrains.Annotations;
 using System;
+using Unity.VisualScripting;
 
 public class Unit : UnitSuperClass, IInititiave
 {
@@ -50,11 +51,14 @@ public class Unit : UnitSuperClass, IInititiave
     public int strength = 0;
     public int dexterity = 0;
 
-
     public int maxHealth = 100;
     public int currentHealth;
     public int maxArmor;
     public int currentArmor;
+
+    public int totalMoveSpeedModifier = 0;
+    public int currentMoveSpeed = 18;
+    public int moveSpeedPerMoveAction;
     public int moveSpeed = 3;
 
     public float damageResistence = 0f;
@@ -281,6 +285,8 @@ public class Unit : UnitSuperClass, IInititiave
             gameManager.playerTurn.playerUnits.Add(this);
         }
 
+        moveSpeedPerMoveAction = 18 + totalMoveSpeedModifier;
+
         gameManager.SetGridObject(this, transform.position);
         gameManager.units.Add(this);
         if (!gameManager.testing)
@@ -370,6 +376,7 @@ public class Unit : UnitSuperClass, IInititiave
     {
         onTurnStart?.Invoke();
         currentActionsPoints = maxActionsPoints;
+        currentMoveSpeed = 0;
         CheckActionsDisabled();
         if (team == Team.Player)
         {
@@ -413,6 +420,11 @@ public class Unit : UnitSuperClass, IInititiave
     {
         if (currentActionsPoints <= 0)
         {
+            if (CanMove())
+            {
+                gameManager.playerTurn.SelectAction(actions[0].action);
+                return;
+            }
             EndTurn();
         }
         else if (team == Team.Player )
@@ -626,5 +638,30 @@ public class Unit : UnitSuperClass, IInititiave
             return;
         }
 
+    }
+
+    //-----------------------------------------------------
+    //Helpful Functions
+
+    public bool CanMove()
+    {
+        // Check to See if Player Can Still Move;
+        if (currentMoveSpeed > 0)
+        {
+            List<DijkstraMapNode> neighborHexes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, 1);
+            for (int i = 0; i < neighborHexes.Count; i++)
+            {
+                DijkstraMapNode neighborNode = neighborHexes[i];
+                if (gameManager.spriteManager.elevationOfHexes[neighborNode.y, neighborNode.x] <= currentMoveSpeed)
+                {
+                    //Action[0] is move Action
+                    gameManager.playerTurn.SelectAction(actions[0].action);
+                    Debug.Log("Can Move");
+                    return true;
+                }
+            }
+        }
+        Debug.Log("Can't Move: " +  currentMoveSpeed);
+        return false;
     }
 }

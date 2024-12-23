@@ -113,6 +113,18 @@ public class TestHexGrid : MonoBehaviour
         gameManager.map = new DijkstraMap(mapWidth, mapHeight, cellSize, defaultGridAdjustment, true);
         gameManager.passiveGrid = new GridHex<PassiveGridObject>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<PassiveGridObject> g, int x, int y) =>
         new PassiveGridObject(g, x, y), false);
+
+        Debug.LogWarning("Change MOveCostMap Values when there are new terrain tiles");
+
+        gameManager.moveCostMap = new int[mapHeight, mapWidth];
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                gameManager.moveCostMap[j, i] = 6;
+                //moveCostMap[j, i] = resourceManager.terrainTiles[0].moveCost;
+            }
+        }
         inventorySystem.LoadInitialItems();
         characterSystem.LoadInitialUnits();
 

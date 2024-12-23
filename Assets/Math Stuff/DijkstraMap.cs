@@ -48,7 +48,8 @@ public class DijkstraMap
     }
 
     // targetPosition is where the object moving Wants to go / Final end Posotiion
-    public DijkstraMapNode GetLowestNearbyNode(int x, int y, Vector2Int targetPosition,  MoveModifier moveModifier, CombatGameManager gameManager)
+    public DijkstraMapNode GetLowestNearbyNode(int x, int y, Vector2Int targetPosition, MoveModifier moveModifier, 
+        CombatGameManager gameManager)
     {
         DijkstraMapNode lowestNode;
         DijkstraMapNode currentNode = grid.GetGridObject(x, y);
@@ -63,6 +64,81 @@ public class DijkstraMap
             }
         }
         return lowestNode;
+    }
+
+    public List<DijkstraMapNode> GetNodesInMovementRange(int x, int y, int initialMoveValue, MoveModifier moveModifier,
+        CombatGameManager gameManager, int walkCostOveride = -1, int[,] walkCostGridOveride = null)
+    {
+        openList = new List<DijkstraMapNode>();
+        closedList = new List<DijkstraMapNode>();
+        List<DijkstraMapNode> nodesInMovementRange = new List<DijkstraMapNode>();
+
+        // make nodes negative one so movementValue can go to 0 and be added to nodes in range
+        for (int i = 0; i < grid.GetHeight(); i++)
+        {
+            for (int j = 0; j < grid.GetWidth(); j++)
+            {
+                DijkstraMapNode tempNode = grid.GetGridObject(j, i);
+                tempNode.value = -1;
+                grid.SetGridObject(j, i, tempNode);
+            }
+        }
+
+        DijkstraMapNode newNode = grid.GetGridObject(x, y);
+        if (newNode != null)
+        {
+            newNode.value = initialMoveValue;
+            grid.SetGridObject(newNode.x, newNode.y, newNode);
+            openList.Add(newNode);
+        }
+
+        int[,] walkCostGrid = walkCostGridOveride;
+        if (walkCostGrid == null)
+        {
+            walkCostGrid = gameManager.moveCostMap;
+            Debug.Log(walkCostGrid.GetLength(0) + ", " + walkCostGrid.GetLength(1));
+        }
+
+        if (walkCostOveride == -1)
+        {
+            while (openList.Count > 0)
+            {
+                DijkstraMapNode currentNode = GetHighestValue(openList);
+                openList.Remove(currentNode);
+                foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+                {
+                    if (moveModifier.CheckIfHexIsInMovementRange(gameManager, currentNode, neighborNode,
+                        walkCostGrid[neighborNode.y, neighborNode.x]))
+                    {
+                        neighborNode.value = currentNode.value - walkCostGrid[neighborNode.y, neighborNode.x];
+                        openList.Add(neighborNode);
+                    }
+                }
+                nodesInMovementRange.Add(currentNode);
+                closedList.Add(currentNode);
+            }
+        }
+        else
+        {
+            while (openList.Count > 0)
+            {
+                DijkstraMapNode currentNode = GetLowestValue(openList);
+                openList.Remove(currentNode);
+                foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+                {
+                    if (moveModifier.CheckIfHexIsInMovementRange(gameManager, currentNode, neighborNode,
+                        walkCostOveride))
+                    {
+                        neighborNode.value = currentNode.value - walkCostOveride;
+                        openList.Add(neighborNode);
+                    }
+                }
+                nodesInMovementRange.Add(currentNode);
+                closedList.Add(currentNode);
+            }
+        }
+
+        return nodesInMovementRange;
     }
 
     public void SetGoals(List<Vector2Int> goals)
@@ -147,7 +223,7 @@ public class DijkstraMap
             openList.Remove(currentNode);
             foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
             {
-                if (moveModifier.ValidMovePosition(gameManager, currentNode, neighborNode))
+                if (moveModifier.ValidMovePosition(gameManager, currentNode, neighborNode, 1))
                 {
                     neighborNode.value = currentNode.value + 1;
                     grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
@@ -170,9 +246,182 @@ public class DijkstraMap
             }
         }
     }
+    public void SetGoalsNew(List<Vector2Int> goals, CombatGameManager gameManager, MoveModifier moveModifier,
+        int walkCostOveride = -1, int[,] walkCostGridOveride = null)
+    {
+        if (goals.Count == 0)
+        {
+            Debug.LogWarning("Setting Goals without having any goals");
+        }
+
+        openList = new List<DijkstraMapNode>();
+        closedList = new List<DijkstraMapNode>();
+
+        for (int i = 0; i < goals.Count; i++)
+        {
+            DijkstraMapNode newNode = grid.GetGridObject(goals[i].x, goals[i].y);
+            if (newNode != null)
+            {
+                newNode.value = 0;
+                grid.SetGridObject(newNode.x, newNode.y, newNode);
+                openList.Add(newNode);
+            }
+
+        }
+
+        int[,] walkCostGrid = walkCostGridOveride;
+        if(walkCostGrid == null)
+        {
+            walkCostGrid = gameManager.moveCostMap;
+        }
+
+        if(walkCostOveride == -1)
+        {
+            while (openList.Count > 0)
+            {
+                DijkstraMapNode currentNode = GetLowestValue(openList);
+                openList.Remove(currentNode);
+                foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+                {
+                    if (moveModifier.ValidMovePosition(gameManager, currentNode, neighborNode, 
+                        walkCostGrid[neighborNode.y, neighborNode.x]))
+                    {
+                        neighborNode.value = currentNode.value + walkCostGrid[neighborNode.y, neighborNode.x];
+                        grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
+                        openList.Add(neighborNode);
+                    }
+                }
+                closedList.Add(currentNode);
+            }
+        }
+        else
+        {
+            while (openList.Count > 0)
+            {
+                DijkstraMapNode currentNode = GetLowestValue(openList);
+                openList.Remove(currentNode);
+                foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+                {
+                    if (moveModifier.ValidMovePosition(gameManager, currentNode, neighborNode, walkCostOveride))
+                    {
+                        neighborNode.value = currentNode.value + walkCostOveride;
+                        grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
+                        openList.Add(neighborNode);
+                    }
+                }
+                closedList.Add(currentNode);
+            }
+        }
 
 
-    public void SetGoals(List<Vector2Int> goals, CombatGameManager gameManager, MoveModifier moveModifier, bool[,] badWalkinPassiveEffects)
+        for (int i = 0; i < grid.GetHeight(); i++)
+        {
+            for (int j = 0; j < grid.GetWidth(); j++)
+            {
+                DijkstraMapNode tempNode = grid.GetGridObject(j, i);
+                if (tempNode.walkable == false)
+                {
+                    tempNode.value = int.MaxValue;
+                    grid.SetGridObject(j, i, tempNode);
+                }
+            }
+        }
+    }
+
+    public void SetGoalsNew(List<Vector2Int> goals, CombatGameManager gameManager, MoveModifier moveModifier,
+   bool[,] badWalkinPassiveEffects, int walkCostOveride = -1, int[,] walkCostGridOveride = null)
+    {
+        if (goals.Count == 0)
+        {
+            Debug.LogWarning("Setting Goals without having any goals");
+        }
+
+        openList = new List<DijkstraMapNode>();
+        closedList = new List<DijkstraMapNode>();
+
+        for (int i = 0; i < goals.Count; i++)
+        {
+            DijkstraMapNode newNode = grid.GetGridObject(goals[i].x, goals[i].y);
+            if (newNode != null)
+            {
+                newNode.value = 0;
+                grid.SetGridObject(newNode.x, newNode.y, newNode);
+                openList.Add(newNode);
+            }
+        }
+
+        int[,] walkCostGrid = walkCostGridOveride;
+        if (walkCostGrid == null)
+        {
+            walkCostGrid = gameManager.moveCostMap;
+        }
+
+        if (walkCostOveride == -1)
+        {
+            while (openList.Count > 0)
+            {
+                DijkstraMapNode currentNode = GetLowestValue(openList);
+                openList.Remove(currentNode);
+                foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+                {
+                    if (moveModifier.ValidMovePosition(gameManager, currentNode, neighborNode,
+                        walkCostGrid[neighborNode.y, neighborNode.x]))
+                    {
+                        neighborNode.value = currentNode.value + walkCostGrid[neighborNode.y, neighborNode.x];
+
+                        if (!badWalkinPassiveEffects[neighborNode.x, neighborNode.y])
+                        {
+                            openList.Add(neighborNode);
+                        }
+                        else
+                        {
+                            neighborNode.endPositionOnly = true;
+                            //neighborNode.value = int.MaxValue;
+                        }
+                        grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
+                    }
+                }
+                closedList.Add(currentNode);
+            }
+        }
+        else
+        {
+            while (openList.Count > 0)
+            {
+                DijkstraMapNode currentNode = GetLowestValue(openList);
+                openList.Remove(currentNode);
+                foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+                {
+                    if (!badWalkinPassiveEffects[neighborNode.x, neighborNode.y])
+                    {
+                        openList.Add(neighborNode);
+                    }
+                    else
+                    {
+                        neighborNode.endPositionOnly = true;
+                    }
+                }
+                closedList.Add(currentNode);
+            }
+        }
+
+        for (int i = 0; i < grid.GetHeight(); i++)
+        {
+            for (int j = 0; j < grid.GetWidth(); j++)
+            {
+                DijkstraMapNode tempNode = grid.GetGridObject(j, i);
+                if (tempNode.walkable == false)
+                {
+                    tempNode.value = int.MaxValue;
+                    grid.SetGridObject(j, i, tempNode);
+                }
+            }
+        }
+    }
+    
+
+        public void SetGoals(List<Vector2Int> goals, CombatGameManager gameManager, MoveModifier moveModifier,
+        bool[,] badWalkinPassiveEffects)
     {
         Debug.Log("Set Goal");
         if (goals.Count == 0)
@@ -202,7 +451,7 @@ public class DijkstraMap
             foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
             { 
 
-                if (moveModifier.ValidMovePosition(gameManager, currentNode, neighborNode))
+                if (moveModifier.ValidMovePosition(gameManager, currentNode, neighborNode, 1))
                 {
                     neighborNode.value = currentNode.value + 1;
 
@@ -281,7 +530,7 @@ public class DijkstraMap
             openList.Remove(currentNode);
             foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
             {
-                if (moveModifier.ValidMovePosition(gameManager, currentNode, neighborNode))
+                if (moveModifier.ValidMovePosition(gameManager, currentNode, neighborNode, 1))
                 {
                     if(permissableUnits.Contains(new Vector2Int(neighborNode.x, neighborNode.y)))
                     {
@@ -413,6 +662,22 @@ public class DijkstraMap
             if (nodeList[i].value < lowestValue)
             {
                 lowestValue = nodeList[i].value;
+                index = i;
+            }
+        }
+
+        return nodeList[index];
+    }
+
+    public DijkstraMapNode GetHighestValue(List<DijkstraMapNode> nodeList)
+    {
+        int highestValue = nodeList[0].value;
+        int index = 0;
+        for (int i = 1; i < nodeList.Count; i++)
+        {
+            if (nodeList[i].value > highestValue)
+            {
+                highestValue = nodeList[i].value;
                 index = i;
             }
         }

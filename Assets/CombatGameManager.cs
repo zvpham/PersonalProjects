@@ -21,6 +21,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public DijkstraMap map;
     public GridHex<GridPosition> grid;
     public GridHex<PassiveGridObject> passiveGrid; // This is for when actions play
+    public int[,] moveCostMap;
 
     public List<PassiveEffectArea> passiveAreas = new List<PassiveEffectArea>(); // This makes targeting easier
     public List<Unit> units = new List<Unit>();
@@ -43,6 +44,9 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public float terrainHeightDifference = 0.16125f;
     public int defaultElevation = 3;
     public int amountOfElevations = 7;
+
+    public int defaultMoveCost = 6;
+    public int defaultFlyMoveCost = 5;
 
     public Vector3 defaultGridAdjustment = Vector3.zero;
     public float cellSize;
@@ -341,6 +345,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         // Round End
         if (initiativeOrder.Count == 0)
         {
+            Debug.Log("Round Ended");
             setInitiativeOrder();
             ResetUnitActionAmounts();
         }
@@ -460,6 +465,17 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         new GridPosition(g, x, y, defaultElevation), false);
         map = new DijkstraMap(mapWidth, mapHeight, cellSize, defaultGridAdjustment, false);
         spriteManager.CreateGrid(mapWidth, mapHeight, amountOfElevations, cellSize, defaultGridAdjustment);
+
+        moveCostMap = new int[mapHeight, mapWidth];
+        Debug.LogWarning("Change MOveCostMap Values when there are new terrain tiles");
+        for(int i = 0; i < mapWidth; i++)
+        {
+            for(int j = 0; j < mapHeight; j++)
+            {
+                moveCostMap[j, i] = 6;
+                //moveCostMap[j, i] = resourceManager.terrainTiles[0].moveCost;
+            }
+        }
     }
 
     private void Quicksort(List<int> array, int left, int right)

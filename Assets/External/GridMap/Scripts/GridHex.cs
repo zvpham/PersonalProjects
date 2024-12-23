@@ -286,12 +286,15 @@ public class GridHex<TGridObject>
     {
         return cube * factor;
     }
+
+    // Automatically Removes out of bound Hexes
     public List<TGridObject> GetGridObjectsInRing(int x, int y, int radius)
     {
         Vector3Int centerCube = OffsetToCube(x, y);
         return GetGridObjectsInRing(centerCube, radius);
     }
 
+    // Automatically Removes out of bound Hexes
     public List<TGridObject> GetGridObjectsInRing(Vector3Int centerCubePosition, int radius)
     {
         Vector3Int centerCube = centerCubePosition;

@@ -32,16 +32,18 @@ public class MovementTargeting : TargetingSystem
     public List<int> actionMoveAmounts;
     public int amountMoved = 0;
     public int amountOfPossibleMoves;
+    public int moveSpeedInitiallyAvailable = 0;
+    public int moveSpeedUsed = 0;
 
     public int amountActionLineIncreased = 0;
     public int IndexOfStartingActionLine = 0;
     List<List<Vector3>> actionLines = new List<List<Vector3>>();
 
-    public List<List<Vector2Int>> rangeBrackets =  new List<List<Vector2Int>>();
     public List<GameObject> highlightedHexes;
     public List<SpriteHolder> targetingPassiveSpriteHolder = new List<SpriteHolder>();
 
     public bool targetFriendly = false;
+    public bool canMove = false;
 
     public int actionPointsLeft;
 
@@ -60,7 +62,7 @@ public class MovementTargeting : TargetingSystem
         this.enabled = true;
         amountMoved = movingUnit.actions[0].amountUsedDuringRound;
         highlightedHexes = new List<GameObject>();
-        SetUp(startingPosition, actionPointsLeft, movingUnit.moveSpeed);
+        SetUp(startingPosition, actionPointsLeft, movingUnit.currentMoveSpeed);
 
         passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
         for(int i = 0; i < gameManager.mapSize; i++)
@@ -105,29 +107,25 @@ public class MovementTargeting : TargetingSystem
                 passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[2][i]);
             }
         }
+
     }
 
-    public void SetUp(Vector3 targetPosition, int numActionPoints, int moveSpeed)
+    public void SetUp(Vector3 targetPosition, int numActionPoints, int currentMoveSpeed)
     {
         ResetSetUp();
 
+        moveSpeedInitiallyAvailable = currentMoveSpeed;
         DijkstraMap map = gameManager.map;
         map.getGrid().GetXY(targetPosition, out int x, out int y);
         map.ResetMap(true);
 
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
 
-
-        map.SetGoals(new List<Vector2Int>() { new Vector2Int(x, y) }, gameManager, movingUnit.moveModifier);
-        startingPosition = targetPosition;
-
-        actionPointsLeft = numActionPoints;
-
         int initialActionPoints = numActionPoints;
         int moveAmounts = 0;
-        while(initialActionPoints > 0)
+        while (initialActionPoints > 0)
         {
-            if(initialActionPoints >= amountMoved + moveAmounts +  1)
+            if (initialActionPoints >= amountMoved + moveAmounts + 1)
             {
                 moveAmounts += 1;
                 initialActionPoints -= amountMoved + moveAmounts;
@@ -137,59 +135,49 @@ public class MovementTargeting : TargetingSystem
                 break;
             }
         }
+        canMove = CanUnitMove(movingUnit, numActionPoints, amountMoved, currentMoveSpeed);
+        int startValue = currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * moveAmounts);
+        List<DijkstraMapNode> nodesInMovementRange =  map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager);
 
-        List<DijkstraMapNode> mapNodes;
-        List<DijkstraMapNode> unresolvedMapNodes = new List<DijkstraMapNode>();
-        rangeBrackets = new List<List<Vector2Int>>();
-
+        startingPosition = targetPosition;
+        actionPointsLeft = numActionPoints;
         amountOfPossibleMoves = moveAmounts;
-        int currentRadius = 1;
-        if (moveAmounts > 0)
+
+        if (nodesInMovementRange.Count > 1)
         {
-            for (int i = 1; i <= moveAmounts; i++)
+            for (int i = 0; i < nodesInMovementRange.Count; i++)
             {
-
-                rangeBrackets.Add(new List<Vector2Int>());
-                for (int j = 0; j < unresolvedMapNodes.Count; j++)
+                DijkstraMapNode currentNode = nodesInMovementRange[i];
+                int nodeValue = startValue - currentNode.value;
+                Vector2Int currentNodePosition = new Vector2Int(currentNode.x, currentNode.y);
+                int rangeBracketOfNode;
+                if (currentMoveSpeed > 0)
                 {
-                    Vector2Int currentNodePosition = new Vector2Int(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y);
-                    if (map.getGrid().GetGridObject(unresolvedMapNodes[j].x, unresolvedMapNodes[j].y).value <= moveSpeed * i)
+                    int tempNodeValue = nodeValue - currentMoveSpeed;
+                    if(tempNodeValue <= 0)
                     {
-                        GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
-                        newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
-                        newHighlightedHex.GetComponent<SpriteRenderer>().color = gameManager.resourceManager.highlightedHexColors[amountMoved + i];
-                        newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
-                            currentNodePosition.y].sprite.sortingOrder + 1;
-                        highlightedHexes.Add(newHighlightedHex);
-                        rangeBrackets[i - 1].Add(currentNodePosition);
-                        unresolvedMapNodes.RemoveAt(j);
-                        j--;
+                        rangeBracketOfNode = amountMoved - 1;
                     }
+                    else
+                    {
+                        tempNodeValue -= 1;
+                        rangeBracketOfNode = tempNodeValue / (movingUnit.moveSpeedPerMoveAction) + amountMoved;
+                    }                
+                }
+                else
+                {
+                    nodeValue -= 1;
+                    rangeBracketOfNode = (nodeValue / (movingUnit.moveSpeedPerMoveAction)) + amountMoved;
                 }
 
-                for (int j = currentRadius; j <= moveSpeed * i; j++)
-                {
-                    mapNodes = map.getGrid().GetGridObjectsInRing(x, y, j);
-                    for (int k = 0; k < mapNodes.Count; k++)
-                    {
-                        Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
-                        if (map.getGrid().GetGridObject(mapNodes[k].x, mapNodes[k].y).value <= moveSpeed * i)
-                        {
-                            GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
-                            newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
-                            newHighlightedHex.GetComponent<SpriteRenderer>().color = gameManager.resourceManager.highlightedHexColors[amountMoved + i];
-                            newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
-                                currentNodePosition.y].sprite.sortingOrder + 1;
-                            highlightedHexes.Add(newHighlightedHex);
-                            rangeBrackets[i - 1].Add(currentNodePosition);
-                        }
-                        else
-                        {
-                            unresolvedMapNodes.Add(mapNodes[k]);
-                        }
-                    }
-                    currentRadius += 1;
-                }
+                GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
+                newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+                newHighlightedHex.GetComponent<SpriteRenderer>().color = 
+                    gameManager.resourceManager.highlightedHexColors[rangeBracketOfNode];
+                newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = 
+                    gameManager.spriteManager.terrain[currentNodePosition.x, currentNodePosition.y].sprite.sortingOrder + 1;
+                highlightedHexes.Add(newHighlightedHex);
+
             }
         }
     }
@@ -216,147 +204,77 @@ public class MovementTargeting : TargetingSystem
         if (map.getGrid().GetGridObject(endX, endY) != null)
         {
             endHex.Add(new Vector2Int(endX, endY));
-            map.SetGoals(endHex, gameManager, movingUnit.moveModifier, badWalkInPassivesValues);
+            map.SetGoalsNew(endHex, gameManager, movingUnit.moveModifier, badWalkInPassivesValues);
             map.getGrid().GetXY(startingPosition, out int x, out int y);
             path.Clear();
             startOfNewMoveIndexes = new List<int>();
             bool foundEndPosition = false;
-            bool findMostDirectPath = false;
-            int initialAmountPathMoveIncreased = amountActionLineIncreased;
-
-            // loop through possible move amounts to find a path to end hex
-            for (int i = 0; i < amountOfPossibleMoves; i++)
+            int currentMoveSpeed = moveSpeedInitiallyAvailable + movingUnit.moveSpeedPerMoveAction * amountOfPossibleMoves;
+            int previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
+            int startx = x;
+            int starty = y;
+            moveSpeedUsed = 0;
+            while (true)
             {
-                startOfNewMoveIndexes.Add(path.Count);
-                actionMoveAmounts.Add(0);
-                amountActionLineIncreased += 1;
-                bool inRangeBracket = rangeBrackets[i].Contains(new Vector2Int(endX, endY));
-                int startx = x;
-                int starty = y;
                 DijkstraMapNode currentNode;
+                currentNode = map.GetLowestNearbyNode(x, y, endHex[0], movingUnit.moveModifier, gameManager);
+                x = currentNode.x;
+                y = currentNode.y;
+                int currentNodeMoveValue = currentNode.value;
+                int moveSpeedDifference = previousNodeMoveValue - currentNodeMoveValue;
+                if (currentNode.value == int.MaxValue || currentMoveSpeed < moveSpeedDifference)
+                    break;
+                currentMoveSpeed -= moveSpeedDifference;
+                previousNodeMoveValue = currentNodeMoveValue;
+                moveSpeedUsed += moveSpeedDifference;
+                path.Add(new Vector2Int(x,y));
 
-                // Attempt to find path Avoiding harmful Terrain
-                for (int j = 0; j < movingUnit.moveSpeed; j++)
+                if (endHex[0] == path[path.Count - 1])
                 {
+                    foundEndPosition = true;
+                    break;
+                }
+                else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
+                {
+                    path.RemoveAt(path.Count - 1);
+                    foundEndPosition = false;
+                    break;
+                }
+            }
+
+            if (!foundEndPosition) 
+            {
+                currentMoveSpeed += moveSpeedUsed;
+                moveSpeedUsed = 0;
+                map.ResetMap(true);
+                movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+                map.SetGoalsNew(endHex, gameManager, movingUnit.moveModifier);
+                x = startx;
+                y = starty;
+                previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
+                path.Clear();
+                while (true)
+                {
+                    DijkstraMapNode currentNode;
                     currentNode = map.GetLowestNearbyNode(x, y, endHex[0], movingUnit.moveModifier, gameManager);
                     x = currentNode.x;
                     y = currentNode.y;
-                    if (currentNode.value == int.MaxValue)
-                    {
+                    int currentNodeMoveValue = currentNode.value;
+                    int moveSpeedDifference = previousNodeMoveValue - currentNodeMoveValue;
+                    if (currentNode.value == int.MaxValue || currentMoveSpeed < moveSpeedDifference)
                         break;
-                    }
+                    currentMoveSpeed -= moveSpeedDifference;
+                    previousNodeMoveValue = currentNodeMoveValue;
+                    moveSpeedUsed += moveSpeedDifference;
                     path.Add(new Vector2Int(x, y));
-                    actionMoveAmounts[i] = actionMoveAmounts[i] + 1;
+
                     if (endHex[0] == path[path.Count - 1])
                     {
-                        foundEndPosition = true;
                         break;
                     }
                     else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
                     {
                         path.RemoveAt(path.Count - 1);
-                        foundEndPosition = false;
-                        actionMoveAmounts[i] = actionMoveAmounts[i] - 1;
-                        break;
-                    }
-                }
-
-                if (foundEndPosition)
-                {
-                    break;
-                }
-
-                // If it is possible to reach end position in range bracket Reset data No Passives and try again, ignore badMoveinPlaces
-                if (inRangeBracket && !foundEndPosition)
-                {
-                    // Reset Data From Initial attempt to find path
-                    actionMoveAmounts[i] = 0;
-                    for (int j = 0; j < movingUnit.moveSpeed; j++)
-                    {
-                        if(path.Count == 0)
-                        {
-                            break;
-                        }
-                        path.RemoveAt(path.Count - 1);
-                    }
-                    x = startx; 
-                    y = starty;
-
-                    //Try to find Path
-                    map.ResetMap(true);
-                    movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-                    map.SetGoals(endHex, gameManager, movingUnit.moveModifier);
-                    for (int j = 0; j < movingUnit.moveSpeed; j++)
-                    {
-                        currentNode = map.GetLowestNearbyNode(x, y, endHex[0], movingUnit.moveModifier, gameManager);
-                        x = currentNode.x;  
-                        y = currentNode.y;
-                        path.Add(new Vector2Int(x, y));
-                        actionMoveAmounts[i] = actionMoveAmounts[i] + 1;
-                        if (endHex[0] == path[path.Count - 1])
-                        {
-                            foundEndPosition = true;
-                            break;
-                        }
-                        else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
-                        {
-                            path.RemoveAt(path.Count - 1);
-                            foundEndPosition = false;
-                            actionMoveAmounts[i] = actionMoveAmounts[i] - 1;
-                            break;
-                        }
-                    }
-
-                    findMostDirectPath = !foundEndPosition;
-                    break;
-                }
-            }
-
-            // Unable to find path in its rangebracket, redo entire path taking most direct route
-            if (findMostDirectPath)
-            {
-                for (int i = 0; i < amountActionLineIncreased; i++)
-                {
-                    actionMoveAmounts.RemoveAt(actionMoveAmounts.Count - 1);
-                }
-                amountActionLineIncreased = initialAmountPathMoveIncreased;
-                endHex.Add(new Vector2Int(endX, endY));
-                map.ResetMap(true);
-                movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-                map.SetGoals(endHex, gameManager, movingUnit.moveModifier);
-                map.getGrid().GetXY(startingPosition, out x, out y);
-                path.Clear();
-                startOfNewMoveIndexes = new List<int>();
-                foundEndPosition = false;
-                for (int i = 0; i < amountOfPossibleMoves; i++)
-                {
-                    amountActionLineIncreased += 1;
-                    actionMoveAmounts.Add(0);
-                    startOfNewMoveIndexes.Add(path.Count);
-                    // Attempt to find path Avoiding harmful Terrain
-                    for (int j = 0; j < movingUnit.moveSpeed; j++)
-                    {
-                        DijkstraMapNode currentNode = map.GetLowestNearbyNode(x, y, endHex[0], movingUnit.moveModifier, gameManager);
-                        x = currentNode.x;
-                        y = currentNode.y;
-                        path.Add(new Vector2Int(currentNode.x, currentNode.y));
-                        actionMoveAmounts[i] = actionMoveAmounts[i] + 1;
-                        if (endHex[0] == path[path.Count - 1])
-                        {
-                            foundEndPosition = true;
-                            break;
-                        }
-                        else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
-                        {
-                            path.RemoveAt(path.Count - 1);
-                            foundEndPosition = false;
-                            actionMoveAmounts[i] = actionMoveAmounts[i] - 1;
-                            break;
-                        }
-                    }
-
-                    if (foundEndPosition)
-                    {
                         break;
                     }
                 }
@@ -373,15 +291,7 @@ public class MovementTargeting : TargetingSystem
         {
             return;
         }
-        // Determine Latest Action Line
-        for(int i = actionLines.Count - 1; i >= 0; i--)
-        {
-            if (actionLines[i].Count != 0)
-            {
-                IndexOfStartingActionLine = i + 1;
-                break;
-            } 
-        }
+
         Vector2Int endHexPosition = new Vector2Int(x, y);
          
         // Case -  Player Clicks on previously selected Hex
@@ -401,8 +311,9 @@ public class MovementTargeting : TargetingSystem
             }
             else
             {
+
                 //if there is still action Points left Add temp Path to Set Path
-                if (actionPointsLeft > 0)
+                if (canMove)
                 {
                     for(int i = 0; i< startOfNewMoveIndexes.Count; i++)
                     {
@@ -417,22 +328,33 @@ public class MovementTargeting : TargetingSystem
                 
                 Vector2Int endPathHex = setPath[setPath.Count - 1];
 
-                for(int i = 0; i < rangeBrackets.Count; i++)
+                // Calculate Action points used
+                int moveSpeedLeft = moveSpeedInitiallyAvailable - moveSpeedUsed;
+                int movementActionsTaken;
+                if (moveSpeedLeft >= 0)
                 {
-                    if (rangeBrackets[i].Contains(endPathHex))
-                    {
-                        for(int j = 0; j <= i; j++)
-                        {
-                            actionPointsLeft -= amountMoved + (j + 1);
-                        }
-                        amountMoved += i + 1;
-                    }
+                    movementActionsTaken = 0;
                 }
+                else
+                {
+                    movementActionsTaken = (((moveSpeedLeft + 1) / movingUnit.moveSpeedPerMoveAction) - 1) * -1;
+                }
+
+                int actionPointsUsed = 0;
+                int previousAmountMoved = amountMoved;
+                for(int i = 0; i < movementActionsTaken; i++)
+                {
+                    actionPointsUsed += amountMoved + 1;
+                    moveSpeedLeft += movingUnit.moveSpeedPerMoveAction;
+                    amountMoved += 1;
+                }
+
+                actionPointsLeft -= actionPointsUsed;
 
                 Destroy(tempMovingUnit);
                 tempMovingUnit = null;
                 tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
-                SetUp(map.getGrid().GetWorldPosition(setPath[setPath.Count - 1]), actionPointsLeft, movingUnit.moveSpeed);
+                SetUp(map.getGrid().GetWorldPosition(setPath[setPath.Count - 1]), actionPointsLeft, moveSpeedLeft);
                 gameManager.spriteManager.ActivateActionConfirmationMenu(
                     () => // Confirm Action
                     {
@@ -450,7 +372,7 @@ public class MovementTargeting : TargetingSystem
                     () => // Cancel Action
                     {
                         ResetTargeting();
-                        SetUp(movingUnit.transform.position, movingUnit.currentActionsPoints, movingUnit.moveSpeed);
+                        SetUp(movingUnit.transform.position, movingUnit.currentActionsPoints, movingUnit.currentMoveSpeed);
                     });
                 
             }
@@ -488,57 +410,24 @@ public class MovementTargeting : TargetingSystem
 
     public void DrawLine()
     {
-        if (actionPointsLeft <= 0)
+        if (!canMove)
         {
             return;
         }
-
-        if(IndexOfStartingActionLine > 0)
+        
+        actionLines =  new List<List<Vector3>>() { new List<Vector3>() };
+        actionLines[0].Add(movingUnit.transform.position);
+        for(int i = 0; i < setPath.Count; i++)
         {
-            for (int i = 0; i < amountActionLineIncreased; i++)
-            {
-                if(i > IndexOfStartingActionLine)
-                {
-                    actionLines.RemoveAt(actionLines.Count - 1);
-                }
-            }
+            actionLines[0].Add(gameManager.spriteManager.GetWorldPosition(setPath[i].x, setPath[i].y));
         }
 
-        for (int i = IndexOfStartingActionLine; i < actionLines.Count; i++)
+        for (int i = 0; i < path.Count; i++)
         {
-            actionLines[i] = new List<Vector3>();
-            gameManager.spriteManager.DrawLine(actionLines[i], i);
+            actionLines[0].Add(gameManager.spriteManager.GetWorldPosition(path[i].x, path[i].y));
         }
 
-            int currentPathindex = 0;
-        for(int i = IndexOfStartingActionLine; i < IndexOfStartingActionLine + amountActionLineIncreased; i++)
-        { 
-            if(actionLines.Count <= i)
-            {
-                actionLines.Add(new List<Vector3>());
-            }
-
-            if (i == 0)
-            {
-                actionLines[i].Add(movingUnit.transform.position);
-            }
-            else
-            {
-                actionLines[i].Add(actionLines[i - 1][actionLines[i - 1].Count - 1]);
-            }
-
-            for(int j = 0; j < actionMoveAmounts[i - IndexOfStartingActionLine]; j++)
-            {
-                actionLines[i].Add(gameManager.spriteManager.GetWorldPosition(path[currentPathindex].x, path[currentPathindex].y));
-                currentPathindex += 1;
-            }
-            gameManager.spriteManager.DrawLine(actionLines[i], i);
-        }
-
-        for(int i = 0; i < amountActionLineIncreased; i++)
-        {
-            actionMoveAmounts.RemoveAt(actionMoveAmounts.Count - 1);
-        }
+        gameManager.spriteManager.DrawLine(actionLines[0], 0);
 
         passiveEffectAreas = new List<PassiveEffectArea>();
         passiveSprites = new List<Tuple<Passive, Vector2Int>>();
