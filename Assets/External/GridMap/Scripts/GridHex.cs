@@ -251,6 +251,11 @@ public class GridHex<TGridObject>
 
     // Conversions To Cube Coordinates
 
+    public Vector3Int OffsetToCube(Vector2Int offsetPosition)
+    {
+        return OffsetToCube(offsetPosition.x, offsetPosition.y);
+    }
+
     public Vector3Int OffsetToCube(int x, int y)
     {
         int q = x;
@@ -358,6 +363,13 @@ public class GridHex<TGridObject>
     public Vector3Int CubeSubtract(Vector3Int cube1, Vector3Int cube2)
     {
         return cube1 - cube2;
+    }
+
+    public int OffsetDistance(Vector2Int offSet1, Vector2Int offSet2)
+    {
+        Vector3Int cube1 = OffsetToCube(offSet1);
+        Vector3Int cube2 = OffsetToCube(offSet2);
+        return CubeDistance(cube1, cube2);
     }
 
     public int CubeDistance(Vector3Int cube1, Vector3Int cube2)

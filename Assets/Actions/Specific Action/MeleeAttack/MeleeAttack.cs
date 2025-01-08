@@ -16,26 +16,57 @@ public class MeleeAttack : Action
     public override int CalculateWeight(AIActionData actionData)
     {
         CombatGameManager gameManager = actionData.unit.gameManager;
+        int highestActionValue = 0;
         Unit originUnit = actionData.unit;
-        int x = actionData.desiredEndPosition.x;
-        int y = actionData.desiredEndPosition.y;
-        int originElevation = gameManager.spriteManager.elevationOfHexes[x, y];
-        for (int i = 1; i <= range; i++)
+
+        for (int k = 0; k < actionData.enemyUnits.Count; k++)
         {
-            List<DijkstraMapNode> mapNodes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, i);
-            for (int j = 0; j < mapNodes.Count; j++)
+            int x = actionData.enemyUnits[k].x;
+            int y = actionData.enemyUnits[k].y;
+            int targetElevation = gameManager.spriteManager.elevationOfHexes[x, y];
+            Unit targetUnit = gameManager.grid.GetGridObject(x, y).unit;
+            bool foundTarget = false;
+            for (int i = 1; i <= range; i++)
             {
-                Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
-                Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
-                int targetElevation = gameManager.spriteManager.elevationOfHexes[mapNodes[j].x, mapNodes[j].y];
-                if (targetUnit != null && targetUnit.team != originUnit.team &&
-                    (originElevation == targetElevation || (i == 1 && Mathf.Abs(originElevation - targetElevation) <= range))
-                    && originUnit.LineOfSight(new Vector2Int(x, y), currentNodePosition))
+                List<DijkstraMapNode> mapNodes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, i);
+                for (int j = 0; j < mapNodes.Count; j++)
                 {
-                    CalculateAttackData(originUnit, targetUnit, null);
+                    Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
+                    int originElevation = gameManager.spriteManager.elevationOfHexes[mapNodes[j].x, mapNodes[j].y];
+
+                    if (gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).CheckIfTileIsEmpty() &&
+                        (originElevation == targetElevation || (i == 1 && Mathf.Abs(originElevation - targetElevation) <= range))
+                        && CheckIfTileIsInRange(currentNodePosition, actionData))
+                    {
+                        AttackData attackData = CalculateAttackData(originUnit, targetUnit);
+                        Tuple<int, int> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
+                        bool targetExpectedToDie = expectedTargetDamage.Item1 >= targetUnit.currentHealth;
+                        int tempActionValue = 0;
+                        tempActionValue += (int)(expectedTargetDamage.Item1 * gameManager.healthDamageModifier);
+                        tempActionValue += expectedTargetDamage.Item2;
+                        if (targetExpectedToDie)
+                        {
+                            tempActionValue += gameManager.killValue;
+                        }
+                        tempActionValue = (int)(tempActionValue * targetUnit.targetValue);
+                        if (highestActionValue < tempActionValue)
+                        {
+                            highestActionValue = tempActionValue;
+                            actionData.desiredEndPosition = currentNodePosition;
+                            actionData.desiredTargetPositionEnd = actionData.enemyUnits[k];
+                            actionData.action = this;
+                            foundTarget = true;
+                            break;
+                        }
+                    }
+                }
+                if (foundTarget)
+                {
+                    break;
                 }
             }
         }
+
         return 0;
     }
 
@@ -53,7 +84,6 @@ public class MeleeAttack : Action
                 for (int j = 0; j < mapNodes.Count; j++)
                 {
                     Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
-                    Unit targetUnit = gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).unit;
                     int targetElevation = gameManager.spriteManager.elevationOfHexes[mapNodes[j].x, mapNodes[j].y];
                     if (gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).CheckIfTileIsEmpty() &&
                         (originElevation == targetElevation || (i == 1 && Mathf.Abs(originElevation - targetElevation) <= range))
@@ -100,13 +130,25 @@ public class MeleeAttack : Action
         */
     }
 
+    public override void AIUseAction(AIActionData actionData)
+    {
+        Vector2Int targetHex = actionData.desiredTargetPositionEnd;
+        Vector2Int endPosition = actionData.desiredEndPosition;
+
+        List<Action> movementActions = actionData.movementActions[endPosition.x, endPosition.y];
+        for(int i = 0; i < movementActions.Count; i++)
+        {
+            movementActions[i].AIUseAction(actionData);
+        }
+    }
+
     public override void SelectAction(Unit self)
     {
         base.SelectAction(self);
         int actionIndex = GetActionIndex(self);
         int amountOfActionPointsUsed = this.intialActionPointUsage + actionPointGrowth * self.actions[actionIndex].amountUsedDuringRound;
         self.gameManager.spriteManager.ActivateMeleeAttackTargeting(self, false, self.currentActionsPoints, amountOfActionPointsUsed, range,
-            CalculateAttackData);
+            CalculateAttackDisplayData);
         self.gameManager.spriteManager.meleeTargeting.OnFoundTarget += FoundTarget;
     }
 
@@ -130,8 +172,30 @@ public class MeleeAttack : Action
         movingUnit.gameManager.spriteManager.DeactiveTargetingSystem();
     }
 
-    //Ignore Path
-    public List<AttackDataUI> CalculateAttackData(Unit movingUnit, Unit targetUnit, List<Vector2Int> path)
+
+    public AttackData CalculateAttackData(Unit movingUnit, Unit targetUnit)
+    {
+        int adjustedMinimumDamage = minDamage + (int)(minDamage * movingUnit.GetMinimumDamageModifer());
+        int adjustmedMaximumDamage = maxDamage + (int)(maxDamage * movingUnit.GetMaximumDamageModifer());
+
+        Damage mainDamage = new Damage();
+        mainDamage.minDamage = adjustedMinimumDamage;
+        mainDamage.maxDamage = adjustmedMaximumDamage;
+        mainDamage.damageType = DamageTypes.physical;
+
+
+        AttackData tempAttackData = new AttackData(new List<Damage>() { mainDamage}, effectAgainstArmorPercentage, movingUnit);
+        tempAttackData.ignroeArmour = ignoreArmor;
+
+        movingUnit.GetActionModifiers(this, tempAttackData);
+        AttackData modifiedAttackData = tempAttackData.GetCalculatedAttackData(targetUnit);
+        AttackData finalAttackData = modifiedAttackData.GetCalculatedAttackData(targetUnit);
+
+        return finalAttackData;
+    }
+
+    //Ignore Path (useless parameter)
+    public List<AttackDataUI> CalculateAttackDisplayData(Unit movingUnit, Unit targetUnit, List<Vector2Int> path)
     {
         AttackDataUI mainAttack = new AttackDataUI();
         int adjustedMinimumDamage = minDamage + (int)(minDamage * movingUnit.GetMinimumDamageModifer());
@@ -173,15 +237,17 @@ public class MeleeAttack : Action
         if (targetUnit != null && distanceBetweenUnits <= range)
         {
             Debug.Log("Hit");
+            Debug.Log("ACtions in Queue: " + targetUnit.gameManager.actionsInQueue.Count);
             for (int i = 0; i < targetUnit.gameManager.actionsInQueue.Count; i++)
             {
                 if (targetUnit.gameManager.actionsInQueue[i].actingUnit == targetUnit)
                 {
                     targetUnit.gameManager.actionsInQueue.Remove(targetUnit.gameManager.actionsInQueue[i]);
+                    i--;
                 }
             }
-
-            List<AttackDataUI> attackDatas = CalculateAttackData(actionData.actingUnit, targetUnit, null);
+            Debug.Log("ACtions in Queue: After " + targetUnit.gameManager.actionsInQueue.Count);
+            List<AttackDataUI> attackDatas = CalculateAttackDisplayData(actionData.actingUnit, targetUnit, null);
             targetUnit.gameManager.spriteManager.ActivateCombatAttackUI(targetUnit, attackDatas, targetUnit.transform.position);
 
 

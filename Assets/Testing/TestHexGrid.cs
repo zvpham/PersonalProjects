@@ -150,7 +150,9 @@ public class TestHexGrid : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
-            TestAiTime();
+            //TestAiTime();
+            //TestParameters();
+
         }
 
 
@@ -231,10 +233,41 @@ public class TestHexGrid : MonoBehaviour
         return reachedEndHex;
     }
 
+    public void TestParameters()
+    {
+        List<IInititiave> test1 = new List<IInititiave>();
+        for(int i = 0; i < 4; i++)
+        {
+            Unit tempHero = Instantiate(resourceManager.emptyHero);
+            tempHero.name = tempHero.name + ", " + i.ToString();
+            test1.Add(tempHero);
+        }
+        List<int> test2 = new List<int>() { 3, 5, 1, 2 };
+
+        Debug.Log(test2.Count);
+        string debugWOrd = "";
+        for(int i =0 ; i < test1.Count; i++)
+        {
+            debugWOrd += test1[i] + ", ";
+        }
+
+        Debug.Log(debugWOrd);
+        test1[0].Quicksort(test2, test1, 0, test1.Count - 1);
+
+
+        debugWOrd = "";
+        for (int i = 0; i < test1.Count; i++)
+        {
+            debugWOrd += test1[i] + ", ";
+        }
+
+        Debug.Log(debugWOrd);
+    }
+
     public void TestAiTime()
     {
         Unit unit = gameManager.playerTurn.currentlySelectedUnit;
-        List<int[,]> movementData = new List<int[,]>();
+        int[,] movementData = new int[gameManager.mapSize, gameManager.mapSize];
         AIActionData actionData = new AIActionData();
         actionData.unit = unit;
         actionData.originalPosition = new Vector2Int(unit.x, unit.y);
@@ -260,7 +293,7 @@ public class TestHexGrid : MonoBehaviour
                 AIActionData data = new AIActionData();
                 data.unit = unit;
                 data.originalPosition = new Vector2Int(unit.x, unit.y);
-                movementData.Add(unit.actions[i].action.GetMovementMap(data));
+                unit.actions[i].action.GetMovementMap(data);
             }
         }
         

@@ -12,12 +12,12 @@ public class Thrust : Action
     public float effectAgainstArmorPercentage;
     public bool ignoreArmor = false;
 
-    public override int CalculateWeight(AIActionData actionData)
+    public override int CalculateWeight(AIActionData AIActionData)
     {
         throw new System.NotImplementedException();
     }
 
-    public override void FindOptimalPosition(AIActionData actionData)
+    public override void FindOptimalPosition(AIActionData AIActionData)
     {
         /*
         Dictionary<Vector2Int, int> gridValues =  new Dictionary<Vector2Int, int>();
@@ -50,12 +50,17 @@ public class Thrust : Action
         */
     }
 
-    public override bool CheckIfActionIsInRange(AIActionData actionData)
+    public override bool CheckIfActionIsInRange(AIActionData AIActionData)
     {
         return false;
-        Unit unit = actionData.unit;
-        unit.gameManager.map.SetGoals(actionData.enemyUnits, unit.gameManager, unit.moveModifier);
+        Unit unit = AIActionData.unit;
+        unit.gameManager.map.SetGoals(AIActionData.enemyUnits, unit.gameManager, unit.moveModifier);
         return true;
+    }
+
+    public override void AIUseAction(AIActionData AIActionData)
+    {
+        throw new NotImplementedException();
     }
 
     public override void SelectAction(Unit self)

@@ -12,7 +12,6 @@ public class Unit : UnitSuperClass, IInititiave
 {
     // Class Selection UI
     public bool inOverWorld = false;
-
     public bool isLoaded = false;
 
     public Sprite unitProfile;
@@ -83,9 +82,9 @@ public class Unit : UnitSuperClass, IInititiave
     public MoveModifier moveModifier;
     public int moveModifierPriority = -1;
 
-    public Team team;
     public UnitGroup group;
 
+    public bool forceEndTurn = false;
     public bool confirmDeath;
 
     //AI Help Data
@@ -384,6 +383,7 @@ public class Unit : UnitSuperClass, IInititiave
         }
         else
         {
+            gameManager.StartAITurn(this, team);
             UseActionPoints(currentActionsPoints);
             ActionsFinishedActivating();
         }
@@ -420,7 +420,7 @@ public class Unit : UnitSuperClass, IInititiave
     {
         if (currentActionsPoints <= 0)
         {
-            if (CanMove())
+            if (!forceEndTurn && CanMove())
             {
                 gameManager.playerTurn.SelectAction(actions[0].action);
                 return;
@@ -454,7 +454,7 @@ public class Unit : UnitSuperClass, IInititiave
             }
         }
 
-        if(!actionOrPassiveContinue  || AIstatus != null)
+        if(!actionOrPassiveContinue && AIstatus != null)
         {
             if (!AIstatus.ContinueEvent(occuringAction, occuringPassive))
             {
@@ -470,8 +470,23 @@ public class Unit : UnitSuperClass, IInititiave
         return actionOrPassiveContinue;
     }
 
+    // Gets modifiers to actions - ex: fire bonus damage on melee attacks
+    public void GetActionModifiers(Action action, AttackData attackData)
+    {
+        for(int i = 0; i < statuses.Count; i++)
+        {
+            statuses[i].status.ModifiyAction(action, attackData);
+        }
+
+        for(int i = 0; i < passives.Count; i++)
+        {
+            passives[i].passive.ModifiyAction(action, attackData);
+        }
+    }
+
     public void EndTurn()
     {
+        forceEndTurn = false;
         for(int i = 0; i < statuses.Count; i++)
         {
             statuses[i].duration -= 1;
@@ -535,6 +550,115 @@ public class Unit : UnitSuperClass, IInititiave
     }
     //-----------------------------------------------------
     //Damage Calculation and Death
+
+    public List<AttackDataUI> DisplayCalculatedEstimatedDamage(AttackData attackData, List<Damage> allDamage, bool ignoreShield)
+    {
+        float combatDamageResistenceValue = damageResistence;
+        List<AttackDataUI> unitAttackedData = new List<AttackDataUI>();
+
+        if (!ignoreShield && shieldDamageResistence != 0)
+        {
+            combatDamageResistenceValue += shieldDamageResistence;
+            AttackDataUI shieldedAttackDataUI = new AttackDataUI();
+            shieldedAttackDataUI.data = "Shielded " + "-" + shieldDamageResistence;
+            shieldedAttackDataUI.attackState = attackState.Benediction;
+            shieldedAttackDataUI.attackDataType = attackDataType.Modifier;
+            unitAttackedData.Add(shieldedAttackDataUI);
+        }
+
+        if (damageResistence > 1)
+        {
+            combatDamageResistenceValue = 1f;
+        }
+        for(int i = 0; i < allDamage.Count; i++)
+        {
+            int minDamage = allDamage[i].minDamage;
+            int maxDamage = allDamage[i].maxDamage;
+            allDamage[i].minDamage = minDamage - (int)(minDamage * combatDamageResistenceValue);
+            allDamage[i].maxDamage = maxDamage - (int)(maxDamage * combatDamageResistenceValue);
+        }
+        return unitAttackedData;
+    }
+
+    public Modifier GetCalculatedEstimatedDamage(AttackData attackData, List<Damage> allDamage, bool ignoreShield)
+    {
+        float combatDamageResistenceValue = damageResistence;
+        Modifier tempShield =  null;
+
+        if (!ignoreShield && shieldDamageResistence != 0)
+        {
+            combatDamageResistenceValue += shieldDamageResistence;
+            tempShield = new Modifier();
+            tempShield.value = shieldDamageResistence;
+            tempShield.modifierText = "Shielded " + "-" + shieldDamageResistence;
+            tempShield.attackState = attackState.Benediction;
+        }
+
+        if (damageResistence > 1)
+        {
+            combatDamageResistenceValue = 1f;
+        }
+        for (int i = 0; i < allDamage.Count; i++)
+        {
+            int minDamage = allDamage[i].minDamage;
+            int maxDamage = allDamage[i].maxDamage;
+            allDamage[i].minDamage = minDamage - (int)(minDamage * combatDamageResistenceValue);
+            allDamage[i].maxDamage = maxDamage - (int)(maxDamage * combatDamageResistenceValue);
+        }
+        return tempShield;
+    }
+
+    // This is for the AI to help determine the value of doing an action
+    //Health Damage, Armour Damage
+    public Tuple<int, int> GetEstimatedDamageValues(AttackData attackData)
+    {
+        Tuple<int, int> damage = new Tuple<int, int>(0, 0);
+        int totalDamage = 0;
+        float totalModifer = 1;
+
+        for (int k = 0; k < attackData.modifiers.Count; k++)
+        {
+            totalModifer = totalModifer * attackData.modifiers[k].value;
+        }
+
+        for (int k = 0; k < attackData.allDamage.Count; k++)
+        {
+            Damage currentDamage = attackData.allDamage[k];
+            int tempDamage = (currentDamage.minDamage + currentDamage.maxDamage) / 2;
+            tempDamage = (int)(tempDamage * totalModifer);
+            totalDamage += tempDamage;
+        }
+        return TempApplyDamage(totalDamage, attackData.armorDamagePercentage, attackData.ignroeArmour);
+    }
+
+    //Health Damage, Armour Damage
+    public Tuple<int, int> TempApplyDamage(int damage, float armourEffectPercentage, bool ignoreArmour)
+    {
+        int healthDamage = 0;
+        int armourDamage = 0;
+        if (ignoreArmour)
+        {
+            healthDamage = damage;
+        }
+        else
+        {
+            int currentDamge = damage;
+            currentDamge =  (int) (currentArmor -  (damage * armourEffectPercentage));
+            if(currentDamge < 0)
+            {
+                currentDamge = (int)((currentDamge * -1) / armourEffectPercentage);
+                armourDamage = currentArmor;
+                healthDamage = currentDamge;
+            }
+            else
+            {
+                armourDamage = (int)(damage * armourEffectPercentage);
+            }
+        }
+        return new Tuple<int, int>(healthDamage, armourDamage);
+    }
+
+    // This is old Replace as soon as possible
     public Tuple<int, int, List<AttackDataUI>> CalculateEstimatedDamage(int minDamageValue, int maxDamageValue, bool ignoreShield)
     {
         float combatDamageResistenceValue = damageResistence;
@@ -562,6 +686,65 @@ public class Unit : UnitSuperClass, IInititiave
         return attackedData;
     }
    
+
+    public void TakeDamage(Unit unitDealingDamage, List<AttackData> attackDatas, bool meleeContact, bool ignoreShield, bool ignoreArmor, bool firstInstanceOfDamageSetUp)
+    {
+        int seed = System.DateTime.Now.Millisecond;
+        UnityEngine.Random.InitState(seed);
+
+        float combatDamageResistenceValue = damageResistence;
+
+        if (!ignoreShield)
+        {
+            combatDamageResistenceValue += shieldDamageResistence;
+        }
+
+        if (damageResistence > 1)
+        {
+            combatDamageResistenceValue = 1f;
+        }
+
+        int intialArmor = currentArmor;
+        int intialHealth = currentHealth;
+        bool firstInstanceOfDamage = firstInstanceOfDamageSetUp;
+        for (int i = 0; i < attackDatas.Count; i++)
+        {
+            //int damageValue = UnityEngine.Random.Range(minDamage[i], maxDamage[i] + 1);
+            int damageValue = 1;
+            damageValue = damageValue - (int)(damageValue * combatDamageResistenceValue);
+            OnDamage?.Invoke(this, unitDealingDamage, meleeContact, firstInstanceOfDamage);
+            firstInstanceOfDamage = false;
+
+            if (ignoreArmor)
+            {
+                currentHealth -= damageValue;
+            }
+            else
+            {
+                currentArmor -= damageValue;
+                if (currentArmor < 0)
+                {
+                    currentHealth += currentArmor;
+                    currentArmor = 0;
+                }
+            }
+        }
+
+        if (currentHealth <= 0)
+        {
+            Death();
+        }
+        else
+        {
+            Debug.Log("damage");
+            DamageAnimation damageAnimation = Instantiate(gameManager.resourceManager.damageAnimation);
+            damageAnimation.SetParameters(combatAttackUi, this, intialArmor, intialHealth);
+
+            AttackedAnimation attackedAnimation = Instantiate(gameManager.resourceManager.attackedAnimation);
+            attackedAnimation.SetParameters(gameManager, unitDealingDamage.transform.position, this.transform.position);
+
+        }
+    }
 
     public void TakeDamage(Unit damageDealingUnit, List<int> minDamage, List<int> maxDamage, bool meleeContact, bool ignoreShield, bool ignoreArmor,
         bool firstInstanceOfDamageSetUp)
@@ -625,7 +808,6 @@ public class Unit : UnitSuperClass, IInititiave
             attackedAnimation.SetParameters(gameManager, damageDealingUnit.transform.position, this.transform.position);
 
         }
-
     }
 
     public void Death()
@@ -637,7 +819,6 @@ public class Unit : UnitSuperClass, IInititiave
         {
             return;
         }
-
     }
 
     //-----------------------------------------------------

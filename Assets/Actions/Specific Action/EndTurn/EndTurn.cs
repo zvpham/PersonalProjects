@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,19 +6,24 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Action/EndTurn")]
 public class EndTurn : Action
 {
-    public override int CalculateWeight(AIActionData actionData)
+    public override int CalculateWeight(AIActionData AIActionData)
     {
         return 1;
     }
 
-    public override void FindOptimalPosition(AIActionData actionData)
+    public override void FindOptimalPosition(AIActionData AIActionData)
     {
         return;
     }
 
-    public override bool CheckIfActionIsInRange(AIActionData actionData)
+    public override bool CheckIfActionIsInRange(AIActionData AIActionData)
     {
         return false;
+    }
+
+    public override void AIUseAction(AIActionData AIActionData)
+    {
+        throw new NotImplementedException();
     }
 
     public override void SelectAction(Unit self)
@@ -41,6 +47,7 @@ public class EndTurn : Action
     public override void ConfirmAction(ActionData actionData)
     {
         Unit self = actionData.actingUnit;
+        self.forceEndTurn = true;
         self.UseActionPoints(self.currentActionsPoints);
     }
 

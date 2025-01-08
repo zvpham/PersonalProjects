@@ -152,7 +152,7 @@ public class OpportunityAttack : AreaPassive
                 newActionData.actingUnit = unit;
                 newActionData.affectedUnits.Add(actionData.actingUnit);
                 newActionData.originLocation = new Vector2Int(x, y);
-                unit.gameManager.AddActionToQueue(newActionData, false, true);
+                unit.gameManager.AddActionToQueue(newActionData, true, false);
             }
 
             for (int i = 0; i < actionData.path.Count; i++)
@@ -168,12 +168,17 @@ public class OpportunityAttack : AreaPassive
                         newActionData.actingUnit = unit;
                         newActionData.affectedUnits.Add(actionData.actingUnit);
                         newActionData.originLocation = new Vector2Int(x, y);
-                        unit.gameManager.AddActionToQueue(newActionData, false, true);
+                        unit.gameManager.AddActionToQueue(newActionData, true, false);
                         break;
                     }
                 }
             }
 
         }
+    }
+
+    public override void ModifiyAction(Action action, AttackData attackData)
+    {
+        return;
     }
 }

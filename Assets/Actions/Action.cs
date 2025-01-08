@@ -16,11 +16,15 @@ public abstract class Action : ScriptableObject
 
     public CustomAnimations animation;
 
-    public abstract int CalculateWeight(AIActionData actionData);
+    public abstract int CalculateWeight(AIActionData AIActionData);
 
-    public abstract void FindOptimalPosition(AIActionData actionData);
+    public abstract void FindOptimalPosition(AIActionData AIActionData);
 
-    public abstract bool CheckIfActionIsInRange(AIActionData actionData);
+    public abstract bool CheckIfActionIsInRange(AIActionData AIActionData);
+
+    public abstract void AIUseAction(AIActionData AIActionData);
+
+    public abstract void ConfirmAction(ActionData actionData);
 
     public virtual void SelectAction(Unit self)
     {
@@ -35,15 +39,13 @@ public abstract class Action : ScriptableObject
     public bool CheckIfTileIsInRange(Vector2Int tile, AIActionData actionData)
     {
         Unit unit = actionData.unit;
-        for(int i = 0; i < actionData.movementData.Count; i++)
+        int actionIndex = GetActionIndex(actionData.unit);
+        if (actionData.movementData[tile.x, tile.y] + intialActionPointUsage +
+            (actionPointGrowth * unit.actions[actionIndex].amountUsedDuringRound) <= unit.currentActionsPoints)
         {
-            int actionIndex = GetActionIndex(actionData.unit);
-            if (actionData.movementData[i][tile.x, tile.y] + intialActionPointUsage + 
-                (actionPointGrowth * unit.actions[actionIndex].amountUsedDuringRound) <= unit.currentActionsPoints)
-            {
-                return true;
-            }
+            return true;
         }
+
         return false;
     }
 
@@ -71,9 +73,6 @@ public abstract class Action : ScriptableObject
         }
         return false;
     }
-
-
-    public abstract void ConfirmAction(ActionData actionData);
 
     public virtual bool SpecificCheckActionUsable(Unit self)
     {

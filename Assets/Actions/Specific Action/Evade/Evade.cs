@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,19 +6,30 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Action/Evade")]
 public class Evade : StatusAction
 {
-    public override int CalculateWeight(AIActionData actionData)
+    public override int CalculateWeight(AIActionData AIActionData)
     {
         throw new System.NotImplementedException();
     }
 
-    public override void FindOptimalPosition(AIActionData actionData)
+    public override void FindOptimalPosition(AIActionData AIActionData)
     {
         return;
     }
 
-    public override bool CheckIfActionIsInRange(AIActionData actionData)
+    public override bool CheckIfActionIsInRange(AIActionData AIActionData)
     {
         return false;
+    }
+
+    public override void AIUseAction(AIActionData AIActionData)
+    {
+        AIActionData.expectedCurrentActionPoints -= intialActionPointUsage;
+        Unit self = AIActionData.unit;
+        ActionData newData = new ActionData();
+        newData.action = this;
+        newData.actingUnit = self;
+        self.gameManager.AddActionToQueue(newData, false, false);
+        self.gameManager.PlayActions();
     }
 
     public override int[,] GetMovementMap(AIActionData actionData)
@@ -68,49 +80,81 @@ public class Evade : StatusAction
                 passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[2][i]);
             }
         }
-        actionData.unit.gameManager.map.ResetMap(true);
-        movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-        actionData.unit.gameManager.map.SetGoals(new List<Vector2Int>() { actionData.originalPosition }, gameManager, movingUnit.moveModifier, badWalkInPassivesValues);
-        int[,] movementGridValues = actionData.unit.gameManager.map.GetGridValues();
 
-        int moveInitialActionAmount = -1;
-        int moveActionGrowth = -1;
-        int amountMoved = 0;
-        bool usedEvade = false;
+        int amountMoved = -1;
         for (int i = 0; i < movingUnit.actions.Count; i++)
         {
             if (movingUnit.actions[i].action.GetType() == typeof(Move))
             {
-                moveInitialActionAmount = movingUnit.actions[i].action.intialActionPointUsage;
-                moveActionGrowth = movingUnit.actions[i].action.actionPointGrowth;
                 amountMoved = movingUnit.actions[i].amountUsedDuringRound;
             }
+        }
 
-            if (movingUnit.actions[i].action.GetType() == typeof(Evade))
+        int initialActionPoints = actionData.expectedCurrentActionPoints - intialActionPointUsage;
+        int moveAmounts = 0;
+        while (initialActionPoints > 0)
+        {
+            if (initialActionPoints >= amountMoved + moveAmounts + 1)
             {
-                usedEvade = movingUnit.actions[i].amountUsedDuringRound > 0;
+                moveAmounts += 1;
+                initialActionPoints -= amountMoved + moveAmounts;
+            }
+            else
+            {
+                break;
             }
         }
 
-        int actionAddAmount = this.intialActionPointUsage;
-        if (usedEvade)
-        {
-            actionAddAmount = 0;
-        }
+        actionData.unit.gameManager.map.ResetMap(true);
+        movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        int startValue = (movingUnit.moveSpeedPerMoveAction * moveAmounts);
+        List<DijkstraMapNode> mapNodes = actionData.unit.gameManager.map.GetNodesInMovementRange(actionData.originalPosition.x, actionData.originalPosition.y, startValue, movingUnit.moveModifier, gameManager, badWalkInPassivesValues);
+        int[,] movementGridValues = actionData.unit.gameManager.map.GetGridValues();
 
-        for (int i = 0; i < movementGridValues.GetLength(0); i++)
+        if (mapNodes.Count > 1)
         {
-            for (int j = 0; j < movementGridValues.GetLength(1); j++)
+            int currentMoveSpeed = movingUnit.currentMoveSpeed;
+            for (int i = 1; i < mapNodes.Count; i++)
             {
-                int actionAmount = (movementGridValues[i, j] + movingUnit.moveSpeed - 1) / movingUnit.moveSpeed;
-                int totalActionAmount = 0;
-                for (int k = 0; k < actionAmount; k++)
+                DijkstraMapNode currentNode = mapNodes[i];
+                int nodeValue = startValue - currentNode.value;
+                int amountOfMoveActionsTaken;
+                if (currentMoveSpeed > 0)
                 {
-                    totalActionAmount += moveInitialActionAmount + (k + amountMoved) * moveActionGrowth;
+                    int tempNodeValue = nodeValue - currentMoveSpeed;
+                    if (tempNodeValue <= 0)
+                    {
+                        amountOfMoveActionsTaken = amountMoved - 1;
+                    }
+                    else
+                    {
+                        tempNodeValue -= 1;
+                        amountOfMoveActionsTaken = tempNodeValue / (movingUnit.moveSpeedPerMoveAction) + amountMoved;
+                    }
                 }
-                movementGridValues[i, j] = totalActionAmount + actionAddAmount;
+                else
+                {
+                    nodeValue -= 1;
+                    amountOfMoveActionsTaken = (nodeValue / (movingUnit.moveSpeedPerMoveAction)) + amountMoved;
+                }
+                amountOfMoveActionsTaken += 1;
+                int actionPointsUsed = 0;
+                for (int j = 0; j < amountOfMoveActionsTaken; j++)
+                {
+                    actionPointsUsed += j + 1;
+                }
+
+                actionPointsUsed += intialActionPointUsage;
+                if (actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
+                {
+                    Vector2Int startHex = new Vector2Int(movingUnit.x, movingUnit.y);
+                    actionData.movementData[currentNode.x, currentNode.y] = actionPointsUsed;
+                    actionData.movementActions[currentNode.x, currentNode.y] = new List<Action>() { this, movingUnit.actions[0].action};
+                    actionData.startPositions[currentNode.x, currentNode.y] = new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y), new Vector2Int(movingUnit.x, movingUnit.y) };
+                }
             }
         }
+
         return movementGridValues;
     }
 

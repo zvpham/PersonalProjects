@@ -31,11 +31,13 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     
     public bool playerTurnActive = false;
     public PlayerTurn playerTurn;
-    public AITurn enemyTurn;
+    public AITurn AITurn1; // Enemy Team 1
+    public AITurn AITurn2; // Enemy Team 2
+    public AITurn AITurn3; // Enemy 3/ Ally Team
     public Move move;
 
-    public bool startOfCombat = true;
     public bool playingAnimation = false;
+    public bool startOfCombat = true;
     public bool testing = false;
     public bool playing = false;
     public bool addedAction = false;
@@ -48,6 +50,10 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public int defaultMoveCost = 6;
     public int defaultFlyMoveCost = 5;
 
+    // AI Action Values
+    public int killValue = 100 ;
+    public float healthDamageModifier = 1.5f;
+
     public Vector3 defaultGridAdjustment = Vector3.zero;
     public float cellSize;
     public UnityAction<ActionData> OnActivateAction;
@@ -55,6 +61,8 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     // Start is called before the first frame update
     void Awake()
     {
+        killValue = 100;
+        healthDamageModifier = 1.5f;
         if (!testing)
         {
             OnStartGame(mapSize, mapSize);
@@ -196,7 +204,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         if (mapData.inCombat == false)
         {
             //Puts enemy units into a frontLine and BackLine, 0  - FrontLine, 1 - BackLine
-            List<List<UnitSuperClass>> enemyUnits1BattleLines =  enemyTurn.LoadEnemyPositions(mapData.missionUnitPlacementName, 
+            List<List<UnitSuperClass>> enemyUnits1BattleLines = AITurn1.LoadEnemyPositions(mapData.missionUnitPlacementName, 
                 enemyUnits1);
 
             // Load Mission Data
@@ -363,6 +371,27 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         playerTurnActive = true;
     }
 
+    public void StartAITurn(Unit unit, Team team)
+    {
+        StartAITurn(new List<Unit>() { unit }, team);
+    }
+
+    public void StartAITurn(List<Unit> unitGroup, Team team)
+    {
+        switch (team)
+        {
+            case Team.Team2:
+                AITurn1.StartAITurn(unitGroup);
+                break;
+            case Team.Team3:
+                AITurn2.StartAITurn(unitGroup);
+                break;
+            case Team.Team4:
+                AITurn3.StartAITurn(unitGroup);
+                break;
+        }
+    }
+
     public void TurnEnd(IInititiave initiativeGroup)
     {
         initiativeOrder.Remove(initiativeGroup);
@@ -390,7 +419,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
             initiativeOrder.Add(allinitiativeGroups[i]);
         }
 
-        Quicksort(initiatives, 0, initiatives.Count - 1);
+        allinitiativeGroups[0].Quicksort(initiatives, initiativeOrder,  0, initiatives.Count - 1);
     }
 
     public void AddActionToQueue(ActionData newAction, bool addToStart, bool afterCurrent)
@@ -476,44 +505,6 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
                 //moveCostMap[j, i] = resourceManager.terrainTiles[0].moveCost;
             }
         }
-    }
-
-    private void Quicksort(List<int> array, int left, int right)
-    {
-        if (left < right)
-        {
-            int pivotIndex = Partition(array, left, right);
-            Quicksort(array, left, pivotIndex - 1);
-            Quicksort(array, pivotIndex + 1, right);
-        }
-    }
-
-    private int Partition(List<int> array, int left, int right)
-    {
-        int pivot = array[right];
-        int i = left - 1;
-
-        for (int j = left; j < right; j++)
-        {
-            if (array[j] < pivot)
-            {
-                i++;
-                Swap(array, i, j);
-            }
-        }
-
-        Swap(array, i + 1, right);
-        return i + 1;
-    }
-    private void Swap(List<int> array, int i, int j)
-    {
-        int temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
-
-        IInititiave tempi = initiativeOrder[i];
-        initiativeOrder[i] = initiativeOrder[j];
-        initiativeOrder[j] = tempi;
     }
 
     public void CreateBackGround()

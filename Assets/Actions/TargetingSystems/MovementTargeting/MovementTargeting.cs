@@ -25,8 +25,6 @@ public class MovementTargeting : TargetingSystem
     public bool[,] badWalkInPassivesValues;
     public bool[,] goodWalkinPassivesValues;
 
-    public List<int> startOfNewMoveIndexes = new List<int>();
-    public List<int> setStartOfNewMoveIndexes = new List<int>();
     public GameObject tempMovingUnit;
 
     public List<int> actionMoveAmounts;
@@ -138,7 +136,14 @@ public class MovementTargeting : TargetingSystem
         canMove = CanUnitMove(movingUnit, numActionPoints, amountMoved, currentMoveSpeed);
         int startValue = currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * moveAmounts);
         List<DijkstraMapNode> nodesInMovementRange =  map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager);
-
+        string debugWord = "";
+        for(int i = 0; i < nodesInMovementRange.Count; i++)
+        {
+            DijkstraMapNode currentNode = nodesInMovementRange[i];
+            debugWord += "(" + currentNode.x + ", " + currentNode.y + "), ";
+        }
+        Debug.Log(debugWord);
+        Debug.Log(nodesInMovementRange.Count);
         startingPosition = targetPosition;
         actionPointsLeft = numActionPoints;
         amountOfPossibleMoves = moveAmounts;
@@ -207,7 +212,6 @@ public class MovementTargeting : TargetingSystem
             map.SetGoalsNew(endHex, gameManager, movingUnit.moveModifier, badWalkInPassivesValues);
             map.getGrid().GetXY(startingPosition, out int x, out int y);
             path.Clear();
-            startOfNewMoveIndexes = new List<int>();
             bool foundEndPosition = false;
             int currentMoveSpeed = moveSpeedInitiallyAvailable + movingUnit.moveSpeedPerMoveAction * amountOfPossibleMoves;
             int previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
@@ -315,10 +319,6 @@ public class MovementTargeting : TargetingSystem
                 //if there is still action Points left Add temp Path to Set Path
                 if (canMove)
                 {
-                    for(int i = 0; i< startOfNewMoveIndexes.Count; i++)
-                    {
-                        setStartOfNewMoveIndexes.Add(startOfNewMoveIndexes[i]);
-                    }
                     prevEndHexPosition = endHexPosition;
                     for (int i = 0; i < path.Count; i++)
                     {
@@ -348,7 +348,6 @@ public class MovementTargeting : TargetingSystem
                     moveSpeedLeft += movingUnit.moveSpeedPerMoveAction;
                     amountMoved += 1;
                 }
-
                 actionPointsLeft -= actionPointsUsed;
 
                 Destroy(tempMovingUnit);
@@ -365,7 +364,7 @@ public class MovementTargeting : TargetingSystem
                         }
                         else
                         {
-                            OnFoundTarget?.Invoke(setPath, setStartOfNewMoveIndexes, movingUnit, true);
+                            OnFoundTarget?.Invoke(setPath, null, movingUnit, true);
                             Destroy(tempMovingUnit);
                         }
                     },
@@ -388,7 +387,6 @@ public class MovementTargeting : TargetingSystem
         prevEndHexPosition = new Vector2Int(-1, -1);
         actionMoveAmounts = new List<int>();
         actionLines = new List<List<Vector3>>();
-        setStartOfNewMoveIndexes = new List<int>();
         amountActionLineIncreased = 0;
         IndexOfStartingActionLine = 0;
         amountMoved = 0;

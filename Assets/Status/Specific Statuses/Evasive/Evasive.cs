@@ -24,11 +24,14 @@ public class Evasive : Status
         return true;
     }
 
+    public override void ModifiyAction(Action action, AttackData attackData)
+    {
+        return;
+    }
+
     public override void RemoveStatus(Unit target)
     {
         throw new System.NotImplementedException();
     }
-
-
 }
 

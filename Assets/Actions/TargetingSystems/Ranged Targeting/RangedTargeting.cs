@@ -532,7 +532,7 @@ public class RangedTargeting : TargetingSystem
 
                         if (targetHexPositions.Contains(endHex[0]))
                         {
-                            AttackData currentAttackData = new AttackData(attackData.minDamage, attackData.maxDamage, 
+                            AttackData currentAttackData = new AttackData(attackData.allDamage, 
                                 attackData.armorDamagePercentage, attackData.originUnit);
                             if(unitAmmo != null && unitAmmo.Count > 0)
                             {

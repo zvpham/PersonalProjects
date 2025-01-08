@@ -1,29 +1,175 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using TMPro;
-using Unity.Burst.CompilerServices;
-using Unity.VisualScripting;
+using Unity.Mathematics;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Action/Move")]
 public class Move : Action
 {
-    public override int CalculateWeight(AIActionData actionData)
+    public override int CalculateWeight(AIActionData AIActionData)
     {
         return 0;
     }
 
-    public override void FindOptimalPosition(AIActionData actionData)
+    public override void FindOptimalPosition(AIActionData AIActionData)
     {
         return;
     }
 
-    public override bool CheckIfActionIsInRange(AIActionData actionData)
+    public override bool CheckIfActionIsInRange(AIActionData AIActionData)
     {
         return false;
     }
+
+    public override void AIUseAction(AIActionData AIActionData)
+    {
+        Vector2Int endPosition = AIActionData.desiredEndPosition;
+        int movementActionIndex = AIActionData.movementActions[endPosition.x, endPosition.y].IndexOf(this);
+        CombatGameManager gameManager = AIActionData.unit.gameManager;
+        Unit movingUnit = AIActionData.unit;
+
+        List<PassiveEffectArea>[,] passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < gameManager.mapSize; i++)
+        {
+            for (int j = 0; j < gameManager.mapSize; j++)
+            {
+                passives[i, j] = new List<PassiveEffectArea>();
+            }
+        }
+
+        List<List<PassiveEffectArea>> classifiedPassiveEffectArea = movingUnit.CalculuatePassiveAreas();
+        bool[,] unwalkablePassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+
+        for (int i = 0; i < classifiedPassiveEffectArea[0].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[0][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[0][i].passiveLocations[j];
+                unwalkablePassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[0][i]);
+            }
+        }
+
+        bool[,] badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < classifiedPassiveEffectArea[1].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[1][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[1][i].passiveLocations[j];
+                badWalkInPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[1][i]);
+            }
+        }
+
+        bool[,] goodWalkinPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < classifiedPassiveEffectArea[2].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[2][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[2][i].passiveLocations[j];
+                goodWalkinPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[2][i]);
+            }
+        }
+
+        Vector2Int currentEndPosition;
+        Vector2Int startingPosition = AIActionData.startPositions[endPosition.x, endPosition.y][movementActionIndex];
+        if (movementActionIndex + 1 == AIActionData.movementActions[endPosition.x, endPosition.y].Count)
+        {
+            currentEndPosition = endPosition;
+        }
+        else
+        {
+            currentEndPosition = AIActionData.startPositions[endPosition.x, endPosition.y][movementActionIndex + 1];
+        }
+
+        AIActionData.unit.gameManager.map.ResetMap(true);
+        movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        AIActionData.unit.gameManager.map.SetGoalsNew(new List<Vector2Int>() { currentEndPosition }, gameManager, movingUnit.moveModifier, badWalkInPassivesValues);
+        DijkstraMap map = gameManager.map;
+        int x = startingPosition.x;
+        int y = startingPosition.y;
+        int previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
+
+        int initialActionPoints = AIActionData.expectedCurrentActionPoints;
+        int amountOfPossibleMoves = 0;
+        int actionIndex = GetActionIndex(movingUnit);
+        int amountMoved =  movingUnit.actions[actionIndex].amountUsedDuringRound;
+        while (initialActionPoints > 0)
+        {
+            if (initialActionPoints >= amountMoved + amountOfPossibleMoves + 1)
+            {
+                amountOfPossibleMoves += 1;
+                initialActionPoints -= amountMoved + amountOfPossibleMoves;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        int currentMoveSpeed = AIActionData.expectedInitialMoveSpeed + movingUnit.moveSpeedPerMoveAction * amountOfPossibleMoves;
+        bool foundEndPosition = false;
+        List<Vector2Int> path = new List<Vector2Int>();
+        while (true)
+        {
+            DijkstraMapNode currentNode;
+            currentNode = map.GetLowestNearbyNode(x, y, currentEndPosition, movingUnit.moveModifier, gameManager);
+            x = currentNode.x;
+            y = currentNode.y;
+            int currentNodeMoveValue = currentNode.value;
+            int moveSpeedDifference = previousNodeMoveValue - currentNodeMoveValue;
+            if (currentNode.value == int.MaxValue || currentMoveSpeed < moveSpeedDifference)
+                break;
+            currentMoveSpeed -= moveSpeedDifference;
+            previousNodeMoveValue = currentNodeMoveValue;
+            path.Add(new Vector2Int(x, y));
+
+            if (currentEndPosition == path[path.Count - 1])
+            {
+                foundEndPosition = true;
+                break;
+            }
+            else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
+            {
+                path.RemoveAt(path.Count - 1);
+                foundEndPosition = false;
+                break;
+            }
+        }
+
+        if (foundEndPosition)
+        {
+            ActionData actionData = new ActionData();
+            actionData.action = this;
+            actionData.actingUnit = movingUnit;
+            actionData.originLocation = new Vector2Int(movingUnit.x, movingUnit.y);
+
+            List<Vector2Int> tempPath = new List<Vector2Int>() { path[0] };
+            actionData.path = tempPath;
+            movingUnit.gameManager.AddActionToQueue(actionData, false, false);
+
+
+            for (int i = 1; i < path.Count; i++)
+            {
+                actionData = new ActionData();
+                actionData.action = this;
+                actionData.actingUnit = movingUnit;
+                actionData.originLocation = new Vector2Int(path[i - 1].x, path[i - 1].y);
+
+                tempPath = new List<Vector2Int>() { path[i] };
+                actionData.path = tempPath;
+                movingUnit.gameManager.AddActionToQueue(actionData, false, false);
+            }
+            movingUnit.gameManager.PlayActions();
+        }
+        else
+        {
+            Debug.LogError("Couldn't find desiered end position when: " + AIActionData.unit + ", tried to move");
+        }
+    }
+
 
     public override int[,] GetMovementMap(AIActionData actionData)
     {
@@ -73,12 +219,8 @@ public class Move : Action
                 passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[2][i]);
             }
         }
-        actionData.unit.gameManager.map.ResetMap(true);
-        movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-        actionData.unit.gameManager.map.SetGoals(new List<Vector2Int>() { actionData.originalPosition }, gameManager, movingUnit.moveModifier, badWalkInPassivesValues);
-        int[,] movementGridValues = actionData.unit.gameManager.map.GetGridValues();
 
-        int amountMoved = 0;
+        int amountMoved = -1;
         for (int i = 0; i < movingUnit.actions.Count; i++)
         {
             if (movingUnit.actions[i].action.GetType() == typeof(Move))
@@ -87,19 +229,69 @@ public class Move : Action
             }
         }
 
-        for (int i = 0; i < movementGridValues.GetLength(0); i++)
+        int initialActionPoints = actionData.expectedCurrentActionPoints;
+        int moveAmounts = 0;
+        while (initialActionPoints > 0)
         {
-            for(int j = 0; j < movementGridValues.GetLength(1); j++)
+            if (initialActionPoints >= amountMoved + moveAmounts + 1)
             {
-                int actionAmount = (movementGridValues[i, j] + movingUnit.moveSpeed - 1) / movingUnit.moveSpeed;
-                int totalActionAmount = 0;
-                for(int k = 0;  k < actionAmount; k++)
-                {
-                    totalActionAmount += this.intialActionPointUsage + (k  + amountMoved) * this.actionPointGrowth;  
-                }
-                movementGridValues[i, j] = totalActionAmount;
+                moveAmounts += 1;
+                initialActionPoints -= amountMoved + moveAmounts;
+            }
+            else
+            {
+                break;
             }
         }
+
+        actionData.unit.gameManager.map.ResetMap(true);
+        movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        int startValue = (movingUnit.moveSpeedPerMoveAction * moveAmounts);
+        List<DijkstraMapNode> mapNodes = actionData.unit.gameManager.map.GetNodesInMovementRange(actionData.originalPosition.x, actionData.originalPosition.y, startValue, movingUnit.moveModifier, gameManager, badWalkInPassivesValues);
+        int[,] movementGridValues = actionData.unit.gameManager.map.GetGridValues();
+
+        if(mapNodes.Count > 1)
+        {
+            int currentMoveSpeed = movingUnit.currentMoveSpeed;
+            for (int i = 1; i < mapNodes.Count; i++)
+            {
+                DijkstraMapNode currentNode = mapNodes[i];
+                int nodeValue = startValue - currentNode.value;
+                int amountOfMoveActionsTaken;
+                if (currentMoveSpeed > 0)
+                {
+                    int tempNodeValue = nodeValue - currentMoveSpeed;
+                    if (tempNodeValue <= 0)
+                    {
+                        amountOfMoveActionsTaken = amountMoved - 1;
+                    }
+                    else
+                    {
+                        tempNodeValue -= 1;
+                        amountOfMoveActionsTaken = tempNodeValue / (movingUnit.moveSpeedPerMoveAction) + amountMoved;
+                    }
+                }
+                else
+                {
+                    nodeValue -= 1;
+                    amountOfMoveActionsTaken = (nodeValue / (movingUnit.moveSpeedPerMoveAction)) + amountMoved;
+                }
+                amountOfMoveActionsTaken += 1;
+                int actionPointsUsed = 0;
+                for (int j = 0; j < amountOfMoveActionsTaken; j++)
+                {
+                    actionPointsUsed += j + 1;
+                }
+
+                    if (actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
+                {
+                    actionData.movementData[currentNode.x, currentNode.y] = actionPointsUsed;
+                    actionData.movementActions[currentNode.x, currentNode.y] = new List<Action> { this };
+                    actionData.startPositions[currentNode.x, currentNode.y] = new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) };
+                }
+            }
+        }
+
         return movementGridValues;
     }
 
@@ -124,10 +316,6 @@ public class Move : Action
             if (movingUnit.gameManager.spriteManager.GetWorldPosition(path[0].x, path[0].y) == movingUnit.transform.position)
             {
                 path.RemoveAt(0);
-                for(int i = 1; i < indexOfStartingMoves.Count; i++)
-                {
-                    indexOfStartingMoves[i] -= 1;
-                }
             }
             if (path.Count == 0)
             {
@@ -136,14 +324,25 @@ public class Move : Action
                 movingUnit.gameManager.spriteManager.movementTargeting.OnFoundTarget += FoundTarget;
                 return;
             }
-            for(int i = 0; i < path.Count; i++)
+
+            ActionData actionData = new ActionData();
+            actionData.action = this;
+            actionData.actingUnit = movingUnit;
+            actionData.originLocation = new Vector2Int(movingUnit.x, movingUnit.y);
+
+            List<Vector2Int> tempPath = new List<Vector2Int>() { path[0] };
+            actionData.path = tempPath;
+            movingUnit.gameManager.AddActionToQueue(actionData, false, false);
+
+
+            for (int i = 1; i < path.Count; i++)
             {
-                ActionData actionData= new ActionData();
+                actionData= new ActionData();
                 actionData.action = this;
                 actionData.actingUnit = movingUnit;
-                actionData.originLocation = new Vector2Int(movingUnit.x, movingUnit.y);
+                actionData.originLocation = new Vector2Int(path[i - 1].x, path[i - 1].y);
 
-                List<Vector2Int> tempPath =  new List<Vector2Int>() { path[i] };
+                tempPath =  new List<Vector2Int>() { path[i] };
                 actionData.path = tempPath;
                 movingUnit.gameManager.AddActionToQueue(actionData, false, false);
             }
@@ -159,46 +358,34 @@ public class Move : Action
     public void AnotherActionMove(List<Vector2Int> path, List<int> indexOfStartingMoves, Unit movingUnit, bool onlyMoved)
     {
         Debug.Log("Another Action MOve");
+
         if (movingUnit.gameManager.spriteManager.GetWorldPosition(path[0].x, path[0].y) == movingUnit.transform.position)
         {
             path.RemoveAt(0);
-            for (int i = 1; i < indexOfStartingMoves.Count; i++)
-            {
-                indexOfStartingMoves[i] -= 1;
-            }
         }
         if (path.Count == 0)
         {
             return;
         }
-        for (int i = 0; i < indexOfStartingMoves.Count; i++)
+
+        ActionData actionData = new ActionData();
+        actionData.action = this;
+        actionData.actingUnit = movingUnit;
+        actionData.originLocation = new Vector2Int(movingUnit.x, movingUnit.y);
+
+        List<Vector2Int> tempPath = new List<Vector2Int>() { path[0] };
+        actionData.path = tempPath;
+        movingUnit.gameManager.AddActionToQueue(actionData, false, false);
+
+        for (int i = 1; i < path.Count; i++)
         {
-            ActionData actionData = new ActionData();
+            actionData = new ActionData();
             actionData.action = this;
             actionData.actingUnit = movingUnit;
-            actionData.originLocation = new Vector2Int(movingUnit.x, movingUnit.y);
-            int startPathIndex = -1;
-            int endPathIndex = -1;
-            if (i == indexOfStartingMoves.Count - 1)
-            {
-                startPathIndex = indexOfStartingMoves[i];
-                endPathIndex = path.Count;
-                actionData.targetLocation = path[path.Count - 1];
-            }
-            else
-            {
-                startPathIndex = indexOfStartingMoves[i];
-                endPathIndex = indexOfStartingMoves[i + 1];
-                actionData.targetLocation = path[indexOfStartingMoves[i + 1]];
-            }
+            actionData.originLocation = new Vector2Int(path[i - 1].x, path[i - 1].y);
 
-            List<Vector2Int> tempPath = new List<Vector2Int>();
-            for (int j = startPathIndex; j < endPathIndex; j++)
-            {
-                tempPath.Add(path[j]);
-            }
+            tempPath = new List<Vector2Int>() { path[i] };
             actionData.path = tempPath;
-            actionData.intReturnData = endPathIndex - startPathIndex;
             movingUnit.gameManager.AddActionToQueue(actionData, false, false);
         }
         movingUnit.gameManager.PlayActions();

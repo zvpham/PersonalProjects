@@ -1,12 +1,17 @@
 using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class AITurn : MonoBehaviour
 {
     public AITurnStates AIState;
-    public List<UnitSuperClass> enemyUnitSuperClasses;
+    public List<UnitSuperClass> unitSuperClasses;
+    public List<Unit> units; // ALL Units in AITURN sorted by Initiative
+    public List<Vector2Int> futureUnitPosiitions;
+
+    // Enemy Units Visible to AiTeam
     public List<Unit> visibleUnits = new List<Unit>();
 
     public int totalRangedValue;
@@ -119,11 +124,11 @@ public class AITurn : MonoBehaviour
     public int CalculateRangedValue()
     {
         totalRangedValue = 0;
-        for (int i = 0; i < enemyUnitSuperClasses.Count; i++)
+        for (int i = 0; i < unitSuperClasses.Count; i++)
         {
-            if (enemyUnitSuperClasses[i].unitType == UnitType.Ranged)
+            if (unitSuperClasses[i].unitType == UnitType.Ranged)
             {
-                totalRangedValue += 2 + enemyUnitSuperClasses[i].powerLevel;
+                totalRangedValue += 2 + unitSuperClasses[i].powerLevel;
             }
         }
         return totalRangedValue;
@@ -134,13 +139,13 @@ public class AITurn : MonoBehaviour
         numMelee = 0;
         List<UnitType> meleeTypes = new List<UnitType>() { UnitType.Chaff, UnitType.Flanker, UnitType.MeleeSupport,
         UnitType.FrontLine, UnitType.FrontLine};
-        for(int i = 0; i <= enemyUnitSuperClasses.Count;i++)
+        for(int i = 0; i <= unitSuperClasses.Count;i++)
         {
-            if (meleeTypes.Contains(enemyUnitSuperClasses[i].unitType))
+            if (meleeTypes.Contains(unitSuperClasses[i].unitType))
             {
-                if(enemyUnitSuperClasses.GetType() == typeof(UnitGroup))
+                if(unitSuperClasses[i].GetType() == typeof(UnitGroup))
                 {
-                    UnitGroup tempGroup = (UnitGroup) enemyUnitSuperClasses[i];
+                    UnitGroup tempGroup = (UnitGroup) unitSuperClasses[i];
                     numMelee += tempGroup.units.Count;
                 }
                 else
@@ -155,6 +160,84 @@ public class AITurn : MonoBehaviour
     public void ReadyCombat()
     {
         totalRangedValue = CalculateRangedValue();
+    }
+
+    public void SortUnitsByInitiative()
+    {
+        List<IInititiave> initiatives =  new List<IInititiave>();
+        List<int> initiativeAmount =  new List<int>();
+        for (int i = 0; i < unitSuperClasses.Count; i++)
+        {
+            if (unitSuperClasses[i].GetType() == typeof(UnitGroup))
+            {
+                UnitGroup tempGroup = (UnitGroup)unitSuperClasses[i];
+                initiatives.Add(tempGroup);
+                initiativeAmount.Add(tempGroup.CalculateInititive());
+            }
+            else
+            {
+                Unit tempUnit = (Unit)unitSuperClasses[i];
+                initiatives.Add(tempUnit);
+                initiativeAmount.Add(tempUnit.CalculateInititive());
+            }
+        }
+        initiatives[0].Quicksort(initiativeAmount, initiatives, 0, initiatives.Count - 1);
+
+        for (int i = 0; i < initiatives.Count; i++)
+        {
+            if (initiatives[i].GetType() == typeof(UnitGroup))
+            {
+                UnitGroup tempGroup = (UnitGroup)unitSuperClasses[i];
+                for(int j = 0; j < tempGroup.units.Count; j++)
+                {
+                    units.Add(tempGroup.units[j]);
+                }
+            }
+            else
+            {
+                Unit tempUnit = (Unit)unitSuperClasses[i];
+                units.Add(tempUnit);
+            }
+        }
+    }
+
+    public void StartAITurn(List<Unit> unitGroup)
+    {
+        for(int i = 0; i < unitGroup.Count; i++)
+        {
+
+        }
+    }
+
+    public void CalculateFutureUnitPositions(Unit unit)
+    {
+        int unitIndex =  units.IndexOf(unit);
+        for(int i = unitIndex; i < units.Count; i++)
+        {
+            Unit currentUnit = units[i];
+            switch(currentUnit.unitType)
+            {
+                case UnitType.Chaff:
+                    ChaffAI(currentUnit, true);
+                    break;
+                case UnitType.FrontLine:
+                    FrontLineAI(currentUnit, true);
+                    break;
+                case UnitType.FrontLine2:
+                    FrontLineAI(currentUnit, true);
+                    break;
+                case UnitType.Flanker:
+                    break;
+                case UnitType.Mixed:
+                    break;
+                case UnitType.MeleeSupport:
+                    break;
+                case UnitType.RangedSupport:
+                    break;
+                case UnitType.Ranged:
+                    break;
+            }
+        }
     }
 
     public AITurnStates CalculateEnemyState()
@@ -176,11 +259,10 @@ public class AITurn : MonoBehaviour
             AIState = AITurnStates.Skirmish;
         }  
 
-
         return AIState;
     }
 
-    public void ChaffAI()
+    public void ChaffAI(Unit unit, bool positionOnly)
     {
         switch (AIState)
         {
@@ -199,13 +281,12 @@ public class AITurn : MonoBehaviour
         }
     }
 
-    public void FrontLineAI(Unit unit)
+    public void FrontLineAI(Unit unit, bool positionOnly)
     {
         visibleUnits = unit.gameManager.playerTurn.playerUnits;
         bool inMelee = false;
         Vector2Int originalPosition = new Vector2Int(unit.x, unit.y);
         unit.gameManager.map.ResetMap(true);
-        unit.gameManager.map.SetGoals(new List<Vector2Int> { originalPosition }, unit.gameManager, unit.moveModifier);
         DijkstraMapNode currentunitNode = unit.gameManager.map.getGrid().GetGridObject(originalPosition);
         List<Vector2Int> mapNodes = unit.gameManager.map.getGrid().GetGridPositionsInRing(originalPosition.x, originalPosition.y, 1);
         for (int k = 0; k < mapNodes.Count; k++)
@@ -213,8 +294,7 @@ public class AITurn : MonoBehaviour
             Vector2Int surroundingNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
             DijkstraMapNode surroundingUnitNode = unit.gameManager.map.getGrid().GetGridObject(surroundingNodePosition);
             Unit tempUnit = gameManager.grid.GetGridObject(surroundingNodePosition).unit;
-            if (unit.moveModifier.ValidMeleeAttack(unit.gameManager, currentunitNode, surroundingUnitNode, 1) &&
-               tempUnit != null && tempUnit.team != unit.team)
+            if (tempUnit != null && tempUnit.team != unit.team && unit.moveModifier.NewValidMeleeAttack(unit.gameManager, currentunitNode, surroundingUnitNode, 1))
             {
                 inMelee = true;
                 break;
@@ -224,26 +304,37 @@ public class AITurn : MonoBehaviour
         actionData.unit = unit;
         actionData.originalPosition = originalPosition;
         actionData.AIState = AIState;
+        actionData.expectedCurrentActionPoints = unit.currentActionsPoints;
         int actionIndex = -1;
 
         List<UnitActionData> movementActionData = new List<UnitActionData>();
-        List<int[,]> movementData = new List<int[,]>();
+        int[,] movementData = new int[gameManager.mapSize, gameManager.mapSize];
         if (inMelee)
         {
+            if (positionOnly)
+            {
+                int unitIndex = units.IndexOf(unit);
+                futureUnitPosiitions[unitIndex] = new Vector2Int(unit.x, unit.y);
+                return;
+            }
             actionData.inMelee = true;
             actionIndex = GetHighestActionIndex(actionData, unit);
         }
         else
         {
 
-            for(int i = 0; i < unit.actions.Count; i++)
+            actionData.movementData = new int[gameManager.mapSize, gameManager.mapSize];
+            actionData.movementActions = new List<Action>[gameManager.mapSize, gameManager.mapSize];
+            actionData.startPositions = new List<Vector2Int>[gameManager.mapSize, gameManager.mapSize];
+
+            for (int i = 0; i < unit.actions.Count; i++)
             {
                 if (unit.actions[i].action.actionTypes.Contains(ActionType.Movement))
                 {
                     AIActionData data = new AIActionData();
                     data.unit = unit;
                     data.originalPosition = new Vector2Int(unit.x, unit.y);
-                    movementData.Add(unit.actions[i].action.GetMovementMap(data));
+                    unit.actions[i].action.GetMovementMap(data);
                 }
             }
 
@@ -326,7 +417,13 @@ public class AITurn : MonoBehaviour
         List<int> actionsInRange = new List<int>();
         for (int i = 0; i < unit.actions.Count; i++)
         {
-            if(unit.actions[i].action.CheckIfActionIsInRange(actionData))
+
+            if (unit.actions[i].action.actionTypes.Contains(ActionType.Movement))
+            {
+                continue;
+            }
+
+            if (unit.actions[i].action.CheckIfActionIsInRange(actionData))
             {
                 actionsInRange.Add(i);
             }

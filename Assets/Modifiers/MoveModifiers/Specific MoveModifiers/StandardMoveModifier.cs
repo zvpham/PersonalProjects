@@ -19,6 +19,17 @@ public class StandardMoveModifier : MoveModifier
         }
     }
 
+    // IS it possible to make move not counting movespeed
+    public override bool ValidMove(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode)
+    {
+        int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
+        int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];
+        int neighborNodeElevation = elevationGrid[neighborNode.x, neighborNode.y];
+        return neighborNode.walkable && Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
+    }
+
+
+    // IS it possible to make move accounting for movespeed
     public override bool ValidMovePosition(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode,
         int moveAmountChange)
     {
@@ -39,19 +50,21 @@ public class StandardMoveModifier : MoveModifier
             Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
     }
 
-    public override bool ValidMove(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode)
-    {
-        int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
-        int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];
-        int neighborNodeElevation = elevationGrid[neighborNode.x, neighborNode.y];
-        return neighborNode.walkable && Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
-    }
-
     public override bool ValidMeleeAttack(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int maxRange)
     {
         int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
         int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];
         int neighborNodeElevation = elevationGrid[nextNode.x, nextNode.y];
         return Mathf.Abs(currentNode.value - nextNode.value) <= maxRange  && Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
+    }
+
+    public override bool NewValidMeleeAttack(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int maxRange)
+    {
+        int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
+        int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];
+        int neighborNodeElevation = elevationGrid[nextNode.x, nextNode.y];
+        Vector2Int currentNodePosition =  new Vector2Int(currentNode.x, currentNode.y);
+        Vector2Int nextNodePosition = new Vector2Int(nextNode.x, nextNode.y);
+        return  gameManager.grid.OffsetDistance(currentNodePosition, nextNodePosition) <= maxRange && Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
     }
 }   

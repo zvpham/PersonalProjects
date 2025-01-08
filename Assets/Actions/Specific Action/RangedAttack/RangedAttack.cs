@@ -30,6 +30,11 @@ public class RangedAttack : Action
         return false;
     }
 
+    public override void AIUseAction(AIActionData actionData)
+    {
+        throw new NotImplementedException();
+    }
+
     public override void SelectAction(Unit self)
     {
         Debug.Log("select Ranged ATtack");
@@ -58,7 +63,12 @@ public class RangedAttack : Action
             return;
         }
 
-        AttackData newAttackData = new AttackData(minDamage, maxDamage, effectAgainstArmorPercentage, self);
+        Damage mainDamage = new Damage();
+        mainDamage.minDamage = minDamage;
+        mainDamage.maxDamage = maxDamage;
+        mainDamage.damageType = DamageTypes.physical;
+
+        AttackData newAttackData = new AttackData(new List<Damage>() {mainDamage}, effectAgainstArmorPercentage, self);
         self.gameManager.spriteManager.ActivateRangedTargeting(self, false, self.currentActionsPoints, amountOfActionPointsUsed, effectiveRange,
             newAttackData, unitAmmo);
         self.gameManager.spriteManager.rangedTargeting.OnFoundTarget += FoundTarget;
@@ -160,70 +170,6 @@ public class RangedAttack : Action
     {
         throw new NotImplementedException();
     }
-}
 
-[SerializeField]
-public struct AttackData
-{
-    public int minDamage;
-    public int maxDamage;
-    public float armorDamagePercentage;
-    public Unit originUnit;
-    //List<Status> 
-
-    public AttackData(int minDamage, int maxDamage, float armorDamagePercentage, Unit originUnit)
-    {
-        this.minDamage = minDamage;
-        this.maxDamage = maxDamage;
-        this.armorDamagePercentage = armorDamagePercentage;
-        this.originUnit = originUnit;
-    }
-
-    public List<AttackDataUI> CalculateAttackData(Unit targetUnit)
-    {
-        AttackDataUI mainAttack = new AttackDataUI();
-        int adjustedMinimumDamage = minDamage + (int)(minDamage * originUnit.GetMinimumDamageModifer());
-        int adjustmedMaximumDamage = maxDamage + (int)(maxDamage * originUnit.GetMaximumDamageModifer());
-
-        Tuple<int, int, List<AttackDataUI>> attackData = targetUnit.CalculateEstimatedDamage(adjustedMinimumDamage, adjustmedMaximumDamage, true);
-        adjustedMinimumDamage = attackData.Item1;
-        adjustmedMaximumDamage = attackData.Item2;
-        if(adjustedMinimumDamage > adjustmedMaximumDamage)
-        {
-            adjustmedMaximumDamage = adjustedMinimumDamage;
-        }
-
-        if (adjustmedMaximumDamage == 0)
-        {
-            mainAttack.data = 0.ToString();
-        }
-        else
-        {
-            mainAttack.data = adjustedMinimumDamage.ToString() + " - " + adjustmedMaximumDamage.ToString();
-        }
-
-        mainAttack.min = adjustedMinimumDamage;
-        mainAttack.max = adjustmedMaximumDamage;
-        mainAttack.attackDataType = attackDataType.Main;
-        mainAttack.attackState = attackState.Benign;
-
-        List<AttackDataUI> allAttackData = new List<AttackDataUI>();
-        allAttackData.Add(mainAttack);
-        for(int i = 0; i < attackData.Item3.Count; i++)
-        {
-            allAttackData.Add(attackData.Item3[i]);
-        }
-
-        if (armorDamagePercentage > 1)
-        {
-            AttackDataUI antiArmorAttackDataUI = new AttackDataUI();
-            antiArmorAttackDataUI.data = "AntiArmor " + armorDamagePercentage.ToString() + "X";
-            antiArmorAttackDataUI.attackDataType = attackDataType.Modifier;
-            antiArmorAttackDataUI.attackState = attackState.Benificial;
-            allAttackData.Add(antiArmorAttackDataUI);
-        }
-
-        return allAttackData;
-    }
 }
 

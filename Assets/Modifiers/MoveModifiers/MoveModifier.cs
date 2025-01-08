@@ -15,5 +15,9 @@ public abstract class MoveModifier : ScriptableObject
 
     public abstract bool ValidMove(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode);
 
+    // Based off old MovementSystem
     public abstract bool ValidMeleeAttack(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int maxRange);
+
+    //Just Checks elevation and hex Distance
+    public abstract bool NewValidMeleeAttack(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int maxRange);
 }

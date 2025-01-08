@@ -25,4 +25,6 @@ public abstract class Status : ScriptableObject
     abstract public void RemoveStatus(Unit target);
 
     abstract public bool ContinueEvent(Action occuringAction, Passive occuringPassive);
+
+    abstract public void ModifiyAction(Action action, AttackData attackData);
 }

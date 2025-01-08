@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,6 +19,11 @@ public class FireBreath : Action
     public override bool CheckIfActionIsInRange(AIActionData actionData)
     {
         return false;
+    }
+
+    public override void AIUseAction(AIActionData actionData)
+    {
+        throw new NotImplementedException();
     }
 
     public override void SelectAction(Unit self)

@@ -8,7 +8,8 @@ public class DijkstraMapNode
     public int x;
     public int y;
     public int value;
-    public int permissableMoves;
+    public int permissableMoves; // Hex can end on a permissable space/ (Units)
+    public int amountOfFreeMoves; // Move a free hex in a place where a move is possible
     public bool walkable;
     public bool endPositionOnly;
     

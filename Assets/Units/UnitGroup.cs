@@ -8,7 +8,6 @@ public class UnitGroup : UnitSuperClass, IInititiave
 
     [SerializeField] public List<Unit> units = new List<Unit>();
     public List<Unit> activeUnits = new List<Unit>();  
-    public Team team;
     public CombatGameManager gameManager;
 
     public bool inOverWorld = false;
@@ -36,8 +35,7 @@ public class UnitGroup : UnitSuperClass, IInititiave
         }
         else
         {
-            IInititiave unitInitiative = activeUnits[0];
-            unitInitiative.StartTurn();
+            gameManager.StartAITurn(activeUnits, team);
         }
     }
 

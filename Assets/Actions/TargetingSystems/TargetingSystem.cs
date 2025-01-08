@@ -21,6 +21,11 @@ public abstract class TargetingSystem : MonoBehaviour
             return true;
         }
 
+        if(numActionPoints < 0)
+        {
+            return false;
+        }
+
         int[,] moveCostGrid;
         if(moveCostGridOveride == null)
         {
@@ -52,5 +57,18 @@ public abstract class TargetingSystem : MonoBehaviour
             }
         }
         return false;
+    }
+    
+    public bool IsHexInRange(Unit movingUnit, Vector2Int startHex,  Vector2Int endHex, int maxDistance)
+    {
+        if(startHex == endHex)
+        {
+            return true;
+        }
+        GridHex<DijkstraMapNode> grid = movingUnit.gameManager.map.getGrid();
+        Vector3Int startCube = grid.OffsetToCube(startHex);
+        Vector3Int endCube =  grid.OffsetToCube(endHex);
+        int distance = grid.CubeDistance(startCube, endCube);
+        return (distance <= maxDistance);
     }
 }
