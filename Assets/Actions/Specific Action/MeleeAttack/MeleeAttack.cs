@@ -130,16 +130,28 @@ public class MeleeAttack : Action
         */
     }
 
-    public override void AIUseAction(AIActionData actionData)
+    public override void AIUseAction(AIActionData AIActionData)
     {
-        Vector2Int targetHex = actionData.desiredTargetPositionEnd;
-        Vector2Int endPosition = actionData.desiredEndPosition;
+        Vector2Int targetHex = AIActionData.desiredTargetPositionEnd;
+        Vector2Int endPosition = AIActionData.desiredEndPosition;
 
-        List<Action> movementActions = actionData.movementActions[endPosition.x, endPosition.y];
+        List<Action> movementActions = AIActionData.movementActions[endPosition.x, endPosition.y];
         for(int i = 0; i < movementActions.Count; i++)
         {
-            movementActions[i].AIUseAction(actionData);
+            movementActions[i].AIUseAction(AIActionData);
         }
+
+        Unit movingUnit = AIActionData.unit;
+        Unit targetUnit = movingUnit.gameManager.grid.GetGridObject(targetHex).unit;
+        movingUnit.gameManager.grid.GetXY(movingUnit.transform.position, out int x, out int y);
+        ActionData actionData = new ActionData();
+        actionData.action = this;
+        actionData.actingUnit = movingUnit;
+        actionData.affectedUnits.Add(targetUnit);
+        actionData.originLocation = new Vector2Int(x, y);
+        movingUnit.gameManager.AddActionToQueue(actionData, false, false);
+        movingUnit.gameManager.PlayActions();
+
     }
 
     public override void SelectAction(Unit self)
