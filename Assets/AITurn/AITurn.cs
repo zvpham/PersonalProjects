@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -10,6 +11,9 @@ public class AITurn : MonoBehaviour
     public List<UnitSuperClass> unitSuperClasses;
     public List<Unit> units; // ALL Units in AITURN sorted by Initiative
     public List<Vector2Int> futureUnitPosiitions;
+    public List<Vector2Int> enemyTeamStartPositions;
+    public List<Vector2Int> lastSeenEnemyUnitPositions;
+
 
     // Enemy Units Visible to AiTeam
     public List<Unit> visibleUnits = new List<Unit>();
@@ -203,9 +207,44 @@ public class AITurn : MonoBehaviour
 
     public void StartAITurn(List<Unit> unitGroup)
     {
+        Debug.LogWarning("Remove This (Manually sets AIState to Combat)");
+        AIState = AITurnStates.Combat;
+        visibleUnits = gameManager.playerTurn.playerUnits;
+        CalculateEnemyState();
         for(int i = 0; i < unitGroup.Count; i++)
         {
+            
+        }
 
+        for(int i = 0; i < unitGroup.Count; i++)
+        {
+            switch(unitGroup[i].unitType)
+            {
+                case (UnitType.Chaff):
+                    ChaffAI(unitGroup[i], false);
+                    break;
+                case (UnitType.Flanker):
+                    ChaffAI(unitGroup[i], false);
+                    break;
+                case (UnitType.FrontLine):
+                    FrontLineAI(unitGroup[i], false);
+                    break;
+                case (UnitType.FrontLine2):
+                    ChaffAI(unitGroup[i], false);
+                    break;
+                case (UnitType.MeleeSupport):
+                    ChaffAI(unitGroup[i], false);
+                    break;
+                case (UnitType.RangedSupport):
+                    ChaffAI(unitGroup[i], false);
+                    break;
+                case (UnitType.Ranged):
+                    ChaffAI(unitGroup[i], false);
+                    break;
+                case (UnitType.Mixed):
+                    ChaffAI(unitGroup[i], false);
+                    break;
+            }
         }
     }
 
@@ -261,12 +300,123 @@ public class AITurn : MonoBehaviour
 
         return AIState;
     }
+    
+    // -------------------------------
+    // General Unit Movement
+    // ----------------------------
 
+    // This is for when there are spotted Enemy Units
+    public void GetCloserToEnemyUnits(AIActionData AiActionData)
+    {
+        DijkstraMap map =  gameManager.map;
+        map.ResetMap(true);
+
+        AiActionData.unit.moveModifier.SetUnwalkable(gameManager, AiActionData.unit);
+        map.SetGoalsNew(AiActionData.enemyUnits, gameManager, AiActionData.unit.moveModifier);
+
+        Unit movingUnit  =  AiActionData.unit;
+        int x = movingUnit.x;
+        int y = movingUnit.y;
+        List<Vector2Int> path = new List<Vector2Int>();
+        path.Clear();
+        int currentMoveSpeed = movingUnit.currentMoveSpeed + movingUnit.moveSpeedPerMoveAction;
+        int startMoveSpeed = currentMoveSpeed;
+        int previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
+        int startx = x;
+        int starty = y;
+        int moveSpeedUsed = 0;
+        DijkstraMapNode currentNode;
+        while (true)
+        {
+            currentNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
+            x = currentNode.x;
+            y = currentNode.y;
+            int currentNodeMoveValue = currentNode.value;
+            int moveSpeedDifference = previousNodeMoveValue - currentNodeMoveValue;
+            if (currentNode.value == int.MaxValue || currentMoveSpeed < moveSpeedDifference)
+                break;
+            currentMoveSpeed -= moveSpeedDifference;
+            previousNodeMoveValue = currentNodeMoveValue;
+            moveSpeedUsed += moveSpeedDifference;
+            path.Add(new Vector2Int(x, y));
+
+            if (AiActionData.enemyUnits.Contains(path[path.Count - 1]))
+            {
+                break;
+            }
+            else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
+            {
+                path.RemoveAt(path.Count - 1);
+                break;
+            }
+        }
+
+        if(currentNode.value == int.MaxValue)
+        {
+            Debug.LogError("Test Unit Isolated on high terrain while they can't see enemyUnitss");
+        }
+        
+        // Desired end position has a Unit on it, use modified path where friendly units are walkable
+        if(gameManager.grid.GetGridObject(x, y).unit != null)
+        {
+            List<DijkstraMapNode> newGoals =  
+                map.GetNodesThatHaveValueLessThanTarget(map.getGrid().GetGridObject(x, y).value, startMoveSpeed, AiActionData.enemyUnits);
+            for (int i = 0; i < newGoals.Count; i++)
+            {
+                if (gameManager.grid.GetGridObject(x, i).unit != null)
+                {
+                    newGoals.RemoveAt(i);
+                    i--;
+                }
+            }
+            map.ResetMap();
+            map.SetGoalsNew(AiActionData.enemyUnits, gameManager, AiActionData.unit.moveModifier);
+
+            x = movingUnit.x;
+            y = movingUnit.y;
+            path = new List<Vector2Int>();
+            path.Clear();
+            previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
+            while (true)
+            {
+                currentNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
+                x = currentNode.x;
+                y = currentNode.y;
+                int currentNodeMoveValue = currentNode.value;
+                int moveSpeedDifference = previousNodeMoveValue - currentNodeMoveValue;
+                if (currentNode.value == int.MaxValue || currentMoveSpeed < moveSpeedDifference)
+                    break;
+                currentMoveSpeed -= moveSpeedDifference;
+                previousNodeMoveValue = currentNodeMoveValue;
+                moveSpeedUsed += moveSpeedDifference;
+                path.Add(new Vector2Int(x, y));
+
+                if (AiActionData.enemyUnits.Contains(path[path.Count - 1]))
+                {
+                    break;
+                }
+                else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
+                {
+                    path.RemoveAt(path.Count - 1);
+                    break;
+                }
+            }
+
+            if (path.Count != 0)
+            {
+
+            }
+            else
+            {
+                Debug.LogError("Path not found when attempting to approach enemyUnits for: " + movingUnit.name);
+            }
+        }
+    }
     public void ChaffAI(Unit unit, bool positionOnly)
     {
         switch (AIState)
         {
-            case (AITurnStates.Combat):
+            case (AITurnStates.Combat):     
                 break;
             case (AITurnStates.Agressive):
                 break;
@@ -300,15 +450,15 @@ public class AITurn : MonoBehaviour
                 break;
             }
         }
-        AIActionData actionData =  new AIActionData();
-        actionData.unit = unit;
-        actionData.originalPosition = originalPosition;
-        actionData.AIState = AIState;
-        actionData.expectedCurrentActionPoints = unit.currentActionsPoints;
+        AIActionData AiActionData =  new AIActionData();
+        AiActionData.unit = unit;
+        AiActionData.originalPosition = originalPosition;
+        AiActionData.AIState = AIState;
+        AiActionData.expectedCurrentActionPoints = unit.currentActionsPoints;
         int actionIndex = -1;
 
         List<UnitActionData> movementActionData = new List<UnitActionData>();
-        int[,] movementData = new int[gameManager.mapSize, gameManager.mapSize];
+
         if (inMelee)
         {
             if (positionOnly)
@@ -317,64 +467,87 @@ public class AITurn : MonoBehaviour
                 futureUnitPosiitions[unitIndex] = new Vector2Int(unit.x, unit.y);
                 return;
             }
-            actionData.inMelee = true;
-            actionIndex = GetHighestActionIndex(actionData, unit);
+            AiActionData.inMelee = true;
+            actionIndex = GetHighestActionIndex(AiActionData, unit);
         }
         else
         {
 
-            actionData.movementData = new int[gameManager.mapSize, gameManager.mapSize];
-            actionData.movementActions = new List<Action>[gameManager.mapSize, gameManager.mapSize];
-            actionData.startPositions = new List<Vector2Int>[gameManager.mapSize, gameManager.mapSize];
+            AiActionData.movementData = new int[gameManager.mapSize, gameManager.mapSize];
+            AiActionData.movementActions = new List<Action>[gameManager.mapSize, gameManager.mapSize];
+            AiActionData.startPositions = new List<Vector2Int>[gameManager.mapSize, gameManager.mapSize];
+            AiActionData.ignorePassiveArea = new List<bool>[gameManager.mapSize, gameManager.mapSize];
+
+            for (int i = 0; i < gameManager.mapSize; i++)
+            {
+                for (int j = 0; j < gameManager.mapSize; j++)
+                {
+                    AiActionData.movementData[i, j] = int.MaxValue;
+                }
+            }
 
             for (int i = 0; i < unit.actions.Count; i++)
             {
                 if (unit.actions[i].action.actionTypes.Contains(ActionType.Movement))
                 {
-                    AIActionData data = new AIActionData();
-                    data.unit = unit;
-                    data.originalPosition = new Vector2Int(unit.x, unit.y);
-                    unit.actions[i].action.GetMovementMap(data);
+                    unit.actions[i].action.GetMovementMap(AiActionData);
                 }
             }
 
-            actionData.inMelee = false;
-            actionData.movementData = movementData;
+
+
+            AiActionData.inMelee = false;
             List<Vector2Int> enemyUnitHexPositions = new List<Vector2Int>();
             for(int i = 0; i < visibleUnits.Count; i++)
             {
                 enemyUnitHexPositions.Add(new Vector2Int(visibleUnits[i].x, visibleUnits[i].y));
             }
-
+            AiActionData.enemyUnits = enemyUnitHexPositions;
+            List<int> actionsInRange;
             switch (AIState)
             {
                 case (AITurnStates.Combat):
-                    List<int> actionsInRange = GetActionsInRange(actionData, unit);
+                    actionsInRange = GetActionsInRange(AiActionData, unit);
                     if(actionsInRange.Count <= 0)
                     {
-
+                        GetCloserToEnemyUnits(AiActionData);
                     }
                     else
                     {
-                        actionIndex = GetHighestActionIndex(actionData, unit, actionsInRange);
+                        actionIndex = GetHighestActionIndex(AiActionData, unit, actionsInRange);
+                        if(actionIndex == -1)
+                        {
+                            Debug.LogError("No Action found for highestIndex");
+                        }
+                        else
+                        {
+                            unit.actions[actionIndex].action.AIUseAction(AiActionData);
+                        }
                     }
-                    unit.actions[actionIndex].action.FindOptimalPosition(actionData);
                     break;
                 case (AITurnStates.Agressive):
-                    actionIndex = GetHighestActionIndex(actionData, unit);
-                    unit.actions[actionIndex].action.FindOptimalPosition(actionData);
+                    actionsInRange = GetActionsInRange(AiActionData, unit);
+                    if (actionsInRange.Count <= 0)
+                    {
+                        GetCloserToEnemyUnits(AiActionData);
+                    }
+                    else
+                    {
+                        actionIndex = GetHighestActionIndex(AiActionData, unit, actionsInRange);
+                        unit.actions[actionIndex].action.AIUseAction(AiActionData);
+                    }
                     break;
                 case (AITurnStates.Skirmish):
-                    actionIndex = GetHighestActionIndex(actionData, unit);
+                    actionIndex = GetHighestActionIndex(AiActionData, unit);
                     break;
                 case (AITurnStates.Convoy):
-                    actionIndex = GetHighestActionIndex(actionData, unit);
+                    actionIndex = GetHighestActionIndex(AiActionData, unit);
                     break;
                 case (AITurnStates.SuperiorRanged):
-                    actionIndex = GetHighestActionIndex(actionData, unit);
+                    actionIndex = GetHighestActionIndex(AiActionData, unit);
                     break;
                 case (AITurnStates.Unaware):
-                    actionIndex = GetHighestActionIndex(actionData, unit);
+                    actionIndex = GetHighestActionIndex(AiActionData, unit);
                     break;
             }
         }
@@ -403,6 +576,7 @@ public class AITurn : MonoBehaviour
         for (int i = 0; i < actionsInRange.Count; i++)
         {
             int actionWieght = unit.actions[actionsInRange[i]].action.CalculateWeight(actionData);
+            Debug.Log(unit.actions[actionsInRange[i]].action + " action weight: " + actionWieght);  
             if (highestActionWeight < actionWieght)
             {
                 actionIndex = i;

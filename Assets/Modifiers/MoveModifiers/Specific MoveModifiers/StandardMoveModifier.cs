@@ -19,6 +19,13 @@ public class StandardMoveModifier : MoveModifier
         }
     }
 
+    public override bool validElevationDifference(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int range)
+    {
+        int originElevation = gameManager.spriteManager.elevationOfHexes[currentNode.x, currentNode.y];
+        int targetElevation = gameManager.spriteManager.elevationOfHexes[nextNode.x, nextNode.y];
+        return (originElevation == targetElevation || Mathf.Abs(originElevation - targetElevation) <= range);
+    }
+
     // IS it possible to make move not counting movespeed
     public override bool ValidMove(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode)
     {

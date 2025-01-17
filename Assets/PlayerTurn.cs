@@ -15,8 +15,8 @@ public class PlayerTurn : MonoBehaviour
 
     public Unit currentlySelectedUnit;
     public List<UnitSuperClass> playerUnitSuperUnits;
-    public List<Unit> playerUnits;
-    public List<Unit> activeUnits;
+    public List<Unit> playerUnits; // all player Units
+    public List<Unit> activeUnits; // active Units
 
     public Action currentlySelectedAction;
     // Start is called before the first frame update

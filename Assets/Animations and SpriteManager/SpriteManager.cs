@@ -55,7 +55,7 @@ public class SpriteManager : MonoBehaviour
 
     public int currentViewingElevation;
 
-    Vector2Int currentlySelectedHex;
+    public Vector2Int currentlySelectedHex;
     public GameObject currentlySelectedHexSprite;
     public MovementTargeting movementTargeting;
     public MeleeTargeting meleeTargeting;

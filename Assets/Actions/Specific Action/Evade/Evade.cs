@@ -8,7 +8,7 @@ public class Evade : StatusAction
 {
     public override int CalculateWeight(AIActionData AIActionData)
     {
-        throw new System.NotImplementedException();
+        return -2;
     }
 
     public override void FindOptimalPosition(AIActionData AIActionData)
@@ -113,6 +113,7 @@ public class Evade : StatusAction
 
         if (mapNodes.Count > 1)
         {
+            actionData.canMove = true;
             int currentMoveSpeed = movingUnit.currentMoveSpeed;
             for (int i = 1; i < mapNodes.Count; i++)
             {

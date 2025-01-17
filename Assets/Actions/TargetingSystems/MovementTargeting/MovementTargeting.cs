@@ -136,14 +136,7 @@ public class MovementTargeting : TargetingSystem
         canMove = CanUnitMove(movingUnit, numActionPoints, amountMoved, currentMoveSpeed);
         int startValue = currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * moveAmounts);
         List<DijkstraMapNode> nodesInMovementRange =  map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager);
-        string debugWord = "";
-        for(int i = 0; i < nodesInMovementRange.Count; i++)
-        {
-            DijkstraMapNode currentNode = nodesInMovementRange[i];
-            debugWord += "(" + currentNode.x + ", " + currentNode.y + "), ";
-        }
-        Debug.Log(debugWord);
-        Debug.Log(nodesInMovementRange.Count);
+
         startingPosition = targetPosition;
         actionPointsLeft = numActionPoints;
         amountOfPossibleMoves = moveAmounts;
@@ -276,6 +269,8 @@ public class MovementTargeting : TargetingSystem
                     {
                         break;
                     }
+                    // This is for going to target Hex where an unwalkable space is
+                    // Removes duplicate path and ends loop
                     else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
                     {
                         path.RemoveAt(path.Count - 1);

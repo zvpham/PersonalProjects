@@ -14,7 +14,7 @@ public class Thrust : Action
 
     public override int CalculateWeight(AIActionData AIActionData)
     {
-        throw new System.NotImplementedException();
+        return -2;
     }
 
     public override void FindOptimalPosition(AIActionData AIActionData)

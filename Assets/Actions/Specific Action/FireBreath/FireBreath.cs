@@ -8,7 +8,7 @@ public class FireBreath : Action
 {
     public override int CalculateWeight(AIActionData actionData)
     {
-        throw new System.NotImplementedException();
+        return -2;
     }
 
     public override void FindOptimalPosition(AIActionData actionData)

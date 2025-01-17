@@ -13,70 +13,112 @@ public class MeleeAttack : Action
     public float effectAgainstArmorPercentage;
     public bool ignoreArmor = false;
 
-    public override int CalculateWeight(AIActionData actionData)
+    public override int CalculateWeight(AIActionData AiActionData)
     {
-        CombatGameManager gameManager = actionData.unit.gameManager;
-        int highestActionValue = 0;
-        Unit originUnit = actionData.unit;
-
-        for (int k = 0; k < actionData.enemyUnits.Count; k++)
+        if (!CheckActionUsable(AiActionData.unit))
         {
-            int x = actionData.enemyUnits[k].x;
-            int y = actionData.enemyUnits[k].y;
-            int targetElevation = gameManager.spriteManager.elevationOfHexes[x, y];
-            Unit targetUnit = gameManager.grid.GetGridObject(x, y).unit;
-            bool foundTarget = false;
-            for (int i = 1; i <= range; i++)
-            {
-                List<DijkstraMapNode> mapNodes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, i);
-                for (int j = 0; j < mapNodes.Count; j++)
-                {
-                    Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
-                    int originElevation = gameManager.spriteManager.elevationOfHexes[mapNodes[j].x, mapNodes[j].y];
+            return -2;
+        }
+        CombatGameManager gameManager = AiActionData.unit.gameManager;
+        int highestActionValue = -2;
+        Unit originUnit = AiActionData.unit;
 
-                    if (gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).CheckIfTileIsEmpty() &&
-                        (originElevation == targetElevation || (i == 1 && Mathf.Abs(originElevation - targetElevation) <= range))
-                        && CheckIfTileIsInRange(currentNodePosition, actionData))
+        if (AiActionData.canMove)
+        {
+            for (int k = 0; k < AiActionData.enemyUnits.Count; k++)
+            {
+                int x = AiActionData.enemyUnits[k].x;
+                int y = AiActionData.enemyUnits[k].y;
+                int targetElevation = gameManager.spriteManager.elevationOfHexes[x, y];
+                Unit targetUnit = gameManager.grid.GetGridObject(x, y).unit;
+                DijkstraMapNode currentNode = gameManager.map.getGrid().GetGridObject(x, y);
+                int highestValidElevation = -1;
+                for (int i = 1; i <= range; i++)
+                {
+                    List<DijkstraMapNode> mapNodes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, i);
+                    int lowestActionPointsUsedForMovement = int.MaxValue;
+                    for (int j = 0; j < mapNodes.Count; j++)
                     {
-                        AttackData attackData = CalculateAttackData(originUnit, targetUnit);
-                        Tuple<int, int> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
-                        bool targetExpectedToDie = expectedTargetDamage.Item1 >= targetUnit.currentHealth;
-                        int tempActionValue = 0;
-                        tempActionValue += (int)(expectedTargetDamage.Item1 * gameManager.healthDamageModifier);
-                        tempActionValue += expectedTargetDamage.Item2;
-                        if (targetExpectedToDie)
+                        Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
+                        int originElevation = gameManager.spriteManager.elevationOfHexes[mapNodes[j].x, mapNodes[j].y];
+
+                        if (gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).CheckIfTileIsEmpty() &&
+                            AiActionData.unit.moveModifier.validElevationDifference(gameManager, currentNode, mapNodes[j], range)
+                            && CheckIfTileIsInRange(currentNodePosition, AiActionData) && originElevation > highestValidElevation)
                         {
-                            tempActionValue += gameManager.killValue;
-                        }
-                        tempActionValue = (int)(tempActionValue * targetUnit.targetValue);
-                        if (highestActionValue < tempActionValue)
-                        {
-                            highestActionValue = tempActionValue;
-                            actionData.desiredEndPosition = currentNodePosition;
-                            actionData.desiredTargetPositionEnd = actionData.enemyUnits[k];
-                            actionData.action = this;
-                            foundTarget = true;
-                            break;
+                            lowestActionPointsUsedForMovement = AiActionData.movementData[mapNodes[j].x, mapNodes[j].y];
+                            AttackData attackData = CalculateAttackData(originUnit, targetUnit);
+                            Tuple<int, int> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
+                            bool targetExpectedToDie = expectedTargetDamage.Item1 >= targetUnit.currentHealth;
+                            int tempActionValue = -2;
+                            tempActionValue += (int)(expectedTargetDamage.Item1 * gameManager.healthDamageModifier);
+                            tempActionValue += expectedTargetDamage.Item2;
+                            if (targetExpectedToDie)
+                            {
+                                tempActionValue += gameManager.killValue;
+                            }
+                            tempActionValue = (int)(tempActionValue * targetUnit.targetValue);
+                            tempActionValue = AiActionData.ModifyActionValue(AiActionData, currentNodePosition, this, tempActionValue);
+
+                            if (highestActionValue < tempActionValue)
+                            {
+                                highestActionValue = tempActionValue;
+                                AiActionData.desiredEndPosition = currentNodePosition;
+                                AiActionData.desiredTargetPositionEnd = AiActionData.enemyUnits[k];
+                                AiActionData.action = this;
+                            }
                         }
                     }
                 }
-                if (foundTarget)
+            }
+        }
+        else
+        {
+            int x = AiActionData.unit.x;
+            int y = AiActionData.unit.y;
+            DijkstraMapNode currentNode = gameManager.map.getGrid().GetGridObject(x, y);
+            List<DijkstraMapNode> mapNodes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, 1);
+            for (int j = 0; j < mapNodes.Count; j++)
+            {
+                Vector2Int targetUnitPosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
+                int originElevation = gameManager.spriteManager.elevationOfHexes[mapNodes[j].x, mapNodes[j].y];
+                Unit targetUnit = gameManager.grid.GetGridObject(targetUnitPosition.x, targetUnitPosition.y).unit;
+                if ( targetUnit != null && targetUnit.team != AiActionData.unit.team &&
+                    AiActionData.unit.moveModifier.validElevationDifference(gameManager, currentNode, mapNodes[j], range))
                 {
-                    break;
+                    AttackData attackData = CalculateAttackData(originUnit, targetUnit);
+                    Tuple<int, int> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
+                    bool targetExpectedToDie = expectedTargetDamage.Item1 >= targetUnit.currentHealth;
+                    int tempActionValue = -2;
+                    tempActionValue += (int)(expectedTargetDamage.Item1 * gameManager.healthDamageModifier);
+                    tempActionValue += expectedTargetDamage.Item2;
+                    if (targetExpectedToDie)
+                    {
+                        tempActionValue += gameManager.killValue;
+                    }
+                    tempActionValue = (int)(tempActionValue * targetUnit.targetValue);
+                    tempActionValue = AiActionData.ModifyActionValue(AiActionData, targetUnitPosition, this, tempActionValue);
+
+                    if (highestActionValue < tempActionValue)
+                    {
+                        highestActionValue = tempActionValue;
+                        AiActionData.desiredEndPosition = targetUnitPosition;
+                        AiActionData.desiredTargetPositionEnd = targetUnitPosition;
+                        AiActionData.action = this;
+                    }
                 }
             }
         }
-
-        return 0;
+        return highestActionValue;
     }
 
-    public override bool CheckIfActionIsInRange(AIActionData actionData)
+    public override bool CheckIfActionIsInRange(AIActionData AiActionData)
     {
-        CombatGameManager gameManager = actionData.unit.gameManager;
-        for(int k = 0; k < actionData.enemyUnits.Count; k++)
+        CombatGameManager gameManager = AiActionData.unit.gameManager;
+        for(int k = 0; k < AiActionData.enemyUnits.Count; k++)
         {
-            int x = actionData.enemyUnits[k].x;
-            int y = actionData.enemyUnits[k].y; 
+            int x = AiActionData.enemyUnits[k].x;
+            int y = AiActionData.enemyUnits[k].y; 
             int originElevation = gameManager.spriteManager.elevationOfHexes[x, y];
             for (int i = 1; i <= range; i++)
             {
@@ -87,7 +129,7 @@ public class MeleeAttack : Action
                     int targetElevation = gameManager.spriteManager.elevationOfHexes[mapNodes[j].x, mapNodes[j].y];
                     if (gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).CheckIfTileIsEmpty() &&
                         (originElevation == targetElevation || (i == 1 && Mathf.Abs(originElevation - targetElevation) <= range))
-                        && CheckIfTileIsInRange(currentNodePosition, actionData))
+                        && CheckIfTileIsInRange(currentNodePosition, AiActionData))
                     {
                         return true;
                     }

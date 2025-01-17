@@ -273,15 +273,37 @@ public class Unit : UnitSuperClass, IInititiave
         {
             moveModifier = gameManager.resourceManager.moveModifiers[0];
         }
-
         if (group == null)
         {
             gameManager.allinitiativeGroups.Add(this);
         }
 
-        if (team == Team.Player)
+        switch (team)
         {
-            gameManager.playerTurn.playerUnits.Add(this);
+            case Team.Player:
+                gameManager.playerTurn.playerUnits.Add(this);
+                break;
+            case Team.Team2:
+                if (group == null)
+                {
+                    gameManager.AITurn1.unitSuperClasses.Add(this);
+                }
+                gameManager.AITurn1.units.Add(this);
+                break;
+            case Team.Team3:
+                if (group == null)
+                {
+                    gameManager.AITurn2.unitSuperClasses.Add(this);
+                }
+                gameManager.AITurn2.units.Add(this);
+                break;
+            case Team.Team4:
+                if (group == null)
+                {
+                    gameManager.AITurn3.unitSuperClasses.Add(this);
+                }
+                gameManager.AITurn3.units.Add(this);
+                break;
         }
 
         moveSpeedPerMoveAction = 18 + totalMoveSpeedModifier;
@@ -384,9 +406,12 @@ public class Unit : UnitSuperClass, IInititiave
         else
         {
             gameManager.StartAITurn(this, team);
-            UseActionPoints(currentActionsPoints);
-            ActionsFinishedActivating();
         }
+    }
+
+    public void ContinueAITurn()
+    {
+        gameManager.StartAITurn(this, team);
     }
 
     public void CheckActionsDisabled()
@@ -418,18 +443,37 @@ public class Unit : UnitSuperClass, IInititiave
 
     public void ActionsFinishedActivating()
     {
-        if (currentActionsPoints <= 0)
+        if (team == Team.Player)
         {
-            if (!forceEndTurn && CanMove())
+            if (currentActionsPoints <= 0)
             {
-                gameManager.playerTurn.SelectAction(actions[0].action);
-                return;
+                if (!forceEndTurn && CanMove())
+                {
+                    gameManager.playerTurn.SelectAction(actions[0].action);
+                    return;
+                }
+                EndTurn();
             }
-            EndTurn();
+            else
+            {
+                gameManager.playerTurn.SelectAction(gameManager.playerTurn.currentlySelectedAction);
+            }
         }
-        else if (team == Team.Player )
+        else
         {
-            gameManager.playerTurn.SelectAction(gameManager.playerTurn.currentlySelectedAction);
+            if (currentActionsPoints <= 0)
+            {
+                if (!forceEndTurn && CanMove())
+                {
+                    gameManager.playerTurn.SelectAction(actions[0].action);
+                    return;
+                }
+                EndTurn();
+            }
+            else
+            {
+                gameManager.playerTurn.SelectAction(gameManager.playerTurn.currentlySelectedAction);
+            }
         }
     }
 

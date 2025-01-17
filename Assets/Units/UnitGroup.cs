@@ -75,5 +75,17 @@ public class UnitGroup : UnitSuperClass, IInititiave
     public void GetReadyForCombat()
     {
         gameManager.allinitiativeGroups.Add(this);
+        switch (team)
+        {
+            case Team.Team2:
+                gameManager.AITurn1.unitSuperClasses.Add(this);
+                break;
+            case Team.Team3:
+                gameManager.AITurn2.unitSuperClasses.Add(this);
+                break;
+            case Team.Team4:
+                gameManager.AITurn3.unitSuperClasses.Add(this);
+                break;
+        }
     }
 }

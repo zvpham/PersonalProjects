@@ -9,7 +9,7 @@ public class Move : Action
 {
     public override int CalculateWeight(AIActionData AIActionData)
     {
-        return 0;
+        return -2;  
     }
 
     public override void FindOptimalPosition(AIActionData AIActionData)
@@ -25,54 +25,61 @@ public class Move : Action
     public override void AIUseAction(AIActionData AIActionData)
     {
         Vector2Int endPosition = AIActionData.desiredEndPosition;
+        Debug.Log("EndPosition: " + endPosition);
         int movementActionIndex = AIActionData.movementActions[endPosition.x, endPosition.y].IndexOf(this);
         CombatGameManager gameManager = AIActionData.unit.gameManager;
         Unit movingUnit = AIActionData.unit;
-
-        List<PassiveEffectArea>[,] passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
-        for (int i = 0; i < gameManager.mapSize; i++)
+        bool[,] badWalkInPassivesValues = null;
+        // If we are in an Aggressive or combat state and unit is a frontline Unit Ignore potential bad walk spaces and charge forward
+        //(Flanker isn't included because they usually have ways around most of this stuff)
+        if (!((AIActionData.AIState == AITurnStates.Agressive || AIActionData.AIState == AITurnStates.Combat) && (movingUnit.unitType == UnitType.Chaff ||
+            movingUnit.unitType == UnitType.FrontLine || movingUnit.unitType == UnitType.FrontLine2)))
         {
-            for (int j = 0; j < gameManager.mapSize; j++)
+            List<PassiveEffectArea>[,] passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
+            for (int i = 0; i < gameManager.mapSize; i++)
             {
-                passives[i, j] = new List<PassiveEffectArea>();
+                for (int j = 0; j < gameManager.mapSize; j++)
+                {
+                    passives[i, j] = new List<PassiveEffectArea>();
+                }
             }
-        }
 
-        List<List<PassiveEffectArea>> classifiedPassiveEffectArea = movingUnit.CalculuatePassiveAreas();
-        bool[,] unwalkablePassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+            List<List<PassiveEffectArea>> classifiedPassiveEffectArea = movingUnit.CalculuatePassiveAreas();
+            bool[,] unwalkablePassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
 
-        for (int i = 0; i < classifiedPassiveEffectArea[0].Count; i++)
-        {
-            for (int j = 0; j < classifiedPassiveEffectArea[0][i].passiveLocations.Count; j++)
+            for (int i = 0; i < classifiedPassiveEffectArea[0].Count; i++)
             {
-                Vector2Int passiveLocation = classifiedPassiveEffectArea[0][i].passiveLocations[j];
-                unwalkablePassivesValues[passiveLocation.x, passiveLocation.y] = true;
-                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[0][i]);
+                for (int j = 0; j < classifiedPassiveEffectArea[0][i].passiveLocations.Count; j++)
+                {
+                    Vector2Int passiveLocation = classifiedPassiveEffectArea[0][i].passiveLocations[j];
+                    unwalkablePassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                    passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[0][i]);
+                }
             }
-        }
 
-        bool[,] badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
-        for (int i = 0; i < classifiedPassiveEffectArea[1].Count; i++)
-        {
-            for (int j = 0; j < classifiedPassiveEffectArea[1][i].passiveLocations.Count; j++)
+            badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+            for (int i = 0; i < classifiedPassiveEffectArea[1].Count; i++)
             {
-                Vector2Int passiveLocation = classifiedPassiveEffectArea[1][i].passiveLocations[j];
-                badWalkInPassivesValues[passiveLocation.x, passiveLocation.y] = true;
-                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[1][i]);
+                for (int j = 0; j < classifiedPassiveEffectArea[1][i].passiveLocations.Count; j++)
+                {
+                    Vector2Int passiveLocation = classifiedPassiveEffectArea[1][i].passiveLocations[j];
+                    badWalkInPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                    passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[1][i]);
+                }
             }
-        }
 
-        bool[,] goodWalkinPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
-        for (int i = 0; i < classifiedPassiveEffectArea[2].Count; i++)
-        {
-            for (int j = 0; j < classifiedPassiveEffectArea[2][i].passiveLocations.Count; j++)
+            bool[,] goodWalkinPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+            for (int i = 0; i < classifiedPassiveEffectArea[2].Count; i++)
             {
-                Vector2Int passiveLocation = classifiedPassiveEffectArea[2][i].passiveLocations[j];
-                goodWalkinPassivesValues[passiveLocation.x, passiveLocation.y] = true;
-                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[2][i]);
+                for (int j = 0; j < classifiedPassiveEffectArea[2][i].passiveLocations.Count; j++)
+                {
+                    Vector2Int passiveLocation = classifiedPassiveEffectArea[2][i].passiveLocations[j];
+                    goodWalkinPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                    passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[2][i]);
+                }
             }
-        }
 
+        }
         Vector2Int currentEndPosition;
         Vector2Int startingPosition = AIActionData.startPositions[endPosition.x, endPosition.y][movementActionIndex];
         if (movementActionIndex + 1 == AIActionData.movementActions[endPosition.x, endPosition.y].Count)
@@ -252,6 +259,7 @@ public class Move : Action
 
         if(mapNodes.Count > 1)
         {
+            actionData.canMove = true;
             int currentMoveSpeed = movingUnit.currentMoveSpeed;
             for (int i = 1; i < mapNodes.Count; i++)
             {
@@ -283,7 +291,7 @@ public class Move : Action
                     actionPointsUsed += j + 1;
                 }
 
-                    if (actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
+                if (actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
                 {
                     actionData.movementData[currentNode.x, currentNode.y] = actionPointsUsed;
                     actionData.movementActions[currentNode.x, currentNode.y] = new List<Action> { this };

@@ -8,7 +8,7 @@ public class EndTurn : Action
 {
     public override int CalculateWeight(AIActionData AIActionData)
     {
-        return 1;
+        return -2;
     }
 
     public override void FindOptimalPosition(AIActionData AIActionData)

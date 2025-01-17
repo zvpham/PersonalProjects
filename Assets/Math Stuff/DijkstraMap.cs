@@ -57,13 +57,47 @@ public class DijkstraMap
         int lowestValue = currentNode.value;
         foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
         {
-            if (neighborNode.value < lowestValue && moveModifier.ValidMove(gameManager, currentNode, neighborNode) && (!neighborNode.endPositionOnly ||  targetPosition == new Vector2Int(neighborNode.x, neighborNode.y)))
+            if (neighborNode.value < lowestValue && moveModifier.ValidMove(gameManager, currentNode, neighborNode) && (!neighborNode.endPositionOnly || 
+                targetPosition == new Vector2Int(neighborNode.x, neighborNode.y)))
             {
                 lowestNode = neighborNode;
                 lowestValue = neighborNode.value;
             }
         }
         return lowestNode;
+    }
+
+    // You Should have already ran another mthoed that changes default map values before calling this
+    public List<DijkstraMapNode> GetNodesThatHaveValueLessThanTarget(int originUnitValue, int unitMoveSpeed, List<Vector2Int> previousGoals)
+    {
+        openList = new List<DijkstraMapNode>();
+        closedList = new List<DijkstraMapNode>();
+        List<DijkstraMapNode> desiredNodes = new List<DijkstraMapNode>();
+        int desiredValue =  originUnitValue - unitMoveSpeed;
+        for(int i = 0; i < previousGoals.Count; i++)
+        {
+            openList.Add(grid.GetGridObject(previousGoals[i]));
+        }
+
+        while (openList.Count > 0)
+        {
+            DijkstraMapNode currentNode = GetLowestValue(openList);
+            openList.Remove(currentNode);
+            foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+            {
+                if (neighborNode.value < desiredValue && !openList.Contains(neighborNode) && !closedList.Contains(neighborNode))
+                {
+                    openList.Add(neighborNode);
+                }
+                else
+                {
+                    desiredNodes.Add(neighborNode);
+                    closedList.Add(neighborNode);
+                }
+            }
+            closedList.Add(currentNode);
+        }
+        return desiredNodes;
     }
 
     public List<DijkstraMapNode> GetNodesInMovementRange(int x, int y, int initialMoveValue, MoveModifier moveModifier,

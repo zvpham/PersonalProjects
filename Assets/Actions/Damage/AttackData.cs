@@ -19,6 +19,7 @@ public class AttackData
         this.allDamage = allDamage;
         this.armorDamagePercentage = armorDamagePercentage;
         this.originUnit = originUnit;
+        modifiers = new List<Modifier>();
     }
 
     public List<AttackDataUI> DisplayCalculatedAttackData(Unit targetUnit)

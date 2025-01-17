@@ -6,6 +6,9 @@ public abstract class MoveModifier : ScriptableObject
 {
     public int priority;
     public abstract void SetUnwalkable(CombatGameManager gameManager, Unit MovingUnit);
+
+    // only checks to see if the difference in elevation between Two Hexes is valid
+    public abstract bool validElevationDifference(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int range);
     public abstract bool ValidMovePosition(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode,
         int moveAmountChange);
 
