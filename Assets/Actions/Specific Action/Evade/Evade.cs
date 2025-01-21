@@ -146,12 +146,13 @@ public class Evade : StatusAction
                 }
 
                 actionPointsUsed += intialActionPointUsage;
-                if (actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
+                if (actionData.ignorePassiveArea[currentNode.x, currentNode.y] ||  actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
                 {
                     Vector2Int startHex = new Vector2Int(movingUnit.x, movingUnit.y);
                     actionData.movementData[currentNode.x, currentNode.y] = actionPointsUsed;
                     actionData.movementActions[currentNode.x, currentNode.y] = new List<Action>() { this, movingUnit.actions[0].action};
                     actionData.startPositions[currentNode.x, currentNode.y] = new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y), new Vector2Int(movingUnit.x, movingUnit.y) };
+                    actionData.ignorePassiveArea[currentNode.x, currentNode.y] = false;
                 }
             }
         }

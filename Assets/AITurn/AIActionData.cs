@@ -15,7 +15,7 @@ public class AIActionData
     public int[,] movementData;
     public List<Action>[,] movementActions;
     public List<Vector2Int>[,] startPositions;
-    public List<bool>[,] ignorePassiveArea;
+    public bool[,] ignorePassiveArea;
 
     public int expectedCurrentActionPoints = 0; //  update after every Action
     public int expectedInitialMoveSpeed = 0; // Update After every action that Changes moveSpeed

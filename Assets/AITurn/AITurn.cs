@@ -7,12 +7,18 @@ using UnityEngine;
 
 public class AITurn : MonoBehaviour
 {
+    public static List<UnitType> meleeTypes = new List<UnitType>() { UnitType.Chaff, UnitType.FrontLine, UnitType.FrontLine2, UnitType.MeleeSupport };
+
+
     public AITurnStates AIState;
     public List<UnitSuperClass> unitSuperClasses;
     public List<Unit> units; // ALL Units in AITURN sorted by Initiative
     public List<Vector2Int> futureUnitPosiitions;
     public List<Vector2Int> enemyTeamStartPositions;
     public List<Vector2Int> lastSeenEnemyUnitPositions;
+
+    public List<Unit> frontlineUnits;
+    public List<Unit> backlineUnits;
 
 
     // Enemy Units Visible to AiTeam
@@ -201,6 +207,29 @@ public class AITurn : MonoBehaviour
             {
                 Unit tempUnit = (Unit)unitSuperClasses[i];
                 units.Add(tempUnit);
+            }
+        }
+    }
+
+    public void SortUnitsByType()
+    {
+        for(int i = 0; i < unitSuperClasses.Count; i++)
+        {
+            if (meleeTypes.Contains(unitSuperClasses[i].unitType))
+            {
+                if (unitSuperClasses[i].GetType() == typeof(UnitGroup))
+                {
+                    UnitGroup tempGroup = (UnitGroup)unitSuperClasses[i];
+                    for (int j = 0; j < tempGroup.units.Count; j++)
+                    {
+                        frontlineUnits.Add(tempGroup.units[j]);
+                    }
+                }
+                else
+                {
+                    Unit tempUnit = (Unit)unitSuperClasses[i];
+                    frontlineUnits.Add(tempUnit);
+                }
             }
         }
     }
@@ -476,7 +505,14 @@ public class AITurn : MonoBehaviour
             AiActionData.movementData = new int[gameManager.mapSize, gameManager.mapSize];
             AiActionData.movementActions = new List<Action>[gameManager.mapSize, gameManager.mapSize];
             AiActionData.startPositions = new List<Vector2Int>[gameManager.mapSize, gameManager.mapSize];
-            AiActionData.ignorePassiveArea = new List<bool>[gameManager.mapSize, gameManager.mapSize];
+            AiActionData.ignorePassiveArea = new bool[gameManager.mapSize, gameManager.mapSize];
+            for(int i = 0; i < gameManager.mapSize; i++)
+            {
+                for(int j = 0; j < gameManager.mapSize; j++)
+                {
+                    AiActionData.ignorePassiveArea[j, i] = true;
+                }
+            }
 
             for (int i = 0; i < gameManager.mapSize; i++)
             {
@@ -572,7 +608,7 @@ public class AITurn : MonoBehaviour
     public int GetHighestActionIndex(AIActionData actionData, Unit unit, List<int> actionsInRange)
     {
         int actionIndex = -1;
-        int highestActionWeight = -1;
+        int highestActionWeight = 0;
         for (int i = 0; i < actionsInRange.Count; i++)
         {
             int actionWieght = unit.actions[actionsInRange[i]].action.CalculateWeight(actionData);
@@ -583,7 +619,13 @@ public class AITurn : MonoBehaviour
                 highestActionWeight = actionIndex;
             }
         }
-        return actionIndex;
+
+        if(actionIndex != -1)
+        {
+            return actionsInRange[actionIndex];
+        }
+
+        return -1;
     }
 
     public List<int> GetActionsInRange(AIActionData actionData, Unit unit)

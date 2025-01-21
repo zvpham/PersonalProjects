@@ -306,6 +306,8 @@ public class Unit : UnitSuperClass, IInititiave
                 break;
         }
 
+        CalculateTargetPrioritySelf();
+
         moveSpeedPerMoveAction = 18 + totalMoveSpeedModifier;
 
         gameManager.SetGridObject(this, transform.position);
@@ -337,7 +339,7 @@ public class Unit : UnitSuperClass, IInititiave
 
     public float GetMaximumDamageModifer()
     {
-        return .1f * strength;
+        return 1;
     }
 
     public void ChangeDexterity(int newDexterity)
@@ -348,7 +350,7 @@ public class Unit : UnitSuperClass, IInititiave
 
     public float GetMinimumDamageModifer()
     {
-        return .1f * dexterity;
+        return 1;
     }
 
 
@@ -656,7 +658,6 @@ public class Unit : UnitSuperClass, IInititiave
     //Health Damage, Armour Damage
     public Tuple<int, int> GetEstimatedDamageValues(AttackData attackData)
     {
-        Tuple<int, int> damage = new Tuple<int, int>(0, 0);
         int totalDamage = 0;
         float totalModifer = 1;
 
@@ -665,13 +666,17 @@ public class Unit : UnitSuperClass, IInititiave
             totalModifer = totalModifer * attackData.modifiers[k].value;
         }
 
+        Debug.Log("Total Modifier: " + totalModifer);
         for (int k = 0; k < attackData.allDamage.Count; k++)
         {
             Damage currentDamage = attackData.allDamage[k];
+            Debug.Log("Current Damage: " +  currentDamage.minDamage + ", " + currentDamage.maxDamage);
             int tempDamage = (currentDamage.minDamage + currentDamage.maxDamage) / 2;
             tempDamage = (int)(tempDamage * totalModifer);
             totalDamage += tempDamage;
         }
+        Debug.Log("Total Damage: " + totalDamage);
+
         return TempApplyDamage(totalDamage, attackData.armorDamagePercentage, attackData.ignroeArmour);
     }
 
@@ -773,6 +778,8 @@ public class Unit : UnitSuperClass, IInititiave
                 }
             }
         }
+
+        Debug.Log("Damage dealt: ");
 
         if (currentHealth <= 0)
         {

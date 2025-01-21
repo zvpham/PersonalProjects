@@ -10,7 +10,7 @@ public class MeleeAttack : Action
     public int minDamage;
     public int maxDamage;
     public int range = 1;
-    public float effectAgainstArmorPercentage;
+    public float effectAgainstArmorPercentage = 1f;
     public bool ignoreArmor = false;
 
     public override int CalculateWeight(AIActionData AiActionData)
@@ -229,8 +229,8 @@ public class MeleeAttack : Action
 
     public AttackData CalculateAttackData(Unit movingUnit, Unit targetUnit)
     {
-        int adjustedMinimumDamage = minDamage + (int)(minDamage * movingUnit.GetMinimumDamageModifer());
-        int adjustmedMaximumDamage = maxDamage + (int)(maxDamage * movingUnit.GetMaximumDamageModifer());
+        int adjustedMinimumDamage = (int)(minDamage * movingUnit.GetMinimumDamageModifer());
+        int adjustmedMaximumDamage = (int)(maxDamage * movingUnit.GetMaximumDamageModifer());
 
         Damage mainDamage = new Damage();
         mainDamage.minDamage = adjustedMinimumDamage;
