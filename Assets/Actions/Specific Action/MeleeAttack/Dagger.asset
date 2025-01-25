@@ -20,7 +20,7 @@ MonoBehaviour:
   actionPointGrowth: 1
   consumableAction: 0
   oneTimeUsePerRound: 0
-  actionTypes: 0100000002000000
+  actionTypes: 0300000002000000
   animation: {fileID: -5626302034160200816, guid: 30eed55309289f84eaec25668625021f, type: 3}
   minDamage: 30
   maxDamage: 50

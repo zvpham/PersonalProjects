@@ -18,6 +18,10 @@ public class MovementTargeting : TargetingSystem
     public List<Vector2Int> path = new List<Vector2Int>();
     public List<Vector2Int> setPath = new List<Vector2Int>();
 
+    public List<int> groundColorValues = new List<int>();
+    public List<Vector2Int> groundHexes = new List<Vector2Int>();
+    public List<GameObject> highlightedTargetedHexes = new List<GameObject>();
+
     public List<PassiveEffectArea>[,] passives;
     List<PassiveEffectArea> passiveEffectAreas = new List<PassiveEffectArea>();
     List<Tuple<Passive, Vector2Int>> passiveSprites = new List<Tuple<Passive, Vector2Int>>();
@@ -133,7 +137,7 @@ public class MovementTargeting : TargetingSystem
                 break;
             }
         }
-        canMove = CanUnitMove(movingUnit, numActionPoints, amountMoved, currentMoveSpeed);
+
         int startValue = currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * moveAmounts);
         List<DijkstraMapNode> nodesInMovementRange =  map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager);
 
@@ -168,15 +172,29 @@ public class MovementTargeting : TargetingSystem
                     rangeBracketOfNode = (nodeValue / (movingUnit.moveSpeedPerMoveAction)) + amountMoved;
                 }
 
-                GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
-                newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
-                newHighlightedHex.GetComponent<SpriteRenderer>().color = 
-                    gameManager.resourceManager.highlightedHexColors[rangeBracketOfNode];
-                newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = 
-                    gameManager.spriteManager.terrain[currentNodePosition.x, currentNodePosition.y].sprite.sortingOrder + 1;
-                highlightedHexes.Add(newHighlightedHex);
-
+                Unit unitOnHex = gameManager.grid.GetGridObject(currentNodePosition).unit;
+                if(unitOnHex == null)
+                {
+                    groundColorValues.Add(rangeBracketOfNode);
+                    groundHexes.Add(currentNodePosition);
+                }
             }
+            PlaceGroundHexes();
+        }
+        canMove = groundHexes.Count > 0;
+    }
+
+    public void PlaceGroundHexes()
+    {
+        for (int i = 0; i < groundColorValues.Count; i++)
+        {
+            GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
+            Vector2Int currentNodePosition = groundHexes[i];
+            newHighlightedHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+            newHighlightedHex.GetComponent<SpriteRenderer>().color = gameManager.resourceManager.highlightedHexColors[groundColorValues[i]];
+            newHighlightedHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
+                currentNodePosition.y].sprite.sortingOrder + 1;
+            highlightedHexes.Add(newHighlightedHex);
         }
     }
 
@@ -188,6 +206,8 @@ public class MovementTargeting : TargetingSystem
             gameManager.spriteManager.DisableHighlightedHex(highlightedHexes[i]);
         }
         highlightedHexes = new List<GameObject>();
+        groundHexes = new List<Vector2Int>();
+        groundColorValues = new List<int>();
     }
 
     // Select New Position when Mouse Hovers over a new Hex

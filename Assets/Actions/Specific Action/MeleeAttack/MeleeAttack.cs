@@ -114,6 +114,11 @@ public class MeleeAttack : Action
 
     public override bool CheckIfActionIsInRange(AIActionData AiActionData)
     {
+        if (!CheckActionUsable(AiActionData.unit))
+        {
+            return false;
+        }
+
         CombatGameManager gameManager = AiActionData.unit.gameManager;
         for(int k = 0; k < AiActionData.enemyUnits.Count; k++)
         {

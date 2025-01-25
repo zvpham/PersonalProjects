@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public abstract class Action : ScriptableObject
@@ -39,14 +40,13 @@ public abstract class Action : ScriptableObject
     public bool CheckIfTileIsInRange(Vector2Int tile, AIActionData actionData)
     {
         Unit unit = actionData.unit;
-        int actionIndex = GetActionIndex(actionData.unit);
-        if (actionData.movementData[tile.x, tile.y] + intialActionPointUsage +
-            (actionPointGrowth * unit.actions[actionIndex].amountUsedDuringRound) <= unit.currentActionsPoints)
+        int totalActionCost = actionData.movementData[tile.x, tile.y] + GetActionUseCost(unit);
+        if (actionData.movementData[tile.x, tile.y] == int.MaxValue ||  totalActionCost > unit.currentActionsPoints)
         {
-            return true;
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     public void UseActionPreset(Unit self)
@@ -117,6 +117,17 @@ public abstract class Action : ScriptableObject
             }
         }
         return -1;
+    }
+
+    public int GetActionUseCost(Unit unit)
+    {
+        int actionIndex = GetActionIndex(unit);
+        if(actionIndex == -1) 
+        {
+            return -1;
+        }
+
+        return this.intialActionPointUsage + unit.actions[actionIndex].amountUsedDuringRound * actionPointGrowth;
     }
 
     // For Movement Actions Only

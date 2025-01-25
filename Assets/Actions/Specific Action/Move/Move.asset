@@ -13,10 +13,12 @@ MonoBehaviour:
   m_Name: Move
   m_EditorClassIdentifier: 
   actionSprite: {fileID: -1886020679, guid: 4ca42cc387825f64aba3746dd3e68e71, type: 3}
-  weight: 0
+  baseActionWeight: 0
   coolDown: 0
   maxUses: 1
+  intialActionPointUsage: 1
+  actionPointGrowth: 1
   consumableAction: 0
-  actionTypes: 00000000
+  oneTimeUsePerRound: 0
+  actionTypes: 0000000001000000
   animation: {fileID: 7321156129805876732, guid: d58f70abe8af1664eb5f900d0c97cb1b, type: 3}
-  targetingSystem: {fileID: 0}

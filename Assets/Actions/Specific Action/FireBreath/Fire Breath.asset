@@ -13,8 +13,12 @@ MonoBehaviour:
   m_Name: Fire Breath
   m_EditorClassIdentifier: 
   actionSprite: {fileID: -1376620025, guid: 4ca42cc387825f64aba3746dd3e68e71, type: 3}
-  weight: 0
+  baseActionWeight: 0
   coolDown: 0
   maxUses: 1
+  intialActionPointUsage: 1
+  actionPointGrowth: 1
   consumableAction: 0
-  actionTypes: 0100000003000000
+  oneTimeUsePerRound: 0
+  actionTypes: 0200000004000000
+  animation: {fileID: 0}

@@ -195,7 +195,7 @@ public class MeleeTargeting : TargetingSystem
         int startValue = currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * moveAmounts);
 
         Debug.Log("iNITAIL aAction points: " + initialActionPoints + ", " + currentMoveSpeed);
-        canMove = CanUnitMove(movingUnit, initialActionPoints, amountMoved, currentMoveSpeed);
+        //canMove = CanUnitMove(movingUnit, initialActionPoints, amountMoved, currentMoveSpeed);
         groundHexes = new List<Vector2Int>();
         groundColorValues = new List<int>();
         enemyGroundHexes = new List<Vector2Int>();
@@ -282,6 +282,7 @@ public class MeleeTargeting : TargetingSystem
                 }
             }
         }
+        canMove = groundHexes.Count > 0;
         PlaceGroundHexes();
     }
 

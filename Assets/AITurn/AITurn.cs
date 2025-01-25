@@ -431,14 +431,46 @@ public class AITurn : MonoBehaviour
                 }
             }
 
-            if (path.Count != 0)
-            {
-
-            }
-            else
+            if (path.Count == 0)
             {
                 Debug.LogError("Path not found when attempting to approach enemyUnits for: " + movingUnit.name);
             }
+        }
+
+        if(path.Count != 0)
+        {
+            Move unitmove = null;
+            for(int i = 0; i < movingUnit.actions.Count; i++)
+            {
+                if(movingUnit.actions[i].action.GetType() == typeof(Move))
+                {
+                    unitmove = (Move) movingUnit.actions[i].action;
+                }
+            }
+
+
+            ActionData actionData = new ActionData();
+            actionData.action = unitmove;
+            actionData.actingUnit = movingUnit;
+            actionData.originLocation = new Vector2Int(movingUnit.x, movingUnit.y);
+
+            List<Vector2Int> tempPath = new List<Vector2Int>() { path[0] };
+            actionData.path = tempPath;
+            movingUnit.gameManager.AddActionToQueue(actionData, false, false);
+
+
+            for (int i = 1; i < path.Count; i++)
+            {
+                actionData = new ActionData();
+                actionData.action = unitmove;
+                actionData.actingUnit = movingUnit;
+                actionData.originLocation = new Vector2Int(path[i - 1].x, path[i - 1].y);
+
+                tempPath = new List<Vector2Int>() { path[i] };
+                actionData.path = tempPath;
+                movingUnit.gameManager.AddActionToQueue(actionData, false, false);
+            }
+            movingUnit.gameManager.PlayActions();
         }
     }
     public void ChaffAI(Unit unit, bool positionOnly)
@@ -540,16 +572,19 @@ public class AITurn : MonoBehaviour
             }
             AiActionData.enemyUnits = enemyUnitHexPositions;
             List<int> actionsInRange;
+
             switch (AIState)
             {
                 case (AITurnStates.Combat):
                     actionsInRange = GetActionsInRange(AiActionData, unit);
                     if(actionsInRange.Count <= 0)
                     {
+                        Debug.Log("Test 1");
                         GetCloserToEnemyUnits(AiActionData);
                     }
                     else
                     {
+                        Debug.Log("Test 2");    
                         actionIndex = GetHighestActionIndex(AiActionData, unit, actionsInRange);
                         if(actionIndex == -1)
                         {

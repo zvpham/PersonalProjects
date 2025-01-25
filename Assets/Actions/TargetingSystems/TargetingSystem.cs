@@ -29,7 +29,7 @@ public abstract class TargetingSystem : MonoBehaviour
         int[,] moveCostGrid;
         if(moveCostGridOveride == null)
         {
-            moveCostGrid = movingUnit.gameManager.spriteManager.elevationOfHexes;
+            moveCostGrid = movingUnit.gameManager.moveCostMap;
         }
         else
         {
