@@ -58,7 +58,7 @@ public class Thrust : Action
         return true;
     }
 
-    public override void AIUseAction(AIActionData AIActionData)
+    public override void AIUseAction(AIActionData AIActionData, bool finalAction = false)
     {
         throw new NotImplementedException();
     }

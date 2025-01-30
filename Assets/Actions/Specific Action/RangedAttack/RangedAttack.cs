@@ -30,7 +30,7 @@ public class RangedAttack : Action
         return false;
     }
 
-    public override void AIUseAction(AIActionData actionData)
+    public override void AIUseAction(AIActionData actionData, bool finalAction = false)
     {
         throw new NotImplementedException();
     }

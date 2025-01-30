@@ -23,7 +23,12 @@ public abstract class Action : ScriptableObject
 
     public abstract bool CheckIfActionIsInRange(AIActionData AIActionData);
 
-    public abstract void AIUseAction(AIActionData AIActionData);
+    public virtual bool CanMove(AIActionData AIActionData)
+    {
+        return false;
+    }
+
+    public abstract void AIUseAction(AIActionData AIActionData, bool finalAction = false);
 
     public abstract void ConfirmAction(ActionData actionData);
 

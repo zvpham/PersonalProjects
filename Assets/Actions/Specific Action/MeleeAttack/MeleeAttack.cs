@@ -76,6 +76,7 @@ public class MeleeAttack : Action
         {
             int x = AiActionData.unit.x;
             int y = AiActionData.unit.y;
+            Vector2Int currentUnitPosition =  new Vector2Int(x, y);
             DijkstraMapNode currentNode = gameManager.map.getGrid().GetGridObject(x, y);
             List<DijkstraMapNode> mapNodes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, 1);
             for (int j = 0; j < mapNodes.Count; j++)
@@ -97,12 +98,12 @@ public class MeleeAttack : Action
                         tempActionValue += gameManager.killValue;
                     }
                     tempActionValue = (int)(tempActionValue * targetUnit.targetValue);
-                    tempActionValue = AiActionData.ModifyActionValue(AiActionData, targetUnitPosition, this, tempActionValue);
+                    tempActionValue = AiActionData.ModifyActionValue(AiActionData, currentUnitPosition, this, tempActionValue);
 
                     if (highestActionValue < tempActionValue)
                     {
                         highestActionValue = tempActionValue;
-                        AiActionData.desiredEndPosition = targetUnitPosition;
+                        AiActionData.desiredEndPosition = currentUnitPosition;
                         AiActionData.desiredTargetPositionEnd = targetUnitPosition;
                         AiActionData.action = this;
                     }
@@ -177,7 +178,7 @@ public class MeleeAttack : Action
         */
     }
 
-    public override void AIUseAction(AIActionData AIActionData)
+    public override void AIUseAction(AIActionData AIActionData, bool finalAction = false) 
     {
         Vector2Int targetHex = AIActionData.desiredTargetPositionEnd;
         Vector2Int endPosition = AIActionData.desiredEndPosition;

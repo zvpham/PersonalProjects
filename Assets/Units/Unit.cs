@@ -469,7 +469,7 @@ public class Unit : UnitSuperClass, IInititiave
             {
                 if (!forceEndTurn && CanMove())
                 {
-                    gameManager.playerTurn.SelectAction(actions[0].action);
+                    ContinueAITurn();
                     return;
                 }
                 Debug.Log("Ai End Turn");
@@ -477,6 +477,7 @@ public class Unit : UnitSuperClass, IInititiave
             }
             else
             {
+                ContinueAITurn();
                 gameManager.playerTurn.SelectAction(gameManager.playerTurn.currentlySelectedAction);
             }
         }
@@ -530,6 +531,19 @@ public class Unit : UnitSuperClass, IInititiave
         for(int i = 0; i < passives.Count; i++)
         {
             passives[i].passive.ModifiyAction(action, attackData);
+        }
+    }
+
+    public void EndTurnAction()
+    {
+        AIActionData tempActionData = new AIActionData();
+        tempActionData.unit = this;
+        for(int i = 0; i < actions.Count; i++)
+        {
+            if(actions[i].action.GetType() == typeof(EndTurn))
+            {
+                actions[i].action.AIUseAction(tempActionData);
+            }
         }
     }
 

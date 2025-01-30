@@ -437,6 +437,8 @@ public class AITurn : MonoBehaviour
             }
         }
 
+        Debug.Log("Path Count: " + path.Count);
+
         if(path.Count != 0)
         {
             Move unitmove = null;
@@ -471,6 +473,10 @@ public class AITurn : MonoBehaviour
                 movingUnit.gameManager.AddActionToQueue(actionData, false, false);
             }
             movingUnit.gameManager.PlayActions();
+        }
+        else
+        {
+         movingUnit.EndTurnAction();
         }
     }
     public void ChaffAI(Unit unit, bool positionOnly)
@@ -519,9 +525,9 @@ public class AITurn : MonoBehaviour
         int actionIndex = -1;
 
         List<UnitActionData> movementActionData = new List<UnitActionData>();
-
         if (inMelee)
         {
+            Debug.Log("In Melee");
             if (positionOnly)
             {
                 int unitIndex = units.IndexOf(unit);
@@ -530,10 +536,13 @@ public class AITurn : MonoBehaviour
             }
             AiActionData.inMelee = true;
             actionIndex = GetHighestActionIndex(AiActionData, unit);
+            if (actionIndex == -1)
+            {
+                unit.EndTurnAction();
+            }
         }
         else
         {
-
             AiActionData.movementData = new int[gameManager.mapSize, gameManager.mapSize];
             AiActionData.movementActions = new List<Action>[gameManager.mapSize, gameManager.mapSize];
             AiActionData.startPositions = new List<Vector2Int>[gameManager.mapSize, gameManager.mapSize];
@@ -562,7 +571,8 @@ public class AITurn : MonoBehaviour
                 }
             }
 
-
+            AiActionData.movementData[unit.x, unit.y] = 0;
+            AiActionData.movementActions[unit.x, unit.y] = new List<Action>();
 
             AiActionData.inMelee = false;
             List<Vector2Int> enemyUnitHexPositions = new List<Vector2Int>();
@@ -579,12 +589,10 @@ public class AITurn : MonoBehaviour
                     actionsInRange = GetActionsInRange(AiActionData, unit);
                     if(actionsInRange.Count <= 0)
                     {
-                        Debug.Log("Test 1");
                         GetCloserToEnemyUnits(AiActionData);
                     }
                     else
                     {
-                        Debug.Log("Test 2");    
                         actionIndex = GetHighestActionIndex(AiActionData, unit, actionsInRange);
                         if(actionIndex == -1)
                         {
@@ -642,12 +650,13 @@ public class AITurn : MonoBehaviour
 
     public int GetHighestActionIndex(AIActionData actionData, Unit unit, List<int> actionsInRange)
     {
+        Debug.Log("test 3: " + actionData.movementData.GetLength(0) + ", " + actionData.movementData.GetLength(1));
         int actionIndex = -1;
         int highestActionWeight = 0;
         for (int i = 0; i < actionsInRange.Count; i++)
         {
             int actionWieght = unit.actions[actionsInRange[i]].action.CalculateWeight(actionData);
-            Debug.Log(unit.actions[actionsInRange[i]].action + " action weight: " + actionWieght);  
+            Debug.Log(unit.actions[actionsInRange[i]].action + " action weight: " + actionWieght);      
             if (highestActionWeight < actionWieght)
             {
                 actionIndex = i;

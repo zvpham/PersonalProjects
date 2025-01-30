@@ -223,62 +223,48 @@ public class MeleeTargeting : TargetingSystem
         }
 
         amountOfPossibleMoves = moveAmounts;
-        if (canMove)
-        {
-            startingPosition = targetPosition;
-            actionPointsLeft = numActionPoints;
-            amountOfPossibleMoves = moveAmounts;
+        startingPosition = targetPosition;
+        actionPointsLeft = numActionPoints;
+        amountOfPossibleMoves = moveAmounts;
 
-            List<DijkstraMapNode> nodesInMovementRange = map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager);
-            movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-            if (nodesInMovementRange.Count > 1)
+        List<DijkstraMapNode> nodesInMovementRange = map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager);
+        movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        if (nodesInMovementRange.Count > 1)
+        {
+            for (int i = 0; i < nodesInMovementRange.Count; i++)
             {
-                for (int i = 0; i < nodesInMovementRange.Count; i++)
+                DijkstraMapNode currentNode = nodesInMovementRange[i];
+                int nodeValue = startValue - currentNode.value;
+                Vector2Int currentNodePosition = new Vector2Int(currentNode.x, currentNode.y);
+                if (enemyGroundHexes.Contains(currentNodePosition))
                 {
-                    DijkstraMapNode currentNode = nodesInMovementRange[i];
-                    int nodeValue = startValue - currentNode.value;
-                    Vector2Int currentNodePosition = new Vector2Int(currentNode.x, currentNode.y);
-                    if (enemyGroundHexes.Contains(currentNodePosition))
+                    continue;
+                }
+                int rangeBracketOfNode;
+                if (currentMoveSpeed > 0)
+                {
+                    int tempNodeValue = nodeValue - currentMoveSpeed;
+                    if (tempNodeValue <= 0)
                     {
-                        continue;
-                    }
-                    int rangeBracketOfNode;
-                    if (currentMoveSpeed > 0)
-                    {
-                        int tempNodeValue = nodeValue - currentMoveSpeed;
-                        if (tempNodeValue <= 0)
-                        {
-                            Debug.Log("rangeOfBracketNode 1: " + (amountMoved - 1));
-                            rangeBracketOfNode = amountMoved - 1;
-                        }
-                        else
-                        {
-                            tempNodeValue -= 1;
-                            Debug.Log("rangeOfBracketNode 2: " + tempNodeValue);
-                            rangeBracketOfNode = tempNodeValue / (movingUnit.moveSpeedPerMoveAction) + amountMoved;
-                        }
+                        rangeBracketOfNode = amountMoved - 1;
                     }
                     else
                     {
-                        nodeValue -= 1;
-                        Debug.Log("rangeOfBracketNode 3: " + nodeValue);
-                        rangeBracketOfNode = (nodeValue / (movingUnit.moveSpeedPerMoveAction)) + amountMoved;
+                        tempNodeValue -= 1;
+                        rangeBracketOfNode = tempNodeValue / (movingUnit.moveSpeedPerMoveAction) + amountMoved;
                     }
-                    groundHexes.Add(currentNodePosition);
-                    Debug.Log("rangeOfBracketNode: " + rangeBracketOfNode);
-                    groundColorValues.Add(rangeBracketOfNode);
                 }
-            }
-        }
-        else
-        {
-            //Make Units Unwalkable
-            for (int i = 0; i < gameManager.units.Count; i++)
-            {
-                if (gameManager.units[i].team != movingUnit.team)
+                else
                 {
-                    map.getGrid().GetXY(gameManager.units[i].transform.position, out x, out y);
-                    map.SetUnwalkable(new Vector2Int(x, y));
+                    nodeValue -= 1;
+                    rangeBracketOfNode = (nodeValue / (movingUnit.moveSpeedPerMoveAction)) + amountMoved;
+                }
+
+                Unit unitOnHex = gameManager.grid.GetGridObject(currentNodePosition).unit;
+                if (unitOnHex == null)
+                {
+                    groundColorValues.Add(rangeBracketOfNode);
+                    groundHexes.Add(currentNodePosition);
                 }
             }
         }

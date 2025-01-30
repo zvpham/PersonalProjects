@@ -21,7 +21,93 @@ public class Evade : StatusAction
         return false;
     }
 
-    public override void AIUseAction(AIActionData AIActionData)
+    public override bool CanMove(AIActionData AIActionData)
+    {
+        Unit movingUnit = AIActionData.unit;
+        int x = movingUnit.x;
+        int y = movingUnit.y;
+
+        int actionIndex = GetActionIndex(movingUnit);
+        int amountMoved = movingUnit.actions[actionIndex].amountUsedDuringRound;
+
+        int moveAmounts = 0;
+        int usableActionPoints = movingUnit.currentActionsPoints - intialActionPointUsage;
+        while (usableActionPoints > 0)
+        {
+            if (usableActionPoints >= amountMoved + moveAmounts + 1)
+            {
+                moveAmounts += 1;
+                usableActionPoints -= amountMoved + moveAmounts;
+            }
+            else
+            {
+                break;
+            }
+        }
+        CombatGameManager gameManager = movingUnit.gameManager;
+        List<PassiveEffectArea>[,] passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < gameManager.mapSize; i++)
+        {
+            for (int j = 0; j < gameManager.mapSize; j++)
+            {
+                passives[i, j] = new List<PassiveEffectArea>();
+            }
+        }
+
+        List<List<PassiveEffectArea>> classifiedPassiveEffectArea = movingUnit.CalculuatePassiveAreas(status);
+        bool[,] unwalkablePassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+
+        for (int i = 0; i < classifiedPassiveEffectArea[0].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[0][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[0][i].passiveLocations[j];
+                unwalkablePassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[0][i]);
+            }
+        }
+
+        bool[,] badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < classifiedPassiveEffectArea[1].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[1][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[1][i].passiveLocations[j];
+                badWalkInPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[1][i]);
+            }
+        }
+
+        bool[,] goodWalkinPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < classifiedPassiveEffectArea[2].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[2][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[2][i].passiveLocations[j];
+                goodWalkinPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[2][i]);
+            }
+        }
+
+        int startValue = movingUnit.currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * moveAmounts);
+        movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        List<DijkstraMapNode> nodesInMovementRange = gameManager.map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager, badWalkInPassivesValues);
+        GridHex<GridPosition> grid = gameManager.grid;
+        List<DijkstraMapNode> emptyNodes = new List<DijkstraMapNode>();
+        for (int i = 0; i < nodesInMovementRange.Count; i++)
+        {
+            x = nodesInMovementRange[i].x;
+            y = nodesInMovementRange[i].y;
+
+            if (grid.GetGridObject(x, y).unit == null)
+            {
+                emptyNodes.Add(nodesInMovementRange[i]);
+            }
+        }
+        return emptyNodes.Count > 0;    
+    }
+
+    public override void AIUseAction(AIActionData AIActionData, bool finalAction = false)
     {
         AIActionData.expectedCurrentActionPoints -= intialActionPointUsage;
         Unit self = AIActionData.unit;

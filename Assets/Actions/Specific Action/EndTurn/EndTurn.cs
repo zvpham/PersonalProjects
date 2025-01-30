@@ -21,9 +21,13 @@ public class EndTurn : Action
         return false;
     }
 
-    public override void AIUseAction(AIActionData AIActionData)
+    public override void AIUseAction(AIActionData AIActionData, bool finalAction = false)
     {
-        throw new NotImplementedException();
+        ActionData newData = new ActionData();
+        newData.action = this;
+        newData.actingUnit = AIActionData.unit;
+        AIActionData.unit.gameManager.AddActionToQueue(newData, false, false);
+        AIActionData.unit.gameManager.PlayActions();
     }
 
     public override void SelectAction(Unit self)

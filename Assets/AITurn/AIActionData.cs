@@ -28,8 +28,9 @@ public class AIActionData
     
     public int ModifyActionValue(AIActionData AiActionData, Vector2Int expectedEndPosition, Action action, int actionValue)
     {
-
-        int amountOfActionsUsed = AiActionData.movementData[expectedEndPosition.x, expectedEndPosition.y];
+        Debug.Log("modify Action Value Posiotn: " + expectedEndPosition);
+        Debug.Log("test: " + AiActionData.movementData.GetLength(0) + ", " + AiActionData.movementData.GetLength(1));
+        int amountOfActionsUsed = AiActionData.movementData[expectedEndPosition.x, expectedEndPosition.y];      
         int actionIndex = action.GetActionIndex(AiActionData.unit);
         amountOfActionsUsed += action.intialActionPointUsage + action.actionPointGrowth * AiActionData.unit.actions[actionIndex].amountUsedDuringRound;
         return actionValue = actionValue / amountOfActionsUsed;
