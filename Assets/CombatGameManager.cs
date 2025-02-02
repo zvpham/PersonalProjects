@@ -36,6 +36,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public AITurn AITurn3; // Enemy 3/ Ally Team
     public Move move;
 
+    public Unit activeUnit;
     public bool playingAnimation = false;
     public bool startOfCombat = true;
     public bool testing = false;
@@ -466,6 +467,32 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         {
             Debug.LogError("try to finish actions but unit died");
         }
+    }
+
+    public void UnitDied(Unit unit)
+    {
+        if (unit == null)
+        {
+            Debug.LogError("Unit Dealth Called when there is no Unit");
+            return;
+        }
+
+        switch (unit.team)
+        {
+            case Team.Player:
+                playerTurn.UnitDeath(unit);
+                break;
+            case Team.Team2:
+                AITurn1.UnitDeath(unit);
+                break;
+            case Team.Team3:
+                AITurn2.UnitDeath(unit);
+                break;
+            case Team.Team4:
+                AITurn3.UnitDeath(unit);
+                break;
+        }
+
     }
 
     public void SetGridObject(Unit unit, Vector3 unitPosition)

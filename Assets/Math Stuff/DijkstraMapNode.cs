@@ -33,6 +33,6 @@ public class DijkstraMapNode
 
     public override string ToString()
     {
-        return value.ToString();
+        return "( " + x + ", " + y + "): " + value.ToString();
     }
 }

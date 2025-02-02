@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -76,6 +77,7 @@ public class DijkstraMap
         int desiredValue =  originUnitValue - unitMoveSpeed;
         for(int i = 0; i < previousGoals.Count; i++)
         {
+            Debug.Log("Previous Goaals:" + previousGoals[i]);
             openList.Add(grid.GetGridObject(previousGoals[i]));
         }
 
@@ -89,7 +91,7 @@ public class DijkstraMap
                 {
                     openList.Add(neighborNode);
                 }
-                else
+                else if(neighborNode.value >= desiredValue && !desiredNodes.Contains(neighborNode))
                 {
                     desiredNodes.Add(neighborNode);
                     closedList.Add(neighborNode);
@@ -98,6 +100,71 @@ public class DijkstraMap
             closedList.Add(currentNode);
         }
         return desiredNodes;
+    }
+
+
+    // You Should have already ran another mthoed that changes default map values before calling this
+    public List<DijkstraMapNode> GetNodesThatHaveValueLessThanTarget(int originUnitValue, Vector2Int unitStartPosition, CombatGameManager gameManager)
+    {
+        GridHex<GridPosition> combatGrid = gameManager.grid;
+        openList = new List<DijkstraMapNode>();
+        closedList = new List<DijkstraMapNode>();
+        List<DijkstraMapNode> desiredNodes = new List<DijkstraMapNode>();
+        int desiredValue = originUnitValue;
+
+        openList.Add(grid.GetGridObject(unitStartPosition));
+
+        while (openList.Count > 0)
+        {
+            DijkstraMapNode currentNode = GetLowestValue(openList);
+            openList.Remove(currentNode);
+
+            foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+            {
+                if (neighborNode.value > desiredValue && !openList.Contains(neighborNode) && !closedList.Contains(neighborNode))
+                {
+                    openList.Add(neighborNode);
+                }
+                else if (neighborNode.value >= desiredValue && !desiredNodes.Contains(neighborNode))
+                {
+                    desiredNodes.Add(neighborNode);
+                    closedList.Add(neighborNode);
+                }
+            }
+            closedList.Add(currentNode);
+        }
+        return desiredNodes;
+    }
+
+    public List<DijkstraMapNode> GetNodesInMovementRangeNoChangeGrid(int x, int y, int initialMoveValue)
+    {
+        int startNodeValue = grid.GetGridObject(x, y).value;
+        openList = new List<DijkstraMapNode>();
+        closedList = new List<DijkstraMapNode>();
+        List<DijkstraMapNode> nodesInRange = new List<DijkstraMapNode>();
+        if(grid.GetGridObject(x, y).value == int.MaxValue)
+        {
+            return null;
+        }
+
+        openList.Add(grid.GetGridObject(x, y));
+        while (openList.Count > 0)
+        {
+            DijkstraMapNode currentNode = openList[0];
+            openList.Remove(currentNode);
+
+            foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
+            {
+                if(!closedList.Contains(neighborNode) && !openList.Contains(neighborNode) && !nodesInRange.Contains(neighborNode) &&  Mathf.Abs(neighborNode.value - startNodeValue) <= initialMoveValue)
+                {
+                    nodesInRange.Add(neighborNode);
+                    openList.Add(neighborNode);
+                }
+            }
+            closedList.Add(currentNode);
+        }
+
+        return nodesInRange;
     }
 
     public List<DijkstraMapNode> GetNodesInMovementRange(int x, int y, int initialMoveValue, MoveModifier moveModifier,
@@ -424,6 +491,7 @@ public class DijkstraMap
             }
         }
     }
+
     public void SetGoalsNew(List<Vector2Int> goals, CombatGameManager gameManager, MoveModifier moveModifier,
         int walkCostOveride = -1, int[,] walkCostGridOveride = null)
     {

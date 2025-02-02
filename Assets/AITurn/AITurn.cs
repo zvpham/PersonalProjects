@@ -351,8 +351,6 @@ public class AITurn : MonoBehaviour
         int currentMoveSpeed = movingUnit.currentMoveSpeed + movingUnit.moveSpeedPerMoveAction;
         int startMoveSpeed = currentMoveSpeed;
         int previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
-        int startx = x;
-        int starty = y;
         int moveSpeedUsed = 0;
         DijkstraMapNode currentNode;
         while (true)
@@ -388,18 +386,29 @@ public class AITurn : MonoBehaviour
         // Desired end position has a Unit on it, use modified path where friendly units are walkable
         if(gameManager.grid.GetGridObject(x, y).unit != null)
         {
-            List<DijkstraMapNode> newGoals =  
-                map.GetNodesThatHaveValueLessThanTarget(map.getGrid().GetGridObject(x, y).value, startMoveSpeed, AiActionData.enemyUnits);
-            for (int i = 0; i < newGoals.Count; i++)
+            List<DijkstraMapNode> tempNewGoals = map.GetNodesInMovementRangeNoChangeGrid(movingUnit.x, movingUnit.y, startMoveSpeed);
+            if(tempNewGoals == null)
             {
-                if (gameManager.grid.GetGridObject(x, i).unit != null)
+                Debug.LogError("Couldn't find nodes in movement Range for AI: " + movingUnit);
+            }
+            GridHex<GridPosition> combatGrid = gameManager.grid;
+            int lowestNodeValue = int.MaxValue;
+            DijkstraMapNode currentNodeGoal = null;
+            for(int i = 0; i < tempNewGoals.Count; i++)
+            {
+                DijkstraMapNode node = tempNewGoals[i];
+                if(combatGrid.GetGridObject(node.x, node.y).unit == null && node.value < lowestNodeValue)
                 {
-                    newGoals.RemoveAt(i);
-                    i--;
+                    currentNodeGoal = node;
+                    lowestNodeValue = node.value;
                 }
             }
+
+            Debug.Log("Node Found: " + currentNodeGoal);
+            List<Vector2Int> newGoal =  new List<Vector2Int>() { new Vector2Int(currentNodeGoal.x, currentNodeGoal.y) };
+
             map.ResetMap();
-            map.SetGoalsNew(AiActionData.enemyUnits, gameManager, AiActionData.unit.moveModifier);
+            map.SetGoalsNew(newGoal, gameManager, AiActionData.unit.moveModifier);
 
             x = movingUnit.x;
             y = movingUnit.y;
@@ -433,7 +442,7 @@ public class AITurn : MonoBehaviour
 
             if (path.Count == 0)
             {
-                Debug.LogError("Path not found when attempting to approach enemyUnits for: " + movingUnit.name);
+                Debug.LogWarning("Path not found when attempting to approach enemyUnits for: " + movingUnit.name);
             }
         }
 
@@ -689,5 +698,10 @@ public class AITurn : MonoBehaviour
             }
         }
         return actionsInRange;
+    }
+
+    public void UnitDeath(Unit unit)
+    {
+
     }
 }

@@ -140,6 +140,11 @@ public class PlayerTurn : MonoBehaviour
         enabled = false;
     }
 
+    public void UnitDeath(Unit unit)
+    {
+
+    }
+
     public bool CheckSpaceForFriendlyUnit(Vector2Int hexPosition)
     {
         GridPosition gridPosition = gameManager.grid.GetGridObject(hexPosition.x, hexPosition.y);
