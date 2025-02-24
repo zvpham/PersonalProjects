@@ -693,7 +693,7 @@ public class RangedTargeting : TargetingSystem
                             () => // Confirm Action
                             {
                                 selectedTarget = true;
-                                gameManager.move.AnotherActionMove(setPath, null, movingUnit, false);
+                                gameManager.move.AnotherActionMove(setPath, movingUnit, false);
                                 OnFoundTarget?.Invoke(movingUnit, targetUnit, true);
                                 Destroy(tempMovingUnit);
                             },
@@ -733,7 +733,7 @@ public class RangedTargeting : TargetingSystem
                             }
                             else
                             {
-                                gameManager.move.AnotherActionMove(setPath, null, movingUnit, true);
+                                gameManager.move.AnotherActionMove(setPath, movingUnit, true);
                                 Destroy(tempMovingUnit);
                             }
                         },

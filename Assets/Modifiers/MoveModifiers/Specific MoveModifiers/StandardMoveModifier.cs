@@ -21,6 +21,13 @@ public class StandardMoveModifier : MoveModifier
 
     public override bool validElevationDifference(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int range)
     {
+        Vector2Int currentNodePosition = new Vector2Int(currentNode.x, currentNode.y);
+        Vector2Int nextNodePosition = new Vector2Int(nextNode.x, nextNode.y);
+        return validElevationDifference(gameManager, currentNodePosition, nextNodePosition, range);
+    }
+
+    public override bool validElevationDifference(CombatGameManager gameManager, Vector2Int currentNode, Vector2Int nextNode, int range)
+    {
         int originElevation = gameManager.spriteManager.elevationOfHexes[currentNode.x, currentNode.y];
         int targetElevation = gameManager.spriteManager.elevationOfHexes[nextNode.x, nextNode.y];
         return (originElevation == targetElevation || Mathf.Abs(originElevation - targetElevation) <= range);

@@ -16,7 +16,6 @@ public class Evasive : Status
 
     public override bool ContinueEvent(Action occuringAction, Passive occuringPassive)
     {
-        Debug.Log("Checck: " + occuringPassive.GetType());
         if(occuringPassive.GetType() == typeof(OpportunityAttack))
         {
             return false;

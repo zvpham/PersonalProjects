@@ -25,6 +25,7 @@ public class TestHexGrid : MonoBehaviour
     public List<Vector3Int> highlightedHexws = new List<Vector3Int>();
     public ResourceManager resourceManager;
     public int index = 0;
+    public int unitNameIndex = 0;
     public int mouseIndex;
     public Vector2Int startHex;
     public Vector2Int endHex;
@@ -452,13 +453,18 @@ public class TestHexGrid : MonoBehaviour
 
                 for (int i = 0; i < unitGroup.units.Count; i++)
                 {
+                    Unit childUnit = unitGroup.units[i];
                     unitGroup.units[i].team = unitTeam;
+                    childUnit.name += " " + unitNameIndex;
+                    unitNameIndex++;
                 }
                 HandlePlaceUnit(unitGroup.units[unitInUnitGroupIndex]);
             }
             else
             {
                 Unit newUnit = Instantiate(characterSystem.currentUnit);
+                newUnit.name += " " + unitNameIndex;
+                unitNameIndex++;
                 switch (teamIndex)
                 {
                     case 0:
@@ -598,6 +604,8 @@ public class TestHexGrid : MonoBehaviour
                     for (int j = 0; j < newUnitGroup.transform.childCount; j++)
                     {
                         Unit childUnit = newUnitGroup.transform.GetChild(j).GetComponent<Unit>();
+                        childUnit.name += " " + unitNameIndex;
+                        unitNameIndex++;
                         childUnit.team = Team.Team4;
                         childUnit.gameManager = gameManager;
                         childUnit.group = newUnitGroup;
@@ -610,6 +618,8 @@ public class TestHexGrid : MonoBehaviour
                 else
                 {
                     Unit newHero = Instantiate(resourceManager.heroes[enemyUnit.unitData.heroIndex]);
+                    newHero.name += " " + unitNameIndex;
+                    unitNameIndex++;
                     newHero.gameManager = gameManager;
                     newHero.team = Team.Team4;
                     newHero.transform.SetParent(gameObject.transform);
@@ -630,6 +640,8 @@ public class TestHexGrid : MonoBehaviour
             for (int j = 0; j < newUnitGroup.transform.childCount; j++)
             {
                 Unit childUnit = newUnitGroup.transform.GetChild(j).GetComponent<Unit>();
+                childUnit.name += " " + unitNameIndex;
+                unitNameIndex++;
                 childUnit.team = Team.Player;
                 childUnit.gameManager = gameManager;
                 childUnit.group = newUnitGroup;
@@ -644,6 +656,8 @@ public class TestHexGrid : MonoBehaviour
         {
             unitLoadoutData hero = backLineUnit.unitData;
             Unit newHero = Instantiate(resourceManager.emptyHero);
+            newHero.name += " " + unitNameIndex;
+            unitNameIndex++;
             newHero.gameManager = gameManager;
             newHero.team = Team.Player;
             newHero.transform.SetParent(gameObject.transform);

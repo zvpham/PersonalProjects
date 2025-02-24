@@ -14,13 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionSprite: {fileID: 0}
   baseActionWeight: 0
+  actionPriority: 0
   coolDown: 0
   maxUses: 1
   intialActionPointUsage: 1
   actionPointGrowth: 1
   consumableAction: 0
   oneTimeUsePerRound: 0
-  actionTypes: 0200000004000000
+  actionTypes: 0100000003000000
   animation: {fileID: -5626302034160200816, guid: 30eed55309289f84eaec25668625021f, type: 3}
   minDamage: 20
   maxDamage: 75

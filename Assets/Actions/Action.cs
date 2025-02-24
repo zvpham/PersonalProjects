@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -7,6 +8,7 @@ public abstract class Action : ScriptableObject
 {
     public Sprite actionSprite;
     public int baseActionWeight;
+    public int actionPriority; // For AI use, current useCase For Deciding what order to try movementActions
     public int coolDown;
     public int maxUses = 1;
     public int intialActionPointUsage = 1;
@@ -17,18 +19,23 @@ public abstract class Action : ScriptableObject
 
     public CustomAnimations animation;
 
-    public abstract int CalculateWeight(AIActionData AIActionData);
+    public abstract int CalculateWeight(AIActionData AiActionData);
 
-    public abstract void FindOptimalPosition(AIActionData AIActionData);
+    public abstract void FindOptimalPosition(AIActionData AiActionData);
 
-    public abstract bool CheckIfActionIsInRange(AIActionData AIActionData);
+    public abstract bool CheckIfActionIsInRange(AIActionData AiActionData);
 
-    public virtual bool CanMove(AIActionData AIActionData)
+    public virtual bool CanMove(AIActionData AiActionData)
     {
         return false;
     }
 
-    public abstract void AIUseAction(AIActionData AIActionData, bool finalAction = false);
+    // Returns the distance of the endPosition from goal
+    public virtual Tuple<int, Vector2Int, List<Action>, List<Vector2Int>> MoveUnit(AIActionData AiActionData, bool IgnorePassives = false)
+    {
+        return new Tuple<int, Vector2Int, List<Action>, List<Vector2Int>>(int.MaxValue, Vector2Int.zero, null, new List<Vector2Int>());
+    }
+    public abstract void AIUseAction(AIActionData AiActionData, bool finalAction = false);
 
     public abstract void ConfirmAction(ActionData actionData);
 

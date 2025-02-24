@@ -472,7 +472,7 @@ public class Unit : UnitSuperClass, IInititiave
                     ContinueAITurn();
                     return;
                 }
-                Debug.Log("Ai End Turn");
+                Debug.LogWarning    ("Ai End Turn");
                 EndTurn();
             }
             else
@@ -894,31 +894,43 @@ public class Unit : UnitSuperClass, IInititiave
 
     public bool CanMove()
     {
-        for(int i  =  0; i < actions.Count; i++)
+        if(team != Team.Player)
         {
-            if ((actions[i].action.actionTypes.Contains(ActionType.MovementOnly)))
+            bool canMove = false;
+            AIActionData actionData = new AIActionData();
+            actionData.unit = this;
+            for (int i = 0; i < actions.Count; i++)
             {
-
-            }
-        }
-
-
-        // Check to See if Player Can Still Move;
-        if (currentMoveSpeed > 0)
-        {
-            List<DijkstraMapNode> neighborHexes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, 1);
-            for (int i = 0; i < neighborHexes.Count; i++)
-            {
-                DijkstraMapNode neighborNode = neighborHexes[i];
-                if (gameManager.spriteManager.elevationOfHexes[neighborNode.y, neighborNode.x] <= currentMoveSpeed)
+                if ((actions[i].action.actionTypes.Contains(ActionType.Movement)))
                 {
-                    //Action[0] is move Action
-                    gameManager.playerTurn.SelectAction(actions[0].action);
-                    Debug.Log("Can Move");
-                    return true;
+                    canMove =  actions[i].action.CanMove(actionData);
+                    if(canMove)
+                    {
+                        return true;
+                    }
                 }
             }
         }
+        else
+        {
+            // Check to See if Player Can Still Move;
+            if (currentMoveSpeed > 0)
+            {
+                List<DijkstraMapNode> neighborHexes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, 1);
+                for (int i = 0; i < neighborHexes.Count; i++)
+                {
+                    DijkstraMapNode neighborNode = neighborHexes[i];
+                    if (gameManager.spriteManager.elevationOfHexes[neighborNode.y, neighborNode.x] <= currentMoveSpeed)
+                    {
+                        //Action[0] is move Action
+                        gameManager.playerTurn.SelectAction(actions[0].action);
+                        Debug.Log("Can Move");
+                        return true;
+                    }
+                }
+            }
+        }
+
         Debug.Log("Can't Move: " +  currentMoveSpeed);
         return false;
     }
@@ -967,5 +979,17 @@ public class Unit : UnitSuperClass, IInititiave
             }
         }
         return false;
+    }
+
+    public int GetMoveActionIndex()
+    {
+        for (int i = 0; i < actions.Count; i++)
+        {
+            if (actions[i].action.GetType() == typeof(Move))
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 }

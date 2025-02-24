@@ -29,9 +29,6 @@ public class MeleeTargeting : TargetingSystem
     List<Vector2Int> friendlyUnits = new List<Vector2Int>();
     List<Vector2Int> validTargetPositions = new List<Vector2Int>();
 
-    public List<int> startOfNewMoveIndexes = new List<int>();
-    public List<int> setStartOfNewMoveIndexes = new List<int>();
-
     public List<PassiveEffectArea>[,] passives;
     List<PassiveEffectArea> passiveEffectAreas = new List<PassiveEffectArea>();
     List<Tuple<Passive, Vector2Int>> passiveSprites = new List<Tuple<Passive, Vector2Int>>();
@@ -170,8 +167,6 @@ public class MeleeTargeting : TargetingSystem
         int x = targetPosition.x;
         int y = targetPosition.y;
         map.ResetMap(true);
-        map.SetGoalsMelee(new List<Vector2Int>() { new Vector2Int(x, y) }, friendlyUnits, validTargetPositions,
-            gameManager, movingUnit.moveModifier, meleeRange);
 
         startingPosition = targetPosition;
         actionPointsLeft = numActionPoints;
@@ -227,8 +222,8 @@ public class MeleeTargeting : TargetingSystem
         actionPointsLeft = numActionPoints;
         amountOfPossibleMoves = moveAmounts;
 
-        List<DijkstraMapNode> nodesInMovementRange = map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        List<DijkstraMapNode> nodesInMovementRange = map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager);
         if (nodesInMovementRange.Count > 1)
         {
             for (int i = 0; i < nodesInMovementRange.Count; i++)
@@ -366,7 +361,6 @@ public class MeleeTargeting : TargetingSystem
                 int x = startingPosition.x;
                 int y = startingPosition.y;
                 path.Clear();
-                startOfNewMoveIndexes = new List<int>();
                 bool foundEndPosition = false;
 
                 int currentMoveSpeed = moveSpeedInitiallyAvailable + movingUnit.moveSpeedPerMoveAction * amountOfPossibleMoves;
@@ -545,10 +539,6 @@ public class MeleeTargeting : TargetingSystem
                 {
                     if (actionPointsLeft > 0)
                     {
-                        for (int i = 0; i < startOfNewMoveIndexes.Count; i++)
-                        {
-                            setStartOfNewMoveIndexes.Add(startOfNewMoveIndexes[i]);
-                        }
 
                         prevEndHexPosition = endHexPosition;
                         for (int i = 0; i < path.Count; i++)
@@ -631,7 +621,7 @@ public class MeleeTargeting : TargetingSystem
                             () => // Confirm Action
                             {
                                 selectedTarget = true;
-                                gameManager.move.AnotherActionMove(setPath, setStartOfNewMoveIndexes, movingUnit, false);
+                                gameManager.move.AnotherActionMove(setPath, movingUnit, false);
                                 OnFoundTarget?.Invoke(movingUnit, targetUnit, true);
                                 Destroy(tempMovingUnit);
                             },
@@ -683,7 +673,7 @@ public class MeleeTargeting : TargetingSystem
                             }
                             else
                             {
-                                gameManager.move.AnotherActionMove(setPath, setStartOfNewMoveIndexes, movingUnit, true);
+                                gameManager.move.AnotherActionMove(setPath, movingUnit, true);
                                 Destroy(tempMovingUnit);
                             }
                         },
@@ -707,7 +697,6 @@ public class MeleeTargeting : TargetingSystem
         path = new List<Vector2Int>();
         setPath = new List<Vector2Int>();
         actionMoveAmounts = new List<int>();
-        setStartOfNewMoveIndexes = new List<int>();
         actionLines = new List<List<Vector3>>();
         actionPointsLeft = movingUnit.currentActionsPoints;
         amountMoved = movingUnit.actions[0].amountUsedDuringRound;
