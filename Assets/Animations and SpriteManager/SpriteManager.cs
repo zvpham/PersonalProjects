@@ -123,6 +123,34 @@ public class SpriteManager : MonoBehaviour
         }
     }
 
+    public void ResetSpriteManager()
+    {
+        EndAnimations();
+        ClearLines();
+        DeactiveTargetingSystem();
+        ResetCombatAttackUI();
+        for (int i = 0; i < unitPassiveAreaSpriteHolders.Count; i++)
+        {
+            DisableSpriteHolder(unitPassiveAreaSpriteHolders[i]);
+        }
+        unitPassiveAreaSpriteHolders.Clear();
+        for(int i = 0; i < combatGameManager.mapSize; i++)
+        {
+            for(int j = 0;  j < combatGameManager.mapSize; j++)
+            {
+                SpriteRenderer[] sprites =  spriteGrid.GetGridObject(i, j).sprites;
+                for(int k = 0; k < sprites.Length; k++)
+                {
+                    if(sprites[k] != null)
+                    {
+                        Destroy(sprites[k].gameObject);
+                    }
+                    sprites[k] = null;
+                }
+            }
+        }
+    }
+
     public void AddAnimations(CustomAnimations newAnimation, int index, float timeInterval = 0)
     {
         combatGameManager.playingAnimation = true;
@@ -167,6 +195,33 @@ public class SpriteManager : MonoBehaviour
     public void ChangePlayNewAnimation(bool playNewAnimation)
     {
         this.playNewAnimation = playNewAnimation;
+    }
+
+    public void UnitDied(Unit unit)
+    {
+        Destroy(spriteGrid.GetGridObject(unit.x, unit.y).sprites[0]);
+        spriteGrid.GetGridObject(unit.x, unit.y).sprites[0] = null;
+        //Destroy(unit.unitSpriteRenderer.gameObject);
+
+        /*
+        for(int i = 0; i < animations.Count; i++)
+        {
+            for(int j = 0; j < animations[i].Count; j++)
+            {
+                if (animations[i][j].actingUnit == unit)
+                {
+                    Destroy(animations[i][j].gameObject);
+                    animations[i].RemoveAt(j);
+                    j--;
+                }
+            }
+            if (animations[i].Count == 0)
+            {
+                animations.RemoveAt(i);
+                i--;
+            }
+        }
+        */
     }
 
     public void SelectMouseHex()
@@ -388,12 +443,13 @@ public class SpriteManager : MonoBehaviour
 
     public void ResetCombatAttackUI()
     {
+        Debug.Log("ResetCombatAttackUI");
         combatUI.ResetDataAttackUI();
     }
 
     public void CreateGrid(int mapWidth, int mapHeight, int amountOfTerrainLevels, float cellSize, Vector3 defaultGridAdjustment)
     {
-        spriteGrid = new GridHex<SpriteNode>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<SpriteNode> g, int x, int y) => new SpriteNode(g, x, y), false);
+        spriteGrid = new GridHex<SpriteNode>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<SpriteNode> g, int x, int y) => new SpriteNode(g, x, y), true);
         terrainTilePositions =  new List<List<Vector2Int>>();
         terrain = new TerrainHolder[mapWidth, mapHeight];
         for (int i = 0; i < amountOfTerrainLevels; i++)
@@ -631,6 +687,7 @@ public class SpriteManager : MonoBehaviour
         return openHighlightedHex;
     }
 
+    // Disables with TargetingSystems
     public void DisableHighlightedHex(GameObject hex)
     {
         activeHighlightedHexes.Remove(hex);
@@ -654,6 +711,7 @@ public class SpriteManager : MonoBehaviour
         return openHighlightedHex;
     }
 
+    // Disables with TargetingSystems
     public void DisableTargetHex(GameObject hex)
     {
         activeTargetHexes.Remove(hex);
@@ -676,7 +734,9 @@ public class SpriteManager : MonoBehaviour
         inactiveSpriteHolders.RemoveAt(0);
         activeSpriteHolders.Add(openSpriteHolder);
         return openSpriteHolder;
+    
     }
+
     public void DisableSpriteHolder(SpriteHolder hex)
     {
         activeSpriteHolders.Remove(hex);
@@ -702,6 +762,8 @@ public class SpriteManager : MonoBehaviour
         activetargetingPassiveSpriteHolders.Add(openSpriteHolder);
         return openSpriteHolder;
     }
+
+    //Disables with Targeting System
     public void DisableTargetingSpriteHolder(SpriteHolder hex)
     {
         activetargetingPassiveSpriteHolders.Remove(hex);

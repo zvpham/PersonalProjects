@@ -10,6 +10,7 @@ public abstract class CustomAnimations : MonoBehaviour
     public float currentTime;
     public float totalTime;
     public bool disableOnStart = true;
+    public Unit actingUnit;
     //public int xindex;
     //public int yindex;
     public SpriteManager spriteManager;

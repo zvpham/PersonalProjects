@@ -30,6 +30,20 @@ public class AITurn : MonoBehaviour
     private int seed;
 
 
+    public void ResetAITurn()
+    {
+        visibleUnits = new List<Unit>();
+        frontlineUnits = new List<Unit>();
+        backlineUnits = new List<Unit>();
+        unitSuperClasses = new List<UnitSuperClass> ();
+        units= new List<Unit>();
+        futureUnitPosiitions= new List<Vector2Int>();
+        enemyTeamStartPositions = new List<Vector2Int>();
+        lastSeenEnemyUnitPositions = new List<Vector2Int>();
+        totalRangedValue = 0;
+        numMelee = 0;
+    }
+
     public List<List<UnitSuperClass>> LoadEnemyPositions (MissionUnitPlacementName unitFormation, List<UnitSuperClass> units)
     {
         switch(unitFormation)
@@ -365,6 +379,7 @@ public class AITurn : MonoBehaviour
             Tuple<int, Vector2Int, List<Action>, List<Vector2Int>> moveValue = currentMoveAction.MoveUnit(AiActionData);
             if(moveValue.Item1 < lowestMoveValue)
             {
+                Debug.Log("Current Move Action: " + currentMoveAction + ", false");
                 lowestMoveActionIndex = i;
                 lowestMoveValue = moveValue.Item1;
                 AiActionData.desiredEndPosition = moveValue.Item2;
@@ -380,6 +395,7 @@ public class AITurn : MonoBehaviour
             Tuple<int, Vector2Int, List<Action>, List<Vector2Int>> moveValue = currentMoveAction.MoveUnit(AiActionData, true);
             if (moveValue.Item1 < lowestMoveValue)
             {
+                Debug.Log("Current Move Action: " + currentMoveAction + ", true");
                 ignorePassives = true;
                 lowestMoveActionIndex = i;
                 lowestMoveValue = moveValue.Item1;
@@ -449,7 +465,7 @@ public class AITurn : MonoBehaviour
         AiActionData.unit = unit;
         AiActionData.originalPosition = originalPosition;
         AiActionData.AIState = AIState;
-        AiActionData.expectedCurrentActionPoints = unit.currentActionsPoints;
+        AiActionData.expectedCurrentActionPoints = unit.currentMajorActionsPoints;
         int actionIndex = -1;
 
         List<UnitActionData> movementActionData = new List<UnitActionData>();
@@ -587,9 +603,52 @@ public class AITurn : MonoBehaviour
 
     public int GetHighestActionIndex(AIActionData actionData, Unit unit, List<int> actionsInRange)
     {
-        Debug.Log("test 3: " + actionData.movementData.GetLength(0) + ", " + actionData.movementData.GetLength(1));
         int actionIndex = -1;
         int highestActionWeight = 0;
+
+        actionData.unwalkablePassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        actionData.badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        actionData.goodWalkinPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        actionData.passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
+        for (int i = 0; i < gameManager.mapSize; i++)
+        {
+            for (int j = 0; j < gameManager.mapSize; j++)
+            {
+                actionData.passives[i, j] = new List<PassiveEffectArea>();
+            }
+        }
+
+        List<List<PassiveEffectArea>> classifiedPassiveEffectArea = unit.CalculuatePassiveAreas();
+        for (int i = 0; i < classifiedPassiveEffectArea[0].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[0][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[0][i].passiveLocations[j];
+                actionData.unwalkablePassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                actionData.passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[0][i]);
+            }
+        }
+
+        for (int i = 0; i < classifiedPassiveEffectArea[1].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[1][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[1][i].passiveLocations[j];
+                actionData.badWalkInPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                actionData.passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[1][i]);
+            }
+        }
+
+        for (int i = 0; i < classifiedPassiveEffectArea[2].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[2][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[2][i].passiveLocations[j];
+                actionData.goodWalkinPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                actionData.passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[2][i]);
+            }
+        }
+
         for (int i = 0; i < actionsInRange.Count; i++)
         {
             int actionWieght = unit.actions[actionsInRange[i]].action.CalculateWeight(actionData);
@@ -630,6 +689,26 @@ public class AITurn : MonoBehaviour
 
     public void UnitDeath(Unit unit)
     {
+        units.Remove(unit);
+        if(unit.group == null)
+        {
+            units.Remove(unit);
+            unitSuperClasses.Remove(unit);
+        }
+        if(AIState !=  AITurnStates.Combat)
+        {
+            CalculateRangedValue();
+            CalculateMeleeValue();
+        }
+    }
 
+    public void UnitGroupDeath(UnitGroup group)
+    {
+        unitSuperClasses.Remove(group);
+        if (AIState != AITurnStates.Combat)
+        {
+            CalculateRangedValue();
+            CalculateMeleeValue();
+        }
     }
 }

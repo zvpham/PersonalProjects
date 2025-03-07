@@ -61,9 +61,10 @@ public class MeleeAttackAnimation : CustomAnimations
         }
     }
 
-    public void SetParameters(CombatGameManager gameManager, Vector2 attackingPosition, Vector2 targetPosition)
+    public void SetParameters(Unit actingUnit, Vector2 attackingPosition, Vector2 targetPosition)
     {
-        this.gameManager = gameManager;
+        this.actingUnit = actingUnit;
+        this.gameManager = actingUnit.gameManager;
         this.originalPositionAttackingUnit = attackingPosition;
         this.originalpositionTargetUnit = targetPosition;
         gameManager.spriteManager.AddAnimations(this, gameManager.spriteManager.animations.Count);

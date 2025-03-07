@@ -23,8 +23,9 @@ public class EquipableAmmoSO : EquipableItemSO
     public AttackData ModifyAttack(AttackData attackData)
     {
         AttackData newAttackData = attackData;
-        newAttackData.minDamage = (int)(attackData.minDamage * this.mainTwoMin);
-        newAttackData.maxDamage = (int)(attackData.maxDamage * this.mainTwoMin);
+        Debug.LogWarning("Change THis");
+        //newAttackData.minDamage = (int)(attackData.minDamage * this.mainTwoMin);
+       // newAttackData.maxDamage = (int)(attackData.maxDamage * this.mainTwoMin);
         newAttackData.armorDamagePercentage = armorPiercingModifier;
         return newAttackData;
     }

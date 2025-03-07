@@ -40,9 +40,9 @@ public class ExtendedMeleeTargeting : TargetingSystem
 
     public int meleeRange;
     public int actionPointUseAmount;
-
+    public int actionPointsLeft;
     public int amountOfPossibleMoves;
-    public int amountMoved = 0;
+    public int movesLeft = 0;
     public int moveSpeedInitiallyAvailable;
     public int moveSpeedUsed;
 
@@ -56,8 +56,6 @@ public class ExtendedMeleeTargeting : TargetingSystem
     public bool selectOnTarget;
     public bool unitAttemptingToMove = false;
 
-    public int actionPointsLeft;
-
     public delegate List<AttackDataUI> CalculateAttackData(Unit movingUnit, Unit targetUnit, List<Vector2Int> movementPath);
     public CalculateAttackData calculateAttackData;
 
@@ -67,7 +65,7 @@ public class ExtendedMeleeTargeting : TargetingSystem
     public void SetParameters(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int actionPointUseAmount, int meleeRange,
         CalculateAttackData calculateAttackData)
     {
-        Debug.Log("Moving Unit: " + movingUnit.currentActionsPoints + ", " + actionPointsLeft);
+        Debug.Log("Moving Unit: " + movingUnit.currentMajorActionsPoints + ", " + actionPointsLeft);
         this.targetFriendly = targetFriendly;
         this.movingUnit = movingUnit;
         this.gameManager = movingUnit.gameManager;
@@ -82,7 +80,11 @@ public class ExtendedMeleeTargeting : TargetingSystem
         prevEndHexPosition = new Vector2Int(-10, 0);
         path = new List<Vector2Int>();
         this.enabled = true;
-        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
+        movesLeft = movingUnit.currentMajorActionsPoints;
+        if(movingUnit.currentMoveSpeed > 0)
+        {
+            movesLeft += 1;
+        }
 
         passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
         for (int i = 0; i < gameManager.mapSize; i++)
@@ -160,26 +162,11 @@ public class ExtendedMeleeTargeting : TargetingSystem
         int y = targetPosition.y;
         startingPosition = targetPosition;
         actionPointsLeft = numActionPoints;
-        int initialActionPoints = numActionPoints - actionPointUseAmount;
-        int usableActionPoints = initialActionPoints;
-        int moveAmounts = 0;
-
-        while (usableActionPoints > 0)
-        {
-            if (usableActionPoints >= amountMoved + moveAmounts + 1)
-            {
-                moveAmounts += 1;
-                usableActionPoints -= amountMoved + moveAmounts;
-            }
-            else
-            {
-                break;
-            }
-        }
+        int moveAmounts = numActionPoints - actionPointUseAmount;
 
         int startValue = currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * moveAmounts);
-        Debug.Log("iNITAIL aAction points: " + initialActionPoints + ", " + currentMoveSpeed);
-        canMove = CanUnitMove(movingUnit, initialActionPoints, amountMoved, currentMoveSpeed);
+        Debug.Log("iNITAIL move Amounts: " + moveAmounts + ", " + currentMoveSpeed);
+        canMove = CanUnitMove(movingUnit, moveAmounts, currentMoveSpeed);
         List<DijkstraMapNode> mapNodes;
         groundHexes = new List<Vector2Int>();
         groundColorValues = new List<int>();
@@ -233,19 +220,20 @@ public class ExtendedMeleeTargeting : TargetingSystem
                         int tempNodeValue = nodeValue - currentMoveSpeed;
                         if (tempNodeValue <= 0)
                         {
-                            rangeBracketOfNode = amountMoved - 1;
+                            rangeBracketOfNode = - 1;
                         }
                         else
                         {
                             tempNodeValue -= 1;
-                            rangeBracketOfNode = tempNodeValue / (movingUnit.moveSpeedPerMoveAction) + amountMoved;
+                            rangeBracketOfNode = tempNodeValue / (movingUnit.moveSpeedPerMoveAction);
                         }
                     }
                     else
                     {
                         nodeValue -= 1;
-                        rangeBracketOfNode = (nodeValue / (movingUnit.moveSpeedPerMoveAction)) + amountMoved;
+                        rangeBracketOfNode = (nodeValue / (movingUnit.moveSpeedPerMoveAction));
                     }
+                    rangeBracketOfNode += 2 - actionPointsLeft;
                     groundHexes.Add(currentNodePosition);
                     groundColorValues.Add(rangeBracketOfNode);
                 }
@@ -597,16 +585,8 @@ public class ExtendedMeleeTargeting : TargetingSystem
                         {
                             movementActionsTaken = (((moveSpeedLeft + 1) / movingUnit.moveSpeedPerMoveAction) - 1) * -1;
                         }
-
-                        int actionPointsUsed = 0;
-                        int previousAmountMoved = amountMoved;
-                        for (int i = 0; i < movementActionsTaken; i++)
-                        {
-                            actionPointsUsed += amountMoved + 1;
-                            moveSpeedLeft += movingUnit.moveSpeedPerMoveAction;
-                            amountMoved += 1;
-                        }
-                        actionPointsLeft -= actionPointsUsed;
+                        moveSpeedLeft += movementActionsTaken * movingUnit.moveSpeedPerMoveAction;
+                        actionPointsLeft -= movementActionsTaken;
                     }
                     keepCombatAttackUi = true;
                     // Case target is within meleeRange
@@ -662,16 +642,8 @@ public class ExtendedMeleeTargeting : TargetingSystem
                     {
                         movementActionsTaken = (((moveSpeedLeft + 1) / movingUnit.moveSpeedPerMoveAction) - 1) * -1;
                     }
-
-                    int actionPointsUsed = 0;
-                    int previousAmountMoved = amountMoved;
-                    for (int i = 0; i < movementActionsTaken; i++)
-                    {
-                        actionPointsUsed += amountMoved + 1;
-                        moveSpeedLeft += movingUnit.moveSpeedPerMoveAction;
-                        amountMoved += 1;
-                    }
-                    actionPointsLeft -= actionPointsUsed;
+                    moveSpeedLeft += movementActionsTaken * movingUnit.moveSpeedPerMoveAction;
+                    actionPointsLeft -= movementActionsTaken;
 
                     Destroy(tempMovingUnit);
                     tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
@@ -694,7 +666,7 @@ public class ExtendedMeleeTargeting : TargetingSystem
                         },
                         () => // Cancel Action
                         {
-                            SetUp(new Vector2Int(movingUnit.x, movingUnit.y), movingUnit.currentActionsPoints, movingUnit.currentMoveSpeed);
+                            SetUp(new Vector2Int(movingUnit.x, movingUnit.y), movingUnit.currentMajorActionsPoints, movingUnit.currentMoveSpeed);
                             ResetTargeting();
                         });
                 }
@@ -712,8 +684,7 @@ public class ExtendedMeleeTargeting : TargetingSystem
         path = new List<Vector2Int>();
         setPath = new List<Vector2Int>();
         actionLines = new List<List<Vector3>>();
-        actionPointsLeft = movingUnit.currentActionsPoints;
-        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
+        actionPointsLeft = movingUnit.currentMajorActionsPoints;
         gameManager.spriteManager.ResetCombatAttackUI();
         gameManager.spriteManager.ClearLines();
         for (int i = 0; i < targetingPassiveSpriteHolder.Count; i++)

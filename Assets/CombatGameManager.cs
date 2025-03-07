@@ -2,11 +2,13 @@ using CodeMonkey.Utils;
 using Inventory.Model;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Diagnostics;
 using UnityEngine.Events;
 using UnityEngine.Tilemaps;
+using static UnityEngine.UI.CanvasScaler;
 
 public class CombatGameManager : MonoBehaviour, IDataPersistence
 {
@@ -14,6 +16,8 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public ResourceManager resourceManager;
     [SerializeField]
     public DataPersistenceManager dataPersistenceManager;
+    [SerializeField]
+    public TestHexGrid testHexGrid;
 
     [SerializeField]
     public CombatMapGenerator combatMapGenerator;
@@ -94,6 +98,14 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         enabled = true;
         startOfCombat = false;
         playing = true;
+        resetInitiativeOrder(true);
+    }
+
+    public void EndCombatTesting()
+    {
+        enabled = false;
+        startOfCombat = true;
+        playing = false;
     }
 
     public void LoadData(WorldMapData mapData = null)
@@ -355,7 +367,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         if (initiativeOrder.Count == 0)
         {
             Debug.Log("Round Ended");
-            setInitiativeOrder();
+            resetInitiativeOrder();
             ResetUnitActionAmounts();
         }
         initiativeOrder[initiativeOrder.Count - 1].StartTurn();
@@ -405,7 +417,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         {
             for(int j = 0; j < units[i].actions.Count; j++)
             {
-                units[i].actions[j].amountUsedDuringRound = 0;
+                units[i].actions[j].actionUsedDuringRound = false;
             }
         }
     }
@@ -421,6 +433,26 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         }
 
         allinitiativeGroups[0].Quicksort(initiatives, initiativeOrder,  0, initiatives.Count - 1);
+    }
+
+    public void resetInitiativeOrder(bool trueReset = false)
+    {
+        if (trueReset)
+        {
+            setInitiativeOrder();
+        }
+
+        initiativeOrder = new List<IInititiave>();
+        for (int i = 0; i < allinitiativeGroups.Count; i++)
+        {
+            initiativeOrder.Add(allinitiativeGroups[i]);
+        }
+
+        string debug = "";
+        for(int i = 0; i < initiativeOrder.Count;i++)
+        {
+            debug += initiativeOrder[i] + " ";
+        }
     }
 
     public void AddActionToQueue(ActionData newAction, bool addToStart, bool afterCurrent)
@@ -459,14 +491,38 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
             }
         }
 
-        if(initialMovingUnit != null)
+        if(initialMovingUnit != null && !initialMovingUnit.isDead)
         {
             initialMovingUnit.ActionsFinishedActivating();
         }
         else
         {
-            Debug.LogError("try to finish actions but unit died");
+            Debug.Log("try to finish actions but unit died");
+            NextTurn();
         }
+    }
+
+    public void UnitGroupDeath(Unit unit)
+    {
+        UnitGroup unitGroup = unit.group;
+        initiativeOrder.Remove(unitGroup);
+        allinitiativeGroups.Remove(unitGroup);
+        switch (unit.team)
+        {
+            case Team.Player:
+                playerTurn.UnitGroupDeath(unitGroup);
+                break;
+            case Team.Team2:
+                AITurn1.UnitGroupDeath(unitGroup);
+                break;
+            case Team.Team3:
+                AITurn2.UnitGroupDeath(unitGroup);
+                break;
+            case Team.Team4:
+                AITurn3.UnitGroupDeath(unitGroup);
+                break;
+        }
+        Destroy(unitGroup.gameObject);
     }
 
     public void UnitDied(Unit unit)
@@ -493,6 +549,59 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
                 break;
         }
 
+        if (unit.group == null)
+        {
+            initiativeOrder.Remove(unit);
+            allinitiativeGroups.Remove(unit);
+        }
+        else
+        {
+            unit.group.UnitDeath(unit);
+        }
+
+        for(int i = 0; i < unit.passiveEffects.Count; i++)
+        {
+            PassiveEffectArea passiveArea = unit.passiveEffects[i];
+            for(int j = 0; j < passiveArea.passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = unit.passiveEffects[i].passiveLocations[j];
+                passiveGrid.GetGridObject(passiveLocation).passiveObjects.Remove(passiveArea);
+                passiveGrid.SetGridObject(passiveLocation, passiveGrid.GetGridObject(passiveLocation));
+            }
+            passiveAreas.Remove(passiveArea);
+        }
+
+        for(int i = 0; i < unit.passives.Count; i++)
+        {
+            Passive passive =  unit.passives[i].passive;
+            passive.RemovePassive(unit);
+        }
+
+        spriteManager.UnitDied(unit);
+
+        grid.GetGridObject(unit.x, unit.y).unit = null;
+        grid.SetGridObject(unit.x, unit.y, grid.GetGridObject(unit.x, unit.y));
+        units.Remove(unit);
+
+        Debug.Log(actionsInQueue.Count);
+        string actionQueueDebug = "";
+        for (int i = 0; i < actionsInQueue.Count; i++)
+        {
+            ActionData currentAction = actionsInQueue[i];
+            actionQueueDebug += currentAction.action.ToString();
+        }
+        Debug.Log(actionQueueDebug);
+
+            for (int i = 0;  i < actionsInQueue.Count; i++)
+        {
+            ActionData currentAction = actionsInQueue[i];
+            if(currentAction != null && currentAction.actingUnit == unit)
+            {
+                Debug.Log("remove Action: " + currentAction.action);
+                actionsInQueue.RemoveAt(i);
+                i--;
+            }
+        }
     }
 
     public void SetGridObject(Unit unit, Vector3 unitPosition)
@@ -532,6 +641,67 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
                 //moveCostMap[j, i] = resourceManager.terrainTiles[0].moveCost;
             }
         }
+    }
+
+    public void ResetTest()
+    {
+        if(!testing || playingAnimation)
+        {
+            return;
+        }
+        Debug.Log("Reset EVERTHING");
+        spriteManager.ResetSpriteManager();
+
+        for (int i = 0; i < units.Count; i++)
+        {
+            Unit unit = units[0];
+            if(unit.group !=  null)
+            {
+                UnitGroup unitGroup = unit.group;
+                for(int j = 0; j < unitGroup.units.Count; j++)
+                {
+                    unitGroup.units[j].group = null;
+                }
+                Destroy(unitGroup.gameObject);
+            }
+            Destroy(unit.gameObject);
+        }
+        units = new List<Unit>();
+
+        for(int i = 0; i < passiveAreas.Count; i++)
+        {
+            PassiveEffectArea passive = passiveAreas[i];
+            for(int j = 0; j < passive.passiveLocations.Count; j++)
+            {
+                passiveGrid.GetGridObject(passive.passiveLocations[j]).passiveObjects.Remove(passive);
+                passiveGrid.SetGridObject(passive.passiveLocations[j], passiveGrid.GetGridObject(passive.passiveLocations[j]));
+            }
+        }
+        passiveAreas = new List<PassiveEffectArea>();
+
+        allinitiativeGroups = new List<IInititiave>();
+        initiativeOrder = new List<IInititiave>();
+
+        for(int i = 0; i < mapSize; i++)
+        {
+            for (int j = 0; j < mapSize; j++)
+            {
+                GridPosition currentGridPosition = grid.GetGridObject(i, j);
+                currentGridPosition.unit = null;
+                currentGridPosition.tempUnit = null;
+                grid.SetGridObject(i, j, currentGridPosition);
+
+                PassiveGridObject passive =  passiveGrid.GetGridObject(i, j);
+                passive.passiveObjects = new List<PassiveEffectArea>();
+            }
+        }
+        actionsInQueue = new List<ActionData>();
+        OnActivateAction = null;
+        playerTurn.ResetPlayerTurn();
+        AITurn1.ResetAITurn();
+        AITurn2.ResetAITurn();
+        AITurn3.ResetAITurn();
+        testHexGrid.ResetTest();
     }
 
     public void CreateBackGround()

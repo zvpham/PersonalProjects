@@ -276,7 +276,7 @@ public class ConeTargeting : TargetingSystem
         tempMovingUnit = null;
         prevEndHexPosition = new Vector2Int(-1, -1);
         foundEndHex = false;
-        SetUp(movingUnit.transform.position, movingUnit.currentActionsPoints, movingUnit.moveSpeed);
+        SetUp(movingUnit.transform.position, movingUnit.currentMajorActionsPoints, movingUnit.moveSpeed);
     }
 
     public override void DeactivateTargetingSystem()

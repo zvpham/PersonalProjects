@@ -9,5 +9,6 @@ public enum PlayerActionName
     ConfirmAction,
     EndTurn,
     NextItemAction,
-    PreviousItemAction
+    PreviousItemAction,
+    ResetTest
 }

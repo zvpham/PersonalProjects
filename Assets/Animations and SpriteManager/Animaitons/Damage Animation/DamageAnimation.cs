@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class DamageAnimation : CustomAnimations
@@ -46,12 +44,13 @@ public class DamageAnimation : CustomAnimations
         }
     }
 
-    public void SetParameters(CombatAttackUI damage, Unit targetUnit, int initialArmor, int initialHealth)
+    public void SetParameters(CombatAttackUI damage, Unit actingUnit, int initialArmor, int initialHealth)
     {
+        this.actingUnit = actingUnit;
         damage.readyToReset = false;
-        damage.SetAnimationData(targetUnit, initialArmor, initialHealth);
+        damage.SetAnimationData(actingUnit, initialArmor, initialHealth);
         combatAttackUI = damage;
-        targetUnit.gameManager.spriteManager.AddAnimations(this, targetUnit.gameManager.spriteManager.animations.Count - 1);
+        actingUnit.gameManager.spriteManager.AddAnimations(this, actingUnit.gameManager.spriteManager.animations.Count - 1);
         combatAttackUI.armorChangeBar.color = new Color(1, 1, 1, 1);
         combatAttackUI.healthChangeBar.color = new Color(1, 1, 1, 1);
     }

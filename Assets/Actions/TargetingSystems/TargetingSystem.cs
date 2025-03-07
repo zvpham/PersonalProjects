@@ -13,13 +13,9 @@ public abstract class TargetingSystem : MonoBehaviour
 
     public abstract void PreviousItem();
 
-    public bool CanUnitMove(Unit movingUnit, int numActionPoints, int amountMoved, int currentMoveSpeed, int moveCostOverride = -1,
+    public bool CanUnitMove(Unit movingUnit, int numActionPoints, int currentMoveSpeed, int moveCostOverride = -1,
         int[,] moveCostGridOveride = null)
     {
-        if(numActionPoints >= amountMoved + 1)
-        {
-            return true;
-        }
 
         if(numActionPoints < 0)
         {

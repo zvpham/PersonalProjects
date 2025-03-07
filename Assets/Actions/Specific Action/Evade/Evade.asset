@@ -17,10 +17,9 @@ MonoBehaviour:
   actionPriority: 4
   coolDown: 0
   maxUses: 1
-  intialActionPointUsage: 1
-  actionPointGrowth: 1
+  actionPointUsage: 1
   consumableAction: 0
-  oneTimeUsePerRound: 0
+  oneTimeUsePerRound: 1
   actionTypes: 00000000
   animation: {fileID: 0}
   status: {fileID: 11400000, guid: 08a4990dd1bbf534fbeacf23cfceee90, type: 2}

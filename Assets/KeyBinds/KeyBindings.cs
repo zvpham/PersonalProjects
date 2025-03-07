@@ -22,6 +22,7 @@ public class KeyBindings : MonoBehaviour
         defaultActionKeyBinds.Add(PlayerActionName.EndTurn, new List<KeyCode>() { KeyCode.F });
         defaultActionKeyBinds.Add(PlayerActionName.NextItemAction, new List<KeyCode>() { KeyCode.E });
         defaultActionKeyBinds.Add(PlayerActionName.PreviousItemAction, new List<KeyCode>() { KeyCode.Q });
+        defaultActionKeyBinds.Add(PlayerActionName.ResetTest, new List<KeyCode>() { KeyCode.P });
 
         menuActionKeyBinds.Add(MenuActionName.Back, new List<KeyCode>() { KeyCode.Backspace });
 
@@ -35,6 +36,7 @@ public class KeyBindings : MonoBehaviour
         testActionKeyBinds.Add(TestActionName.PlaceTeam2, new List<KeyCode>() { KeyCode.Alpha2 });
         testActionKeyBinds.Add(TestActionName.PlaceTeam3, new List<KeyCode>() { KeyCode.Alpha3 });
         testActionKeyBinds.Add(TestActionName.PlaceTeam4, new List<KeyCode>() { KeyCode.Alpha4 });
+        testActionKeyBinds.Add(TestActionName.RemoveUnit, new List<KeyCode>() { KeyCode.Backspace });
         if (instance == null)
         {
             instance = this;

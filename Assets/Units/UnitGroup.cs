@@ -26,7 +26,7 @@ public class UnitGroup : UnitSuperClass, IInititiave
 
         for(int i = 0; i < activeUnits.Count; i++)
         {
-            activeUnits[i].currentActionsPoints = activeUnits[i].maxActionsPoints; 
+            activeUnits[i].currentMajorActionsPoints = activeUnits[i].maxMajorActionsPoints; 
         }
 
         if (team == Team.Player)
@@ -86,6 +86,16 @@ public class UnitGroup : UnitSuperClass, IInititiave
             case Team.Team4:
                 gameManager.AITurn3.unitSuperClasses.Add(this);
                 break;
+        }
+    }
+
+    public void UnitDeath(Unit unit)
+    {
+        units.Remove(unit);
+        activeUnits.Remove(unit);
+        if(units.Count == 0)
+        {
+            gameManager.UnitGroupDeath(unit);
         }
     }
 }

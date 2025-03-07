@@ -31,9 +31,8 @@ public class MovementTargeting : TargetingSystem
 
     public GameObject tempMovingUnit;
 
+    public int actionPointsLeft;
     public List<int> actionMoveAmounts;
-    public int amountMoved = 0;
-    public int amountOfPossibleMoves;
     public int moveSpeedInitiallyAvailable = 0;
     public int moveSpeedUsed = 0;
 
@@ -46,8 +45,6 @@ public class MovementTargeting : TargetingSystem
 
     public bool targetFriendly = false;
     public bool canMove = false;
-
-    public int actionPointsLeft;
 
     public UnityAction<List<Vector2Int>, List<int>,  Unit,  bool> OnFoundTarget;
 
@@ -62,7 +59,6 @@ public class MovementTargeting : TargetingSystem
         prevEndHexPosition = new Vector2Int(-10, 0);
         path = new List<Vector2Int>();
         this.enabled = true;
-        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
         highlightedHexes = new List<GameObject>();
         SetUp(startingPosition, actionPointsLeft, movingUnit.currentMoveSpeed);
 
@@ -123,27 +119,11 @@ public class MovementTargeting : TargetingSystem
 
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
 
-        int initialActionPoints = numActionPoints;
-        int moveAmounts = 0;
-        while (initialActionPoints > 0)
-        {
-            if (initialActionPoints >= amountMoved + moveAmounts + 1)
-            {
-                moveAmounts += 1;
-                initialActionPoints -= amountMoved + moveAmounts;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        int startValue = currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * moveAmounts);
+        int startValue = currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * numActionPoints);
         List<DijkstraMapNode> nodesInMovementRange =  map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager);
 
         startingPosition = targetPosition;
         actionPointsLeft = numActionPoints;
-        amountOfPossibleMoves = moveAmounts;
 
         if (nodesInMovementRange.Count > 1)
         {
@@ -158,20 +138,20 @@ public class MovementTargeting : TargetingSystem
                     int tempNodeValue = nodeValue - currentMoveSpeed;
                     if(tempNodeValue <= 0)
                     {
-                        rangeBracketOfNode = amountMoved - 1;
+                        rangeBracketOfNode = - 1;
                     }
                     else
                     {
                         tempNodeValue -= 1;
-                        rangeBracketOfNode = tempNodeValue / (movingUnit.moveSpeedPerMoveAction) + amountMoved;
+                        rangeBracketOfNode = tempNodeValue / (movingUnit.moveSpeedPerMoveAction);
                     }                
                 }
                 else
                 {
                     nodeValue -= 1;
-                    rangeBracketOfNode = (nodeValue / (movingUnit.moveSpeedPerMoveAction)) + amountMoved;
+                    rangeBracketOfNode = (nodeValue / (movingUnit.moveSpeedPerMoveAction));
                 }
-
+                rangeBracketOfNode += 2 - actionPointsLeft;
                 Unit unitOnHex = gameManager.grid.GetGridObject(currentNodePosition).unit;
                 if(unitOnHex == null)
                 {
@@ -226,7 +206,7 @@ public class MovementTargeting : TargetingSystem
             map.getGrid().GetXY(startingPosition, out int x, out int y);
             path.Clear();
             bool foundEndPosition = false;
-            int currentMoveSpeed = moveSpeedInitiallyAvailable + movingUnit.moveSpeedPerMoveAction * amountOfPossibleMoves;
+            int currentMoveSpeed = moveSpeedInitiallyAvailable + movingUnit.moveSpeedPerMoveAction * actionPointsLeft;
             int previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
             int startx = x;
             int starty = y;
@@ -354,16 +334,8 @@ public class MovementTargeting : TargetingSystem
                 {
                     movementActionsTaken = (((moveSpeedLeft + 1) / movingUnit.moveSpeedPerMoveAction) - 1) * -1;
                 }
-
-                int actionPointsUsed = 0;
-                int previousAmountMoved = amountMoved;
-                for(int i = 0; i < movementActionsTaken; i++)
-                {
-                    actionPointsUsed += amountMoved + 1;
-                    moveSpeedLeft += movingUnit.moveSpeedPerMoveAction;
-                    amountMoved += 1;
-                }
-                actionPointsLeft -= actionPointsUsed;
+                moveSpeedLeft += movementActionsTaken * movingUnit.moveSpeedPerMoveAction;
+                actionPointsLeft -= movementActionsTaken;
 
                 Destroy(tempMovingUnit);
                 tempMovingUnit = null;
@@ -386,7 +358,7 @@ public class MovementTargeting : TargetingSystem
                     () => // Cancel Action
                     {
                         ResetTargeting();
-                        SetUp(movingUnit.transform.position, movingUnit.currentActionsPoints, movingUnit.currentMoveSpeed);
+                        SetUp(movingUnit.transform.position, movingUnit.currentMajorActionsPoints, movingUnit.currentMoveSpeed);
                     });
                 
             }
@@ -404,7 +376,6 @@ public class MovementTargeting : TargetingSystem
         actionLines = new List<List<Vector3>>();
         amountActionLineIncreased = 0;
         IndexOfStartingActionLine = 0;
-        amountMoved = 0;
         gameManager.spriteManager.ClearLines();
         for (int i = 0; i < targetingPassiveSpriteHolder.Count; i++)
         {
@@ -481,6 +452,7 @@ public class MovementTargeting : TargetingSystem
         {
             Vector2Int pathLocation = moveLocations[i];
             List<PassiveEffectArea> passivesOnLocation = passives[pathLocation.x, pathLocation.y];
+
             List<Passive> passivesUsed = new List<Passive>();
             for (int j = 0; j < passivesOnLocation.Count; j++)
             {

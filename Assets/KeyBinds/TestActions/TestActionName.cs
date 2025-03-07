@@ -10,4 +10,5 @@ public enum TestActionName
     PlaceTeam2,
     PlaceTeam3,
     PlaceTeam4,
+    RemoveUnit
 }

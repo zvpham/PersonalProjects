@@ -28,7 +28,7 @@ public class Evade : StatusAction
         int y = movingUnit.y;
         Debug.Log("Start Position: " + x + ", " + y);   
         int actionIndex = GetActionIndex(movingUnit);
-        if (movingUnit.currentActionsPoints <= this.intialActionPointUsage || movingUnit.actions[actionIndex].amountUsedDuringRound > 0)
+        if (!CheckActionUsable(movingUnit))
         {
             return false;
         }
@@ -42,22 +42,9 @@ public class Evade : StatusAction
                 break;
             }
         }
-        int amountMoved = movingUnit.actions[moveActionIndex].amountUsedDuringRound;
 
-        int moveAmounts = 0;
-        int usableActionPoints = movingUnit.currentActionsPoints - intialActionPointUsage;
-        while (usableActionPoints > 0)
-        {
-            if (usableActionPoints >= amountMoved + moveAmounts + 1)
-            {
-                moveAmounts += 1;
-                usableActionPoints -= amountMoved + moveAmounts;
-            }
-            else
-            {
-                break;
-            }
-        }
+        int usableActionPoints = movingUnit.currentMajorActionsPoints - actionPointUsage;
+
         CombatGameManager gameManager = movingUnit.gameManager;
         List<PassiveEffectArea>[,] passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
         for (int i = 0; i < gameManager.mapSize; i++)
@@ -103,7 +90,7 @@ public class Evade : StatusAction
             }
         }
 
-        int startValue = movingUnit.currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * moveAmounts);
+        int startValue = movingUnit.currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * usableActionPoints);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
         List<DijkstraMapNode> nodesInMovementRange = gameManager.map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager, badWalkInPassivesValues);
         GridHex<GridPosition> grid = gameManager.grid;
@@ -126,7 +113,7 @@ public class Evade : StatusAction
     {
         Unit movingUnit = AiActionData.unit;
         int actionIndex = GetActionIndex(movingUnit);
-        if (movingUnit.currentActionsPoints <= this.intialActionPointUsage || movingUnit.actions[actionIndex].amountUsedDuringRound > 0)
+        if (!CheckActionUsable(movingUnit))
         {
             return new Tuple<int, Vector2Int, List<Action>, List<Vector2Int>>(int.MaxValue, Vector2Int.zero, null, new List<Vector2Int>());
         }
@@ -216,23 +203,9 @@ public class Evade : StatusAction
             }
         }
 
-        int initialActionPoints = movingUnit.currentActionsPoints - this.intialActionPointUsage;
-        int amountMoved = movingUnit.actions[moveActionIndex].amountUsedDuringRound;
-        int moveAmounts = 0;
-        while (initialActionPoints > 0)
-        {
-            if (initialActionPoints >= amountMoved + moveAmounts + 1)
-            {
-                moveAmounts += 1;
-                initialActionPoints -= amountMoved + moveAmounts;
-            }
-            else
-            {
-                break;
-            }
-        }
+        int initialActionPoints = movingUnit.currentMajorActionsPoints - this.actionPointUsage;
 
-        int currentMoveSpeed = movingUnit.currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * moveAmounts);
+        int currentMoveSpeed = movingUnit.currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * initialActionPoints);
         int startMoveSpeed = currentMoveSpeed;
         int previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
         int moveSpeedUsed = 0;
@@ -335,7 +308,7 @@ public class Evade : StatusAction
 
             Debug.Log("Node Found: " + currentNodeGoal + ", original node: " + movingUnit.x + ", " + movingUnit.y);
             // if new goal makes is further than starting position -  End Turn
-            if (currentNodeGoal != null && currentNodeGoal.value >= map.getGrid().GetGridObject(movingUnit.x, movingUnit.y).value)
+            if (currentNodeGoal == null || currentNodeGoal.value >= map.getGrid().GetGridObject(movingUnit.x, movingUnit.y).value)
             {
                 return new Tuple<int, Vector2Int, List<Action>, List<Vector2Int>>(int.MaxValue, Vector2Int.zero, null, new List<Vector2Int>());
             }
@@ -390,45 +363,6 @@ public class Evade : StatusAction
 
         if (path.Count != 0)
         {
-            /*
-            Move unitmove = null;
-            for (int i = 0; i < movingUnit.actions.Count; i++)
-            {
-                if (movingUnit.actions[i].action.GetType() == typeof(Move))
-                {
-                    unitmove = (Move)movingUnit.actions[i].action;
-                }
-            }
-
-            ActionData evadaAction = new ActionData();
-            evadaAction.action = this;
-            evadaAction.actingUnit = movingUnit;
-            gameManager.AddActionToQueue(evadaAction, false, false);
-
-            ActionData actionData = new ActionData();
-            actionData.action = unitmove;
-            actionData.actingUnit = movingUnit;
-            actionData.originLocation = new Vector2Int(movingUnit.x, movingUnit.y);
-
-            List<Vector2Int> tempPath = new List<Vector2Int>() { path[0] };
-            actionData.path = tempPath;
-            movingUnit.gameManager.AddActionToQueue(actionData, false, false);
-
-
-            for (int i = 1; i < path.Count; i++)
-            {
-                actionData = new ActionData();
-                actionData.action = unitmove;
-                actionData.actingUnit = movingUnit;
-                actionData.originLocation = new Vector2Int(path[i - 1].x, path[i - 1].y);
-
-                tempPath = new List<Vector2Int>() { path[i] };
-                actionData.path = tempPath;
-                movingUnit.gameManager.AddActionToQueue(actionData, false, false);
-            }
-
-            movingUnit.gameManager.PlayActions();
-            */
             int indexOfMoveAction = movingUnit.GetMoveActionIndex();
             return new Tuple<int, Vector2Int, List<Action>, List<Vector2Int>>(map.getGrid().GetGridObject(path[path.Count - 1]).value, path[path.Count - 1],
                 new List<Action> { this, movingUnit.actions[indexOfMoveAction].action }, new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) }) ;
@@ -441,7 +375,7 @@ public class Evade : StatusAction
 
     public override void AIUseAction(AIActionData AIActionData, bool finalAction = false)
     {
-        AIActionData.expectedCurrentActionPoints -= intialActionPointUsage;
+        AIActionData.expectedCurrentActionPoints -= actionPointUsage;
         Unit self = AIActionData.unit;
         ActionData newData = new ActionData();
         newData.action = this;
@@ -499,33 +433,12 @@ public class Evade : StatusAction
             }
         }
 
-        int amountMoved = -1;
-        for (int i = 0; i < movingUnit.actions.Count; i++)
-        {
-            if (movingUnit.actions[i].action.GetType() == typeof(Move))
-            {
-                amountMoved = movingUnit.actions[i].amountUsedDuringRound;
-            }
-        }
 
-        int initialActionPoints = actionData.expectedCurrentActionPoints - intialActionPointUsage;
-        int moveAmounts = 0;
-        while (initialActionPoints > 0)
-        {
-            if (initialActionPoints >= amountMoved + moveAmounts + 1)
-            {
-                moveAmounts += 1;
-                initialActionPoints -= amountMoved + moveAmounts;
-            }
-            else
-            {
-                break;
-            }
-        }
+        int initialActionPoints = actionData.expectedCurrentActionPoints - actionPointUsage;
 
         actionData.unit.gameManager.map.ResetMap(true);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-        int startValue = (movingUnit.moveSpeedPerMoveAction * moveAmounts);
+        int startValue = (movingUnit.moveSpeedPerMoveAction * initialActionPoints) + movingUnit.currentMoveSpeed;
         List<DijkstraMapNode> mapNodes = actionData.unit.gameManager.map.GetNodesInMovementRange(actionData.originalPosition.x, actionData.originalPosition.y, startValue, movingUnit.moveModifier, gameManager, badWalkInPassivesValues);
         int[,] movementGridValues = actionData.unit.gameManager.map.GetGridValues();
 
@@ -543,27 +456,28 @@ public class Evade : StatusAction
                     int tempNodeValue = nodeValue - currentMoveSpeed;
                     if (tempNodeValue <= 0)
                     {
-                        amountOfMoveActionsTaken = amountMoved - 1;
+                        amountOfMoveActionsTaken = - 1;
                     }
                     else
                     {
                         tempNodeValue -= 1;
-                        amountOfMoveActionsTaken = tempNodeValue / (movingUnit.moveSpeedPerMoveAction) + amountMoved;
+                        amountOfMoveActionsTaken = tempNodeValue / (movingUnit.moveSpeedPerMoveAction);
                     }
                 }
                 else
                 {
                     nodeValue -= 1;
-                    amountOfMoveActionsTaken = (nodeValue / (movingUnit.moveSpeedPerMoveAction)) + amountMoved;
+                    amountOfMoveActionsTaken = (nodeValue / (movingUnit.moveSpeedPerMoveAction));
                 }
                 amountOfMoveActionsTaken += 1;
                 int actionPointsUsed = 0;
+                actionPointsUsed = amountOfMoveActionsTaken;
                 for (int j = 0; j < amountOfMoveActionsTaken; j++)
                 {
                     actionPointsUsed += j + 1;
                 }
 
-                actionPointsUsed += intialActionPointUsage;
+                actionPointsUsed += actionPointUsage;
                 if (actionData.ignorePassiveArea[currentNode.x, currentNode.y] ||  actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
                 {
                     Vector2Int startHex = new Vector2Int(movingUnit.x, movingUnit.y);

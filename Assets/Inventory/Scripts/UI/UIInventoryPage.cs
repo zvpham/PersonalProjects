@@ -441,7 +441,7 @@ namespace Inventory.UI
                 Destroy(actionPointChildren[i]);
             }
 
-            for (int i = 0; i < unit.maxActionsPoints; i++)
+            for (int i = 0; i < unit.maxMajorActionsPoints; i++)
             {
                 Image newActionPoint = Instantiate(actionPointPrefab, actionPointPanel.gameObject.transform);
                 newActionPoint.transform.position = newActionPoint.transform.position +

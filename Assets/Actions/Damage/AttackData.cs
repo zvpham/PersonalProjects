@@ -6,9 +6,9 @@ using UnityEngine;
 public class AttackData
 {
     public List<Damage> allDamage = new List<Damage>();
-    public int minDamage;
-    public int maxDamage;
-    public bool ignroeArmour = false;
+    public bool ignoreArmour = false;
+    public bool ignoreShield = false;
+    public bool meleeContact = false;
     public float armorDamagePercentage;
     public List<Modifier> modifiers;
     public Unit originUnit;
@@ -28,16 +28,14 @@ public class AttackData
         foreach (Damage damage in allDamage)
         {
             Damage tempDamage = new Damage();
-            tempDamage.minDamage = damage.minDamage;
-            tempDamage.maxDamage = damage.maxDamage;
+            tempDamage.minDamage = (int)(damage.minDamage * originUnit.GetMinimumDamageModifer());
+            tempDamage.maxDamage = (int)(damage.maxDamage * originUnit.GetMaximumDamageModifer());
             tempDamage.damageType= damage.damageType;
+            if (tempDamage.minDamage > tempDamage.maxDamage)
+            {
+                tempDamage.maxDamage = tempDamage.minDamage;
+            }
             tempAllDamage.Add(tempDamage);
-        }
-
-        for(int i = 0; i < tempAllDamage.Count; i++)
-        {
-            tempAllDamage[i].minDamage = minDamage + (int)(minDamage * originUnit.GetMinimumDamageModifer());
-            tempAllDamage[i].maxDamage = maxDamage + (int)(maxDamage * originUnit.GetMaximumDamageModifer());
         }
 
         List<AttackDataUI> AttackDisplayData =  targetUnit.DisplayCalculatedEstimatedDamage(this, tempAllDamage, true);
@@ -45,12 +43,6 @@ public class AttackData
         bool foundDamageValue = false;
         for (int i = 0; i < tempAllDamage.Count; i++)
         {
-            if (tempAllDamage[i].minDamage > tempAllDamage[i].maxDamage)
-            {
-                tempAllDamage[i].maxDamage = tempAllDamage[i].minDamage;
-            }
-            tempAllDamage[i].minDamage = minDamage + (int)(minDamage * originUnit.GetMinimumDamageModifer());
-            tempAllDamage[i].maxDamage = maxDamage + (int)(maxDamage * originUnit.GetMaximumDamageModifer());
             if (tempAllDamage[i].maxDamage == 0)
             {
                 tempAllDamage.RemoveAt(i);
@@ -113,28 +105,20 @@ public class AttackData
         foreach (Damage damage in allDamage)
         {
             Damage tempDamage = new Damage();
-            tempDamage.minDamage = damage.minDamage;
-            tempDamage.maxDamage = damage.maxDamage;
+            tempDamage.minDamage = (int)(damage.minDamage * originUnit.GetMinimumDamageModifer());
+            tempDamage.maxDamage = (int)(damage.maxDamage * originUnit.GetMaximumDamageModifer());
             tempDamage.damageType = damage.damageType;
+            if (tempDamage.minDamage > tempDamage.maxDamage)
+            {
+                tempDamage.maxDamage = tempDamage.minDamage;
+            }
             tempAllDamage.Add(tempDamage);
-        }
-
-        for (int i = 0; i < tempAllDamage.Count; i++)
-        {
-            tempAllDamage[i].minDamage = minDamage + (int)(minDamage * originUnit.GetMinimumDamageModifer());
-            tempAllDamage[i].maxDamage = maxDamage + (int)(maxDamage * originUnit.GetMaximumDamageModifer());
         }
 
         Modifier resistances = targetUnit.GetCalculatedEstimatedDamage(this, tempAllDamage, true);
 
         for (int i = 0; i < tempAllDamage.Count; i++)
         {
-            if (tempAllDamage[i].minDamage > tempAllDamage[i].maxDamage)
-            {
-                tempAllDamage[i].maxDamage = tempAllDamage[i].minDamage;
-            }
-            tempAllDamage[i].minDamage = minDamage + (int)(minDamage * originUnit.GetMinimumDamageModifer());
-            tempAllDamage[i].maxDamage = maxDamage + (int)(maxDamage * originUnit.GetMaximumDamageModifer());
             if (tempAllDamage[i].maxDamage == 0)
             {
                 tempAllDamage.RemoveAt(i);
@@ -144,15 +128,15 @@ public class AttackData
 
         AttackData tempAttackData = new AttackData(allDamage, armorDamagePercentage, originUnit);
         tempAttackData.modifiers = modifiers;
-        tempAttackData.ignroeArmour = ignroeArmour;
+        tempAttackData.ignoreArmour = ignoreArmour;
         return tempAttackData;
     }
 
     public List<AttackDataUI> CalculateAttackData(Unit targetUnit)
     {
         AttackDataUI mainAttack = new AttackDataUI();
-        int adjustedMinimumDamage = minDamage + (int)(minDamage * originUnit.GetMinimumDamageModifer());
-        int adjustmedMaximumDamage = maxDamage + (int)(maxDamage * originUnit.GetMaximumDamageModifer());
+        int adjustedMinimumDamage = 10;
+        int adjustmedMaximumDamage = 10;
 
         Tuple<int, int, List<AttackDataUI>> attackData = targetUnit.CalculateEstimatedDamage(adjustedMinimumDamage, adjustmedMaximumDamage, true);
         adjustedMinimumDamage = attackData.Item1;

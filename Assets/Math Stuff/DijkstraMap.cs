@@ -147,7 +147,6 @@ public class DijkstraMap
             return null;
         }
 
-        grid.GetGridObject(x, y).amountTraveled = 0;
         openList.Add(grid.GetGridObject(x, y));
         while (openList.Count > 0)
         {
@@ -156,10 +155,9 @@ public class DijkstraMap
 
             foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
             {
-                int moveCost = Mathf.Abs(neighborNode.value - currentNode.value);
-                if (!closedList.Contains(neighborNode) && !openList.Contains(neighborNode) && !nodesInRange.Contains(neighborNode) && moveCost + currentNode.amountTraveled <= initialMoveValue)
+                int nodeDifference = Mathf.Abs(neighborNode.value - startNodeValue);
+                if (nodeDifference <= initialMoveValue && !closedList.Contains(neighborNode) && !openList.Contains(neighborNode))
                 {
-                    neighborNode.amountTraveled = moveCost + currentNode.amountTraveled;
                     nodesInRange.Add(neighborNode);     
                     openList.Add(neighborNode);
                 }
@@ -243,6 +241,7 @@ public class DijkstraMap
         return nodesInMovementRange;
     }
 
+    // creates a grid where starting position is highest nodeValue and value decreases as grid spreads to walkable tiles
     public List<DijkstraMapNode> GetNodesInMovementRange(int x, int y, int initialMoveValue, MoveModifier moveModifier,
     CombatGameManager gameManager, bool[,] badWalkinPassiveEffects, int walkCostOveride = -1, int[,] walkCostGridOveride = null)
     {

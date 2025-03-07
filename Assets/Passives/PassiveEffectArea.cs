@@ -17,4 +17,9 @@ public class PassiveEffectArea
     {
         return passive.passive.GetTargetingData(orignalPosition, path, setPath, passiveArea);
     }
+
+    public void CalculatePredictedActionConsequences(AIActionData AiActionData, Vector2Int orignalPosition, List<Vector2Int> path)
+    {
+        passive.passive.CalculatePredictedActionConsequences(AiActionData, originUnit, orignalPosition, path, passiveLocations);
+    }
 }

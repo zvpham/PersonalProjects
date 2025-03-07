@@ -26,6 +26,10 @@ public class OpportunityAttack : AreaPassive
     public override void RemovePassive(Unit unit)
     {   
         Debug.Log("remove Passive");
+        if(unit == null)
+        {
+            return;
+        }
         unit.OnPositionChanged -= OnPositionChanged;
     }
 
@@ -84,25 +88,19 @@ public class OpportunityAttack : AreaPassive
         bool foundPosition = false;
         Vector2Int spriteLocation = new Vector2Int(-1, -1);
 
-        if (passiveArea.Contains(orignalPosition))
+        if ((setPath.Count != 0 || path.Count != 0) && passiveArea.Contains(orignalPosition))
         {
-            if (setPath.Count != 0 || path.Count != 0)
-            {
-                foundPosition = true;
-                spriteLocation = orignalPosition;
-            }
+            foundPosition = true;
+            spriteLocation = orignalPosition;
         }
 
-        for (int i = 0;  i< setPath.Count; i++)
+        for (int i = 0;  i < setPath.Count; i++)
         {
-            if (passiveArea.Contains(setPath[i]))
+            if (passiveArea.Contains(setPath[i]) && (i < setPath.Count - 1 || path.Count != 0))
             {
-                if( i < setPath.Count - 1 || path.Count != 0)
-                {
-                    foundPosition = true;
-                    spriteLocation = setPath[i];
-                    break;
-                }
+                foundPosition = true;
+                spriteLocation = setPath[i];
+                break;
             }
         }
 
@@ -110,13 +108,10 @@ public class OpportunityAttack : AreaPassive
         {
             for (int i = 0; i < path.Count; i++)
             {
-                if (passiveArea.Contains(path[i]))
+                if (passiveArea.Contains(path[i]) && i < path.Count - 1)
                 {
-                    if (i < path.Count - 1)
-                    {
-                        spriteLocation = path[i];
-                        break;
-                    }
+                    spriteLocation = path[i];
+                    break;
                 }
             }
         }
@@ -180,5 +175,27 @@ public class OpportunityAttack : AreaPassive
     public override void ModifiyAction(Action action, AttackData attackData)
     {
         return;
+    }
+
+    public override void CalculatePredictedActionConsequences(AIActionData AiActionData, Unit actingUnit, Vector2Int orignalPosition, List<Vector2Int> path, List<Vector2Int> passiveArea)
+    {
+        Unit movingUnit = AiActionData.unit;
+        MeleeAttack meleeAttack =  actingUnit.MeleeAttack;
+        if (path.Count != 0 && passiveArea.Contains(orignalPosition))
+        {
+            Debug.Log("Origin Position Oppurtunty Attack");
+            meleeAttack.ExpectedEffectsOfPassivesActivations(AiActionData, actingUnit);
+        }
+
+        for (int i = 0; i < path.Count; i++)
+        {
+            Debug.Log("Walking Path: " + path[i]);
+            if (passiveArea.Contains(path[i]) && i < path.Count - 1)
+            {
+                Debug.Log("Oppurtunty Attack: " + path[i]);
+                meleeAttack.ExpectedEffectsOfPassivesActivations(AiActionData, actingUnit);
+            }
+        }
+
     }
 }

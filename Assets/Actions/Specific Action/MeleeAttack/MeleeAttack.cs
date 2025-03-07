@@ -25,6 +25,8 @@ public class MeleeAttack : Action
 
         if (AiActionData.canMove)
         {
+            //End Position and Target Unit
+            List<Tuple<Vector2Int, Unit>> validMoveHexes = new List<Tuple<Vector2Int, Unit>>();
             for (int k = 0; k < AiActionData.enemyUnits.Count; k++)
             {
                 int x = AiActionData.enemyUnits[k].x;
@@ -36,7 +38,6 @@ public class MeleeAttack : Action
                 for (int i = 1; i <= range; i++)
                 {
                     List<DijkstraMapNode> mapNodes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, i);
-                    int lowestActionPointsUsedForMovement = int.MaxValue;
                     for (int j = 0; j < mapNodes.Count; j++)
                     {
                         Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
@@ -46,30 +47,52 @@ public class MeleeAttack : Action
                             AiActionData.unit.moveModifier.validElevationDifference(gameManager, currentNode, mapNodes[j], range)
                             && CheckIfTileIsInRange(currentNodePosition, AiActionData) && originElevation > highestValidElevation)
                         {
-                            lowestActionPointsUsedForMovement = AiActionData.movementData[mapNodes[j].x, mapNodes[j].y];
-                            AttackData attackData = CalculateAttackData(originUnit, targetUnit);
-                            Tuple<int, int> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
-                            bool targetExpectedToDie = expectedTargetDamage.Item1 >= targetUnit.currentHealth;
-                            int tempActionValue = -2;
-                            tempActionValue += (int)(expectedTargetDamage.Item1 * gameManager.healthDamageModifier);
-                            tempActionValue += expectedTargetDamage.Item2;
-                            if (targetExpectedToDie)
-                            {
-                                tempActionValue += gameManager.killValue;
-                            }
-                            tempActionValue = (int)(tempActionValue * targetUnit.targetValue);
-                            tempActionValue = AiActionData.ModifyActionValue(AiActionData, currentNodePosition, this, tempActionValue);
-
-                            if (highestActionValue < tempActionValue)
-                            {
-                                highestActionValue = tempActionValue;
-                                AiActionData.desiredEndPosition = currentNodePosition;
-                                AiActionData.desiredTargetPositionEnd = AiActionData.enemyUnits[k];
-                                AiActionData.action = this;
-                            }
+                            Debug.Log("Add Valid hex");
+                           validMoveHexes.Add(new Tuple<Vector2Int, Unit>(currentNodePosition, targetUnit));
                         }
                     }
                 }
+            }
+            int totalMovingUnitHealth = originUnit.currentHealth + originUnit.currentArmor;
+            for(int i = 0; i < validMoveHexes.Count; i++)
+            {
+                Vector2Int newPosition =  validMoveHexes[i].Item1;
+                Unit targetUnit = validMoveHexes[i].Item2;
+                List<Action> movementActions = AiActionData.movementActions[newPosition.x, newPosition.y];
+                AiActionData.prediction = new ActionPredictionData();
+                for (int j = 0; j < movementActions.Count; j++)
+                {
+                    movementActions[j].CalculateActionConsequences(AiActionData, newPosition);
+                }
+                float actionConsequenceModifier = totalMovingUnitHealth - AiActionData.prediction.Damage;
+                Debug.Log(validMoveHexes[i] + ", " + actionConsequenceModifier + ", " + totalMovingUnitHealth + ", " + AiActionData.prediction.Damage);
+                if (actionConsequenceModifier < 0)
+                {
+                    continue;
+                }
+
+                actionConsequenceModifier = actionConsequenceModifier / totalMovingUnitHealth;
+                AttackData attackData = CalculateAttackData(originUnit, targetUnit);
+                Tuple<int, int> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
+                bool targetExpectedToDie = expectedTargetDamage.Item1 >= targetUnit.currentHealth;
+                int tempActionValue = -2;
+                tempActionValue += (int)(expectedTargetDamage.Item1 * gameManager.healthDamageModifier);
+                tempActionValue += expectedTargetDamage.Item2;
+                if (targetExpectedToDie)
+                {
+                    tempActionValue += gameManager.killValue;
+                }
+                tempActionValue = (int)(tempActionValue * targetUnit.targetValue);
+                tempActionValue = AiActionData.ModifyActionValue(AiActionData, newPosition, this, tempActionValue);
+                tempActionValue = (int) (tempActionValue * actionConsequenceModifier);
+                if (highestActionValue < tempActionValue)
+                {
+                    highestActionValue = tempActionValue;
+                    AiActionData.desiredEndPosition = newPosition;
+                    AiActionData.desiredTargetPositionEnd = new Vector2Int(targetUnit.x, targetUnit.y);
+                    AiActionData.action = this;
+                }
+
             }
         }
         else
@@ -178,18 +201,35 @@ public class MeleeAttack : Action
         */
     }
 
-    public override void AIUseAction(AIActionData AIActionData, bool finalAction = false) 
+    public override void ExpectedEffectsOfPassivesActivations(AIActionData AiActionData, Unit actingUnit)
     {
-        Vector2Int targetHex = AIActionData.desiredTargetPositionEnd;
-        Vector2Int endPosition = AIActionData.desiredEndPosition;
+        CombatGameManager gameManager =  actingUnit.gameManager;
+        Unit targetUnit = AiActionData.unit;
+        AttackData attackData = CalculateAttackData(actingUnit, targetUnit);
+        Tuple<int, int> expectedTargetDamage = targetUnit.GetEstimatedDamageValues  (attackData);
+        bool targetExpectedToDie = expectedTargetDamage.Item1 >= targetUnit.currentHealth;
+        int tempActionValue = -2;
+        tempActionValue += expectedTargetDamage.Item1;
+        tempActionValue += expectedTargetDamage.Item2;
+        if (targetExpectedToDie)
+        {
+            tempActionValue += gameManager.killValue;
+        }
+        AiActionData.prediction.Damage += tempActionValue;
+    }
 
-        List<Action> movementActions = AIActionData.movementActions[endPosition.x, endPosition.y];
+    public override void AIUseAction(AIActionData AiActionData, bool finalAction = false) 
+    {
+        Vector2Int targetHex = AiActionData.desiredTargetPositionEnd;
+        Vector2Int endPosition = AiActionData.desiredEndPosition;
+
+        List<Action> movementActions = AiActionData.movementActions[endPosition.x, endPosition.y];
         for(int i = 0; i < movementActions.Count; i++)
         {
-            movementActions[i].AIUseAction(AIActionData);
+            movementActions[i].AIUseAction(AiActionData);
         }
 
-        Unit movingUnit = AIActionData.unit;
+        Unit movingUnit = AiActionData.unit;
         Unit targetUnit = movingUnit.gameManager.grid.GetGridObject(targetHex).unit;
         movingUnit.gameManager.grid.GetXY(movingUnit.transform.position, out int x, out int y);
         ActionData actionData = new ActionData();
@@ -206,8 +246,8 @@ public class MeleeAttack : Action
     {
         base.SelectAction(self);
         int actionIndex = GetActionIndex(self);
-        int amountOfActionPointsUsed = this.intialActionPointUsage + actionPointGrowth * self.actions[actionIndex].amountUsedDuringRound;
-        self.gameManager.spriteManager.ActivateMeleeAttackTargeting(self, false, self.currentActionsPoints, amountOfActionPointsUsed, range,
+        int amountOfActionPointsUsed = this.actionPointUsage;
+        self.gameManager.spriteManager.ActivateMeleeAttackTargeting(self, false, self.currentMajorActionsPoints, amountOfActionPointsUsed, range,
             CalculateAttackDisplayData);
         self.gameManager.spriteManager.meleeTargeting.OnFoundTarget += FoundTarget;
     }
@@ -245,7 +285,7 @@ public class MeleeAttack : Action
 
 
         AttackData tempAttackData = new AttackData(new List<Damage>() { mainDamage}, effectAgainstArmorPercentage, movingUnit);
-        tempAttackData.ignroeArmour = ignoreArmor;
+        tempAttackData.ignoreArmour = ignoreArmor;
 
         movingUnit.GetActionModifiers(this, tempAttackData);
         AttackData modifiedAttackData = tempAttackData.GetCalculatedAttackData(targetUnit);
@@ -293,28 +333,16 @@ public class MeleeAttack : Action
         Vector3Int targetUnitCube = map.OffsetToCube(x, y);
         int distanceBetweenUnits = map.CubeDistance(movingUnitCube, targetUnitCube);
 
-        Debug.Log(distanceBetweenUnits);
         if (targetUnit != null && distanceBetweenUnits <= range)
         {
-            Debug.Log("Hit");
-            Debug.Log("ACtions in Queue: " + targetUnit.gameManager.actionsInQueue.Count);
-            for (int i = 0; i < targetUnit.gameManager.actionsInQueue.Count; i++)
-            {
-                if (targetUnit.gameManager.actionsInQueue[i].actingUnit == targetUnit)
-                {
-                    targetUnit.gameManager.actionsInQueue.Remove(targetUnit.gameManager.actionsInQueue[i]);
-                    i--;
-                }
-            }
-            Debug.Log("ACtions in Queue: After " + targetUnit.gameManager.actionsInQueue.Count);
             List<AttackDataUI> attackDatas = CalculateAttackDisplayData(actionData.actingUnit, targetUnit, null);
             targetUnit.gameManager.spriteManager.ActivateCombatAttackUI(targetUnit, attackDatas, targetUnit.transform.position);
 
 
             MeleeAttackAnimation meleeAttackAnimation = (MeleeAttackAnimation)Instantiate(this.animation);
-            meleeAttackAnimation.SetParameters(actionData.actingUnit.gameManager, actionData.actingUnit.transform.position, targetUnit.transform.position);
-            int adjustedMinimumDamage = minDamage + (int)(minDamage * actionData.actingUnit.GetMinimumDamageModifer());
-            int adjustmedMaximumDamage = maxDamage + (int)(maxDamage * actionData.actingUnit.GetMaximumDamageModifer());
+            meleeAttackAnimation.SetParameters(actionData.actingUnit, actionData.actingUnit.transform.position, targetUnit.transform.position);
+            int adjustedMinimumDamage =  (int)(minDamage * actionData.actingUnit.GetMinimumDamageModifer());
+            int adjustmedMaximumDamage =  (int)(maxDamage * actionData.actingUnit.GetMaximumDamageModifer());
             targetUnit.TakeDamage(actionData.actingUnit, new List<int>() { adjustedMinimumDamage }, new List<int>() { adjustmedMaximumDamage },
                 true, false, ignoreArmor, true);
             UseActionPreset(actionData.actingUnit);

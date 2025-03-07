@@ -56,9 +56,10 @@ public class MoveAnimation : CustomAnimations
         }
     }
 
-    public  void SetParameters(CombatGameManager gameManager, Vector2 originalPosition, Vector2 newPosition, Vector2Int newxy)
+    public  void SetParameters(Unit actingUnit,  Vector2 originalPosition, Vector2 newPosition, Vector2Int newxy)
     {
-        this.gameManager = gameManager;
+        this.actingUnit = actingUnit;
+        this.gameManager = actingUnit.gameManager;
         this.originalPosition = originalPosition;
         this.newPosition = newPosition;
         this.newXY = newxy;

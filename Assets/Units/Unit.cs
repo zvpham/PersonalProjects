@@ -7,6 +7,7 @@ using Inventory.Model;
 using JetBrains.Annotations;
 using System;
 using Unity.VisualScripting;
+using static UnityEngine.UI.CanvasScaler;
 
 public class Unit : UnitSuperClass, IInititiave
 {
@@ -15,6 +16,7 @@ public class Unit : UnitSuperClass, IInititiave
     public bool isLoaded = false;
 
     public Sprite unitProfile;
+    public GameObject unitSpriteRenderer;
     public CombatAttackUI combatAttackUi;
 
     public int heroIndex = -1;  
@@ -74,8 +76,11 @@ public class Unit : UnitSuperClass, IInititiave
     
     public List<StatusData> statuses = new List<StatusData>();
 
-    public int maxActionsPoints = 2;
-    public int currentActionsPoints = 0;
+    public int maxMajorActionsPoints = 2;
+    public int maxMinorActionsPoints = 0;
+    public int currentMajorActionsPoints = 0;
+    public int currentMinorActionsPoints = 0;
+
 
     public List<Unit> selfInTheseUnitsThreatenedZones = new List<Unit>();
 
@@ -86,7 +91,8 @@ public class Unit : UnitSuperClass, IInititiave
 
     public bool forceEndTurn = false;
     public bool confirmDeath;
-
+    public bool isDead = false;
+    public bool confirmDamage;
     //AI Help Data
     public float targetValue;
     public List<AIUnitResponses> AIResponseToUnit = new List<AIUnitResponses>();
@@ -95,7 +101,9 @@ public class Unit : UnitSuperClass, IInititiave
     public UnityAction<Vector2Int, Vector2Int, Unit, bool> OnPositionChanged;
     public UnityAction<Unit> OnDeath;
     // Self Unit, Damage Dealing Unit, Damage, IsMelee, isFirstInstanceOfDamage
+    public UnityAction<Unit, Unit, AttackData> PreDamage;
     public UnityAction<Unit, Unit, bool, bool> OnDamage;
+    public UnityAction<Unit, Unit, AttackData> PostDamage;
 
     public CombatGameManager gameManager;
 
@@ -314,7 +322,7 @@ public class Unit : UnitSuperClass, IInititiave
         gameManager.units.Add(this);
         if (!gameManager.testing)
         {
-            gameManager.spriteManager.CreateSpriteRenderer(0, unitProfile, transform.position);
+             unitSpriteRenderer = gameManager.spriteManager.CreateSpriteRenderer(0, unitProfile, transform.position);
         }
         gameManager.StartCombat();
 
@@ -361,19 +369,23 @@ public class Unit : UnitSuperClass, IInititiave
         if(currentWeight > highWeight)
         {
             overWieght = true;
-            maxActionsPoints = 1;
+            maxMajorActionsPoints = 1;
+            maxMinorActionsPoints = 0;
         }
         else if(currentWeight > mediumWeight)
         {
-            maxActionsPoints = 2;
+            maxMajorActionsPoints = 2;
+            maxMinorActionsPoints = 0;
         }
         else if (currentWeight > lowWeight)
         {
-            maxActionsPoints = 3;
+            maxMajorActionsPoints = 2;
+            maxMinorActionsPoints = 1;
         }
         else
         {
-            maxActionsPoints = 4;
+            maxMajorActionsPoints = 2;
+            maxMinorActionsPoints = 2;
         }
     }
 
@@ -399,7 +411,7 @@ public class Unit : UnitSuperClass, IInititiave
     {
         Debug.Log("Turn Start: " + team + ", " + this);
         onTurnStart?.Invoke();
-        currentActionsPoints = maxActionsPoints;
+        currentMajorActionsPoints = maxMajorActionsPoints;
         currentMoveSpeed = 0;
         CheckActionsDisabled();
         if (team == Team.Player)
@@ -414,7 +426,7 @@ public class Unit : UnitSuperClass, IInititiave
 
     public void ContinueAITurn()
     {
-        gameManager.StartAITurn(this, team);
+        gameManager.StartAITurn(this, team);    
     }
 
     public void CheckActionsDisabled()
@@ -430,16 +442,60 @@ public class Unit : UnitSuperClass, IInititiave
         OnSelectedAction?.Invoke(selectedAction, actionTargetingSystem);
     }
 
-    public void UseActionPoints(int usedActionPoints)
+    public void UseActionPoints(int usedActionPoints, bool minorActionsFirst = false)
     {
+
+        //Debug.Log("current Major Action Points: " + currentMajorActionsPoints + "current minor Action Points: " + currentMinorActionsPoints + ", actionPoints Used" + usedActionPoints);
         if(team == Team.Player)
         {
             Debug.Log("Used Action Points: " + usedActionPoints);
         }
-        currentActionsPoints -= usedActionPoints;
+        
+
+        if(minorActionsFirst)
+        {
+            if (usedActionPoints != 1)
+            {
+                Debug.LogError("bonus action first should only be used for actions that are just 1 bonus action");
+            }
+            else
+            {
+                if(currentMinorActionsPoints > 0)
+                {
+                    currentMinorActionsPoints -= 1;
+                }
+                else
+                {
+                    currentMajorActionsPoints -= 1;
+                }
+            }
+        }
+        else if(currentMajorActionsPoints > 0)
+        {
+            currentMajorActionsPoints -= 1;
+            int remainingUsedActionpoints = usedActionPoints - 1;
+            for(int i = 0; i < remainingUsedActionpoints; i++)
+            {
+                if (currentMinorActionsPoints > 0)
+                {
+                    currentMinorActionsPoints -= 1;
+                }
+                else
+                {
+                    currentMajorActionsPoints -= 1;
+                }
+                remainingUsedActionpoints -= 1;
+            }
+        }
+
         if (team == Team.Player)
         {
-            Debug.Log("current ACtion Points: " + currentActionsPoints);
+            Debug.Log("current ACtion Points: " + currentMajorActionsPoints);
+        }
+
+        if (currentMajorActionsPoints < 0 || currentMinorActionsPoints < 0)
+        {
+            Debug.LogError("Action Points when below 0, current Major Points: " + currentMajorActionsPoints + ", current minor points: " + currentMinorActionsPoints);
         }
         CheckActionsDisabled();
     }
@@ -448,7 +504,7 @@ public class Unit : UnitSuperClass, IInititiave
     {
         if (team == Team.Player)
         {
-            if (currentActionsPoints <= 0)
+            if (currentMajorActionsPoints <= 0)
             {
                 if (!forceEndTurn && CanMove())
                 {
@@ -465,7 +521,7 @@ public class Unit : UnitSuperClass, IInititiave
         }
         else
         {
-            if (currentActionsPoints <= 0)
+            if (currentMajorActionsPoints <= 0)
             {
                 if (!forceEndTurn && CanMove())
                 {
@@ -478,7 +534,6 @@ public class Unit : UnitSuperClass, IInititiave
             else
             {
                 ContinueAITurn();
-                gameManager.playerTurn.SelectAction(gameManager.playerTurn.currentlySelectedAction);
             }
         }
     }
@@ -683,18 +738,18 @@ public class Unit : UnitSuperClass, IInititiave
             totalModifer = totalModifer * attackData.modifiers[k].value;
         }
 
-        Debug.Log("Total Modifier: " + totalModifer);
+       // Debug.Log("Total Modifier: " + totalModifer);
         for (int k = 0; k < attackData.allDamage.Count; k++)
         {
             Damage currentDamage = attackData.allDamage[k];
-            Debug.Log("Current Damage: " +  currentDamage.minDamage + ", " + currentDamage.maxDamage);
+            //Debug.Log("Estimated Current Damage: " +  currentDamage.minDamage + ", " + currentDamage.maxDamage);
             int tempDamage = (currentDamage.minDamage + currentDamage.maxDamage) / 2;
             tempDamage = (int)(tempDamage * totalModifer);
             totalDamage += tempDamage;
         }
-        Debug.Log("Total Damage: " + totalDamage);
+        //Debug.Log("Estimated Total Damage: " + totalDamage);
 
-        return TempApplyDamage(totalDamage, attackData.armorDamagePercentage, attackData.ignroeArmour);
+        return TempApplyDamage(totalDamage, attackData.armorDamagePercentage, attackData.ignoreArmour);
     }
 
     //Health Damage, Armour Damage
@@ -753,14 +808,14 @@ public class Unit : UnitSuperClass, IInititiave
     }
    
 
-    public void TakeDamage(Unit unitDealingDamage, List<AttackData> attackDatas, bool meleeContact, bool ignoreShield, bool ignoreArmor, bool firstInstanceOfDamageSetUp)
+    public void TakeDamage(Unit unitDealingDamage, AttackData attackData, bool firstInstanceOfDamageSetUp)
     {
         int seed = System.DateTime.Now.Millisecond;
         UnityEngine.Random.InitState(seed);
 
         float combatDamageResistenceValue = damageResistence;
 
-        if (!ignoreShield)
+        if (!attackData.ignoreShield)
         {
             combatDamageResistenceValue += shieldDamageResistence;
         }
@@ -773,23 +828,34 @@ public class Unit : UnitSuperClass, IInititiave
         int intialArmor = currentArmor;
         int intialHealth = currentHealth;
         bool firstInstanceOfDamage = firstInstanceOfDamageSetUp;
-        for (int i = 0; i < attackDatas.Count; i++)
+        confirmDamage = true;
+        PreDamage?.Invoke(this, unitDealingDamage, attackData);
+        OnDamage?.Invoke(this, unitDealingDamage, attackData.meleeContact, firstInstanceOfDamage);
+
+        if(!confirmDamage)
         {
-            //int damageValue = UnityEngine.Random.Range(minDamage[i], maxDamage[i] + 1);
-            int damageValue = 1;
+            return;
+        }
+
+        // Seperated Becuase I am unsure If I want different damage Type to do different Things
+        for (int i = 0; i < attackData.allDamage.Count; i++)
+        {
+            Damage damage = attackData.allDamage[i];
+            int damageValue = UnityEngine.Random.Range(damage.minDamage, damage.maxDamage + 1);
             damageValue = damageValue - (int)(damageValue * combatDamageResistenceValue);
-            OnDamage?.Invoke(this, unitDealingDamage, meleeContact, firstInstanceOfDamage);
             firstInstanceOfDamage = false;
 
-            if (ignoreArmor)
+            if (attackData.ignoreArmour)
             {
                 currentHealth -= damageValue;
+                Debug.Log("Health Damage Taken: " + damageValue);
             }
             else
             {
                 currentArmor -= damageValue;
                 if (currentArmor < 0)
                 {
+                    Debug.Log("Health Damage Taken: " + currentArmor);
                     currentHealth += currentArmor;
                     currentArmor = 0;
                 }
@@ -797,6 +863,7 @@ public class Unit : UnitSuperClass, IInititiave
         }
 
         Debug.Log("Damage dealt: ");
+        PostDamage?.Invoke(this, unitDealingDamage, attackData);
 
         if (currentHealth <= 0)
         {
@@ -809,7 +876,7 @@ public class Unit : UnitSuperClass, IInititiave
             damageAnimation.SetParameters(combatAttackUi, this, intialArmor, intialHealth);
 
             AttackedAnimation attackedAnimation = Instantiate(gameManager.resourceManager.attackedAnimation);
-            attackedAnimation.SetParameters(gameManager, unitDealingDamage.transform.position, this.transform.position);
+            attackedAnimation.SetParameters(this, unitDealingDamage.transform.position, this.transform.position);
 
         }
     }
@@ -850,12 +917,14 @@ public class Unit : UnitSuperClass, IInititiave
             if(ignoreArmor)
             {
                 currentHealth -= damageValue;
+                Debug.Log("Health Damage Taken: " +  damageValue);
             }
             else
             {
                 currentArmor -= damageValue;
                 if (currentArmor < 0)
                 {
+                    Debug.Log("Health Damage Taken: " + currentArmor);
                     currentHealth += currentArmor;
                     currentArmor = 0;
                 }
@@ -864,6 +933,8 @@ public class Unit : UnitSuperClass, IInititiave
 
         if(currentHealth <= 0)
         {
+            combatAttackUi.readyToReset = true;
+            gameManager.spriteManager.ResetCombatAttackUI();
             Death();
         }
         else
@@ -873,7 +944,7 @@ public class Unit : UnitSuperClass, IInititiave
             damageAnimation.SetParameters(combatAttackUi, this, intialArmor, intialHealth);
 
             AttackedAnimation attackedAnimation = Instantiate(gameManager.resourceManager.attackedAnimation);
-            attackedAnimation.SetParameters(gameManager, damageDealingUnit.transform.position, this.transform.position);
+            attackedAnimation.SetParameters(this, damageDealingUnit.transform.position, this.transform.position);
 
         }
     }
@@ -887,6 +958,17 @@ public class Unit : UnitSuperClass, IInititiave
         {
             return;
         }
+
+        Debug.Log("Unit Died: " + name);
+
+        // Death Confirmed
+        gameManager.UnitDied(this);
+        DeathAnimation deathAnimation = Instantiate(gameManager.resourceManager.deathAnimation);
+        deathAnimation.SetParameters(this);
+        Destroy(this);
+        Destroy(this.gameObject);
+        isDead = true;
+        gameManager.OnActivateAction -= CheckPassives;
     }
 
     //-----------------------------------------------------

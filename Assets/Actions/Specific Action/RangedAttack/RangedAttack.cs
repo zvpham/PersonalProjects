@@ -40,7 +40,7 @@ public class RangedAttack : Action
         Debug.Log("select Ranged ATtack");
         base.SelectAction(self);
         int actionIndex = GetActionIndex(self);
-        int amountOfActionPointsUsed = this.intialActionPointUsage + actionPointGrowth * self.actions[actionIndex].amountUsedDuringRound;
+        int amountOfActionPointsUsed = this.actionPointUsage;
 
         List<EquipableAmmoSO> unitAmmo = new List<EquipableAmmoSO>();
 
@@ -69,7 +69,7 @@ public class RangedAttack : Action
         mainDamage.damageType = DamageTypes.physical;
 
         AttackData newAttackData = new AttackData(new List<Damage>() {mainDamage}, effectAgainstArmorPercentage, self);
-        self.gameManager.spriteManager.ActivateRangedTargeting(self, false, self.currentActionsPoints, amountOfActionPointsUsed, effectiveRange,
+        self.gameManager.spriteManager.ActivateRangedTargeting(self, false, self.currentMajorActionsPoints, amountOfActionPointsUsed, effectiveRange,
             newAttackData, unitAmmo);
         self.gameManager.spriteManager.rangedTargeting.OnFoundTarget += FoundTarget;
     }
@@ -127,7 +127,7 @@ public class RangedAttack : Action
             {
                 Debug.Log("Hit");
                 MeleeAttackAnimation meleeAttackAnimation = (MeleeAttackAnimation)Instantiate(this.animation);
-                meleeAttackAnimation.SetParameters(movingUnit.gameManager, movingUnit.transform.position, targetUnit.transform.position);
+                meleeAttackAnimation.SetParameters(movingUnit, movingUnit.transform.position, targetUnit.transform.position);
                 int adjustedMinimumDamage = minDamage + (int)(minDamage * movingUnit.GetMinimumDamageModifer());
                 int adjustmedMaximumDamage = maxDamage + (int)(maxDamage * movingUnit.GetMaximumDamageModifer());
                 targetUnit.TakeDamage(movingUnit, new List<int>() { adjustedMinimumDamage }, new List<int>() { adjustmedMaximumDamage },

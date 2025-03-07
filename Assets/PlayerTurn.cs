@@ -25,6 +25,16 @@ public class PlayerTurn : MonoBehaviour
      * This is a Test
      */
 
+    public void ResetPlayerTurn()
+    {
+        actionBar.ResetActionBarList();
+        currentlySelectedUnit = null;
+        playerUnitSuperUnits = new List<UnitSuperClass>();
+        playerUnits = new List<Unit>();
+        activeUnits = new List<Unit>();
+        currentlySelectedAction = null;
+    }
+
     public int CalculateRangedValue()
     {
         totalRangedValue = 0;
@@ -122,7 +132,7 @@ public class PlayerTurn : MonoBehaviour
 
     public void OnActionButtonPresed(int actionIndex)
     {
-        Debug.Log(currentlySelectedUnit + ", " + currentlySelectedUnit.currentActionsPoints + ", " + currentlySelectedUnit.team);
+        Debug.Log(currentlySelectedUnit + ", " + currentlySelectedUnit.currentMajorActionsPoints + ", " + currentlySelectedUnit.team);
         SelectAction(currentlySelectedUnit.actions[actionIndex].action);
     }
 
@@ -142,7 +152,31 @@ public class PlayerTurn : MonoBehaviour
 
     public void UnitDeath(Unit unit)
     {
+        if(unit.group == null)
+        {
+            playerUnitSuperUnits.Remove(unit);
+        }
+        else
+        {
+            UnitGroup unitGroup = unit.group;
+            playerUnitSuperUnits.Remove(unitGroup);
+        }
 
+        if(currentlySelectedUnit == unit)
+        {
+            currentlySelectedUnit = null;
+            currentlySelectedAction = null;
+            gameManager.TurnEnd(null);
+        }
+
+        playerUnits.Remove(unit);
+        activeUnits.Remove(unit);
+        CalculateRangedValue();
+    }
+
+    public void UnitGroupDeath(UnitGroup unitGroup)
+    {
+        playerUnitSuperUnits.Remove(unitGroup);
     }
 
     public bool CheckSpaceForFriendlyUnit(Vector2Int hexPosition)

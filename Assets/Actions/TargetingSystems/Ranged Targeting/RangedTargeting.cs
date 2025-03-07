@@ -87,7 +87,7 @@ public class RangedTargeting : TargetingSystem
         prevEndHexPosition = new Vector2Int(-1, -1);
         path = new List<Vector2Int>();
         this.enabled = true;
-        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
+        //amountMoved = movingUnit.actions[0].amountUsedDuringRound;
 
         SetUp(startingPosition, actionPointsLeft, movingUnit.moveSpeed);
     }
@@ -739,7 +739,7 @@ public class RangedTargeting : TargetingSystem
                         },
                         () => // Cancel Action
                         {
-                            SetUp(movingUnit.transform.position, movingUnit.currentActionsPoints, movingUnit.moveSpeed);
+                            SetUp(movingUnit.transform.position, movingUnit.currentMajorActionsPoints, movingUnit.moveSpeed);
                             ResetTargeting();
                         });
                 }
@@ -802,8 +802,8 @@ public class RangedTargeting : TargetingSystem
         actionLines = new List<List<Vector3>>();
         amountActionLineIncreased = 0;
         IndexOfStartingActionLine = 0;
-        actionPointsLeft = movingUnit.currentActionsPoints;
-        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
+        actionPointsLeft = movingUnit.currentMajorActionsPoints;
+        //amountMoved = movingUnit.actions[0].amountUsedDuringRound;
         gameManager.spriteManager.ResetCombatAttackUI();
         gameManager.spriteManager.ClearLines();
         SetUp(movingUnit.transform.position, actionPointsLeft, movingUnit.moveSpeed);

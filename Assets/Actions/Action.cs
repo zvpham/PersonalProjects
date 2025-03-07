@@ -11,8 +11,7 @@ public abstract class Action : ScriptableObject
     public int actionPriority; // For AI use, current useCase For Deciding what order to try movementActions
     public int coolDown;
     public int maxUses = 1;
-    public int intialActionPointUsage = 1;
-    public int actionPointGrowth = 1;
+    public int actionPointUsage = 1;
     public bool consumableAction = false;
     public bool oneTimeUsePerRound = false;
     public List<ActionType> actionTypes;
@@ -39,6 +38,21 @@ public abstract class Action : ScriptableObject
 
     public abstract void ConfirmAction(ActionData actionData);
 
+    // Largely for movement actions so i can canlculate the expected consequences for a unit taking a specific move action
+    //Updated prediction in AIactionData
+    public virtual void CalculateActionConsequences(AIActionData AiActionData, Vector2Int desiredEndPosition)
+    {
+        return;
+    }
+
+    // Very Few Actions should have this, you can largley ingore this for estimating unit damage
+    //AIActionData is for moving Unit, Acting Unit is the one performing the action.
+    //Updated prediction in AIactionData
+    public virtual void ExpectedEffectsOfPassivesActivations(AIActionData AiActionData, Unit ActingUnit)
+    {
+
+    }
+
     public virtual void SelectAction(Unit self)
     {
         if (!CheckActionUsable(self))
@@ -53,7 +67,7 @@ public abstract class Action : ScriptableObject
     {
         Unit unit = actionData.unit;
         int totalActionCost = actionData.movementData[tile.x, tile.y] + GetActionUseCost(unit);
-        if (actionData.movementData[tile.x, tile.y] == int.MaxValue ||  totalActionCost > unit.currentActionsPoints)
+        if (actionData.movementData[tile.x, tile.y] == int.MaxValue ||  totalActionCost > unit.currentMajorActionsPoints)
         {
             return false;
         }
@@ -64,9 +78,7 @@ public abstract class Action : ScriptableObject
     public void UseActionPreset(Unit self)
     {
         int actionIndex = GetActionIndex(self);
-        Debug.Log("Action Uses: " + self.actions[actionIndex].amountUsedDuringRound);
-        self.UseActionPoints(intialActionPointUsage + actionPointGrowth * self.actions[actionIndex].amountUsedDuringRound);
-        self.actions[actionIndex].amountUsedDuringRound += 1;
+        self.UseActionPoints(actionPointUsage);
         if (consumableAction)
         {
             self.actions[actionIndex].actionUsesLeft -= 1;
@@ -78,8 +90,8 @@ public abstract class Action : ScriptableObject
         int actionIndex = GetActionIndex(self);
 
         if (actionIndex != -1 && self.actions[actionIndex].actionCoolDown == 0 && self.actions[actionIndex].actionUsesLeft > 0 && 
-            SpecificCheckActionUsable(self) && this.intialActionPointUsage + actionPointGrowth * self.actions[actionIndex].amountUsedDuringRound
-            <= self.currentActionsPoints && (!oneTimeUsePerRound || (oneTimeUsePerRound && self.actions[actionIndex].amountUsedDuringRound == 0)))
+            SpecificCheckActionUsable(self) && this.actionPointUsage <= self.currentMajorActionsPoints 
+            && (!oneTimeUsePerRound || (oneTimeUsePerRound && !self.actions[actionIndex].actionUsedDuringRound)))
         {
             return true;
         }
@@ -96,7 +108,7 @@ public abstract class Action : ScriptableObject
         actionData.action = this;
         actionData.active = true;
         actionData.actionCoolDown = 0;
-        actionData.amountUsedDuringRound = 0;
+        actionData.actionUsedDuringRound = false;
         actionData.actionUsesLeft = maxUses;
         unit.actions.Add(actionData);
     }
@@ -107,7 +119,7 @@ public abstract class Action : ScriptableObject
         actionData.action = this;
         actionData.active = true;
         actionData.actionCoolDown = 0;
-        actionData.amountUsedDuringRound = 0;
+        actionData.actionUsedDuringRound = false;
         actionData.actionUsesLeft = maxUses;
         unit.actions.Insert(actionIndex, actionData);
     }
@@ -139,7 +151,7 @@ public abstract class Action : ScriptableObject
             return -1;
         }
 
-        return this.intialActionPointUsage + unit.actions[actionIndex].amountUsedDuringRound * actionPointGrowth;
+        return this.actionPointUsage;
     }
 
     // For Movement Actions Only

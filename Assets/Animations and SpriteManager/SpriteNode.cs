@@ -16,4 +16,12 @@ public class SpriteNode
         this.x = x;
         this.y = y;
     }
+
+    public override string ToString()
+    {
+        if (sprites[0]!=null) 
+            return sprites[0].name ;
+
+        return "";
+    }
 }

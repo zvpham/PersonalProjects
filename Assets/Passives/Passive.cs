@@ -29,6 +29,7 @@ public abstract class Passive : ScriptableObject
 
     public abstract Tuple<Passive, Vector2Int> GetTargetingData(Vector2Int originalPosition, List<Vector2Int> path, List<Vector2Int> setPath, List<Vector2Int> passiveArea);
 
+    public abstract void CalculatePredictedActionConsequences(AIActionData AiActionData, Unit actingUnit, Vector2Int orignalPosition, List<Vector2Int> path, List<Vector2Int> passiveArea);
     abstract public void ModifiyAction(Action action, AttackData attackData);
 
     public int GetPassiveIndex(Unit unit)

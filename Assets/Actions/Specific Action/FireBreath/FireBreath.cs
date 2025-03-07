@@ -29,7 +29,7 @@ public class FireBreath : Action
     public override void SelectAction(Unit self)
     {
         base.SelectAction(self);
-        self.gameManager.spriteManager.ActivateConeTargeting(self, false, self.currentActionsPoints, 2, 1);
+        self.gameManager.spriteManager.ActivateConeTargeting(self, false, self.currentMajorActionsPoints, 2, 1);
         self.gameManager.spriteManager.coneTargeting.OnFoundTarget += FoundTarget;
     }
 

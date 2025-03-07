@@ -42,4 +42,5 @@ public class ResourceManager : ScriptableObject
 
     public DamageAnimation damageAnimation;
     public AttackedAnimation attackedAnimation;
+    public DeathAnimation deathAnimation;
 }

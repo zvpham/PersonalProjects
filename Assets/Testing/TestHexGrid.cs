@@ -94,6 +94,17 @@ public class TestHexGrid : MonoBehaviour
         startCombatButton.SetActive(false);
     }
 
+    public void ResetTest()
+    {
+        gameManager.EndCombatTesting();
+        inputManager.gameObject.SetActive(false);
+        testInputManager.gameObject.SetActive(true);
+        menuInputManager.gameObject.SetActive(true);
+
+        inventoryUI.SetActive(true);
+        startCombatButton.SetActive(true);
+        unitsinCombat = new List<Unit>();
+    }
     public void CreateGrid(int mapWidth, int mapHeight, int amountOfTerrainLevels)
     {
         gameManager.spriteManager.CreateGrid(mapWidth, mapHeight, amountOfTerrainLevels, cellSize, defaultGridAdjustment);
@@ -111,7 +122,7 @@ public class TestHexGrid : MonoBehaviour
         }
         gameManager.grid = new GridHex<GridPosition>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<GridPosition> g, int x, int y) =>
         new GridPosition(g, x, y, defaultElevation), false);
-        gameManager.map = new DijkstraMap(mapWidth, mapHeight, cellSize, defaultGridAdjustment, false);
+        gameManager.map = new DijkstraMap(mapWidth, mapHeight, cellSize, defaultGridAdjustment, true);
         gameManager.passiveGrid = new GridHex<PassiveGridObject>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<PassiveGridObject> g, int x, int y) =>
         new PassiveGridObject(g, x, y), false);
 
@@ -416,10 +427,44 @@ public class TestHexGrid : MonoBehaviour
 
         unit.transform.position = newUnitPosition;
         gameManager.SetGridObject(unit, unit.transform.position);
-        gameManager.spriteManager.CreateSpriteRenderer(0, unit.unitProfile, unit.transform.position);
+        unit.unitSpriteRenderer = gameManager.spriteManager.CreateSpriteRenderer(0, unit.unitProfile, unit.transform.position);
         unitsinCombat.Add(unit);
     }
 
+    public void RemoveUnit()
+    {
+        if (currentlyPlacingUnitGroup != null)
+        {
+            return;
+        }
+
+        Unit unit = gameManager.grid.GetGridObject(currentlySelectedHex).unit;
+        if(unit != null)
+        {
+            // Remove entire Unit Group
+            if(unit.group != null)
+            {
+                UnitGroup unitGroup = unit.group;
+                for (int i = 0; i < unitGroup.units.Count; i++)
+                {
+                    unitsinCombat.Remove(unitGroup.units[i]);
+                    Vector3 UnitInExistingUnitGroupPosition = unitGroup.units[i].transform.position;
+                    Destroy(gameManager.spriteManager.spriteGrid.GetGridObject(UnitInExistingUnitGroupPosition).sprites[0].gameObject);
+                    Destroy(gameManager.grid.GetGridObject(UnitInExistingUnitGroupPosition).unit.gameObject);
+                    gameManager.grid.GetGridObject(UnitInExistingUnitGroupPosition).unit = null;
+                    gameManager.grid.SetGridObject(UnitInExistingUnitGroupPosition, gameManager.grid.GetGridObject(UnitInExistingUnitGroupPosition));
+                }
+            }
+            else
+            {
+                unitsinCombat.Remove(unit);
+                Destroy(gameManager.spriteManager.spriteGrid.GetGridObject(currentlySelectedHex).sprites[0].gameObject);
+                Destroy(unit.gameObject);
+                gameManager.grid.GetGridObject(currentlySelectedHex).unit = null;
+                gameManager.grid.SetGridObject(currentlySelectedHex, gameManager.grid.GetGridObject(currentlySelectedHex));
+            }
+        }
+    }
     public void PlaceUnit(int teamIndex)
     {
         if (currentlyPlacingUnitGroup != null)

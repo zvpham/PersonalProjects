@@ -67,8 +67,8 @@ public class Thrust : Action
     {
         base.SelectAction(self);
         int actionIndex = GetActionIndex(self);
-        int amountOfActionPointsUsed = this.intialActionPointUsage + actionPointGrowth * self.actions[actionIndex].amountUsedDuringRound;
-        self.gameManager.spriteManager.ActivateExtendedMeleeAttackTargeting(self, false, self.currentActionsPoints, 
+        int amountOfActionPointsUsed = this.actionPointUsage;
+        self.gameManager.spriteManager.ActivateExtendedMeleeAttackTargeting(self, false, self.currentMajorActionsPoints, 
             amountOfActionPointsUsed, range, CalculateAttackData);
         self.gameManager.spriteManager.extendedMeleeTargeting.OnFoundTarget += FoundTarget;
     }
@@ -148,7 +148,7 @@ public class Thrust : Action
 
 
             MeleeAttackAnimation meleeAttackAnimation = (MeleeAttackAnimation)Instantiate(this.animation);
-            meleeAttackAnimation.SetParameters(actionData.actingUnit.gameManager, actionData.actingUnit.transform.position, targetUnit.transform.position);
+            meleeAttackAnimation.SetParameters(actionData.actingUnit, actionData.actingUnit.transform.position, targetUnit.transform.position);
             int adjustedMinimumDamage = minDamage + (int)(minDamage * actionData.actingUnit.GetMinimumDamageModifer());
             int adjustmedMaximumDamage = maxDamage + (int)(maxDamage * actionData.actingUnit.GetMaximumDamageModifer());
             targetUnit.TakeDamage(actionData.actingUnit, new List<int>() { adjustedMinimumDamage }, new List<int>() { adjustmedMaximumDamage },

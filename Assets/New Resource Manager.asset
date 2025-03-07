@@ -81,3 +81,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1b097f89dd180744497bba765b7fe302, type: 2}
   damageAnimation: {fileID: -3683181007129332457, guid: 1a39b9cd4390aad45869072313aeb4c5, type: 3}
   attackedAnimation: {fileID: 3921192079602612236, guid: d6d4baf721bd2c1459ad1983276d14b2, type: 3}
+  deathAnimation: {fileID: 6908817702595546604, guid: 8465deb275c0b1f45b90d6d466881d5f, type: 3}

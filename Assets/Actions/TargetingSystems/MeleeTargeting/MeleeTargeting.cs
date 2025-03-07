@@ -49,7 +49,7 @@ public class MeleeTargeting : TargetingSystem
 
     public List<int> actionMoveAmounts;
     public int amountOfPossibleMoves;
-    public int amountMoved = 0;
+    public int actionPointsLeft;
     public int moveSpeedUsed = 0;
     public int moveSpeedInitiallyAvailable = 0;
 
@@ -62,8 +62,6 @@ public class MeleeTargeting : TargetingSystem
     public bool keepCombatAttackUi = false;
     public bool selectOnTarget;
     public bool unitAttemptingToMove = false;
-
-    public int actionPointsLeft;
 
     public delegate List<AttackDataUI> CalculateAttackData(Unit movingUnit, Unit targetUnit, List<Vector2Int> movementPath);
     public CalculateAttackData calculateAttackData;
@@ -92,7 +90,6 @@ public class MeleeTargeting : TargetingSystem
         prevEndHexPosition = new Vector2Int(-10, 0);
         path = new List<Vector2Int>();
         this.enabled = true;
-        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
 
         passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
         for (int i = 0; i < gameManager.mapSize; i++)
@@ -171,21 +168,7 @@ public class MeleeTargeting : TargetingSystem
         startingPosition = targetPosition;
         actionPointsLeft = numActionPoints;
         int initialActionPoints = numActionPoints - actionPointUseAmount;
-        int usableActionPoints = initialActionPoints;
-        int moveAmounts = 0;
-
-        while (usableActionPoints > 0)
-        {
-            if (usableActionPoints >= amountMoved + moveAmounts + 1)
-            {
-                moveAmounts += 1;
-                usableActionPoints -= amountMoved + moveAmounts;
-            }
-            else
-            {
-                break;
-            }
-        }
+        int moveAmounts = initialActionPoints;
 
         int startValue = currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * moveAmounts);
 
@@ -241,20 +224,20 @@ public class MeleeTargeting : TargetingSystem
                     int tempNodeValue = nodeValue - currentMoveSpeed;
                     if (tempNodeValue <= 0)
                     {
-                        rangeBracketOfNode = amountMoved - 1;
+                        rangeBracketOfNode = - 1;
                     }
                     else
                     {
                         tempNodeValue -= 1;
-                        rangeBracketOfNode = tempNodeValue / (movingUnit.moveSpeedPerMoveAction) + amountMoved;
+                        rangeBracketOfNode = tempNodeValue / (movingUnit.moveSpeedPerMoveAction);
                     }
                 }
                 else
                 {
                     nodeValue -= 1;
-                    rangeBracketOfNode = (nodeValue / (movingUnit.moveSpeedPerMoveAction)) + amountMoved;
+                    rangeBracketOfNode = (nodeValue / (movingUnit.moveSpeedPerMoveAction));
                 }
-
+                rangeBracketOfNode += 2 - actionPointsLeft;
                 Unit unitOnHex = gameManager.grid.GetGridObject(currentNodePosition).unit;
                 if (unitOnHex == null)
                 {
@@ -582,16 +565,8 @@ public class MeleeTargeting : TargetingSystem
                         {
                             movementActionsTaken = (((moveSpeedLeft + 1) / movingUnit.moveSpeedPerMoveAction) - 1) * -1;
                         }
-
-                        int actionPointsUsed = 0;
-                        int previousAmountMoved = amountMoved;
-                        for (int i = 0; i < movementActionsTaken; i++)
-                        {
-                            actionPointsUsed += amountMoved + 1;
-                            moveSpeedLeft += movingUnit.moveSpeedPerMoveAction;
-                            amountMoved += 1;
-                        }
-                        actionPointsLeft -= actionPointsUsed;
+                        moveSpeedLeft += movementActionsTaken * movingUnit.moveSpeedPerMoveAction;
+                        actionPointsLeft -= movementActionsTaken;
                     }
                     keepCombatAttackUi = true;
                     // Case target is within meleeRange
@@ -647,16 +622,8 @@ public class MeleeTargeting : TargetingSystem
                     {
                         movementActionsTaken = (((moveSpeedLeft + 1) / movingUnit.moveSpeedPerMoveAction) - 1) * -1;
                     }
-
-                    int actionPointsUsed = 0;
-                    int previousAmountMoved = amountMoved;
-                    for (int i = 0; i < movementActionsTaken; i++)
-                    {
-                        actionPointsUsed += amountMoved + 1;
-                        moveSpeedLeft += movingUnit.moveSpeedPerMoveAction;
-                        amountMoved += 1;
-                    }
-                    actionPointsLeft -= actionPointsUsed;
+                    moveSpeedLeft += movementActionsTaken * movingUnit.moveSpeedPerMoveAction;
+                    actionPointsLeft -= movementActionsTaken;
 
                     Destroy(tempMovingUnit);
                     tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
@@ -679,7 +646,7 @@ public class MeleeTargeting : TargetingSystem
                         },
                         () => // Cancel Action
                         {
-                            SetUp(new Vector2Int(movingUnit.x, movingUnit.y), movingUnit.currentActionsPoints, movingUnit.currentMoveSpeed);
+                            SetUp(new Vector2Int(movingUnit.x, movingUnit.y), movingUnit.currentMajorActionsPoints, movingUnit.currentMoveSpeed);
                             ResetTargeting();
                         });
                 }
@@ -698,8 +665,7 @@ public class MeleeTargeting : TargetingSystem
         setPath = new List<Vector2Int>();
         actionMoveAmounts = new List<int>();
         actionLines = new List<List<Vector3>>();
-        actionPointsLeft = movingUnit.currentActionsPoints;
-        amountMoved = movingUnit.actions[0].amountUsedDuringRound;
+        actionPointsLeft = movingUnit.currentMajorActionsPoints;
         gameManager.spriteManager.ResetCombatAttackUI();
         gameManager.spriteManager.ClearLines();
         for (int i = 0; i < targetingPassiveSpriteHolder.Count; i++)
