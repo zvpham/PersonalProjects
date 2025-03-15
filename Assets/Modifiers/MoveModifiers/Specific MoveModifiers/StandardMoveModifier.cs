@@ -19,6 +19,20 @@ public class StandardMoveModifier : MoveModifier
         }
     }
 
+    public override void SetWalkable(CombatGameManager gameManager, Unit movingUnit)
+    {
+        GridHex<DijkstraMapNode> grid = gameManager.map.getGrid();
+        DijkstraMap map = gameManager.map;
+        for (int i = 0; i < gameManager.units.Count; i++)
+        {
+            if (gameManager.units[i].team != movingUnit.team)
+            {
+                grid.GetXY(gameManager.units[i].transform.position, out int unitX, out int unitY);
+                map.SetWalkable(new Vector2Int(unitX, unitY));
+            }
+        }
+    }
+
     public override bool validElevationDifference(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int range)
     {
         Vector2Int currentNodePosition = new Vector2Int(currentNode.x, currentNode.y);
@@ -62,14 +76,6 @@ public class StandardMoveModifier : MoveModifier
         int neighborNodeElevation = elevationGrid[nextNode.x, nextNode.y];
         return currentNode.value - moveAmountChange > nextNode.value && nextNode.walkable &&
             Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
-    }
-
-    public override bool ValidMeleeAttack(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int maxRange)
-    {
-        int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
-        int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];
-        int neighborNodeElevation = elevationGrid[nextNode.x, nextNode.y];
-        return Mathf.Abs(currentNode.value - nextNode.value) <= maxRange  && Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
     }
 
     public override bool NewValidMeleeAttack(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int maxRange)

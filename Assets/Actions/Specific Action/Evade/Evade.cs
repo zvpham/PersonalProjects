@@ -92,6 +92,7 @@ public class Evade : StatusAction
 
         int startValue = movingUnit.currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * usableActionPoints);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        gameManager.map.ResetMap(false, false);
         List<DijkstraMapNode> nodesInMovementRange = gameManager.map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager, badWalkInPassivesValues);
         GridHex<GridPosition> grid = gameManager.grid;
         List<DijkstraMapNode> emptyNodes = new List<DijkstraMapNode>();
@@ -186,6 +187,7 @@ public class Evade : StatusAction
             goals = AiActionData.enemyUnits;
         }
 
+        map.ResetMap();
         map.SetGoalsNew(goals, gameManager, AiActionData.unit.moveModifier, badWalkInPassivesValues);
 
         int x = movingUnit.x;
@@ -439,6 +441,7 @@ public class Evade : StatusAction
         actionData.unit.gameManager.map.ResetMap(true);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
         int startValue = (movingUnit.moveSpeedPerMoveAction * initialActionPoints) + movingUnit.currentMoveSpeed;
+        gameManager.map.ResetMap(false, false);
         List<DijkstraMapNode> mapNodes = actionData.unit.gameManager.map.GetNodesInMovementRange(actionData.originalPosition.x, actionData.originalPosition.y, startValue, movingUnit.moveModifier, gameManager, badWalkInPassivesValues);
         int[,] movementGridValues = actionData.unit.gameManager.map.GetGridValues();
 

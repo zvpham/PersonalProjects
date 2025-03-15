@@ -2,6 +2,7 @@ using Inventory.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Action/RangedAttack")]
@@ -17,9 +18,73 @@ public class RangedAttack : Action
 
     public override int CalculateWeight(AIActionData actionData)
     {
-        return -2;
-    }
+        Unit actingUnit = actionData.unit;
+        CombatGameManager gameManager = actingUnit.gameManager;
+        DijkstraMap map = gameManager.map;
+        map.ResetMap(true, false);
+        actingUnit.moveModifier.SetUnwalkable(gameManager, actingUnit);
+        List<DijkstraMapNode> nodesInTargetRange = map.GetNodesInTargetRange(actionData.hexesUnitCanMoveTo, 0, null, null, gameManager, actingUnit.moveModifier, maxRange);
+        List<Vector2Int> positionsInTargetRange = new List<Vector2Int>();
+        for (int i = 0; i < nodesInTargetRange.Count; i++)
+        {
+            positionsInTargetRange.Add(new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
+        }
+        List<Unit> enemyUnitsInRange =  new List<Unit>();
+        for (int i = 0; i < actionData.enemyUnits.Count; i++)
+        {
+            if (positionsInTargetRange.Contains(actionData.enemyUnits[i]))
+            {
+                enemyUnitsInRange.Add(gameManager.grid.GetGridObject(actionData.enemyUnits[i]).unit);
+            }
+        }
 
+        Dictionary<Team, Dictionary<MoveModifier, List<Unit>>> unitsOrganizedByMovement = new Dictionary<Team, Dictionary<MoveModifier, List<Unit>>>();
+
+        foreach(Unit unit in enemyUnitsInRange)
+        {
+            if (unitsOrganizedByMovement.ContainsKey(unit.team))
+            {
+                if (unitsOrganizedByMovement[unit.team].ContainsKey(unit.moveModifier))
+                {
+                    unitsOrganizedByMovement[unit.team][unit.moveModifier].Add(unit);
+                }
+                else
+                {
+                    unitsOrganizedByMovement[unit.team].Add(unit.moveModifier, new List<Unit> { unit });
+                }
+            }
+            else
+            {
+                unitsOrganizedByMovement.Add(unit.team, new Dictionary<MoveModifier, List<Unit>>());
+                unitsOrganizedByMovement[unit.team].Add(unit.moveModifier, new List<Unit> { unit });
+            }
+        }
+
+        map.ResetMap(true, false);
+        foreach (Team team in unitsOrganizedByMovement.Keys)
+        {
+            foreach (MoveModifier movemodifier in unitsOrganizedByMovement[team].Keys)
+            {
+                Unit tempUnit = unitsOrganizedByMovement[team][movemodifier][0];
+                tempUnit.moveModifier.SetUnwalkable(gameManager, tempUnit);
+                List<Vector2Int> unitLocations = new List<Vector2Int>();
+                List<int> moveAmounts = new List<int>();
+                for(int i = 0; i < unitsOrganizedByMovement[team][movemodifier].Count; i++)
+                {
+                    Unit unit = unitsOrganizedByMovement[team][movemodifier][i];
+                    unitLocations.Add(new Vector2Int(unit.x, unit.y));
+                    moveAmounts.Add(unit.moveSpeedPerMoveAction * 2);
+                }
+                map.SetUnitThreatRanges(unitLocations, moveAmounts, movemodifier, gameManager);
+
+                tempUnit.moveModifier.SetWalkable(gameManager, tempUnit);
+            }
+        }
+        
+
+        return 0;
+    }
+        
     public override void FindOptimalPosition(AIActionData actionData)
     {
         return;
@@ -27,6 +92,24 @@ public class RangedAttack : Action
 
     public override bool CheckIfActionIsInRange(AIActionData actionData)
     {
+        Unit actingUnit = actionData.unit;
+        CombatGameManager gameManager = actingUnit.gameManager;     
+        DijkstraMap map = gameManager.map;
+        map.ResetMap(false, false);
+        List<DijkstraMapNode> nodes =  map.GetNodesInTargetRange(actionData.hexesUnitCanMoveTo, 0, null, null, gameManager, actingUnit.moveModifier, maxRange);
+        List<Vector2Int> positionsInTargetRange = new List<Vector2Int>();
+        for(int i = 0; i < nodes.Count; i++)
+        {
+            positionsInTargetRange.Add(new Vector2Int(nodes[i].x, nodes[i].y));
+        }
+        for(int i = 0; i < actionData.enemyUnits.Count; i++)
+        {
+            if (positionsInTargetRange.Contains(actionData.enemyUnits[i]))
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 

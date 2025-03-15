@@ -8,7 +8,6 @@ public class AITurn : MonoBehaviour
 {
     public static List<UnitType> meleeTypes = new List<UnitType>() { UnitType.Chaff, UnitType.FrontLine, UnitType.FrontLine2, UnitType.MeleeSupport };
 
-
     public AITurnStates AIState;
     public List<UnitSuperClass> unitSuperClasses;
     public List<Unit> units; // ALL Units in AITURN sorted by Initiative
@@ -19,7 +18,6 @@ public class AITurn : MonoBehaviour
     public List<Unit> frontlineUnits;
     public List<Unit> backlineUnits;
 
-
     // Enemy Units Visible to AiTeam
     public List<Unit> visibleUnits = new List<Unit>();
 
@@ -28,7 +26,6 @@ public class AITurn : MonoBehaviour
     public CombatGameManager gameManager;
     //For randomization
     private int seed;
-
 
     public void ResetAITurn()
     {
@@ -162,7 +159,7 @@ public class AITurn : MonoBehaviour
         numMelee = 0;
         List<UnitType> meleeTypes = new List<UnitType>() { UnitType.Chaff, UnitType.Flanker, UnitType.MeleeSupport,
         UnitType.FrontLine, UnitType.FrontLine};
-        for(int i = 0; i <= unitSuperClasses.Count;i++)
+        for(int i = 0; i < unitSuperClasses.Count ;i++)
         {
             if (meleeTypes.Contains(unitSuperClasses[i].unitType))
             {
@@ -285,6 +282,9 @@ public class AITurn : MonoBehaviour
                     break;
                 case (UnitType.Mixed):
                     ChaffAI(unitGroup[i], false);
+                    break;
+                case (UnitType.TrainingDummy):
+                    TrainingDummyAI(unitGroup[i], false);
                     break;
             }
         }
@@ -473,6 +473,7 @@ public class AITurn : MonoBehaviour
         AiActionData.movementActions = new List<Action>[gameManager.mapSize, gameManager.mapSize];
         AiActionData.startPositions = new List<Vector2Int>[gameManager.mapSize, gameManager.mapSize];
         AiActionData.ignorePassiveArea = new bool[gameManager.mapSize, gameManager.mapSize];
+        AiActionData.hexesUnitCanMoveTo = new List<Vector2Int>();
 
         List<Vector2Int> enemyUnitHexPositions = new List<Vector2Int>();
         for (int i = 0; i < visibleUnits.Count; i++)
@@ -583,6 +584,11 @@ public class AITurn : MonoBehaviour
                     break;
             }
         }
+    }
+
+    public void TrainingDummyAI(Unit unit, bool positionOnly)
+    {
+        unit.EndTurnAction();
     }
 
     public int GetHighestActionIndex(AIActionData actionData, Unit unit)

@@ -60,18 +60,15 @@ public class OpportunityAttack : AreaPassive
         movingUnit.passiveEffects[passiveIndex].passiveLocations.Clear();
 
         MeleeAttack meleeAttack = movingUnit.MeleeAttack;
-        List<Vector2Int> mapNodes;
-        movingUnit.gameManager.map.ResetMap(true);
-        movingUnit.gameManager.map.SetGoals(new List<Vector2Int> { newPosition }, movingUnit.gameManager, movingUnit.moveModifier);
         DijkstraMapNode currentunitNode = movingUnit.gameManager.map.getGrid().GetGridObject(newPosition);
         for (int j = 1; j <= meleeAttack.range; j++)
         {
-            mapNodes = movingUnit.gameManager.map.getGrid().GetGridPositionsInRing(newPosition.x, newPosition.y, j);
+            List<Vector2Int> mapNodes = movingUnit.gameManager.map.getGrid().GetGridPositionsInRing(newPosition.x, newPosition.y, j);
             for (int k = 0; k < mapNodes.Count; k++)
             {
                 Vector2Int surroundingNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
                 DijkstraMapNode surroundingUnitNode = movingUnit.gameManager.map.getGrid().GetGridObject(surroundingNodePosition);
-                if (movingUnit.moveModifier.ValidMeleeAttack(movingUnit.gameManager, currentunitNode, surroundingUnitNode, meleeAttack.range))
+                if (movingUnit.moveModifier.NewValidMeleeAttack(movingUnit.gameManager, currentunitNode, surroundingUnitNode, meleeAttack.range))
                 {
                     movingUnit.passiveEffects[passiveIndex].passiveLocations.Add(surroundingNodePosition);
                     PassiveGridObject passiveGridObject = passiveGrid.GetGridObject(surroundingNodePosition);

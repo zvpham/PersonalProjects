@@ -13,6 +13,7 @@ public class AIActionData
     // Movementdata
     public bool canMove;
     public int[,] movementData;
+    public List<Vector2Int> hexesUnitCanMoveTo;
     public List<Action>[,] movementActions;
     public List<Vector2Int>[,] startPositions;
     public bool[,] ignorePassiveArea;

@@ -366,7 +366,7 @@ public class SpriteManager : MonoBehaviour
         extendedMeleeTargeting.SelectNewPosition(currentlySelectedHex);
     }
     public void ActivateRangedTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int actionPointUseAmount, int range,
-   AttackData attackData, List<EquipableAmmoSO> unitAmmo)
+       AttackData attackData, List<EquipableAmmoSO> unitAmmo)
     {
         combatUI.OnActivateTargetingSystem();
         NewSelectedHex += rangedTargeting.SelectNewPosition;

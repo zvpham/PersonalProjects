@@ -53,9 +53,6 @@ public class Thrust : Action
     public override bool CheckIfActionIsInRange(AIActionData AIActionData)
     {
         return false;
-        Unit unit = AIActionData.unit;
-        unit.gameManager.map.SetGoals(AIActionData.enemyUnits, unit.gameManager, unit.moveModifier);
-        return true;
     }
 
     public override void AIUseAction(AIActionData AIActionData, bool finalAction = false)

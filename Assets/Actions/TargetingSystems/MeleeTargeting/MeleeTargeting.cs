@@ -45,9 +45,6 @@ public class MeleeTargeting : TargetingSystem
 
     public int meleeRange;
     public int actionPointUseAmount;
-
-
-    public List<int> actionMoveAmounts;
     public int amountOfPossibleMoves;
     public int actionPointsLeft;
     public int moveSpeedUsed = 0;
@@ -178,7 +175,8 @@ public class MeleeTargeting : TargetingSystem
         groundColorValues = new List<int>();
         enemyGroundHexes = new List<Vector2Int>();
 
-        List<DijkstraMapNode> nodesInMeleeRange =  map.GetNodesInMeleeRange(targetPosition, startValue, null, validTargetPositions, 
+        map.ResetMap(false, false);
+        List<DijkstraMapNode> nodesInMeleeRange =  map.GetNodesInTargetRange(new List<Vector2Int> { targetPosition }, startValue, null, validTargetPositions, 
             gameManager, movingUnit.moveModifier, meleeRange);
 
         Debug.Log(nodesInMeleeRange.Count);
@@ -206,6 +204,7 @@ public class MeleeTargeting : TargetingSystem
         amountOfPossibleMoves = moveAmounts;
 
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        map.ResetMap(false, false);
         List<DijkstraMapNode> nodesInMovementRange = map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager);
         if (nodesInMovementRange.Count > 1)
         {
@@ -663,7 +662,6 @@ public class MeleeTargeting : TargetingSystem
         prevEndHexPosition = new Vector2Int(-1, -1);
         path = new List<Vector2Int>();
         setPath = new List<Vector2Int>();
-        actionMoveAmounts = new List<int>();
         actionLines = new List<List<Vector3>>();
         actionPointsLeft = movingUnit.currentMajorActionsPoints;
         gameManager.spriteManager.ResetCombatAttackUI();
@@ -770,14 +768,12 @@ public class MeleeTargeting : TargetingSystem
             targetingPassiveSpriteHolder.Add(tempTargetPassiveSprite);
         }
 
-        gameManager.map.ResetMap(true);
-        map.SetGoalsMelee(new List<Vector2Int>() { endHex }, friendlyUnits, validTargetPositions, gameManager, movingUnit.moveModifier, meleeRange);
         for (int i = 1; i <= meleeRange; i++)
         {
             List<DijkstraMapNode> mapNodes = map.getGrid().GetGridObjectsInRing(endHex.x, endHex.y, i);
             for (int j = 0; j < mapNodes.Count; j++)
             {
-                if (movingUnit.moveModifier.ValidMeleeAttack(gameManager, map.getGrid().GetGridObject(endHex), mapNodes[j], meleeRange))
+                if (movingUnit.moveModifier.NewValidMeleeAttack(gameManager, map.getGrid().GetGridObject(endHex), mapNodes[j], meleeRange))
                 {
                     Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
                     GameObject newTargetHex = gameManager.spriteManager.UseOpenTargetHex();

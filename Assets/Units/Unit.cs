@@ -933,7 +933,11 @@ public class Unit : UnitSuperClass, IInititiave
 
         if(currentHealth <= 0)
         {
-            combatAttackUi.readyToReset = true;
+            if(combatAttackUi != null)
+            {
+                combatAttackUi.readyToReset = true;
+            }
+
             gameManager.spriteManager.ResetCombatAttackUI();
             Death();
         }

@@ -78,6 +78,7 @@ public class Move : Action
 
         int startValue = movingUnit.currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * usableActionPoints);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        gameManager.map.ResetMap(false, false);
         List<DijkstraMapNode> nodesInMovementRange = gameManager.map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager, badWalkInPassivesValues);
         GridHex<GridPosition> grid = gameManager.grid;
         List<DijkstraMapNode> emptyNodes = new List<DijkstraMapNode>(); 
@@ -614,6 +615,7 @@ public class Move : Action
         actionData.unit.gameManager.map.ResetMap(true);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
         int startValue = (movingUnit.moveSpeedPerMoveAction * initialActionPoints);
+        gameManager.map.ResetMap(false, false);
         List<DijkstraMapNode> mapNodes = actionData.unit.gameManager.map.GetNodesInMovementRange(actionData.originalPosition.x, actionData.originalPosition.y, startValue, movingUnit.moveModifier, gameManager);
         int[,] movementGridValues = actionData.unit.gameManager.map.GetGridValues();
 
@@ -653,6 +655,11 @@ public class Move : Action
 
                 if (actionData.ignorePassiveArea[currentNode.x, currentNode.y] &&  actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
                 {
+                    Vector2Int currentNodePosition = new Vector2Int(currentNode.x, currentNode.y);
+                    if (!actionData.hexesUnitCanMoveTo.Contains(currentNodePosition))
+                    {
+                        actionData.hexesUnitCanMoveTo.Add(currentNodePosition);
+                    }
                     actionData.movementData[currentNode.x, currentNode.y] = actionPointsUsed;
                     actionData.movementActions[currentNode.x, currentNode.y] = new List<Action> { this };
                     actionData.startPositions[currentNode.x, currentNode.y] = new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) };
@@ -707,6 +714,7 @@ public class Move : Action
 
         actionData.unit.gameManager.map.ResetMap(true);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        gameManager.map.ResetMap(false, false);
         mapNodes = actionData.unit.gameManager.map.GetNodesInMovementRange(actionData.originalPosition.x, actionData.originalPosition.y, startValue, movingUnit.moveModifier, gameManager, badWalkInPassivesValues);
         movementGridValues = actionData.unit.gameManager.map.GetGridValues();
 

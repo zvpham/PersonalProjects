@@ -34,6 +34,7 @@ public class DijkstraMapNode
 
     public override string ToString()
     {
-        return "( " + x + ", " + y + "): " + value.ToString();
+        //return "( " + x + ", " + y + "): " + value.ToString();
+        return walkable.ToString();
     }
 }

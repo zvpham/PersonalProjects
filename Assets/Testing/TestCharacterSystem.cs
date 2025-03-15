@@ -157,8 +157,10 @@ public class TestCharacterSystem : MonoBehaviour
         this.characterSelectionUI.OnNewHeroPressed += HandleNewCharacterButtonPressed;
     }
 
+    // To Load Units put the preab into the resource manager
     public void LoadInitialUnits()
     {
+
         for(int i = 0; i < resourceManager.heroes.Count; i++)
         {
             Unit unit  = Instantiate(resourceManager.heroes[i]);

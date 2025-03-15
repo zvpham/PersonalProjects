@@ -7,6 +7,8 @@ public abstract class MoveModifier : ScriptableObject
     public int priority;
     public abstract void SetUnwalkable(CombatGameManager gameManager, Unit MovingUnit);
 
+    public abstract void SetWalkable(CombatGameManager gameManager, Unit MovingUnit);
+
     // only checks to see if the difference in elevation between Two Hexes is valid
      public abstract bool validElevationDifference(CombatGameManager gameManager, Vector2Int currentNode, Vector2Int nextNode, int range);
     public abstract bool validElevationDifference(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int range);
@@ -18,9 +20,6 @@ public abstract class MoveModifier : ScriptableObject
     int moveAmountChange);
 
     public abstract bool ValidMove(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode);
-
-    // Based off old MovementSystem
-    public abstract bool ValidMeleeAttack(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int maxRange);
 
     //Just Checks elevation and hex Distance
     public abstract bool NewValidMeleeAttack(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode, int maxRange);

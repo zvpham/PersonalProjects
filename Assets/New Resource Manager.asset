@@ -65,7 +65,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c1ca7bf8262889c428a7297004360abd, type: 2}
   emptyHero: {fileID: 5597699536523439801, guid: f7c79c7ae599b6845a03d8c2a05306e1, type: 3}
   heroes:
+  - {fileID: 5597699536523439801, guid: 4227c71172d15b94d88d8976bf3fa67c, type: 3}
   - {fileID: -1027663435593090111, guid: b2f70065eb452014085e34f80d24e476, type: 3}
+  - {fileID: -1027663435593090111, guid: 9410c5bce09c7b44a9b09c19fc3f50d9, type: 3}
+  - {fileID: -1027663435593090111, guid: 541e1728df985114f9446ce3bae6efba, type: 3}
   mercenaries:
   - {fileID: 2097898329977275897, guid: 1f4a54415c85bea429c3d9259e720089, type: 3}
   spriteHolder: {fileID: 6546736994369712444, guid: 6c6f66dee961e4d92952ee62f46b41b5, type: 3}

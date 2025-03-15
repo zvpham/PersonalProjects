@@ -120,6 +120,7 @@ public class MovementTargeting : TargetingSystem
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
 
         int startValue = currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * numActionPoints);
+        map.ResetMap(false, false);
         List<DijkstraMapNode> nodesInMovementRange =  map.GetNodesInMovementRange(x, y, startValue, movingUnit.moveModifier, gameManager);
 
         startingPosition = targetPosition;

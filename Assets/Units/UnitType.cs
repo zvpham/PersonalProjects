@@ -14,5 +14,7 @@ public enum UnitType
     // Clerics and other sutuff
     RangedSupport,
     // Mixed Range Damage
-    Mixed
+    Mixed,
+    //Testing Only (Does Nothing)
+    TrainingDummy
 }
