@@ -24,6 +24,7 @@ public class RangedAttack : Action
         map.ResetMap(true, false);
         actingUnit.moveModifier.SetUnwalkable(gameManager, actingUnit);
         List<DijkstraMapNode> nodesInTargetRange = map.GetNodesInTargetRange(actionData.hexesUnitCanMoveTo, 0, null, null, gameManager, actingUnit.moveModifier, maxRange);
+
         List<Vector2Int> positionsInTargetRange = new List<Vector2Int>();
         for (int i = 0; i < nodesInTargetRange.Count; i++)
         {
@@ -39,9 +40,10 @@ public class RangedAttack : Action
         }
 
         Dictionary<Team, Dictionary<MoveModifier, List<Unit>>> unitsOrganizedByMovement = new Dictionary<Team, Dictionary<MoveModifier, List<Unit>>>();
-
+        List<Vector2Int> enemyPositionsInTargetRange = new List<Vector2Int>();
         foreach(Unit unit in enemyUnitsInRange)
         {
+            enemyPositionsInTargetRange.Add(new Vector2Int(unit.x, unit.y));
             if (unitsOrganizedByMovement.ContainsKey(unit.team))
             {
                 if (unitsOrganizedByMovement[unit.team].ContainsKey(unit.moveModifier))
@@ -80,8 +82,19 @@ public class RangedAttack : Action
                 tempUnit.moveModifier.SetWalkable(gameManager, tempUnit);
             }
         }
-        
+        int[,] threatGrid =  map.GetGridValues();
+        map.ResetMap(true, false);
 
+
+        map.ResetMap(true, false);
+        map.GetNodesInTargetRange(enemyPositionsInTargetRange, 0, null, null, gameManager, actingUnit.moveModifier, maxRange);
+        for(int i = 0; i < positionsInTargetRange.Count; i++)
+        {
+            if (map.getGrid().GetGridObject(positionsInTargetRange[i]).value == -1)
+            {
+                continue;
+            }
+        }
         return 0;
     }
         
