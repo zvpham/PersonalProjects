@@ -103,16 +103,17 @@ public class SpriteManager : MonoBehaviour
                     debugWord = "";
                 }
 
-                debugWord += animations[0].ToString() + " ";
                 for(int i = 0; i < animations[0].Count; i++)
                 {
+
+                    if (DebugAnimations)
+                    {
+                        debugWord += animations[0][i].ToString() + " ";
+                        Debug.Log(debugWord);
+                    }
                     animations[0][i].PlayAnimation();
                 }
 
-                if (DebugAnimations)
-                {
-                    Debug.Log(debugWord);
-                }
             }
             currentTime = 0;
         }
@@ -143,6 +144,10 @@ public class SpriteManager : MonoBehaviour
                 {
                     if(sprites[k] != null)
                     {
+                        if(DebugAnimations)
+                        {
+                            Debug.Log("Destroy Sprite: " + sprites[k].gameObject);
+                        }
                         Destroy(sprites[k].gameObject);
                     }
                     sprites[k] = null;
@@ -201,27 +206,6 @@ public class SpriteManager : MonoBehaviour
     {
         Destroy(spriteGrid.GetGridObject(unit.x, unit.y).sprites[0]);
         spriteGrid.GetGridObject(unit.x, unit.y).sprites[0] = null;
-        //Destroy(unit.unitSpriteRenderer.gameObject);
-
-        /*
-        for(int i = 0; i < animations.Count; i++)
-        {
-            for(int j = 0; j < animations[i].Count; j++)
-            {
-                if (animations[i][j].actingUnit == unit)
-                {
-                    Destroy(animations[i][j].gameObject);
-                    animations[i].RemoveAt(j);
-                    j--;
-                }
-            }
-            if (animations[i].Count == 0)
-            {
-                animations.RemoveAt(i);
-                i--;
-            }
-        }
-        */
     }
 
     public void SelectMouseHex()

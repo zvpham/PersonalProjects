@@ -427,7 +427,6 @@ public class Move : Action
 
         AIActionData.unit.gameManager.map.ResetMap(true);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-        Debug.Log("ignorePassive: " + ignorePassiveArea + ", currentEndPosition" + ", " + currentEndPosition);
         if(!ignorePassiveArea)
         {
             AIActionData.unit.gameManager.map.SetGoalsNew(new List<Vector2Int>() { currentEndPosition }, gameManager, movingUnit.moveModifier, badWalkInPassivesValues);
@@ -650,16 +649,24 @@ public class Move : Action
                 int actionPointsUsed = 0;
                 for (int j = 0; j < amountOfMoveActionsTaken; j++)
                 {
-                    actionPointsUsed += j + 1;
+                    actionPointsUsed += 1;
                 }
 
                 if (actionData.ignorePassiveArea[currentNode.x, currentNode.y] &&  actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
                 {
                     Vector2Int currentNodePosition = new Vector2Int(currentNode.x, currentNode.y);
-                    if (!actionData.hexesUnitCanMoveTo.Contains(currentNodePosition))
+                    int movementGridValue = actionData.movementData[currentNode.x, currentNode.y];
+                    if(movementGridValue == int.MaxValue)
                     {
-                        actionData.hexesUnitCanMoveTo.Add(currentNodePosition);
+                        actionData.hexesUnitCanMoveTo[actionPointsUsed - 1].Add(currentNodePosition);
                     }
+                    // if same then hexes can move to list is the same
+                    else if(actionPointsUsed != movementGridValue)
+                    {
+                        actionData.hexesUnitCanMoveTo[movementGridValue - 1].Remove(currentNodePosition);
+                        actionData.hexesUnitCanMoveTo[actionPointsUsed - 1].Add(currentNodePosition);
+                    }
+
                     actionData.movementData[currentNode.x, currentNode.y] = actionPointsUsed;
                     actionData.movementActions[currentNode.x, currentNode.y] = new List<Action> { this };
                     actionData.startPositions[currentNode.x, currentNode.y] = new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) };

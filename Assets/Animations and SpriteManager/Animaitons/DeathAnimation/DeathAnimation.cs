@@ -37,6 +37,7 @@ public class DeathAnimation : CustomAnimations
                 i--;
             }
         }
+        spriteManager.UnitDied(actingUnit);
         Destroy(actingUnit.unitSpriteRenderer.gameObject);
         EndAnimation();
     }

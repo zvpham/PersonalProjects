@@ -17,14 +17,13 @@ MonoBehaviour:
   actionPriority: 0
   coolDown: 0
   maxUses: 1
-  intialActionPointUsage: 1
-  actionPointGrowth: 1
+  actionPointUsage: 1
   consumableAction: 0
   oneTimeUsePerRound: 0
   actionTypes: 0100000003000000
   animation: {fileID: -5626302034160200816, guid: 30eed55309289f84eaec25668625021f, type: 3}
-  minDamage: 20
-  maxDamage: 75
+  minDamage: 10
+  maxDamage: 35
   effectiveRange: 4
   maxRange: 8
   effectAgainstArmorPercentage: 0

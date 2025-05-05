@@ -20,6 +20,12 @@ public abstract class Action : ScriptableObject
 
     public abstract int CalculateWeight(AIActionData AiActionData);
 
+    // This is to just to get best weight for movement purposes I.E RangedMoveToOptimalPositionCombat
+    public virtual int CalculateEnvironmentWeight(AIActionData AiActionData)
+    {
+        return baseActionWeight;
+    }
+
     public abstract void FindOptimalPosition(AIActionData AiActionData);
 
     public abstract bool CheckIfActionIsInRange(AIActionData AiActionData);
@@ -94,6 +100,41 @@ public abstract class Action : ScriptableObject
             && (!oneTimeUsePerRound || (oneTimeUsePerRound && !self.actions[actionIndex].actionUsedDuringRound)))
         {
             return true;
+        }
+        return false;
+    }
+
+    public bool CheckIfUnitIsInCover(Vector2Int shootingPosition, Vector2Int targetPosition, CombatGameManager gameManager)
+    {
+        DijkstraMap map = gameManager.map;
+        List<Vector2Int> potentialSpacesThatAreCover = new List<Vector2Int>();
+        Vector3 startPosition = map.getGrid().GetWorldPosition(shootingPosition);
+        Vector3 endPosition = map.getGrid().GetWorldPosition(targetPosition);
+        float angle = (Mathf.Atan2(endPosition.y - startPosition.y, endPosition.x - startPosition.x) * Mathf.Rad2Deg);
+        int adjustedAngle = Mathf.RoundToInt(angle);
+
+        List<int> potentialCoverAngles = new List<int>();
+        map.getGrid().GetXY(endPosition, out int x, out int y);
+        List<DijkstraMapNode> mapNodes = map.getGrid().GetGridObjectsInRing(x, y, 1);
+        for (int k = 0; k < mapNodes.Count; k++)
+        {
+            Vector2Int currentNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
+            GridPosition gridPosition = gameManager.grid.GetGridObject(currentNodePosition);
+            if (gameManager.spriteManager.elevationOfHexes[currentNodePosition.x, currentNodePosition.y] > gameManager.spriteManager.elevationOfHexes[targetPosition.x, targetPosition.y] || (gridPosition != null && gridPosition.unit != null))
+            {
+                Vector3 nodePosition = map.getGrid().GetWorldPosition(currentNodePosition);
+                angle = (Mathf.Atan2(endPosition.y - nodePosition.y, endPosition.x - nodePosition.x) * Mathf.Rad2Deg);
+                potentialCoverAngles.Add(Mathf.RoundToInt(angle));
+                potentialSpacesThatAreCover.Add(currentNodePosition);
+            }
+        }
+
+        for (int i = 0; i < potentialCoverAngles.Count; i++)
+        {
+            if (adjustedAngle == potentialCoverAngles[i] || (Mathf.Abs(Mathf.DeltaAngle(adjustedAngle, potentialCoverAngles[i])) < 60))
+            {
+                return true;
+            }
         }
         return false;
     }

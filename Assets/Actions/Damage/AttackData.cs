@@ -99,37 +99,19 @@ public class AttackData
         return allAttackData;
     }
 
-    public AttackData GetCalculatedAttackData(Unit targetUnit)
+    public AttackData ApplyMinAndMaxDamageModifiers()
     {
-        List<Damage> tempAllDamage = new List<Damage>();
         foreach (Damage damage in allDamage)
         {
-            Damage tempDamage = new Damage();
-            tempDamage.minDamage = (int)(damage.minDamage * originUnit.GetMinimumDamageModifer());
-            tempDamage.maxDamage = (int)(damage.maxDamage * originUnit.GetMaximumDamageModifer());
-            tempDamage.damageType = damage.damageType;
-            if (tempDamage.minDamage > tempDamage.maxDamage)
+            damage.minDamage = (int)(damage.minDamage * originUnit.GetMinimumDamageModifer());
+            damage.maxDamage = (int)(damage.maxDamage * originUnit.GetMaximumDamageModifer());
+            if (damage.minDamage > damage.maxDamage)
             {
-                tempDamage.maxDamage = tempDamage.minDamage;
-            }
-            tempAllDamage.Add(tempDamage);
-        }
-
-        Modifier resistances = targetUnit.GetCalculatedEstimatedDamage(this, tempAllDamage, true);
-
-        for (int i = 0; i < tempAllDamage.Count; i++)
-        {
-            if (tempAllDamage[i].maxDamage == 0)
-            {
-                tempAllDamage.RemoveAt(i);
-                i--;
+                damage.maxDamage = damage.minDamage;
             }
         }
 
-        AttackData tempAttackData = new AttackData(allDamage, armorDamagePercentage, originUnit);
-        tempAttackData.modifiers = modifiers;
-        tempAttackData.ignoreArmour = ignoreArmour;
-        return tempAttackData;
+        return this;
     }
 
     public List<AttackDataUI> CalculateAttackData(Unit targetUnit)

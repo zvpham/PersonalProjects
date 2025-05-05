@@ -451,7 +451,6 @@ public class Unit : UnitSuperClass, IInititiave
             Debug.Log("Used Action Points: " + usedActionPoints);
         }
         
-
         if(minorActionsFirst)
         {
             if (usedActionPoints != 1)
@@ -698,6 +697,7 @@ public class Unit : UnitSuperClass, IInititiave
         return unitAttackedData;
     }
 
+    // 
     public Modifier GetCalculatedEstimatedDamage(AttackData attackData, List<Damage> allDamage, bool ignoreShield)
     {
         float combatDamageResistenceValue = damageResistence;
@@ -728,10 +728,13 @@ public class Unit : UnitSuperClass, IInititiave
 
     // This is for the AI to help determine the value of doing an action
     //Health Damage, Armour Damage
-    public Tuple<int, int> GetEstimatedDamageValues(AttackData attackData)
+    public Tuple<int, int, List<Status>> GetEstimatedDamageValues(AttackData attackData)
     {
         int totalDamage = 0;
         float totalModifer = 1;
+        attackData.ApplyMinAndMaxDamageModifiers();
+
+        Modifier resistances = this.GetCalculatedEstimatedDamage(attackData, attackData.allDamage, true);
 
         for (int k = 0; k < attackData.modifiers.Count; k++)
         {
@@ -749,9 +752,13 @@ public class Unit : UnitSuperClass, IInititiave
         }
         //Debug.Log("Estimated Total Damage: " + totalDamage);
 
-        return TempApplyDamage(totalDamage, attackData.armorDamagePercentage, attackData.ignoreArmour);
+        // 
+        List<Status> finalApplicableStatuses = new List<Status>();
+        Tuple<int, int> finalDamageValues = TempApplyDamage(totalDamage, attackData.armorDamagePercentage, attackData.ignoreArmour);
+        return new Tuple<int, int, List<Status>>(finalDamageValues.Item1, finalDamageValues.Item2, finalApplicableStatuses);
     }
 
+    //Do Resistences before This Step
     //Health Damage, Armour Damage
     public Tuple<int, int> TempApplyDamage(int damage, float armourEffectPercentage, bool ignoreArmour)
     {
@@ -855,7 +862,7 @@ public class Unit : UnitSuperClass, IInititiave
                 currentArmor -= damageValue;
                 if (currentArmor < 0)
                 {
-                    Debug.Log("Health Damage Taken: " + currentArmor);
+                    Debug.Log("Health Damage Taken: " + (currentArmor * -1));
                     currentHealth += currentArmor;
                     currentArmor = 0;
                 }

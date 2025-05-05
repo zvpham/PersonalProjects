@@ -20,7 +20,7 @@ public class MeleeAttack : Action
             return -2;
         }
         CombatGameManager gameManager = AiActionData.unit.gameManager;
-        int highestActionValue = -2;
+        int highestActionValue = AiActionData.highestActionWeight;
         Unit originUnit = AiActionData.unit;
 
         if (AiActionData.canMove)
@@ -64,16 +64,16 @@ public class MeleeAttack : Action
                 {
                     movementActions[j].CalculateActionConsequences(AiActionData, newPosition);
                 }
-                float actionConsequenceModifier = totalMovingUnitHealth - AiActionData.prediction.Damage;
+                float actionConsequenceModifier = (float)(totalMovingUnitHealth - AiActionData.prediction.Damage) / totalMovingUnitHealth;
                 Debug.Log(validMoveHexes[i] + ", " + actionConsequenceModifier + ", " + totalMovingUnitHealth + ", " + AiActionData.prediction.Damage);
-                if (actionConsequenceModifier < 0)
+                if (actionConsequenceModifier <= 0)
                 {
                     continue;
                 }
 
                 actionConsequenceModifier = actionConsequenceModifier / totalMovingUnitHealth;
                 AttackData attackData = CalculateAttackData(originUnit, targetUnit);
-                Tuple<int, int> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
+                Tuple<int, int, List<Status>> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
                 bool targetExpectedToDie = expectedTargetDamage.Item1 >= targetUnit.currentHealth;
                 int tempActionValue = -2;
                 tempActionValue += (int)(expectedTargetDamage.Item1 * gameManager.healthDamageModifier);
@@ -111,7 +111,7 @@ public class MeleeAttack : Action
                     AiActionData.unit.moveModifier.validElevationDifference(gameManager, currentNode, mapNodes[j], range))
                 {
                     AttackData attackData = CalculateAttackData(originUnit, targetUnit);
-                    Tuple<int, int> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
+                    Tuple<int, int, List<Status>> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
                     bool targetExpectedToDie = expectedTargetDamage.Item1 >= targetUnit.currentHealth;
                     int tempActionValue = -2;
                     tempActionValue += (int)(expectedTargetDamage.Item1 * gameManager.healthDamageModifier);
@@ -206,7 +206,7 @@ public class MeleeAttack : Action
         CombatGameManager gameManager =  actingUnit.gameManager;
         Unit targetUnit = AiActionData.unit;
         AttackData attackData = CalculateAttackData(actingUnit, targetUnit);
-        Tuple<int, int> expectedTargetDamage = targetUnit.GetEstimatedDamageValues  (attackData);
+        Tuple<int, int, List<Status>> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
         bool targetExpectedToDie = expectedTargetDamage.Item1 >= targetUnit.currentHealth;
         int tempActionValue = -2;
         tempActionValue += expectedTargetDamage.Item1;
@@ -275,23 +275,19 @@ public class MeleeAttack : Action
 
     public AttackData CalculateAttackData(Unit movingUnit, Unit targetUnit)
     {
-        int adjustedMinimumDamage = (int)(minDamage * movingUnit.GetMinimumDamageModifer());
-        int adjustmedMaximumDamage = (int)(maxDamage * movingUnit.GetMaximumDamageModifer());
-
         Damage mainDamage = new Damage();
-        mainDamage.minDamage = adjustedMinimumDamage;
-        mainDamage.maxDamage = adjustmedMaximumDamage;
+        mainDamage.minDamage = minDamage;
+        mainDamage.maxDamage = maxDamage;
         mainDamage.damageType = DamageTypes.physical;
 
 
         AttackData tempAttackData = new AttackData(new List<Damage>() { mainDamage}, effectAgainstArmorPercentage, movingUnit);
         tempAttackData.ignoreArmour = ignoreArmor;
+        tempAttackData.meleeContact = true;
+        tempAttackData.ignoreShield = false;
 
         movingUnit.GetActionModifiers(this, tempAttackData);
-        AttackData modifiedAttackData = tempAttackData.GetCalculatedAttackData(targetUnit);
-        AttackData finalAttackData = modifiedAttackData.GetCalculatedAttackData(targetUnit);
-
-        return finalAttackData;
+        return tempAttackData;
     }
 
     //Ignore Path (useless parameter)
@@ -338,13 +334,9 @@ public class MeleeAttack : Action
             List<AttackDataUI> attackDatas = CalculateAttackDisplayData(actionData.actingUnit, targetUnit, null);
             targetUnit.gameManager.spriteManager.ActivateCombatAttackUI(targetUnit, attackDatas, targetUnit.transform.position);
 
-
             MeleeAttackAnimation meleeAttackAnimation = (MeleeAttackAnimation)Instantiate(this.animation);
             meleeAttackAnimation.SetParameters(actionData.actingUnit, actionData.actingUnit.transform.position, targetUnit.transform.position);
-            int adjustedMinimumDamage =  (int)(minDamage * actionData.actingUnit.GetMinimumDamageModifer());
-            int adjustmedMaximumDamage =  (int)(maxDamage * actionData.actingUnit.GetMaximumDamageModifer());
-            targetUnit.TakeDamage(actionData.actingUnit, new List<int>() { adjustedMinimumDamage }, new List<int>() { adjustmedMaximumDamage },
-                true, false, ignoreArmor, true);
+            targetUnit.TakeDamage(actionData.actingUnit, CalculateAttackData(actionData.actingUnit, targetUnit), true);
             UseActionPreset(actionData.actingUnit);
         }
     }

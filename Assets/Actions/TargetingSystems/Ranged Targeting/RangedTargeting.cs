@@ -18,8 +18,8 @@ public class RangedTargeting : TargetingSystem
     // For Selection/ Mouse Hover (Combat UI)
     public Vector2Int prevEndHexSelectedPosition;
 
-    List<Vector2Int> friendlyUnits;
-    new List<Vector2Int> validTargetPositions;
+    public List<Vector2Int> friendlyUnits;
+    public List<Vector2Int> validTargetPositions;
     public List<Vector2Int> path = new List<Vector2Int>();
     public List<Vector2Int> setPath = new List<Vector2Int>();
     public List<Vector2Int> targetHexPositions = new List<Vector2Int>();
@@ -65,7 +65,7 @@ public class RangedTargeting : TargetingSystem
     AttackData attackData;
 
     //Path, MovingUnit, TargetUnit, FoundTarget
-    public UnityAction<Unit, Unit, bool> OnFoundTarget;
+    public UnityAction<Unit, Unit, bool, int> OnFoundTarget;
 
     public void SetParameters(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int actionPointUseAmount, int meleeRange,
         AttackData attackData, List<EquipableAmmoSO> unitAmmo)
@@ -454,7 +454,7 @@ public class RangedTargeting : TargetingSystem
                                 attackData.armorDamagePercentage, attackData.originUnit);
                             if(unitAmmo != null && unitAmmo.Count > 0)
                             {
-                                currentAttackData = unitAmmo[currentAmmoIndex].ModifyAttack(currentAttackData);
+                                unitAmmo[currentAmmoIndex].ModifyAttack(currentAttackData);
                             }
                             List<AttackDataUI> attackDatas = currentAttackData.CalculateAttackData(targetUnit);
                             if(highlightedCoverHexes.Count > 0)
@@ -529,7 +529,7 @@ public class RangedTargeting : TargetingSystem
             // Select Player Unit when you aren't using a friendly ability like heal
             if (!targetFriendly && gameManager.playerTurn.CheckSpaceForFriendlyUnit(endHexPosition))
             {
-                OnFoundTarget?.Invoke(movingUnit, null, false);
+                OnFoundTarget?.Invoke(movingUnit, null, false, currentAmmoIndex);
                 gameManager.playerTurn.SelectUnit(endHexPosition);
             }
             else
@@ -593,7 +593,7 @@ public class RangedTargeting : TargetingSystem
                             () => // Confirm Action
                             {
                                 selectedTarget = true;
-                                OnFoundTarget?.Invoke(movingUnit, targetUnit, true);
+                                OnFoundTarget?.Invoke(movingUnit, targetUnit, true, currentAmmoIndex);
                                 Destroy(tempMovingUnit);
                             },
                             () => // Cancel Action
@@ -613,7 +613,7 @@ public class RangedTargeting : TargetingSystem
                             {
                                 selectedTarget = true;
                                 gameManager.move.AnotherActionMove(setPath, movingUnit, false);
-                                OnFoundTarget?.Invoke(movingUnit, targetUnit, true);
+                                OnFoundTarget?.Invoke(movingUnit, targetUnit, true, currentAmmoIndex);
                                 Destroy(tempMovingUnit);
                             },
                             () => // Cancel Action
@@ -651,7 +651,7 @@ public class RangedTargeting : TargetingSystem
                             //gameManager.move.AnotherActionMove(setPath, amountMoved movingUnit);
                             if (setPath.Count == 1 && movingUnit.gameManager.map.getGrid().GetWorldPosition(setPath[0].x, setPath[0].y) == movingUnit.transform.position)
                             {
-                                OnFoundTarget?.Invoke(movingUnit, null, false);
+                                OnFoundTarget?.Invoke(movingUnit, null, false, currentAmmoIndex);
                                 gameManager.playerTurn.SelectUnit(movingUnit);
                             }
                             else

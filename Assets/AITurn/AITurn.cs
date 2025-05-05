@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -379,7 +380,7 @@ public class AITurn : MonoBehaviour
             Tuple<int, Vector2Int, List<Action>, List<Vector2Int>> moveValue = currentMoveAction.MoveUnit(AiActionData);
             if(moveValue.Item1 < lowestMoveValue)
             {
-                Debug.Log("Current Move Action: " + currentMoveAction + ", false");
+                Debug.Log("Current Move Action: " + currentMoveAction + ", false"  + ", " + moveValue.Item1 + ", " + moveValue.Item2);
                 lowestMoveActionIndex = i;
                 lowestMoveValue = moveValue.Item1;
                 AiActionData.desiredEndPosition = moveValue.Item2;
@@ -395,7 +396,7 @@ public class AITurn : MonoBehaviour
             Tuple<int, Vector2Int, List<Action>, List<Vector2Int>> moveValue = currentMoveAction.MoveUnit(AiActionData, true);
             if (moveValue.Item1 < lowestMoveValue)
             {
-                Debug.Log("Current Move Action: " + currentMoveAction + ", true");
+                Debug.Log("Current Move Action: " + currentMoveAction + ", true" + ", " + moveValue.Item1 + ", " + moveValue.Item2);
                 ignorePassives = true;
                 lowestMoveActionIndex = i;
                 lowestMoveValue = moveValue.Item1;
@@ -422,6 +423,63 @@ public class AITurn : MonoBehaviour
             gameManager.PlayActions();
         }
     }
+
+    public void RangedMoveToOptimalPositionCombat(AIActionData AiActionData)
+    {
+        Unit currentUnit =  AiActionData.unit;
+        int highestActionWeight = -1;
+        int actionIndex = -1;
+        for(int i = 0; i < currentUnit.actions.Count; i++)
+        {
+            if (currentUnit.actions[i].action.actionTypes.Contains(ActionType.Movement))
+            {
+                continue;
+            }
+
+            if (currentUnit.actions[i].action.CalculateEnvironmentWeight(AiActionData) > highestActionWeight)
+            {
+                actionIndex = i;
+                highestActionWeight = currentUnit.actions[i].action.CalculateEnvironmentWeight(AiActionData);
+            }
+        }
+
+        Debug.LogWarning("Remove This for final version, remove when you have enemyTeamStartingPositinons Set");
+        Vector2Int endHex;
+        if(AiActionData.enemyTeamStartingPositions ==  null || AiActionData.enemyTeamStartingPositions.Count == 0)
+        {
+            if(AiActionData.enemyUnits.Count == 0)
+            {
+                Debug.LogError("no EnemynUnits Left");
+                return;
+            }
+            endHex = AiActionData.enemyUnits[0];
+        }
+        else
+        {
+            endHex = enemyTeamStartPositions[0];
+        }
+            
+
+        Action currentAction = currentUnit.actions[actionIndex].action;
+        CombatGameManager gameManager = currentUnit.gameManager;
+        int lineDisatance =  gameManager.grid.OffsetDistance(AiActionData.originalPosition, endHex);
+        Vector3Int startCube =  gameManager.grid.OffsetToCube(AiActionData.originalPosition);
+        Vector3Int endCube = gameManager.grid.OffsetToCube(endHex);
+
+        List<Vector3Int> cubeLine = gameManager.grid.CubeLineDraw(startCube, endCube);
+        Vector3Int midPointCube = cubeLine[(lineDisatance) / 2];
+        Vector2Int midPointPosition = gameManager.grid.CubeToOffset(midPointCube);
+        AiActionData.desiredTargetPositionEnd = midPointPosition;
+        currentAction.FindOptimalPosition(AiActionData);
+
+            
+    }
+
+    public void RangedMoveToOptimalPositionSkirmish(AIActionData AiActionData)
+    {
+
+    }
+
 
     public void ChaffAI(Unit unit, bool positionOnly)
     {
@@ -461,20 +519,15 @@ public class AITurn : MonoBehaviour
                 break;
             }
         }
-        AIActionData AiActionData =  new AIActionData();
+        AIActionData AiActionData =  new AIActionData(gameManager.mapSize);
         AiActionData.unit = unit;
         AiActionData.originalPosition = originalPosition;
         AiActionData.AIState = AIState;
         AiActionData.expectedCurrentActionPoints = unit.currentMajorActionsPoints;
+        AiActionData.expectedInitialMoveSpeed = unit.currentMoveSpeed;
         int actionIndex = -1;
 
         List<UnitActionData> movementActionData = new List<UnitActionData>();
-        AiActionData.movementData = new int[gameManager.mapSize, gameManager.mapSize];
-        AiActionData.movementActions = new List<Action>[gameManager.mapSize, gameManager.mapSize];
-        AiActionData.startPositions = new List<Vector2Int>[gameManager.mapSize, gameManager.mapSize];
-        AiActionData.ignorePassiveArea = new bool[gameManager.mapSize, gameManager.mapSize];
-        AiActionData.hexesUnitCanMoveTo = new List<Vector2Int>();
-
         List<Vector2Int> enemyUnitHexPositions = new List<Vector2Int>();
         for (int i = 0; i < visibleUnits.Count; i++)
         {
@@ -598,6 +651,7 @@ public class AITurn : MonoBehaviour
         for (int i = 0; i < unit.actions.Count; i++)
         {
             int actionWieght = unit.actions[i].action.CalculateWeight(actionData);
+            Debug.Log(unit.actions[i] + ", " + actionWieght);
             if (highestActionWeight < actionWieght)
             {
                 actionIndex = i;
@@ -610,8 +664,7 @@ public class AITurn : MonoBehaviour
     public int GetHighestActionIndex(AIActionData actionData, Unit unit, List<int> actionsInRange)
     {
         int actionIndex = -1;
-        int highestActionWeight = 0;
-
+        actionData.highestActionWeight = 0;
         actionData.unwalkablePassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
         actionData.badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
         actionData.goodWalkinPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
@@ -659,10 +712,10 @@ public class AITurn : MonoBehaviour
         {
             int actionWieght = unit.actions[actionsInRange[i]].action.CalculateWeight(actionData);
             Debug.Log(unit.actions[actionsInRange[i]].action + " action weight: " + actionWieght);      
-            if (highestActionWeight < actionWieght)
+            if (actionData.highestActionWeight < actionWieght)
             {
                 actionIndex = i;
-                highestActionWeight = actionIndex;
+                actionData.highestActionWeight = actionWieght;
             }
         }
 

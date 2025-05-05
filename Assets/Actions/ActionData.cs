@@ -12,4 +12,5 @@ public class ActionData
     public List<Vector2Int> path = new List<Vector2Int>();
     public bool actionCalculated;
     public int intReturnData;
+    public int itemIndex;
 }

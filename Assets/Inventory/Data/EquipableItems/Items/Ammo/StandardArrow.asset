@@ -35,4 +35,5 @@ MonoBehaviour:
   actions: []
   passives: []
   ammoType: 0
+  ammoData: {fileID: 11400000, guid: b91f16463a053ed4d8c928267368c93f, type: 2}
   armorPiercingModifier: 1

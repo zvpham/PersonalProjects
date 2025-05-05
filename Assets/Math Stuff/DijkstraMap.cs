@@ -461,17 +461,17 @@ public class DijkstraMap
         }
     }
 
+    //Don't set unwalkable before Calling this, permissable units will cover that by accounting for extra rage
     //Standard Get Nodes in Range but expand extra hexes regardless of elevation equal to range 
-    public List<DijkstraMapNode> GetNodesInTargetRange(List<Vector2Int> targetLocations, int initialMoveValue, List<Vector2Int> friendlyUnits,
-        List<Vector2Int> permissableUnits,CombatGameManager gameManager, MoveModifier moveModifier, int range, int walkCostOveride = -1, 
+    public List<DijkstraMapNode> GetNodesInTargetRange(List<Vector2Int> targetLocations, int initialMoveValue,
+        List<Vector2Int> permissableUnits,CombatGameManager gameManager, MoveModifier moveModifier, int originalRange, int walkCostOveride = -1, 
         int[,] walkCostGridOveride = null)
     {
-
-        int meleeRange = range;
-        if (meleeRange <= 0)
+        int range = originalRange;
+        if (range <= 0)
         {
             Debug.LogWarning("Melee Range is less than or equal to 0");
-            meleeRange = 1;
+            range = 1;
         }
 
         List<DijkstraMapNode> nodesInMovementRange = new List<DijkstraMapNode>();
@@ -485,8 +485,8 @@ public class DijkstraMap
             if (newNode != null)
             {
                 newNode.value = initialMoveValue;
-                newNode.permissableMoves = meleeRange;
-                newNode.amountOfFreeMoves = meleeRange;
+                newNode.permissableMoves = range;
+                newNode.amountOfFreeMoves = range;
                 grid.SetGridObject(newNode.x, newNode.y, newNode);
                 openList.Add(newNode);
             }
@@ -504,10 +504,10 @@ public class DijkstraMap
             {
                 DijkstraMapNode currentNode = GetHighestValue(openList);
                 openList.Remove(currentNode);
+                nodesInMovementRange.Add(currentNode);
+                closedList.Add(currentNode);
                 foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
                 {
-                    nodesInMovementRange.Add(currentNode);
-                    closedList.Add(currentNode);
                     if(currentNode.amountOfFreeMoves <= 0)
                     {
                         continue;
@@ -547,7 +547,6 @@ public class DijkstraMap
                                 continue;
                             }
                         }
-
                         neighborNode.value = currentNode.value;
                         neighborNode.amountOfFreeMoves = currentNode.amountOfFreeMoves - 1;
                         grid.SetGridObject(neighborNode.x, neighborNode.y, neighborNode);
@@ -562,6 +561,8 @@ public class DijkstraMap
             {
                 DijkstraMapNode currentNode = GetLowestValue(openList);
                 openList.Remove(currentNode);
+                nodesInMovementRange.Add(currentNode);
+                closedList.Add(currentNode);
                 foreach (DijkstraMapNode neighborNode in GetNeighborList(currentNode))
                 {
                     if (moveModifier.CheckIfHexIsInMovementRange(gameManager, currentNode, neighborNode,

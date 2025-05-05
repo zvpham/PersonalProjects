@@ -280,7 +280,7 @@ public class TestHexGrid : MonoBehaviour
     {
         Unit unit = gameManager.playerTurn.currentlySelectedUnit;
         int[,] movementData = new int[gameManager.mapSize, gameManager.mapSize];
-        AIActionData actionData = new AIActionData();
+        AIActionData actionData = new AIActionData(gameManager.mapSize);
         actionData.unit = unit;
         actionData.originalPosition = new Vector2Int(unit.x, unit.y);
         actionData.AIState = AITurnStates.Combat;
@@ -302,7 +302,7 @@ public class TestHexGrid : MonoBehaviour
         {
             if (unit.actions[i].action.actionTypes.Contains(ActionType.Movement))
             {
-                AIActionData data = new AIActionData();
+                AIActionData data = new AIActionData(gameManager.mapSize);
                 data.unit = unit;
                 data.originalPosition = new Vector2Int(unit.x, unit.y);
                 unit.actions[i].action.GetMovementMap(data);

@@ -176,7 +176,7 @@ public class MeleeTargeting : TargetingSystem
         enemyGroundHexes = new List<Vector2Int>();
 
         map.ResetMap(false, false);
-        List<DijkstraMapNode> nodesInMeleeRange =  map.GetNodesInTargetRange(new List<Vector2Int> { targetPosition }, startValue, null, validTargetPositions, 
+        List<DijkstraMapNode> nodesInMeleeRange =  map.GetNodesInTargetRange(new List<Vector2Int> { targetPosition }, startValue, validTargetPositions, 
             gameManager, movingUnit.moveModifier, meleeRange);
 
         Debug.Log(nodesInMeleeRange.Count);

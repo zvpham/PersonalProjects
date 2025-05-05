@@ -577,8 +577,6 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
             passive.RemovePassive(unit);
         }
 
-        spriteManager.UnitDied(unit);
-
         grid.GetGridObject(unit.x, unit.y).unit = null;
         grid.SetGridObject(unit.x, unit.y, grid.GetGridObject(unit.x, unit.y));
         units.Remove(unit);
