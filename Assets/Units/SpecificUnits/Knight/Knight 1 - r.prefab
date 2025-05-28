@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   testingUnitClassifications: 01000000
-  unitType: 1
+  unitType: 4
   team: 0
   powerLevel: 1
   inOverWorld: 0

@@ -50,7 +50,8 @@ public class TestHexGrid : MonoBehaviour
 
     public Vector2Int mouseHex;
     public Vector2Int prevMouseHex;
-    public List<Vector2Int> lineOfSightHexes= new List<Vector2Int>();   
+    public List<Vector2Int> lineOfSightHexes= new List<Vector2Int>();
+    public bool isPointOne = true;
 
     // Start is called before the first frame update
     void Start()
@@ -162,6 +163,7 @@ public class TestHexGrid : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
+            //testDistance();
             //TestAiTime();
             //TestParameters();
 
@@ -201,6 +203,23 @@ public class TestHexGrid : MonoBehaviour
         */
     }
  
+
+    public void testDistance()
+    {
+        Debug.Log(currentlySelectedHex);
+        if(isPointOne)
+        {
+            startHex = currentlySelectedHex;
+        }
+        else
+        {
+            endHex = currentlySelectedHex;
+            Debug.Log(gameManager.grid.OffsetDistance(startHex, endHex));
+
+        }
+        isPointOne = !isPointOne;
+
+    }
 
 
     public bool LineOfSight(Vector2Int originalPosition, Vector2Int targetPosiiton)
@@ -544,8 +563,9 @@ public class TestHexGrid : MonoBehaviour
         gameManager.spriteManager.ChangeElevation(currentlySelectedHex.x, currentlySelectedHex.y, elevationChangeAmount, true);
     }
 
-    public void EarthWall()
+    public void EarthWall(int elevationChange)
     {
+        Debug.Log(elevationChange);
         if (earthWallIndex == 0)
         {
             startHex = currentlySelectedHex;
@@ -563,7 +583,7 @@ public class TestHexGrid : MonoBehaviour
             for (int i = 0; i < cubePath.Count; i++)
             {
                 Vector2Int offSetPosition = gameManager.spriteManager.spriteGrid.CubeToOffset(cubePath[i]);
-                gameManager.spriteManager.ChangeElevation(offSetPosition.x, offSetPosition.y, 2, true, false);
+                gameManager.spriteManager.ChangeElevation(offSetPosition.x, offSetPosition.y, elevationChange, true, false);
             }
             earthWallIndex = 0;
         }

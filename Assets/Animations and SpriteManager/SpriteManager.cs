@@ -216,7 +216,7 @@ public class SpriteManager : MonoBehaviour
         RaycastHit2D[] hit = Physics2D.RaycastAll(worldPoint, Vector2.zero);
         if(hit.GetLength(0) == 0)
         {
-            Debug.LogWarning("HIt Nothing");
+            //Debug.LogWarning("HIt Nothing");
             currentlySelectedHex = new Vector2Int(0, 0);
         }
         else

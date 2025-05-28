@@ -51,6 +51,7 @@ MonoBehaviour:
   inOverWorld: 0
   isLoaded: 0
   unitProfile: {fileID: 0}
+  unitSpriteRenderer: {fileID: 0}
   combatAttackUi: {fileID: 0}
   heroIndex: 0
   unitClass: {fileID: 11400000, guid: c1ca7bf8262889c428a7297004360abd, type: 2}
@@ -78,7 +79,7 @@ MonoBehaviour:
   highWeight: 0
   strength: 0
   dexterity: 0
-  maxHealth: 100
+  maxHealth: 20000
   currentHealth: 0
   maxArmor: 0
   currentArmor: 0
@@ -94,14 +95,19 @@ MonoBehaviour:
   actions: []
   passives: []
   statuses: []
-  maxActionsPoints: 2
-  currentActionsPoints: 0
+  maxMajorActionsPoints: 2
+  maxMinorActionsPoints: 0
+  currentMajorActionsPoints: 0
+  currentMinorActionsPoints: 0
   selfInTheseUnitsThreatenedZones: []
   moveModifier: {fileID: 0}
   moveModifierPriority: -1
   group: {fileID: 0}
+  unitMovedThisTurn: 0
   forceEndTurn: 0
   confirmDeath: 0
+  isDead: 0
+  confirmDamage: 0
   targetValue: 0
   AIResponseToUnit: 
   gameManager: {fileID: 0}

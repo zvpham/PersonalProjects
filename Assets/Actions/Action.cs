@@ -18,6 +18,16 @@ public abstract class Action : ScriptableObject
 
     public CustomAnimations animation;
 
+    public struct CalculatedActionData
+    {
+        public int highestActionValue;
+        public Vector2Int desiredEndPosition;
+        public Vector2Int desiredTargetPositionEnd;
+        public Action action;
+        public int itemIndex;
+        public bool completedCalculation;
+    }
+
     public abstract int CalculateWeight(AIActionData AiActionData);
 
     // This is to just to get best weight for movement purposes I.E RangedMoveToOptimalPositionCombat
@@ -36,7 +46,7 @@ public abstract class Action : ScriptableObject
     }
 
     // Returns the distance of the endPosition from goal
-    public virtual Tuple<int, Vector2Int, List<Action>, List<Vector2Int>> MoveUnit(AIActionData AiActionData, bool IgnorePassives = false)
+    public virtual Tuple<int, Vector2Int, List<Action>, List<Vector2Int>> MoveUnitToEnemyUnits(AIActionData AiActionData, bool IgnorePassives = false)
     {
         return new Tuple<int, Vector2Int, List<Action>, List<Vector2Int>>(int.MaxValue, Vector2Int.zero, null, new List<Vector2Int>());
     }
@@ -196,9 +206,9 @@ public abstract class Action : ScriptableObject
     }
 
     // For Movement Actions Only
-    public virtual int[,] GetMovementMap(AIActionData actionData)
+    public virtual void GetMovementMap(AIActionData actionData)
     {
         Debug.LogError("The Abtract version should never be called");
-        return null;
+        return;
     }
 }

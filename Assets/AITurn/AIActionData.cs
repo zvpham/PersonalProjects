@@ -6,7 +6,10 @@ public class AIActionData
     public Unit unit;
     public Vector2Int originalPosition;
     public List<Vector2Int> enemyUnits;
+    public List<Vector2Int> markedUnits = new List<Vector2Int>(); // positson of units that have a unit marking (either in combat or on course  to intercept them) to help make more complex ranged targeting
     public List<Vector2Int> enemyTeamStartingPositions;
+    public List<Vector2Int> friendlyUnits;
+    public List<Vector2Int> futureFriendlyUnits = new List<Vector2Int>();
     public AITurnStates AIState;
     public bool inMelee;
 
@@ -57,9 +60,9 @@ public class AIActionData
         //Debug.Log("modify Action Value Posiotn: " + expectedEndPosition);
         //Debug.Log("test: " + AiActionData.movementData.GetLength(0) + ", " + AiActionData.movementData.GetLength(1));
         int amountOfActionsUsed = AiActionData.movementData[expectedEndPosition.x, expectedEndPosition.y];      
-        int actionIndex = action.GetActionIndex(AiActionData.unit);
         amountOfActionsUsed += action.actionPointUsage;
-        return actionValue = actionValue / (amountOfActionsUsed + 1); // add + 1 so that position and other modifiers are more valuable than actionpoints
+        Debug.Log("Test 3: " + amountOfActionsUsed + ", " + actionValue + ", " + (amountOfActionsUsed + 1) + ", " + (actionValue / (amountOfActionsUsed + 1)));
+        return actionValue / (amountOfActionsUsed + 1); // add + 1 so that position and other modifiers are more valuable than actionpoints
     }
 
 }

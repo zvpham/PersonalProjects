@@ -10,7 +10,7 @@ public class DijkstraMapNode
     public int value;
     public int amountTraveled;
     public int permissableMoves; // Hex can end on a permissable space/ (Units)
-    public int amountOfFreeMoves; // Move a free hex in a place where a move is possible
+    public int amountOfFreeMoves; // Move a free hex in a place (expand hexes due ot range)
     public bool walkable;
     public bool endPositionOnly;
     

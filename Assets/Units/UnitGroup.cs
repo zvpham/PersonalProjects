@@ -44,9 +44,19 @@ public class UnitGroup : UnitSuperClass, IInititiave
         activeUnits.Remove(unitWhoEndedTurn);
         if(activeUnits.Count == 0)
         {
-            if (team == Team.Player)
+            switch (team)
             {
-                gameManager.playerTurn.TurnEnd();
+                case Team.Player:
+                    break;
+                case Team.Team2:
+                    gameManager.AITurn1.AIEndTurn(units);
+                    break;
+                case Team.Team3:
+                    gameManager.AITurn2.AIEndTurn(units);
+                    break;
+                case Team.Team4:
+                    gameManager.AITurn3.AIEndTurn(units);
+                    break;
             }
             gameManager.TurnEnd(this);
         }

@@ -368,7 +368,8 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         {
             Debug.Log("Round Ended");
             resetInitiativeOrder();
-            ResetUnitActionAmounts();
+            ResetUnitActionAmountsAndHasMoved();
+            ResetAiTurnsAtTurnEnd();
         }
         initiativeOrder[initiativeOrder.Count - 1].StartTurn();
     }
@@ -411,15 +412,23 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
         enabled = true;
     }
 
-    public void ResetUnitActionAmounts()
+    public void ResetUnitActionAmountsAndHasMoved()
     {
         for(int i = 0; i < units.Count; i++)
         {
+            units[i].unitMovedThisTurn = false;
             for(int j = 0; j < units[i].actions.Count; j++)
             {
                 units[i].actions[j].actionUsedDuringRound = false;
             }
         }
+    }
+
+    public void ResetAiTurnsAtTurnEnd()
+    {
+        AITurn1.unitsThatAlreadyTookTheirTurn.Clear();
+        AITurn2.unitsThatAlreadyTookTheirTurn.Clear();
+        AITurn3.unitsThatAlreadyTookTheirTurn.Clear();
     }
 
     public void setInitiativeOrder()

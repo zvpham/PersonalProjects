@@ -47,13 +47,14 @@ public class MeleeAttack : Action
                             AiActionData.unit.moveModifier.validElevationDifference(gameManager, currentNode, mapNodes[j], range)
                             && CheckIfTileIsInRange(currentNodePosition, AiActionData) && originElevation > highestValidElevation)
                         {
-                            Debug.Log("Add Valid hex");
+                           Debug.Log("Add Valid hex");
                            validMoveHexes.Add(new Tuple<Vector2Int, Unit>(currentNodePosition, targetUnit));
                         }
                     }
                 }
             }
             int totalMovingUnitHealth = originUnit.currentHealth + originUnit.currentArmor;
+            Debug.Log("valid Move Places: " + validMoveHexes.Count);
             for(int i = 0; i < validMoveHexes.Count; i++)
             {
                 Vector2Int newPosition =  validMoveHexes[i].Item1;
@@ -71,7 +72,6 @@ public class MeleeAttack : Action
                     continue;
                 }
 
-                actionConsequenceModifier = actionConsequenceModifier / totalMovingUnitHealth;
                 AttackData attackData = CalculateAttackData(originUnit, targetUnit);
                 Tuple<int, int, List<Status>> expectedTargetDamage = targetUnit.GetEstimatedDamageValues(attackData);
                 bool targetExpectedToDie = expectedTargetDamage.Item1 >= targetUnit.currentHealth;
@@ -82,9 +82,11 @@ public class MeleeAttack : Action
                 {
                     tempActionValue += gameManager.killValue;
                 }
+                Debug.Log("Test 2 : " + tempActionValue);
                 tempActionValue = (int)(tempActionValue * targetUnit.targetValue);
                 tempActionValue = AiActionData.ModifyActionValue(AiActionData, newPosition, this, tempActionValue);
                 tempActionValue = (int) (tempActionValue * actionConsequenceModifier);
+                Debug.Log("Test 1 : " + tempActionValue);
                 if (highestActionValue < tempActionValue)
                 {
                     highestActionValue = tempActionValue;

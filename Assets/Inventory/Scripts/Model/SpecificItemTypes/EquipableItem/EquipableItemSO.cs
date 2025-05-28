@@ -97,7 +97,6 @@ namespace Inventory.Model
                 for (int i = 0; i < actions.Count; i++)
                 {
                     actions[i].AddAction(unit);
-                    Debug.Log("Add Action");
                 }
 
                 for (int i = 0; i < passives.Count; i++)

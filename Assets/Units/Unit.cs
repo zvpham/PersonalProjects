@@ -89,6 +89,7 @@ public class Unit : UnitSuperClass, IInititiave
 
     public UnitGroup group;
 
+    public bool unitMovedThisTurn =  false;
     public bool forceEndTurn = false;
     public bool confirmDeath;
     public bool isDead = false;
@@ -620,9 +621,20 @@ public class Unit : UnitSuperClass, IInititiave
         }
         else
         {
-            if(team == Team.Player)
+            switch (team)
             {
-                gameManager.playerTurn.TurnEnd();
+                case (Team.Player):
+                    gameManager.playerTurn.TurnEnd();
+                    break;
+                case (Team.Team2):
+                    gameManager.AITurn1.AIEndTurn(new List<Unit>() { this });
+                    break;
+                case (Team.Team3):
+                    gameManager.AITurn2.AIEndTurn(new List<Unit>() { this });
+                    break;
+                case (Team.Team4):
+                    gameManager.AITurn3.AIEndTurn(new List<Unit>() { this });
+                    break;
             }
             gameManager.TurnEnd(this);
         }

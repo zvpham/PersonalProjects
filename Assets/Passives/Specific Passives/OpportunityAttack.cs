@@ -180,16 +180,16 @@ public class OpportunityAttack : AreaPassive
         MeleeAttack meleeAttack =  actingUnit.MeleeAttack;
         if (path.Count != 0 && passiveArea.Contains(orignalPosition))
         {
-            Debug.Log("Origin Position Oppurtunty Attack");
+            //Debug.Log("Origin Position Oppurtunty Attack");
             meleeAttack.ExpectedEffectsOfPassivesActivations(AiActionData, actingUnit);
         }
 
         for (int i = 0; i < path.Count; i++)
         {
-            Debug.Log("Walking Path: " + path[i]);
+            //Debug.Log("Walking Path: " + path[i]);
             if (passiveArea.Contains(path[i]) && i < path.Count - 1)
             {
-                Debug.Log("Oppurtunty Attack: " + path[i]);
+                //Debug.Log("Oppurtunty Attack: " + path[i]);
                 meleeAttack.ExpectedEffectsOfPassivesActivations(AiActionData, actingUnit);
             }
         }

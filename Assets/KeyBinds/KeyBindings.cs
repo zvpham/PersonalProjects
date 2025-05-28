@@ -29,7 +29,8 @@ public class KeyBindings : MonoBehaviour
         testActionKeyBinds.Add(TestActionName.RaiseElevation, new List<KeyCode>() { KeyCode.Q });
         testActionKeyBinds.Add(TestActionName.LowerElevation, new List<KeyCode>() { KeyCode.E });
         testActionKeyBinds.Add(TestActionName.InteractWithInventory, new List<KeyCode>() { KeyCode.I });
-        testActionKeyBinds.Add(TestActionName.TestEarthWall, new List<KeyCode>() { KeyCode.R });
+        testActionKeyBinds.Add(TestActionName.RaiseEarthWall, new List<KeyCode>() { KeyCode.R });
+        testActionKeyBinds.Add(TestActionName.LowerEarthWall, new List<KeyCode>() { KeyCode.T });
         testActionKeyBinds.Add(TestActionName.RaiseViewElevation, new List<KeyCode>() { KeyCode.Z });
         testActionKeyBinds.Add(TestActionName.LowerViewElevation, new List<KeyCode>() { KeyCode.X });
         testActionKeyBinds.Add(TestActionName.PlacePlayer, new List<KeyCode>() { KeyCode.Alpha1 });
@@ -37,6 +38,7 @@ public class KeyBindings : MonoBehaviour
         testActionKeyBinds.Add(TestActionName.PlaceTeam3, new List<KeyCode>() { KeyCode.Alpha3 });
         testActionKeyBinds.Add(TestActionName.PlaceTeam4, new List<KeyCode>() { KeyCode.Alpha4 });
         testActionKeyBinds.Add(TestActionName.RemoveUnit, new List<KeyCode>() { KeyCode.Backspace });
+
         if (instance == null)
         {
             instance = this;

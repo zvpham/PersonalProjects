@@ -58,16 +58,36 @@ public class StandardMoveModifier : MoveModifier
 
 
     // IS it possible to make move accounting for movespeed
+    // Start node is 0 and expand increase by move AMount Change
     public override bool ValidMovePosition(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode neighborNode,
-        int moveAmountChange)
+        int moveAmountChange, bool debug = false)
     {
         int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
         int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];
         int neighborNodeElevation = elevationGrid[neighborNode.x, neighborNode.y];
+        if (debug)
+        {
+            Debug.Log("Check Valid Move: " + neighborNode.x + ", " + neighborNode.y + ": " + (currentNode.value + moveAmountChange) + ", " + neighborNode.value + ", "  +  neighborNode.walkable + ", " + Mathf.Abs(currentNodeElevation - neighborNodeElevation));
+        }
         return currentNode.value + moveAmountChange < neighborNode.value && neighborNode.walkable && 
             Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
     }
 
+    // this is for when we start at 0 for goals (nodes need to be walkable, accounted for when called for by permissable moves)
+    public override bool ValidMovePositionNoWalkable(CombatGameManager gameManager, DijkstraMapNode currentNode, DijkstraMapNode nextNode,
+        int moveAmountChange, bool debug = false)
+    {
+        int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
+        int currentNodeElevation = elevationGrid[currentNode.x, currentNode.y];
+        int neighborNodeElevation = elevationGrid[nextNode.x, nextNode.y];
+        if (debug)
+        {
+            Debug.Log("Check Valid Move: " + nextNode.x + ", " + nextNode.y + ": " + (currentNode.value + moveAmountChange) + ", " + nextNode.value + ", " + nextNode.walkable + ", " + Mathf.Abs(currentNodeElevation - neighborNodeElevation));
+        }
+        return currentNode.value + moveAmountChange < nextNode.value && Mathf.Abs(currentNodeElevation - neighborNodeElevation) <= 1;
+    }
+
+    // start node is equal to movesped and decreease evey step away
     public override bool CheckIfHexIsInMovementRange(CombatGameManager gameManager, DijkstraMapNode currentNode, 
         DijkstraMapNode nextNode, int moveAmountChange)
     {

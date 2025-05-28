@@ -110,7 +110,7 @@ public class Evade : StatusAction
         return emptyNodes.Count > 0;    
     }
 
-    public override Tuple<int, Vector2Int, List<Action>, List<Vector2Int>> MoveUnit(AIActionData AiActionData, bool IgnorePassives = false)
+    public override Tuple<int, Vector2Int, List<Action>, List<Vector2Int>> MoveUnitToEnemyUnits(AIActionData AiActionData, bool IgnorePassives = false)
     {
         Unit movingUnit = AiActionData.unit;
         int actionIndex = GetActionIndex(movingUnit);
@@ -386,7 +386,7 @@ public class Evade : StatusAction
         self.gameManager.PlayActions();
     }
 
-    public override int[,] GetMovementMap(AIActionData actionData)
+    public override void GetMovementMap(AIActionData actionData)
     {
         CombatGameManager gameManager = actionData.unit.gameManager;
         Unit movingUnit = actionData.unit;
@@ -443,7 +443,6 @@ public class Evade : StatusAction
         int startValue = (movingUnit.moveSpeedPerMoveAction * initialActionPoints) + movingUnit.currentMoveSpeed;
         gameManager.map.ResetMap(false, false);
         List<DijkstraMapNode> mapNodes = actionData.unit.gameManager.map.GetNodesInMovementRange(actionData.originalPosition.x, actionData.originalPosition.y, startValue, movingUnit.moveModifier, gameManager, badWalkInPassivesValues);
-        int[,] movementGridValues = actionData.unit.gameManager.map.GetGridValues();
 
         if (mapNodes.Count > 1)
         {
@@ -491,8 +490,6 @@ public class Evade : StatusAction
                 }
             }
         }
-
-        return movementGridValues;
     }
 
 

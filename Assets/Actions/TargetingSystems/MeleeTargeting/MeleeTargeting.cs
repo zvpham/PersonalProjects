@@ -176,7 +176,7 @@ public class MeleeTargeting : TargetingSystem
         enemyGroundHexes = new List<Vector2Int>();
 
         map.ResetMap(false, false);
-        List<DijkstraMapNode> nodesInMeleeRange =  map.GetNodesInTargetRange(new List<Vector2Int> { targetPosition }, startValue, validTargetPositions, 
+        List<DijkstraMapNode> nodesInMeleeRange =  map.GetNodesInMeleeRange(new List<Vector2Int> { targetPosition }, startValue, validTargetPositions, 
             gameManager, movingUnit.moveModifier, meleeRange);
 
         Debug.Log(nodesInMeleeRange.Count);
@@ -521,7 +521,6 @@ public class MeleeTargeting : TargetingSystem
                 {
                     if (actionPointsLeft > 0)
                     {
-
                         prevEndHexPosition = endHexPosition;
                         for (int i = 0; i < path.Count; i++)
                         {
