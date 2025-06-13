@@ -31,6 +31,7 @@ public class GridPosition
        // return x.ToString() + ", " + y.ToString() + ", " + unit;
     }
 
+    // Might need to change to a move modifier 
     public bool CheckIfTileIsEmpty()
     {
         if(unit != null || tempUnit != null)

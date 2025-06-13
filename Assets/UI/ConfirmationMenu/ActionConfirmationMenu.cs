@@ -44,7 +44,7 @@ public class ActionConfirmationMenu : Menu
 
     public void ActivateConfirmAction()
     {
-        Debug.Log("Confirm Action");
+        //Debug.Log("Confirm Action");
         if (this.gameObject.activeSelf && !activated)
         {
             DeactivateMenu();

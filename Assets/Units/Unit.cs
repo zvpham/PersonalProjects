@@ -410,7 +410,7 @@ public class Unit : UnitSuperClass, IInititiave
     // Turn Management/ Action Management
     public void StartTurn()
     {
-        Debug.Log("Turn Start: " + team + ", " + this);
+        Debug.Log("Turn Start: " + team + ", " + this + ", " + x + ", " + y);
         onTurnStart?.Invoke();
         currentMajorActionsPoints = maxMajorActionsPoints;
         currentMoveSpeed = 0;

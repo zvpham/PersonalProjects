@@ -253,7 +253,7 @@ public class AITurn : MonoBehaviour
     public void StartAITurn(List<Unit> unitGroup)
     {
         Debug.LogWarning("Remove This (Manually sets AIState to Combat)");
-        AIState = AITurnStates.Skirmish; //  THIS WHERE WE Combat STATE
+        AIState = AITurnStates.Combat; //  THIS WHERE WE Combat STATE
         visibleUnits = gameManager.playerTurn.playerUnits;
         /*
         CalculateEnemyState();
@@ -404,7 +404,7 @@ public class AITurn : MonoBehaviour
         AiActionData.AIState = AIState;
         AiActionData.expectedCurrentActionPoints = unit.currentMajorActionsPoints;
         AiActionData.expectedInitialMoveSpeed = unit.currentMoveSpeed;
-
+        
         List<Vector2Int> enemyUnitHexPositions = new List<Vector2Int>();
         for (int i = 0; i < visibleUnits.Count; i++)
         {
@@ -469,7 +469,6 @@ public class AITurn : MonoBehaviour
         {
             AiActionData.movementData[unit.x, unit.y] = 0;
             AiActionData.movementActions[unit.x, unit.y] = new List<Action>();
-            Debug.Log("In Melee");
             if (positionOnly)
             {
                 int unitIndex = units.IndexOf(unit);
@@ -734,7 +733,6 @@ public class AITurn : MonoBehaviour
         for (int i = 0; i < unit.actions.Count; i++)
         {
             int actionWieght = unit.actions[i].action.CalculateWeight(actionData);
-            Debug.Log(unit.actions[i] + ", " + actionWieght);
             if (highestActionWeight < actionWieght)
             {
                 actionIndex = i;

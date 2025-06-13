@@ -351,7 +351,7 @@ public class GridHex<TGridObject>
         for (int i = 0; i < results.Count; i++)
         {
             Vector2Int offsetPosition = CubeToOffset(results[i]);
-            if (offsetPosition.x > 0 && offsetPosition.y > 0 && offsetPosition.x < width && offsetPosition.y < height)
+            if (offsetPosition.x >= 0 && offsetPosition.y >= 0 && offsetPosition.x < width && offsetPosition.y < height)
             {
                 hexes.Add(offsetPosition);
             }

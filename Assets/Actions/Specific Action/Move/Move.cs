@@ -100,6 +100,19 @@ public class Move : Action
         CombatGameManager gameManager = AiActionData.unit.gameManager;
         DijkstraMap map = gameManager.map;
         Unit movingUnit = AiActionData.unit;
+
+        int currentMaxMoveSpeed = movingUnit.moveSpeedPerMoveAction * movingUnit.currentMajorActionsPoints + movingUnit.currentMoveSpeed;
+        gameManager.map.ResetMap(true, false);
+        movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        List<DijkstraMapNode> nodesInMoverange = gameManager.map.GetNodesInMovementRange(movingUnit.x, movingUnit.y, currentMaxMoveSpeed, movingUnit.moveModifier, gameManager);
+        int[,] gridOfMoveableHexes = new int[gameManager.mapSize, gameManager.mapSize];
+        Debug.Log("AMount of Nodes in Range: " + nodesInMoverange.Count);
+        for (int i = 0; i < nodesInMoverange.Count; i++)
+        {
+            DijkstraMapNode currenNode = nodesInMoverange[i];
+            gridOfMoveableHexes[currenNode.x, currenNode.y] = 10;
+        }
+
         map.ResetMap(true);
 
         bool[,] badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
@@ -173,6 +186,7 @@ public class Move : Action
         }
 
 
+
         if(!IgnorePassives)
         {
             map.SetGoalsNew(goals, gameManager, AiActionData.unit.moveModifier, badWalkInPassivesValues);
@@ -181,167 +195,28 @@ public class Move : Action
         {
             map.SetGoalsNew(goals, gameManager, AiActionData.unit.moveModifier);
         }
-        int x = movingUnit.x;
-        int y = movingUnit.y;
-        List<Vector2Int> path = new List<Vector2Int>();
-        path.Clear();
 
-        int initialActionPoints = movingUnit.currentMajorActionsPoints;
-
-        int currentMoveSpeed = movingUnit.currentMoveSpeed + (movingUnit.moveSpeedPerMoveAction * initialActionPoints);
-        int startMoveSpeed = currentMoveSpeed;
-        int previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
-        DijkstraMapNode currentNode;
-        while (true)
+        int lowestValue = int.MaxValue;
+        DijkstraMapNode targetDestination = null;
+        GridHex<GridPosition> unitGrid = gameManager.grid;
+        bool closeRange = gameManager.map.getGrid().GetGridObject(new Vector2Int(movingUnit.x, movingUnit.y)).value <= currentMaxMoveSpeed;
+        for (int i = 0; i < nodesInMoverange.Count; i++)
         {
-            currentNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
-            x = currentNode.x;
-            y = currentNode.y;
-            int currentNodeMoveValue = currentNode.value;
-            int moveSpeedDifference = previousNodeMoveValue - currentNodeMoveValue;
-            if (currentNode.value == int.MaxValue || currentMoveSpeed < moveSpeedDifference)
-                break;
-            currentMoveSpeed -= moveSpeedDifference;
-            previousNodeMoveValue = currentNodeMoveValue;
-            path.Add(new Vector2Int(x, y));
+            DijkstraMapNode currentNode = nodesInMoverange[i];
+            int modifiedValue = currentNode.value - movingUnit.moveSpeedPerMoveAction;
 
-            if (AiActionData.enemyUnits.Contains(path[path.Count - 1]))
+            //Debug.Log("test 10: " + currentNode.x + ", " + currentNode.y + ", " + gridOfMoveableHexes[currentNode.x, currentNode.y]);
+            if (modifiedValue < lowestValue && (closeRange || modifiedValue >= 0) && unitGrid.GetGridObject(currentNode.x, currentNode.y).unit == null && gridOfMoveableHexes[currentNode.x, currentNode.y] == 10)
             {
-                break;
-            }
-            else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
-            {
-                path.RemoveAt(path.Count - 1);
-                break;
+                targetDestination = currentNode;
+                lowestValue = modifiedValue;
             }
         }
 
-        // Check to see if reason Unit can't' find path is due to badWalkInSpacess.
-        if (currentNode.value == int.MaxValue)
+        if (targetDestination != null)
         {
-            //attempt to path to goal
-            map.ResetMap(true);
-            {
-                map.SetGoalsNew(goals, gameManager, AiActionData.unit.moveModifier);
-            }
-            x = movingUnit.x;
-            y = movingUnit.y;
-            previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
-            while (true)
-            {
-                currentNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
-                x = currentNode.x;
-                y = currentNode.y;
-                int currentNodeMoveValue = currentNode.value;
-                int moveSpeedDifference = previousNodeMoveValue - currentNodeMoveValue;
-                if (currentNode.value == int.MaxValue || currentMoveSpeed < moveSpeedDifference)
-                    break;
-                currentMoveSpeed -= moveSpeedDifference;
-                previousNodeMoveValue = currentNodeMoveValue;
-                path.Add(new Vector2Int(x, y));
-
-                if (AiActionData.enemyUnits.Contains(path[path.Count - 1]))
-                {
-                    break;
-                }
-                else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
-                {
-                    path.RemoveAt(path.Count - 1);
-                    break;
-                }
-            }
-            // Can't find node because Unit is stuck in elevation
-            if(currentNode.value == int.MaxValue)
-            {
-                Debug.LogWarning("Test Unit Isolated on high terrain while they can't see enemyUnits: " + currentNode);
-                return new Tuple<int, Vector2Int, List<Action>, List<Vector2Int>>(int.MaxValue, Vector2Int.zero, null, new List<Vector2Int>());
-            }
-        }
-        
-        if (path.Count > 0)
-        {
-            x = path[path.Count - 1].x;
-            y = path[path.Count - 1].y;
-        }
-
-        // Desired end position has a Unit on it, use modified path where friendly units are walkable
-        if (gameManager.grid.GetGridObject(x, y).unit != null)
-        {
-            List<DijkstraMapNode> tempNewGoals = map.GetNodesInMovementRangeNoChangeGrid(movingUnit.x, movingUnit.y, startMoveSpeed);
-            if (tempNewGoals == null)
-            {
-                Debug.LogWarning("Couldn't find nodes in movement Range for AI: " + movingUnit);
-                return new Tuple<int, Vector2Int, List<Action>, List<Vector2Int>>(int.MaxValue, Vector2Int.zero, null, new List<Vector2Int>());
-            }
-            GridHex<GridPosition> combatGrid = gameManager.grid;
-            int lowestNodeValue = int.MaxValue;
-            DijkstraMapNode currentNodeGoal = null;
-            for (int i = 0; i < tempNewGoals.Count; i++)
-            {
-                DijkstraMapNode node = tempNewGoals[i];
-                if (combatGrid.GetGridObject(node.x, node.y).unit == null && node.value < lowestNodeValue)
-                {
-                    currentNodeGoal = node;
-                    lowestNodeValue = node.value;
-                }
-            }
-
-            // if new goal makes is further than starting position -  End Turn
-            if (currentNodeGoal != null && currentNodeGoal.value >= map.getGrid().GetGridObject(movingUnit.x, movingUnit.y).value)
-            {
-                return new Tuple<int, Vector2Int, List<Action>, List<Vector2Int>>(int.MaxValue, Vector2Int.zero, null, new List<Vector2Int>());
-            }
-            List<Vector2Int> newGoal = new List<Vector2Int>() { new Vector2Int(currentNodeGoal.x, currentNodeGoal.y) };
-
-            map.ResetMap();
-            map.SetGoalsNew(newGoal, gameManager, AiActionData.unit.moveModifier);
-
-            x = movingUnit.x;
-            y = movingUnit.y;
-            currentMoveSpeed = startMoveSpeed;
-            path = new List<Vector2Int>();
-            path.Clear();
-            previousNodeMoveValue = map.getGrid().GetGridObject(x, y).value;
-            while (true)
-            {
-                currentNode = map.GetLowestNearbyNode(x, y, movingUnit.moveModifier, gameManager);
-                x = currentNode.x;
-                y = currentNode.y;
-                int currentNodeMoveValue = currentNode.value;
-                int moveSpeedDifference = previousNodeMoveValue - currentNodeMoveValue;
-                if (currentNode.value == int.MaxValue || currentMoveSpeed < moveSpeedDifference)
-                {
-                    //Debug.LogWarning("Break 1: " + x + ", " + y + ", " + currentNode.value + ", " + currentMoveSpeed + ", " + moveSpeedDifference);
-                    break;
-                }
-                currentMoveSpeed -= moveSpeedDifference;
-                previousNodeMoveValue = currentNodeMoveValue;
-                path.Add(new Vector2Int(x, y));
-
-                if (AiActionData.enemyUnits.Contains(path[path.Count - 1]))
-                {
-                    //Debug.LogWarning("Break 2: " + x + ", " + y);
-                    break;
-                }
-                else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
-                {
-                    path.RemoveAt(path.Count - 1);
-                    Debug.LogWarning("Break 3: " + x + ", " + y);
-                    break;
-                }
-            }
-
-            if (path.Count == 0)
-            {
-                Debug.LogWarning("Path not found when attempting to approach enemyUnits for: " + movingUnit.name);
-            }
-        }
-
-
-        if (path.Count != 0)
-        {
-            return new Tuple<int, Vector2Int, List<Action>, List<Vector2Int>>(map.getGrid().GetGridObject(path[path.Count - 1]).value, path[path.Count - 1], 
-                new List<Action> { this }, new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) });
+            return new Tuple<int, Vector2Int, List<Action>, List<Vector2Int>>(targetDestination.value, new Vector2Int(targetDestination.x, targetDestination.y),
+                            new List<Action> { this }, new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) });
         }
         else
         {

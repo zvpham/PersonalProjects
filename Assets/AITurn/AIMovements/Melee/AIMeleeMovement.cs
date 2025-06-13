@@ -10,6 +10,18 @@ public class AIMeleeMovement
     {
         Unit movingUnit = AiActionData.unit;
         CombatGameManager gameManager = movingUnit.gameManager;
+        AiActionData.badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
+        List<List<PassiveEffectArea>> classifiedPassiveEffectArea = movingUnit.CalculuatePassiveAreas();
+
+        for (int i = 0; i < classifiedPassiveEffectArea[1].Count; i++)
+        {
+            for (int j = 0; j < classifiedPassiveEffectArea[1][i].passiveLocations.Count; j++)
+            {
+                Vector2Int passiveLocation = classifiedPassiveEffectArea[1][i].passiveLocations[j];
+                AiActionData.badWalkInPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+            }
+        }
+
         List<int> moveActionIndexes = new List<int>();
         for (int i = 0; i < movingUnit.actions.Count; i++)
         {
@@ -103,6 +115,17 @@ public class AIMeleeMovement
             targetPositions = AiActionData.enemyUnits;
         }
 
+        gameManager.map.ResetMap(true, false);
+        movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
+        List<DijkstraMapNode> nodesInMoverange =  gameManager.map.GetNodesInMovementRange(movingUnit.x, movingUnit.y, movingUnit.moveSpeedPerMoveAction, movingUnit.moveModifier, gameManager);
+        int[,] gridOfMoveableHexes = new int[gameManager.mapSize, gameManager.mapSize];
+        Debug.Log("AMount of Nodes in Range: " + nodesInMoverange.Count);
+        for (int i = 0; i < nodesInMoverange.Count; i ++)
+        {
+            DijkstraMapNode currenNode = nodesInMoverange[i];
+            gridOfMoveableHexes[currenNode.x, currenNode.y] = 10;
+        }
+
         movingUnit.unitMovedThisTurn = true;
         gameManager.map.ResetMap(true);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
@@ -110,16 +133,16 @@ public class AIMeleeMovement
         List<DijkstraMapNode> nodesInrange = gameManager.map.GetNodesInMovementRangeNoChangeGrid(movingUnit.x, movingUnit.y, movingUnit.moveSpeedPerMoveAction);
         if (AiActionData.futureFriendlyUnits.Count == 0)
         {
-            if (!SkirmishHelpFuturePositionsAbsent(movingUnit, gameManager, nodesInrange, AiActionData))
+            if (!SkirmishHelpFuturePositionsAbsent(movingUnit, gameManager, nodesInrange, AiActionData, gridOfMoveableHexes))
             {
                 movingUnit.EndTurnAction();
             }
         }
         else
         {
-            if (!SkirmishHelpFuturePositionsPresent(movingUnit, gameManager, AiActionData))
+            if (!SkirmishHelpFuturePositionsPresent(movingUnit, gameManager, AiActionData, gridOfMoveableHexes))
             {
-                if (!SkirmishHelpFuturePositionsAbsent(movingUnit, gameManager, nodesInrange, AiActionData))
+                if (!SkirmishHelpFuturePositionsAbsent(movingUnit, gameManager, nodesInrange, AiActionData, gridOfMoveableHexes))
                 {
                     movingUnit.EndTurnAction();
                 }
@@ -127,17 +150,20 @@ public class AIMeleeMovement
         }
     }
 
-    public static bool SkirmishHelpFuturePositionsAbsent(Unit movingUnit, CombatGameManager gameManager, List<DijkstraMapNode> nodesInrange, AIActionData AiActionData)
+    public static bool SkirmishHelpFuturePositionsAbsent(Unit movingUnit, CombatGameManager gameManager, List<DijkstraMapNode> nodesInrange, AIActionData AiActionData, int[,] gridOfMoveableHexes)
     {
         bool foundPosition = false;
         int lowestValue = int.MaxValue;
         DijkstraMapNode targetDestination = null;
         GridHex<GridPosition> unitGrid = gameManager.grid;
+        bool closeRange = gameManager.map.getGrid().GetGridObject(new Vector2Int(movingUnit.x, movingUnit.y)).value <= movingUnit.moveSpeedPerMoveAction;
         for (int i = 0; i < nodesInrange.Count; i++)
         {
             DijkstraMapNode currentNode = nodesInrange[i];
             int modifiedValue = currentNode.value - movingUnit.moveSpeedPerMoveAction;
-            if (modifiedValue < lowestValue && modifiedValue >= 0 && unitGrid.GetGridObject(currentNode.x, currentNode.y).unit == null)
+
+            //Debug.Log("test 10: " + currentNode.x + ", " + currentNode.y + ", " + gridOfMoveableHexes[currentNode.x, currentNode.y]);
+            if (modifiedValue < lowestValue && (closeRange || modifiedValue >= 0)  && unitGrid.GetGridObject(currentNode.x, currentNode.y).unit == null && gridOfMoveableHexes[currentNode.x, currentNode.y] == 10)
             {
                 targetDestination = currentNode;
                 lowestValue = modifiedValue;
@@ -159,9 +185,10 @@ public class AIMeleeMovement
         return foundPosition;
     }
 
-    public static bool SkirmishHelpFuturePositionsPresent(Unit movingUnit, CombatGameManager gameManager, AIActionData AiActionData)
+    public static bool SkirmishHelpFuturePositionsPresent(Unit movingUnit, CombatGameManager gameManager, AIActionData AiActionData, int[,] gridOfMoveableHexes)
     {
         bool foundPosition = false;
+        bool closeRange = gameManager.map.getGrid().GetGridObject(new Vector2Int(movingUnit.x, movingUnit.y)).value <= movingUnit.moveSpeedPerMoveAction;
         List<Vector2Int> positionsNearUnitsThatHaveMoved = new List<Vector2Int>();
         for (int i = 0; i < AiActionData.futureFriendlyUnits.Count; i++)
         {
@@ -184,7 +211,7 @@ public class AIMeleeMovement
             Vector2Int testPosition = positionsNearUnitsThatHaveMoved[i];
             DijkstraMapNode currentNode = grid.GetGridObject(testPosition);
             int modifiedValue = currentNode.value - movingUnit.moveSpeedPerMoveAction;
-            if (modifiedValue < lowestValue && modifiedValue >= 0 && unitGrid.GetGridObject(testPosition).unit == null)
+            if (modifiedValue < lowestValue && (closeRange || modifiedValue >= 0) && unitGrid.GetGridObject(testPosition).unit == null && gridOfMoveableHexes[currentNode.x, currentNode.y] == 10)
             {
                 targetDestination = currentNode;
                 lowestValue = modifiedValue;

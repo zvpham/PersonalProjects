@@ -61,7 +61,7 @@ public class AIActionData
         //Debug.Log("test: " + AiActionData.movementData.GetLength(0) + ", " + AiActionData.movementData.GetLength(1));
         int amountOfActionsUsed = AiActionData.movementData[expectedEndPosition.x, expectedEndPosition.y];      
         amountOfActionsUsed += action.actionPointUsage;
-        Debug.Log("Test 3: " + amountOfActionsUsed + ", " + actionValue + ", " + (amountOfActionsUsed + 1) + ", " + (actionValue / (amountOfActionsUsed + 1)));
+        //Debug.Log("Test 3: " + amountOfActionsUsed + ", " + actionValue + ", " + (amountOfActionsUsed + 1) + ", " + (actionValue / (amountOfActionsUsed + 1)));
         return actionValue / (amountOfActionsUsed + 1); // add + 1 so that position and other modifiers are more valuable than actionpoints
     }
 

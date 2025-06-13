@@ -103,6 +103,7 @@ public class DijkstraMap
         return nodesInRange;
     }
 
+    // start value should be  is -1
     public List<DijkstraMapNode> GetNodesInMovementRange(int x, int y, int initialMoveValue, MoveModifier moveModifier,
         CombatGameManager gameManager, int walkCostOveride = -1, int[,] walkCostGridOveride = null)
     {

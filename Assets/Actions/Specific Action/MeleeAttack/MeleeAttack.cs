@@ -146,20 +146,20 @@ public class MeleeAttack : Action
         }
 
         CombatGameManager gameManager = AiActionData.unit.gameManager;
+        GridHex<DijkstraMapNode> grid = gameManager.map.getGrid();
         for(int k = 0; k < AiActionData.enemyUnits.Count; k++)
         {
             int x = AiActionData.enemyUnits[k].x;
-            int y = AiActionData.enemyUnits[k].y; 
-            int originElevation = gameManager.spriteManager.elevationOfHexes[x, y];
+            int y = AiActionData.enemyUnits[k].y;
+            Vector2Int targetUnitPosition = new Vector2Int(x, y);
             for (int i = 1; i <= range; i++)
             {
-                List<DijkstraMapNode> mapNodes = gameManager.map.getGrid().GetGridObjectsInRing(x, y, i);
+                List<DijkstraMapNode> mapNodes = grid.GetGridObjectsInRing(x, y, i);
                 for (int j = 0; j < mapNodes.Count; j++)
                 {
                     Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
-                    int targetElevation = gameManager.spriteManager.elevationOfHexes[mapNodes[j].x, mapNodes[j].y];
                     if (gameManager.grid.GetGridObject(currentNodePosition.x, currentNodePosition.y).CheckIfTileIsEmpty() &&
-                        (originElevation == targetElevation || (i == 1 && Mathf.Abs(originElevation - targetElevation) <= range))
+                        AiActionData.unit.moveModifier.NewValidMeleeAttack(gameManager, grid.GetGridObject(targetUnitPosition), grid.GetGridObject(currentNodePosition), range)
                         && CheckIfTileIsInRange(currentNodePosition, AiActionData))
                     {
                         return true;
