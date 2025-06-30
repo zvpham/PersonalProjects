@@ -100,20 +100,12 @@ public class Move : Action
         CombatGameManager gameManager = AiActionData.unit.gameManager;
         DijkstraMap map = gameManager.map;
         Unit movingUnit = AiActionData.unit;
+        Vector2Int unitPosition =  new Vector2Int(movingUnit.x, movingUnit.y);
 
         int currentMaxMoveSpeed = movingUnit.moveSpeedPerMoveAction * movingUnit.currentMajorActionsPoints + movingUnit.currentMoveSpeed;
         gameManager.map.ResetMap(true, false);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
         List<DijkstraMapNode> nodesInMoverange = gameManager.map.GetNodesInMovementRange(movingUnit.x, movingUnit.y, currentMaxMoveSpeed, movingUnit.moveModifier, gameManager);
-        int[,] gridOfMoveableHexes = new int[gameManager.mapSize, gameManager.mapSize];
-        Debug.Log("AMount of Nodes in Range: " + nodesInMoverange.Count);
-        for (int i = 0; i < nodesInMoverange.Count; i++)
-        {
-            DijkstraMapNode currenNode = nodesInMoverange[i];
-            gridOfMoveableHexes[currenNode.x, currenNode.y] = 10;
-        }
-
-        map.ResetMap(true);
 
         bool[,] badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
         if (!IgnorePassives)
@@ -139,17 +131,19 @@ public class Move : Action
                     passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[0][i]);
                 }
             }
-
+            string badWalkinDebug = "";
             for (int i = 0; i < classifiedPassiveEffectArea[1].Count; i++)
             {
+                
                 for (int j = 0; j < classifiedPassiveEffectArea[1][i].passiveLocations.Count; j++)
                 {
                     Vector2Int passiveLocation = classifiedPassiveEffectArea[1][i].passiveLocations[j];
                     badWalkInPassivesValues[passiveLocation.x, passiveLocation.y] = true;
+                    badWalkinDebug += passiveLocation + ", ";
                     passives[passiveLocation.x, passiveLocation.y].Add(classifiedPassiveEffectArea[1][i]);
                 }
             }
-
+            Debug.Log("Bad Walkin Spaces: " + badWalkinDebug);
             bool[,] goodWalkinPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
             for (int i = 0; i < classifiedPassiveEffectArea[2].Count; i++)
             {
@@ -161,8 +155,20 @@ public class Move : Action
                 }
             }
         }
-      
-        AiActionData.unit.moveModifier.SetUnwalkable(gameManager, AiActionData.unit);
+
+        map.ResetMap(false);
+        if (!IgnorePassives)
+        {
+            map.SetGoalsNew(new List<Vector2Int>() { unitPosition }, gameManager, AiActionData.unit.moveModifier, badWalkInPassivesValues);
+        }
+        else
+        {
+            map.SetGoalsNew(new List<Vector2Int>() { unitPosition }, gameManager, AiActionData.unit.moveModifier);
+        }
+        int[,] gridOfMoveableHexes = map.GetGridValues();
+        Debug.Log("AMount of Nodes in Range: " + nodesInMoverange.Count);
+
+        map.ResetMap(false);
 
         List<Vector2Int> goals = new List<Vector2Int>();
         for (int i = 0; i < AiActionData.enemyUnits.Count; i++)
@@ -180,41 +186,53 @@ public class Move : Action
             }
         }
 
-        if (goals.Count == 0)
+        if (goals.Count == 0)   
         {
             goals = AiActionData.enemyUnits;
         }
 
-
-
         if(!IgnorePassives)
         {
             map.SetGoalsNew(goals, gameManager, AiActionData.unit.moveModifier, badWalkInPassivesValues);
+            DijkstraMapNode testNode = map.getGrid().GetGridObject(15, 16);
+            DijkstraMapNode testNode2 = map.getGrid().GetGridObject(14, 16);
+            Debug.Log("Test 11: " + testNode.value + ", " + testNode.walkable + ", "+ testNode2.value + ", " + testNode2.walkable);
         }
         else
         {
             map.SetGoalsNew(goals, gameManager, AiActionData.unit.moveModifier);
         }
 
-        int lowestValue = int.MaxValue;
+        int highestValue = int.MinValue;
+        int originalUnitNodeValue = gameManager.map.getGrid().GetGridObject(new Vector2Int(movingUnit.x, movingUnit.y)).value;
         DijkstraMapNode targetDestination = null;
         GridHex<GridPosition> unitGrid = gameManager.grid;
-        bool closeRange = gameManager.map.getGrid().GetGridObject(new Vector2Int(movingUnit.x, movingUnit.y)).value <= currentMaxMoveSpeed;
         for (int i = 0; i < nodesInMoverange.Count; i++)
         {
             DijkstraMapNode currentNode = nodesInMoverange[i];
-            int modifiedValue = currentNode.value - movingUnit.moveSpeedPerMoveAction;
-
-            //Debug.Log("test 10: " + currentNode.x + ", " + currentNode.y + ", " + gridOfMoveableHexes[currentNode.x, currentNode.y]);
-            if (modifiedValue < lowestValue && (closeRange || modifiedValue >= 0) && unitGrid.GetGridObject(currentNode.x, currentNode.y).unit == null && gridOfMoveableHexes[currentNode.x, currentNode.y] == 10)
+            int modifiedValue = originalUnitNodeValue - currentNode.value - currentMaxMoveSpeed;
+            //Debug.Log("test 10: " + currentNode.x + ", " + currentNode.y + ", " + gridOfMoveableHexes[currentNode.x, currentNode.y] + ", " +  modifiedValue);
+            if (modifiedValue > highestValue && (unitGrid.GetGridObject(currentNode.x, currentNode.y).unit == null || 
+                unitGrid.GetGridObject(currentNode.x, currentNode.y).unit == movingUnit) && gridOfMoveableHexes[currentNode.x, currentNode.y] <= currentMaxMoveSpeed)
             {
                 targetDestination = currentNode;
-                lowestValue = modifiedValue;
+                highestValue = modifiedValue;
             }
         }
 
         if (targetDestination != null)
         {
+            /*
+            string goalsDebug = "";
+            for(int i = 0; i < goals.Count; i++)
+            {
+                goalsDebug += goals[i] + ", ";
+            }
+            DijkstraMapNode testDestinationNode = map.getGrid().GetGridObject(10, 16);
+            Debug.Log("Final Destination Test: ("  + targetDestination.x + ", " + targetDestination.y + "), Lowest Value:" +  highestValue +  ", Moving Unit Value: " + originalUnitNodeValue
+                + ", test Destination NOde Value: " + testDestinationNode.value + ", GridOfMovalleHexes value: " + gridOfMoveableHexes[10, 16] + ", CurrentMaxMove Value: " + currentMaxMoveSpeed + ", Goals: " + 
+                goalsDebug + ", nodesInRange: " +  nodesInMoverange.Contains(testDestinationNode));
+            */
             return new Tuple<int, Vector2Int, List<Action>, List<Vector2Int>>(targetDestination.value, new Vector2Int(targetDestination.x, targetDestination.y),
                             new List<Action> { this }, new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) });
         }
@@ -331,6 +349,7 @@ public class Move : Action
             }
             else if (path.Count >= 2 && path[path.Count - 1] == path[path.Count - 2])
             {
+                Debug.LogWarning("RepeatPosition in Path");
                 path.RemoveAt(path.Count - 1);
                 foundEndPosition = false;
                 break;
@@ -367,7 +386,13 @@ public class Move : Action
         }
         else
         {
-            Debug.LogError("Couldn't find desiered end position when: " + AIActionData.unit + ", tried to move");
+            string debug = "";
+            for(int i = 0; i < path.Count; i++)
+            {
+                debug += path[i] + ", ";
+            }
+            Debug.LogError("Couldn't find desiered end position when: " + AIActionData.unit + ", tried to move to: " + currentEndPosition + " from (" + AIActionData.unit.x + ", " + AIActionData.unit.y + ")" 
+                + "Known Path: " + debug + ", current MoveSpeed: " + currentMoveSpeed);
         }
     }
 

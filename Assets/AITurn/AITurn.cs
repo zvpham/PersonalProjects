@@ -489,18 +489,7 @@ public class AITurn : MonoBehaviour
         }
         else
         {
-
-            for (int i = 0; i < unit.actions.Count; i++)
-            {
-                if (unit.actions[i].action.actionTypes.Contains(ActionType.Movement))
-                {
-                    unit.actions[i].action.GetMovementMap(AiActionData);
-                }
-            }
-
-            AiActionData.movementData[unit.x, unit.y] = 0;
-            AiActionData.movementActions[unit.x, unit.y] = new List<Action>();
-
+            GetMovementMap(AiActionData);
             AiActionData.inMelee = false;
             List<int> actionsInRange;
 
@@ -610,17 +599,7 @@ public class AITurn : MonoBehaviour
         }
         else
         {
-
-            for (int i = 0; i < unit.actions.Count; i++)
-            {
-                if (unit.actions[i].action.actionTypes.Contains(ActionType.Movement))
-                {
-                    unit.actions[i].action.GetMovementMap(AiActionData);
-                }
-            }
-
-            AiActionData.movementData[unit.x, unit.y] = 0;
-            AiActionData.movementActions[unit.x, unit.y] = new List<Action>();
+            GetMovementMap(AiActionData);
 
             AiActionData.inMelee = false;
             List<int> actionsInRange;
@@ -659,17 +638,26 @@ public class AITurn : MonoBehaviour
                     }
                     break;
                 case (AITurnStates.Skirmish):
+                    Debug.Log("Skirmish Start");
                     actionsInRange = GetActionsInRange(AiActionData, unit);
                     if (actionsInRange.Count <= 0)
                     {
-                        AIRangedMovement.RangedMoveToOptimalPositionCombat(AiActionData);
+                        if(unit.unitMovedThisTurn)
+                        {
+                            unit.EndTurnAction();
+                        }
+                        else
+                        {
+                            AIMeleeMovement.MeleeRangeOneSkirmish(AiActionData);
+                        }
                     }
                     else
                     {
                         actionIndex = GetHighestActionIndex(AiActionData, unit, actionsInRange);
                         if (actionIndex == -1)
                         {
-                            Debug.LogError("No Action found for highestIndex");
+                            Debug.LogWarning("No Action found for highestIndex");
+                            unit.EndTurnAction();
                         }
                         else
                         {
@@ -825,6 +813,20 @@ public class AITurn : MonoBehaviour
             }
         }
         return actionsInRange;
+    }
+
+    public void GetMovementMap (AIActionData actionData)
+    {
+        Unit unit =  actionData.unit;
+        for (int i = 0; i < unit.actions.Count; i++)
+        {
+            if (unit.actions[i].action.actionTypes.Contains(ActionType.Movement))
+            {
+                unit.actions[i].action.GetMovementMap(actionData);
+            }
+        }
+        actionData.movementData[unit.x, unit.y] = 0;
+        actionData.movementActions[unit.x, unit.y] = new List<Action>();
     }
 
     public void UnitDeath(Unit unit)

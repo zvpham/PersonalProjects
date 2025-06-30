@@ -377,7 +377,7 @@ public class DijkstraMap
         }
     }
 
-    // normal Movement grid whre goal is 0 and hexes increase in cost based on walking cost
+    // normal Movement grid whre goal is 0 and hexes increase in cost based on walking cost (Reset nodes to max value)
     // don't use this with no change grid if you start at enemy hexes
     public void SetGoalsNew(List<Vector2Int> goals, CombatGameManager gameManager, MoveModifier moveModifier,
         bool[,] badWalkinPassiveEffects, int walkCostOveride = -1, int[,] walkCostGridOveride = null)

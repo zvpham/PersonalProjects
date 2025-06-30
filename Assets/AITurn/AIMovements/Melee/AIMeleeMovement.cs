@@ -93,6 +93,14 @@ public class AIMeleeMovement
     {
         Unit movingUnit = AiActionData.unit;
         CombatGameManager gameManager = movingUnit.gameManager;
+        DijkstraMap map = gameManager.map;
+        Vector2Int unitPosition = new Vector2Int(movingUnit.x, movingUnit.y);
+        int currMaxSpeed = movingUnit.currentMoveSpeed;
+        if(!movingUnit.unitMovedThisTurn)
+        {
+            currMaxSpeed += movingUnit.moveSpeedPerMoveAction;
+        }
+
         AiActionData.badWalkInPassivesValues = new bool[gameManager.mapSize, gameManager.mapSize];
         List<List<PassiveEffectArea>> classifiedPassiveEffectArea = movingUnit.CalculuatePassiveAreas();
 
@@ -117,32 +125,28 @@ public class AIMeleeMovement
 
         gameManager.map.ResetMap(true, false);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-        List<DijkstraMapNode> nodesInMoverange =  gameManager.map.GetNodesInMovementRange(movingUnit.x, movingUnit.y, movingUnit.moveSpeedPerMoveAction, movingUnit.moveModifier, gameManager);
-        int[,] gridOfMoveableHexes = new int[gameManager.mapSize, gameManager.mapSize];
-        Debug.Log("AMount of Nodes in Range: " + nodesInMoverange.Count);
-        for (int i = 0; i < nodesInMoverange.Count; i ++)
-        {
-            DijkstraMapNode currenNode = nodesInMoverange[i];
-            gridOfMoveableHexes[currenNode.x, currenNode.y] = 10;
-        }
-
+        List<DijkstraMapNode> nodesInMoverange =  gameManager.map.GetNodesInMovementRange(movingUnit.x, movingUnit.y, currMaxSpeed, movingUnit.moveModifier, gameManager);
+        Debug.Log("Nodes In Range: " +  nodesInMoverange.Count);
+        map.ResetMap(false);
+        map.SetGoalsNew(new List<Vector2Int>() { unitPosition }, gameManager, AiActionData.unit.moveModifier);
+        int[,] gridOfMoveableHexes = map.GetGridValues();
         movingUnit.unitMovedThisTurn = true;
         gameManager.map.ResetMap(true);
+
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
         gameManager.map.SetGoalsNew(targetPositions, gameManager, movingUnit.moveModifier);
-        List<DijkstraMapNode> nodesInrange = gameManager.map.GetNodesInMovementRangeNoChangeGrid(movingUnit.x, movingUnit.y, movingUnit.moveSpeedPerMoveAction);
         if (AiActionData.futureFriendlyUnits.Count == 0)
         {
-            if (!SkirmishHelpFuturePositionsAbsent(movingUnit, gameManager, nodesInrange, AiActionData, gridOfMoveableHexes))
+            if (!SkirmishHelpFuturePositionsAbsent(movingUnit, currMaxSpeed, gameManager, nodesInMoverange, AiActionData, gridOfMoveableHexes))
             {
                 movingUnit.EndTurnAction();
             }
         }
         else
         {
-            if (!SkirmishHelpFuturePositionsPresent(movingUnit, gameManager, AiActionData, gridOfMoveableHexes))
+            if (!SkirmishHelpFuturePositionsPresent(movingUnit, currMaxSpeed, gameManager, AiActionData, gridOfMoveableHexes))
             {
-                if (!SkirmishHelpFuturePositionsAbsent(movingUnit, gameManager, nodesInrange, AiActionData, gridOfMoveableHexes))
+                if (!SkirmishHelpFuturePositionsAbsent(movingUnit, currMaxSpeed, gameManager, nodesInMoverange, AiActionData, gridOfMoveableHexes))
                 {
                     movingUnit.EndTurnAction();
                 }
@@ -150,23 +154,24 @@ public class AIMeleeMovement
         }
     }
 
-    public static bool SkirmishHelpFuturePositionsAbsent(Unit movingUnit, CombatGameManager gameManager, List<DijkstraMapNode> nodesInrange, AIActionData AiActionData, int[,] gridOfMoveableHexes)
+    public static bool SkirmishHelpFuturePositionsAbsent(Unit movingUnit, int currMaxSpeed,  CombatGameManager gameManager, List<DijkstraMapNode> nodesInrange, AIActionData AiActionData, int[,] gridOfMoveableHexes)
     {
         bool foundPosition = false;
-        int lowestValue = int.MaxValue;
+        int highestValue = int.MinValue;
+        int originalUnitNodeValue = gameManager.map.getGrid().GetGridObject(new Vector2Int(movingUnit.x, movingUnit.y)).value;
         DijkstraMapNode targetDestination = null;
         GridHex<GridPosition> unitGrid = gameManager.grid;
-        bool closeRange = gameManager.map.getGrid().GetGridObject(new Vector2Int(movingUnit.x, movingUnit.y)).value <= movingUnit.moveSpeedPerMoveAction;
         for (int i = 0; i < nodesInrange.Count; i++)
         {
             DijkstraMapNode currentNode = nodesInrange[i];
-            int modifiedValue = currentNode.value - movingUnit.moveSpeedPerMoveAction;
+            int modifiedValue = originalUnitNodeValue - currentNode.value - currMaxSpeed;
 
             //Debug.Log("test 10: " + currentNode.x + ", " + currentNode.y + ", " + gridOfMoveableHexes[currentNode.x, currentNode.y]);
-            if (modifiedValue < lowestValue && (closeRange || modifiedValue >= 0)  && unitGrid.GetGridObject(currentNode.x, currentNode.y).unit == null && gridOfMoveableHexes[currentNode.x, currentNode.y] == 10)
+            if (modifiedValue > highestValue && (unitGrid.GetGridObject(currentNode.x, currentNode.y).unit == null ||
+                unitGrid.GetGridObject(currentNode.x, currentNode.y).unit == movingUnit) && gridOfMoveableHexes[currentNode.x, currentNode.y] <= currMaxSpeed)
             {
                 targetDestination = currentNode;
-                lowestValue = modifiedValue;
+                highestValue = modifiedValue;
             }
         }
 
@@ -174,21 +179,20 @@ public class AIMeleeMovement
         {
             AiActionData.desiredEndPosition = new Vector2Int(targetDestination.x, targetDestination.y);
             List<Action> movementActions = AiActionData.movementActions[targetDestination.x, targetDestination.y];
-            Debug.Log("targetDestination: " + targetDestination.x + ", " + targetDestination.y);
+            Debug.Log("targetDestination: " + targetDestination.x + ", " + targetDestination.y + ", " + movementActions.Count);
             for (int i = 0; i < movementActions.Count; i++)
             {
                 movementActions[i].AIUseAction(AiActionData);
             }
-            gameManager.PlayActions();
+            gameManager.PlayActions();  
             foundPosition = true;
         }
         return foundPosition;
     }
 
-    public static bool SkirmishHelpFuturePositionsPresent(Unit movingUnit, CombatGameManager gameManager, AIActionData AiActionData, int[,] gridOfMoveableHexes)
+    public static bool SkirmishHelpFuturePositionsPresent(Unit movingUnit, int currMaxSpeed, CombatGameManager gameManager, AIActionData AiActionData, int[,] gridOfMoveableHexes)
     {
         bool foundPosition = false;
-        bool closeRange = gameManager.map.getGrid().GetGridObject(new Vector2Int(movingUnit.x, movingUnit.y)).value <= movingUnit.moveSpeedPerMoveAction;
         List<Vector2Int> positionsNearUnitsThatHaveMoved = new List<Vector2Int>();
         for (int i = 0; i < AiActionData.futureFriendlyUnits.Count; i++)
         {
@@ -203,18 +207,20 @@ public class AIMeleeMovement
             }
         }
         GridHex<GridPosition> unitGrid = gameManager.grid;
-        int lowestValue = int.MaxValue;
+        int highestValue = int.MinValue;
+        int originalUnitNodeValue = gameManager.map.getGrid().GetGridObject(new Vector2Int(movingUnit.x, movingUnit.y)).value;
         DijkstraMapNode targetDestination = null;
         GridHex<DijkstraMapNode> grid = gameManager.map.getGrid();
         for (int i = 0; i < positionsNearUnitsThatHaveMoved.Count; i++)
         {
             Vector2Int testPosition = positionsNearUnitsThatHaveMoved[i];
             DijkstraMapNode currentNode = grid.GetGridObject(testPosition);
-            int modifiedValue = currentNode.value - movingUnit.moveSpeedPerMoveAction;
-            if (modifiedValue < lowestValue && (closeRange || modifiedValue >= 0) && unitGrid.GetGridObject(testPosition).unit == null && gridOfMoveableHexes[currentNode.x, currentNode.y] == 10)
+            int modifiedValue = originalUnitNodeValue - currentNode.value - currMaxSpeed;
+            if (modifiedValue > highestValue && (unitGrid.GetGridObject(currentNode.x, currentNode.y).unit == null ||
+                unitGrid.GetGridObject(currentNode.x, currentNode.y).unit == movingUnit) && gridOfMoveableHexes[currentNode.x, currentNode.y] <= currMaxSpeed)
             {
                 targetDestination = currentNode;
-                lowestValue = modifiedValue;
+                highestValue = modifiedValue;
             }
         }
 

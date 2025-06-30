@@ -427,6 +427,7 @@ public class Unit : UnitSuperClass, IInititiave
 
     public void ContinueAITurn()
     {
+        Debug.Log("Continue Turn: " + team + ", " + this + ", " + x + ", " + y);
         gameManager.StartAITurn(this, team);    
     }
 
@@ -600,6 +601,19 @@ public class Unit : UnitSuperClass, IInititiave
                 actions[i].action.AIUseAction(tempActionData);
             }
         }
+    }
+
+    public EndTurn GetEndTurnAction()
+    {
+        for (int i = 0; i < actions.Count; i++)
+        {
+            if (actions[i].action.GetType() == typeof(EndTurn))
+            {
+                EndTurn endTurn = (EndTurn)actions[i].action;
+                return endTurn;
+            }
+        }
+        return null;
     }
 
     public void EndTurn()
