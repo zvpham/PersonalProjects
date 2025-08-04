@@ -6,12 +6,9 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Status/Evasive")]
 public class Evasive : Status
 { 
-    public override void AddStatus(Unit target, int newDuration)
+    public override void AddStatus(ActionStatusData actionStatusData)
     {
-        StatusData newStatus =  new StatusData();
-        newStatus.status = this;
-        newStatus.duration = newDuration;
-        target.statuses.Add(newStatus);
+        AddStatusPreset(actionStatusData.targetUnit, actionStatusData.duration, false);
     }
 
     public override bool ContinueEvent(Action occuringAction, Passive occuringPassive)
@@ -26,6 +23,11 @@ public class Evasive : Status
     public override void ModifiyAction(Action action, AttackData attackData)
     {
         return;
+    }
+
+    public override void ModifyAttackData(AttackData attackData)
+    {
+        throw new System.NotImplementedException();
     }
 
     public override void RemoveStatus(Unit target)

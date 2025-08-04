@@ -91,7 +91,7 @@ public class MeleeAttack : Action
                 {
                     highestActionValue = tempActionValue;
                     AiActionData.desiredEndPosition = newPosition;
-                    AiActionData.desiredTargetPositionEnd = new Vector2Int(targetUnit.x, targetUnit.y);
+                    AiActionData.desiredTargetPositionEnd = new List<Vector2Int>() { new Vector2Int(targetUnit.x, targetUnit.y) };
                     AiActionData.action = this;
                 }
 
@@ -129,7 +129,7 @@ public class MeleeAttack : Action
                     {
                         highestActionValue = tempActionValue;
                         AiActionData.desiredEndPosition = currentUnitPosition;
-                        AiActionData.desiredTargetPositionEnd = targetUnitPosition;
+                        AiActionData.desiredTargetPositionEnd = new List<Vector2Int>() { targetUnitPosition };
                         AiActionData.action = this;
                     }
                 }
@@ -172,35 +172,7 @@ public class MeleeAttack : Action
 
     public override void FindOptimalPosition(AIActionData actionData)
     {
-        /*
-        Dictionary<Vector2Int, int> gridValues =  new Dictionary<Vector2Int, int>();
-        Unit movingUnit =  actionData.unit;
-        List<Vector2Int> mapNodes;
-        Vector2Int newPosition;
-        for(int i = 0; i < actionData.enemyUnits.Count; i++)
-        {
-            newPosition = new Vector2Int(actionData.enemyUnits[i].x, actionData.enemyUnits[i].y);
-            for (int j = 1; j <= range; j++)
-            {
-                mapNodes = movingUnit.gameManager.map.getGrid().GetGridPositionsInRing(newPosition.x, newPosition.y, j);
-                if (j == 1)
-                {
 
-                }
-                else
-                {
-                    for (int k = 0; k < mapNodes.Count; k++)
-                    {
-                        Vector2Int surroundingNodePosition = new Vector2Int(mapNodes[k].x, mapNodes[k].y);
-                        if (movingUnit.moveModifier.ValidMeleeAttack(movingUnit.gameManager, currentunitNode, surroundingUnitNode, range))
-                        {
-                            movingUnit.passiveEffects[passiveIndex].passiveLocations.Add(surroundingNodePosition);
-                        }
-                    }
-                }
-            }
-        }
-        */
     }
 
     public override void ExpectedEffectsOfPassivesActivations(AIActionData AiActionData, Unit actingUnit)
@@ -222,7 +194,13 @@ public class MeleeAttack : Action
 
     public override void AIUseAction(AIActionData AiActionData, bool finalAction = false) 
     {
-        Vector2Int targetHex = AiActionData.desiredTargetPositionEnd;
+        Unit movingUnit = AiActionData.unit;
+        if (AiActionData.desiredTargetPositionEnd == null || AiActionData.desiredTargetPositionEnd.Count == 0)
+        {
+            Debug.LogError("This should not happen TargetPosition Was not found when action called: " + name);
+            movingUnit.EndTurnAction();
+        }
+        Vector2Int targetHex = AiActionData.desiredTargetPositionEnd[0];
         Vector2Int endPosition = AiActionData.desiredEndPosition;
 
         List<Action> movementActions = AiActionData.movementActions[endPosition.x, endPosition.y];
@@ -231,7 +209,6 @@ public class MeleeAttack : Action
             movementActions[i].AIUseAction(AiActionData);
         }
 
-        Unit movingUnit = AiActionData.unit;
         Unit targetUnit = movingUnit.gameManager.grid.GetGridObject(targetHex).unit;
         movingUnit.gameManager.grid.GetXY(movingUnit.transform.position, out int x, out int y);
         ActionData actionData = new ActionData();
@@ -277,12 +254,7 @@ public class MeleeAttack : Action
 
     public AttackData CalculateAttackData(Unit movingUnit, Unit targetUnit)
     {
-        Damage mainDamage = new Damage();
-        mainDamage.minDamage = minDamage;
-        mainDamage.maxDamage = maxDamage;
-        mainDamage.damageType = DamageTypes.physical;
-
-
+        Damage mainDamage = new Damage(minDamage, maxDamage, DamageTypes.physical);
         AttackData tempAttackData = new AttackData(new List<Damage>() { mainDamage}, effectAgainstArmorPercentage, movingUnit);
         tempAttackData.ignoreArmour = ignoreArmor;
         tempAttackData.meleeContact = true;

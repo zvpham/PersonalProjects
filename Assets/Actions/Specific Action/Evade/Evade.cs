@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Action/Evade")]
-public class Evade : StatusAction
+public class Evade : Action
 {
+    public Status status;
     public override int CalculateWeight(AIActionData AiActionData)
     {
         return -2;
@@ -515,7 +516,8 @@ public class Evade : StatusAction
     {
         Debug.Log("Confirm Action");
         Evade action = (Evade) actionData.action;
-        action.status.AddStatus(actionData.actingUnit, 1);
+        ActionStatusData actionStatusData = new ActionStatusData(actionData.actingUnit, 1);
+        action.status.AddStatus(actionStatusData);
         UseActionPreset(actionData.actingUnit);
     }
 

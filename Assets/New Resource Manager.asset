@@ -43,6 +43,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ffa3891b4d5f9d842887a5c06841887f, type: 2}
   - {fileID: 11400000, guid: 29276f5da199c884c9da68d5d6e4e929, type: 2}
   - {fileID: 11400000, guid: 18a4528d0668ec54da9aab5fde4d7f4b, type: 2}
+  - {fileID: 11400000, guid: 570f771394a39b0418f47ebe86c6cc3b, type: 2}
   weapons: []
   offHands:
   - {fileID: 11400000, guid: c27e4b3a37033de43b07bcefb2e4a3c5, type: 2}
@@ -69,6 +70,9 @@ MonoBehaviour:
   - {fileID: -1027663435593090111, guid: b2f70065eb452014085e34f80d24e476, type: 3}
   - {fileID: -1027663435593090111, guid: 9410c5bce09c7b44a9b09c19fc3f50d9, type: 3}
   - {fileID: -1027663435593090111, guid: 541e1728df985114f9446ce3bae6efba, type: 3}
+  - {fileID: 5597699536523439801, guid: 99b7fbfda12052c46bdbf10c766ef3f2, type: 3}
+  - {fileID: 5597699536523439801, guid: b1af826b3dcca2346af07c588af49983, type: 3}
+  - {fileID: 5597699536523439801, guid: 0d45372d5f05680438d8e55db19402f4, type: 3}
   mercenaries:
   - {fileID: 2097898329977275897, guid: 1f4a54415c85bea429c3d9259e720089, type: 3}
   spriteHolder: {fileID: 6546736994369712444, guid: 6c6f66dee961e4d92952ee62f46b41b5, type: 3}

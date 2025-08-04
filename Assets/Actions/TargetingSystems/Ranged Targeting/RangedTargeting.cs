@@ -5,12 +5,14 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
+using static SpriteManager;
 
 public class RangedTargeting : TargetingSystem
 {
     public DijkstraMap map;
     public CombatGameManager gameManager;
     public Unit movingUnit;
+    public Action action;
     public Vector2Int startingPosition;
     public Vector2Int currentlySelectedHex;
     // For End Targeting/ Mouse Up
@@ -22,8 +24,10 @@ public class RangedTargeting : TargetingSystem
     public List<Vector2Int> validTargetPositions;
     public List<Vector2Int> path = new List<Vector2Int>();
     public List<Vector2Int> setPath = new List<Vector2Int>();
-    public List<Vector2Int> targetHexPositions = new List<Vector2Int>();
+    public List<Vector2Int> effectiveTargetHexPositions = new List<Vector2Int>();
+    public List<Vector2Int> maxRangeTargetHexPositions = new List<Vector2Int>();
     public List<Vector2Int> highlightedCoverHexes = new List<Vector2Int>();
+    public List<Unit> targets = new List<Unit>();
 
     public List<PassiveEffectArea>[,] passives;
     List<PassiveEffectArea> passiveEffectAreas = new List<PassiveEffectArea>();
@@ -37,7 +41,8 @@ public class RangedTargeting : TargetingSystem
     public List<int> groundColorValues;
     public List<GameObject> highlightedTargetedHexes = new List<GameObject>();
     public List<GameObject> highlightedHexes = new List<GameObject>();
-    public List<GameObject> rangeHexes = new List<GameObject>();
+    public List<GameObject> effectiveTargetHexes = new List<GameObject>();
+    public List<GameObject> maxRangeTargetHexes = new List<GameObject>();
     public List<GameObject> coverHexes = new List<GameObject>();
     public List<SpriteHolder> targetingPassiveSpriteHolder;
     public GameObject tempMovingUnit;
@@ -45,7 +50,9 @@ public class RangedTargeting : TargetingSystem
     public List<EquipableAmmoSO> unitAmmo;
     public int currentAmmoIndex;
 
-    public int meleeRange;
+    public int numTargets = 1;
+    public int effectiveRange;
+    public int maxRange;
     public int actionPointUseAmount;
     public int amountOfPossibleMoves;
     public int actionPointsLeft;
@@ -56,6 +63,8 @@ public class RangedTargeting : TargetingSystem
     public bool EnoughActionPointsForMeleeActionOnly;
     public bool selectedTarget = false;
     public bool targetFriendly = false;
+    public bool canSelectSameTarget = false;
+    public bool doesDamage = false;
     public bool canMove;
     public bool keepCombatAttackUi = false;
     public bool ChangeCombatAttackUI = false;
@@ -64,21 +73,38 @@ public class RangedTargeting : TargetingSystem
 
     AttackData attackData;
 
-    //Path, MovingUnit, TargetUnit, FoundTarget
-    public UnityAction<Unit, Unit, bool, int> OnFoundTarget;
+    //MovingUnit, TargetUnit, FoundTarget, CurrentAmmoIndex
+    public UnityAction<Unit, List<Unit>, bool, int> OnFoundTarget;
+    public delegate bool IsValidtarget(Unit target);
 
-    public void SetParameters(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int actionPointUseAmount, int meleeRange,
-        AttackData attackData, List<EquipableAmmoSO> unitAmmo)
+    public void SetParameters(RangedTargetingData rangedTargetingData)
     {
-
+        this.targetFriendly = rangedTargetingData.targetFriendly;
+        this.movingUnit = rangedTargetingData.movingUnit;
+        this.gameManager = rangedTargetingData.movingUnit.gameManager;
+        this.actionPointsLeft = rangedTargetingData.actionPointsLeft;
+        this.actionPointUseAmount = rangedTargetingData.actionPointUseAmount;
+        this.effectiveRange = rangedTargetingData.effectiveRange;
+        this.numTargets = rangedTargetingData.numTargets;
+        this.maxRange = rangedTargetingData.maxRange;
+        this.doesDamage = rangedTargetingData.doesDamage;
         Debug.Log("Moving Unit: " + movingUnit.currentMajorActionsPoints + ", " + actionPointsLeft);
-        this.targetFriendly = targetFriendly;
-        this.movingUnit = movingUnit;
-        this.gameManager = movingUnit.gameManager;
-        this.actionPointsLeft = actionPointsLeft;
-        this.actionPointUseAmount = actionPointUseAmount;
-        this.meleeRange = meleeRange;
-        this.attackData = attackData;
+
+        if (effectiveRange > maxRange)
+        {
+            this.maxRange = effectiveRange;
+        }
+
+        this.attackData = rangedTargetingData.attackData;
+
+
+        int damage = 0;
+        for (int i = 0; i < attackData.allDamage.Count; i++)
+        {
+            damage += attackData.allDamage[i].maxDamage;
+        }
+        Debug.Log("Start Test Damage: " + damage  + ", Damage Count: " + attackData.allDamage.Count);
+
         map = movingUnit.gameManager.map;
         startingPosition = new Vector2Int(movingUnit.x, movingUnit.y);
         selectedTarget = false;
@@ -87,14 +113,14 @@ public class RangedTargeting : TargetingSystem
         path = new List<Vector2Int>();
         this.enabled = true;
 
-        this.unitAmmo = unitAmmo;
-        if (unitAmmo.Count > 0)
+        this.unitAmmo = rangedTargetingData.unitAmmo;
+        if (unitAmmo == null || unitAmmo.Count < 0)
         {
-            currentAmmoIndex = 0;
+            currentAmmoIndex = -1;
         }
         else
         {
-            currentAmmoIndex = -1;
+            currentAmmoIndex = 0;
         }
 
         passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
@@ -184,7 +210,7 @@ public class RangedTargeting : TargetingSystem
         enemyGroundHexes = new List<Vector2Int>();
         map.ResetMap();
 
-        for (int i = 1; i <= meleeRange; i++)
+        for (int i = 1; i <= maxRange; i++)
         {
             List<DijkstraMapNode> mapNodes = map.getGrid().GetGridObjectsInRing(x, y, i);
             for (int j = 0; j < mapNodes.Count; j++)
@@ -195,7 +221,7 @@ public class RangedTargeting : TargetingSystem
                 if (targetUnit != null && validTargets.Contains(targetUnit))
                 {
                     enemyGroundHexes.Add(currentNodePosition);
-                    targetHexPositions.Add(currentNodePosition);
+                    effectiveTargetHexPositions.Add(currentNodePosition);
                 }
             }
         }
@@ -289,18 +315,25 @@ public class RangedTargeting : TargetingSystem
         }
         highlightedTargetedHexes = new List<GameObject>();
 
-        for (int i = 0; i < rangeHexes.Count; i++)
+        for (int i = 0; i < effectiveTargetHexes.Count; i++)
         {
-            gameManager.spriteManager.DisableTargetHex(rangeHexes[i]);
+            gameManager.spriteManager.DisableTargetHex(effectiveTargetHexes[i]);
         }
-        rangeHexes.Clear();
-        targetHexPositions.Clear();
+        effectiveTargetHexes.Clear();
+        effectiveTargetHexPositions.Clear();
+
+        for (int i = 0; i < maxRangeTargetHexes.Count; i++)
+        {
+            gameManager.spriteManager.DisableMaxRangeTargetHex(maxRangeTargetHexes[i]);
+        }
+        maxRangeTargetHexes.Clear();
+        maxRangeTargetHexPositions.Clear();
     }
 
     //Mouse Hover
     public override void SelectNewPosition(Vector2Int newHex)
     {
-        if (!selectedTarget) 
+        if (!selectedTarget)
         {
             currentlySelectedHex = newHex;
             map.ResetMap();
@@ -330,7 +363,7 @@ public class RangedTargeting : TargetingSystem
 
                     if (enemyGroundHexes.Contains(new Vector2Int(endX, endY)))
                     {
-                        Debug.Log("Found End Position");
+                        Debug.Log("Target Hex HAs Enemy");
                         foundEndPosition = true;
                         selectOnTarget = true;
                     }
@@ -422,7 +455,7 @@ public class RangedTargeting : TargetingSystem
                 }
                 else
                 {
-                    Debug.Log("this SHouldn't happen");
+                    //Debug.Log("this SHouldn't happen");
                 }
 
                 //Create Combat Attack UI and Cover
@@ -439,7 +472,7 @@ public class RangedTargeting : TargetingSystem
                     prevEndHexSelectedPosition = endHex[0];
                     if (targetUnit != null)
                     {
-                        if(path.Count > 0)
+                        if (path.Count > 0)
                         {
                             highlightedCoverHexes = GetSpacesThatAreCover(path[0], endHex[0]);
                         }
@@ -448,18 +481,20 @@ public class RangedTargeting : TargetingSystem
                             highlightedCoverHexes = GetSpacesThatAreCover(startingPosition, endHex[0]);
                         }
 
-                        if (targetHexPositions.Contains(endHex[0]))
+                        if (effectiveTargetHexPositions.Contains(endHex[0]))
                         {
-                            AttackData currentAttackData = new AttackData(attackData.allDamage, 
-                                attackData.armorDamagePercentage, attackData.originUnit);
-                            if(unitAmmo != null && unitAmmo.Count > 0)
+                            AttackData currentAttackData = new AttackData(attackData);
+
+                            if (unitAmmo != null && unitAmmo.Count > 0)
                             {
                                 unitAmmo[currentAmmoIndex].ModifyAttack(currentAttackData);
                             }
-                            List<AttackDataUI> attackDatas = currentAttackData.CalculateAttackData(targetUnit);
-                            if(highlightedCoverHexes.Count > 0)
+
+                            List<AttackDataUI> attackDatas = currentAttackData.CalculateAttackData(targetUnit, doesDamage);
+                            Debug.Log("amount Of AttackDatas: " + attackDatas.Count);
+                            if (highlightedCoverHexes.Count > 0 && doesDamage)
                             {
-                                for(int j = 0; j < attackDatas.Count; j++)
+                                for (int j = 0; j < attackDatas.Count; j++)
                                 {
                                     if (attackDatas[j].attackDataType == attackDataType.Main)
                                     {
@@ -475,7 +510,7 @@ public class RangedTargeting : TargetingSystem
                                 coverAttackData.data = "Cover Penalty - 50%";
                                 attackDatas.Add(coverAttackData);
 
-                                for(int i = 0; i < highlightedCoverHexes.Count; i++)
+                                for (int i = 0; i < highlightedCoverHexes.Count; i++)
                                 {
                                     GameObject newHighlightedHex = gameManager.spriteManager.UseOpenHighlightedHex();
                                     Vector2Int currentNodePosition = highlightedCoverHexes[i];
@@ -486,6 +521,8 @@ public class RangedTargeting : TargetingSystem
                                     coverHexes.Add(newHighlightedHex);
                                 }
                             }
+                            
+                           
                             gameManager.spriteManager.ActivateCombatAttackUI(targetUnit, attackDatas, targetUnit.transform.position);
                         }
                     }
@@ -495,10 +532,8 @@ public class RangedTargeting : TargetingSystem
         }
     }
 
-    // On Mouse UP
     public override void EndTargeting()
     {
-
         int x = currentlySelectedHex.x;
         int y = currentlySelectedHex.y;
 
@@ -507,18 +542,187 @@ public class RangedTargeting : TargetingSystem
             return;
         }
 
-        Vector2Int endHexPosition = new Vector2Int(x, y);
+        bool targetInRange = false;
+        Unit targetUnit = gameManager.grid.GetGridObject(currentlySelectedHex.x, currentlySelectedHex.y).unit;
+        map.ResetMap(true, false);
+        map.SetGoalForNodesInTargetRange(new List<Vector2Int>() { startingPosition }, maxRange);
+        int startingPositionDistanceFromMouse = map.getGrid().GetGridObject(currentlySelectedHex).value;
+        if (startingPositionDistanceFromMouse >= 0)
+        {
+            targetInRange = true;
+        }
+
+        //Debug.Log("Target In Range: " +  targetInRange + ", " +  startingPosition + ", " +  maxRange + ", " + currentlySelectedHex + ", " + startingPositionDistanceFromMouse);
+        // Case -  Player Clicks on previously selected Hex
+        // Confirms action
+        if (prevEndHexPosition.x >= 0 && currentlySelectedHex == prevEndHexPosition && (targetUnit == null || targets.Count >= numTargets))
+        {
+            gameManager.spriteManager.ConfirmAction();
+        }
+        //Case - Player Did not Click on previously selected Hex
+        else
+        {
+            Vector2Int endPathHex;
+            prevEndHexPosition = currentlySelectedHex;
+
+            // if still able to move set PRevious Path Normally
+            if (canMove)
+            {
+                if (actionPointsLeft > 0)
+                {
+                    for (int i = 0; i < path.Count; i++)
+                    {
+                        setPath.Add(path[i]);
+                    }
+                }
+            }
+
+            // Select a Player Controlled Unit when you aren't using a friendly ability like heal
+            if (!targetFriendly && gameManager.playerTurn.CheckSpaceForFriendlyUnit(currentlySelectedHex))
+            {
+                OnFoundTarget?.Invoke(movingUnit, null, false, currentAmmoIndex);
+                gameManager.playerTurn.SelectUnit(currentlySelectedHex);
+            }
+            //Select Valid Target
+            else if (targetUnit != null && targetInRange && (canSelectSameTarget || !targets.Contains(targetUnit)))
+            {
+                Debug.Log("Selected VAlid taret");
+                // check to see if max targets have been reached if it has do nothing
+                if (targets.Count < numTargets)
+                {
+                    actionPointsLeft -= actionPointUseAmount;
+                    int moveSpeedLeft = moveSpeedInitiallyAvailable - moveSpeedUsed;
+                    targets.Add(targetUnit);
+                    keepCombatAttackUi = true;
+
+                    if (!targetInRange)
+                    {
+                        // Calculate Action points used
+                        int movementActionsTaken;
+                        if (moveSpeedLeft >= 0)
+                        {
+                            movementActionsTaken = 0;
+                        }
+                        else
+                        {
+                            movementActionsTaken = (((moveSpeedLeft + 1) / movingUnit.moveSpeedPerMoveAction) - 1) * -1;
+                        }
+                        moveSpeedLeft += movementActionsTaken * movingUnit.moveSpeedPerMoveAction;
+                        actionPointsLeft -= movementActionsTaken;
+                    }
+
+                    // Case target is within Range Of StartingPosition
+                    if (targetInRange && !unitAttemptingToMove)
+                    {
+                        Debug.Log("Target in Range of Starting Position Confirmed");
+                        SetUp(startingPosition, 0, movingUnit.currentMoveSpeed);
+                        gameManager.spriteManager.ActivateActionConfirmationMenu(
+                            () => // Confirm Action
+                            {
+                                selectedTarget = true;
+                                OnFoundTarget?.Invoke(movingUnit, targets, true, currentAmmoIndex);
+                                Destroy(tempMovingUnit);
+                            },
+                            () => // Cancel Action
+                            {
+                                ResetTargeting();
+                            });
+                    }
+                    // Case - Target Unit is in movement + Range
+                    else
+                    {
+                        Debug.Log("Target in Range with move confirmed");
+                        endPathHex = setPath[setPath.Count - 1];
+                        Destroy(tempMovingUnit);
+                        tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
+                        SetUp(setPath[setPath.Count - 1], 0, moveSpeedLeft);
+                        gameManager.spriteManager.ActivateActionConfirmationMenu(
+                            () => // Confirm Action
+                            {
+                                selectedTarget = true;
+                                gameManager.move.AnotherActionMove(setPath, movingUnit, false);
+                                OnFoundTarget?.Invoke(movingUnit, targets, true, currentAmmoIndex);
+                                Destroy(tempMovingUnit);
+                            },
+                            () => // Cancel Action
+                            {
+                                ResetTargeting();
+                            });
+                    }
+                }
+            }
+            // Select Empty Tile
+            else if (canMove)
+            {
+                Debug.Log("Moving confirmed");
+                endPathHex = setPath[setPath.Count - 1];
+
+                // Calculate Action points used
+                int moveSpeedLeft = moveSpeedInitiallyAvailable - moveSpeedUsed;
+                int movementActionsTaken;
+                if (moveSpeedLeft >= 0)
+                {
+                    movementActionsTaken = 0;
+                }
+                else
+                {
+                    movementActionsTaken = (((moveSpeedLeft + 1) / movingUnit.moveSpeedPerMoveAction) - 1) * -1;
+                }
+                moveSpeedLeft += movementActionsTaken * movingUnit.moveSpeedPerMoveAction;
+                actionPointsLeft -= movementActionsTaken;
+
+                Destroy(tempMovingUnit);
+                tempMovingUnit = gameManager.spriteManager.CreateTempSpriteHolder(endPathHex, 1, movingUnit.unitProfile);
+                SetUp(setPath[setPath.Count - 1], actionPointsLeft, moveSpeedLeft);
+                unitAttemptingToMove = true;
+                gameManager.spriteManager.ActivateActionConfirmationMenu(
+                    () => // Confirm Action
+                    {
+                        //gameManager.move.AnotherActionMove(setPath, amountMoved movingUnit);
+                        if (setPath.Count == 1 && movingUnit.gameManager.map.getGrid().GetWorldPosition(setPath[0].x, setPath[0].y) == movingUnit.transform.position)
+                        {
+                            OnFoundTarget?.Invoke(movingUnit, null, false, currentAmmoIndex);
+                            gameManager.playerTurn.SelectUnit(movingUnit);
+                        }
+                        else
+                        {
+                            gameManager.move.AnotherActionMove(setPath, movingUnit, true);
+                            Destroy(tempMovingUnit);
+                        }
+                    },
+                    () => // Cancel Action
+                    {
+                        SetUp(new Vector2Int(movingUnit.x, movingUnit.y), movingUnit.currentMajorActionsPoints, movingUnit.currentMoveSpeed);
+                        ResetTargeting();
+                    });
+            }
+        }
+    }
+
+    /*
+    // On Mouse UP
+    public override void EndTargeting()
+    {
+        int x = currentlySelectedHex.x;
+        int y = currentlySelectedHex.y;
+
+        if (x >= gameManager.grid.GetWidth() || x < 0 || y >= gameManager.grid.GetHeight() || y < 0)
+        {
+            return;
+        }
 
         bool targetInRange = false;
-        int startingPositionDistanceFromMouse = map.getGrid().GetGridObject(startingPosition).value;
-        if (startingPositionDistanceFromMouse <= meleeRange + movingUnit.moveSpeed * amountOfPossibleMoves)
+        map.ResetMap(true, false);
+        map.SetGoalForNodesInTargetRange(new List<Vector2Int>() { startingPosition }, maxRange);
+        int startingPositionDistanceFromMouse = map.getGrid().GetGridObject(currentlySelectedHex).value;
+        if (startingPositionDistanceFromMouse <= maxRange)
         {
             targetInRange = true;
         }
 
         // Case -  Player Clicks on previously selected Hex
         // Confirms action
-        if (prevEndHexPosition.x >= 0 && endHexPosition == prevEndHexPosition)
+        if (prevEndHexPosition.x >= 0 && currentlySelectedHex == prevEndHexPosition)
         {
             gameManager.spriteManager.ConfirmAction();
         }
@@ -526,21 +730,21 @@ public class RangedTargeting : TargetingSystem
         else
         {
             Vector2Int endPathHex;
-            // Select Player Unit when you aren't using a friendly ability like heal
-            if (!targetFriendly && gameManager.playerTurn.CheckSpaceForFriendlyUnit(endHexPosition))
+            // Select a Player Controlled Unit when you aren't using a friendly ability like heal
+            if (!targetFriendly && gameManager.playerTurn.CheckSpaceForFriendlyUnit(currentlySelectedHex))
             {
                 OnFoundTarget?.Invoke(movingUnit, null, false, currentAmmoIndex);
-                gameManager.playerTurn.SelectUnit(endHexPosition);
+                gameManager.playerTurn.SelectUnit(currentlySelectedHex);
             }
             else
             {
-                Unit targetUnit = gameManager.grid.GetGridObject(endHexPosition.x, endHexPosition.y).unit;
+                Unit targetUnit = gameManager.grid.GetGridObject(currentlySelectedHex.x, currentlySelectedHex.y).unit;
                 // if still able to move set PRevious Path Normally
                 if (canMove)
                 {
                     if (actionPointsLeft > 0)
                     {
-                        prevEndHexPosition = endHexPosition;
+                        prevEndHexPosition = currentlySelectedHex;
                         for (int i = 0; i < path.Count; i++)
                         {
                             setPath.Add(path[i]);
@@ -548,9 +752,9 @@ public class RangedTargeting : TargetingSystem
                     }
                 }
                 // If not able to move then only check if Mouse Path is in melee Range
-                else if (startingPositionDistanceFromMouse <= meleeRange && targetUnit != null)
+                else if (startingPositionDistanceFromMouse <= effectiveRange && targetUnit != null)
                 {
-                    prevEndHexPosition = endHexPosition;
+                    prevEndHexPosition = currentlySelectedHex;
                 }
 
                 Vector2Int lineOfSightStartHex = startingPosition;
@@ -565,7 +769,7 @@ public class RangedTargeting : TargetingSystem
                     bool targetInMeleeRange = false;
                     actionPointsLeft -= actionPointUseAmount;
                     int moveSpeedLeft = moveSpeedInitiallyAvailable - moveSpeedUsed;
-                    if (startingPositionDistanceFromMouse <= meleeRange)
+                    if (startingPositionDistanceFromMouse <= effectiveRange)
                     {
                         targetInMeleeRange = true;
                     }
@@ -593,7 +797,7 @@ public class RangedTargeting : TargetingSystem
                             () => // Confirm Action
                             {
                                 selectedTarget = true;
-                                OnFoundTarget?.Invoke(movingUnit, targetUnit, true, currentAmmoIndex);
+                                OnFoundTarget?.Invoke(movingUnit, new List<Unit>() { targetUnit }, true, currentAmmoIndex);
                                 Destroy(tempMovingUnit);
                             },
                             () => // Cancel Action
@@ -613,7 +817,7 @@ public class RangedTargeting : TargetingSystem
                             {
                                 selectedTarget = true;
                                 gameManager.move.AnotherActionMove(setPath, movingUnit, false);
-                                OnFoundTarget?.Invoke(movingUnit, targetUnit, true, currentAmmoIndex);
+                                OnFoundTarget?.Invoke(movingUnit, new List<Unit>() { targetUnit}, true, currentAmmoIndex);
                                 Destroy(tempMovingUnit);
                             },
                             () => // Cancel Action
@@ -623,7 +827,7 @@ public class RangedTargeting : TargetingSystem
                     }
                 }
                 // Case - Mouse Hex doesn't contain a Unit and Moving Unit Can Still move
-                else if (prevEndHexPosition == endHexPosition && canMove)
+                else if (prevEndHexPosition == currentlySelectedHex && canMove)
                 {
                     endPathHex = setPath[setPath.Count - 1];
 
@@ -669,6 +873,7 @@ public class RangedTargeting : TargetingSystem
             }
         }
     }
+    */
 
     public List<Vector2Int>  GetSpacesThatAreCover(Vector2Int shootingPosition, Vector2Int targetPosition)
     {
@@ -719,10 +924,11 @@ public class RangedTargeting : TargetingSystem
         keepCombatAttackUi = false;
         unitAttemptingToMove = false;
         prevEndHexPosition = new Vector2Int(-1, -1);
-        path = new List<Vector2Int>();
-        setPath = new List<Vector2Int>();
-        actionLines = new List<List<Vector3>>();
+        path.Clear();
+        setPath.Clear();
+        actionLines.Clear();
         actionPointsLeft = movingUnit.currentMajorActionsPoints;
+        targets.Clear();
         //amountMoved = movingUnit.actions[0].amountUsedDuringRound;
         gameManager.spriteManager.ResetCombatAttackUI();
         gameManager.spriteManager.ClearLines();
@@ -777,11 +983,17 @@ public class RangedTargeting : TargetingSystem
             endHex = path[path.Count - 1];
         }
 
-        for (int i = 0; i < rangeHexes.Count; i++)
+        for (int i = 0; i < effectiveTargetHexes.Count; i++)
         {
-            gameManager.spriteManager.DisableTargetHex(rangeHexes[i]);
+            gameManager.spriteManager.DisableTargetHex(effectiveTargetHexes[i]);
         }
-        rangeHexes.Clear();
+        effectiveTargetHexes.Clear();
+
+        for (int i = 0; i < maxRangeTargetHexes.Count; i++)
+        {
+            gameManager.spriteManager.DisableMaxRangeTargetHex(maxRangeTargetHexes[i]);
+        }
+        maxRangeTargetHexes.Clear();
 
         passiveEffectAreas = new List<PassiveEffectArea>();
         passiveSprites = new List<Tuple<Passive, Vector2Int>>();
@@ -815,22 +1027,37 @@ public class RangedTargeting : TargetingSystem
             targetingPassiveSpriteHolder.Add(tempTargetPassiveSprite);
         }
 
-        for (int i = 1; i <= meleeRange; i++)
+        for (int i = 1; i <= effectiveRange; i++)
         {
             List<DijkstraMapNode> mapNodes = map.getGrid().GetGridObjectsInRing(endHex.x, endHex.y, i);
             for (int j = 0; j < mapNodes.Count; j++)
             {
-                if (movingUnit.moveModifier.NewValidMeleeAttack(gameManager, map.getGrid().GetGridObject(endHex), mapNodes[j], meleeRange))
+                Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
+                GameObject newTargetHex = gameManager.spriteManager.UseOpenTargetHex();
+                newTargetHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
+                newTargetHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
+                    currentNodePosition.y].sprite.sortingOrder + 2;
+                effectiveTargetHexes.Add(newTargetHex);
+            }
+        }
+
+        if(maxRange > effectiveRange)
+        {
+            for (int i = effectiveRange + 1; i <= maxRange; i++)
+            {
+                List<DijkstraMapNode> mapNodes = map.getGrid().GetGridObjectsInRing(endHex.x, endHex.y, i);
+                for (int j = 0; j < mapNodes.Count; j++)
                 {
                     Vector2Int currentNodePosition = new Vector2Int(mapNodes[j].x, mapNodes[j].y);
-                    GameObject newTargetHex = gameManager.spriteManager.UseOpenTargetHex();
+                    GameObject newTargetHex = gameManager.spriteManager.UseOpenMaxRangeTargetHex();
                     newTargetHex.transform.position = gameManager.spriteManager.GetWorldPosition(currentNodePosition);
                     newTargetHex.GetComponent<SpriteRenderer>().sortingOrder = gameManager.spriteManager.terrain[currentNodePosition.x,
                         currentNodePosition.y].sprite.sortingOrder + 2;
-                    rangeHexes.Add(newTargetHex);
+                    maxRangeTargetHexes.Add(newTargetHex);
                 }
             }
         }
+
     }
 
     public List<Unit> GetValidTargets()

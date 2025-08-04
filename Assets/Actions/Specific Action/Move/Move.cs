@@ -633,75 +633,29 @@ public class Move : Action
         Unit movingUnit = actionData.unit;
         int initialActionPoints = actionData.expectedCurrentActionPoints;
 
-        actionData.unit.gameManager.map.ResetMap(true);
+        actionData.unit.gameManager.map.ResetMap(true, true);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-        int startValue = (movingUnit.moveSpeedPerMoveAction * initialActionPoints);
-        gameManager.map.ResetMap(false, false);
-        List<DijkstraMapNode> mapNodes = actionData.unit.gameManager.map.GetNodesInMovementRange(actionData.originalPosition.x, actionData.originalPosition.y, startValue, movingUnit.moveModifier, gameManager);
-
-        if (mapNodes.Count > 1)
+        int startValue = (movingUnit.moveSpeedPerMoveAction * initialActionPoints) + movingUnit.currentMoveSpeed;
+        int startMoveSpeed = movingUnit.currentMoveSpeed;
+        actionData.unit.gameManager.map.SetGoalsNew(new List<Vector2Int>() { actionData.originalPosition }, gameManager, movingUnit.moveModifier);
+        GridHex<DijkstraMapNode> grid = gameManager.map.getGrid();
+        for (int i = 0; i < movingUnit.gameManager.mapSize; i++)
         {
-            actionData.canMove = true;
-            int currentMoveSpeed = movingUnit.currentMoveSpeed;
-            for (int i = 1; i < mapNodes.Count; i++)
+            for (int j = 0; j < movingUnit.gameManager.mapSize; j++)
             {
-                DijkstraMapNode currentNode = mapNodes[i];
-                int nodeValue = startValue - currentNode.value;
-                int amountOfMoveActionsTaken;
-                if (currentMoveSpeed > 0)
+                DijkstraMapNode currentNode = grid.GetGridObject(i, j);
+                int adjustedNodeValue = currentNode.value - startMoveSpeed - 1; // Subtract 1 to allow unit to move max moveSpeed per ACtion and Subtracty startMovespeed to account leftover move speed
+                int actionPointsUsed = (adjustedNodeValue / movingUnit.moveSpeedPerMoveAction) + 1; // Add One so Any Move Takes Up ONe Action
+                //Debug.Log("Action Points used: (" + currentNode.x + ", " + currentNode.y + "), "  +  actionPointsUsed);
+                if (actionData.ignorePassiveArea[currentNode.x, currentNode.y] && actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
                 {
-                    int tempNodeValue = nodeValue - currentMoveSpeed;
-                    if (tempNodeValue <= 0)
-                    {
-                        amountOfMoveActionsTaken = -1;
-                    }
-                    else
-                    {
-                        tempNodeValue -= 1;
-                        amountOfMoveActionsTaken = tempNodeValue / (movingUnit.moveSpeedPerMoveAction);
-                    }
-                }
-                else
-                {
-                    nodeValue -= 1;
-                    amountOfMoveActionsTaken = (nodeValue / (movingUnit.moveSpeedPerMoveAction));
-                }
-                amountOfMoveActionsTaken += 1;
-                int actionPointsUsed = 0;
-                for (int j = 0; j < amountOfMoveActionsTaken; j++)
-                {
-                    actionPointsUsed += 1;
-                }
-
-                if (actionData.ignorePassiveArea[currentNode.x, currentNode.y] &&  actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
-                {
-                    Vector2Int currentNodePosition = new Vector2Int(currentNode.x, currentNode.y);
-                    int movementGridValue = actionData.movementData[currentNode.x, currentNode.y];
-                    if(movementGridValue == int.MaxValue)
-                    {
-                        if(actionPointsUsed == 0)
-                        {
-                            actionData.hexesUnitCanMoveTo[0].Add(currentNodePosition);
-                        }
-                        else
-                        {
-                            actionData.hexesUnitCanMoveTo[actionPointsUsed - 1].Add(currentNodePosition);
-                        }  
-                    }
-                    // if same then hexes can move to list is the same
-                    else if(actionPointsUsed != movementGridValue)
-                    {
-                        actionData.hexesUnitCanMoveTo[movementGridValue - 1].Remove(currentNodePosition);
-                        actionData.hexesUnitCanMoveTo[actionPointsUsed - 1].Add(currentNodePosition);
-                    }
-
                     actionData.movementData[currentNode.x, currentNode.y] = actionPointsUsed;
+                    //Debug.Log("Check 1: " + currentNode.x + ", " + currentNode.y + ", action points: " + actionPointsUsed);
                     actionData.movementActions[currentNode.x, currentNode.y] = new List<Action> { this };
                     actionData.startPositions[currentNode.x, currentNode.y] = new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) };
                 }
             }
         }
-
 
         List<PassiveEffectArea>[,] passives = new List<PassiveEffectArea>[gameManager.mapSize, gameManager.mapSize];
         for (int i = 0; i < gameManager.mapSize; i++)
@@ -749,52 +703,29 @@ public class Move : Action
 
         actionData.unit.gameManager.map.ResetMap(true);
         movingUnit.moveModifier.SetUnwalkable(gameManager, movingUnit);
-        gameManager.map.ResetMap(false, false);
-        mapNodes = actionData.unit.gameManager.map.GetNodesInMovementRange(actionData.originalPosition.x, actionData.originalPosition.y, startValue, movingUnit.moveModifier, gameManager, badWalkInPassivesValues);
+        gameManager.map.ResetMap(false);
+        actionData.unit.gameManager.map.SetGoalsNew(new List<Vector2Int>() { actionData.originalPosition }, gameManager, movingUnit.moveModifier);
 
-        if (mapNodes.Count > 1)
+
+        for (int i = 0; i < movingUnit.gameManager.mapSize; i++)
         {
-            actionData.canMove = true;
-            int currentMoveSpeed = movingUnit.currentMoveSpeed;
-            for (int i = 1; i < mapNodes.Count; i++)
+            for (int j = 0; j < movingUnit.gameManager.mapSize; j++)
             {
-                DijkstraMapNode currentNode = mapNodes[i];
-                int nodeValue = startValue - currentNode.value;
-                int amountOfMoveActionsTaken;
-                if (currentMoveSpeed > 0)
-                {
-                    int tempNodeValue = nodeValue - currentMoveSpeed;
-                    if (tempNodeValue <= 0)
-                    {
-                        amountOfMoveActionsTaken = - 1;
-                    }
-                    else
-                    {
-                        tempNodeValue -= 1;
-                        amountOfMoveActionsTaken = tempNodeValue / (movingUnit.moveSpeedPerMoveAction);
-                    }
-                }
-                else
-                {
-                    nodeValue -= 1;
-                    amountOfMoveActionsTaken = (nodeValue / (movingUnit.moveSpeedPerMoveAction));
-                }
-                amountOfMoveActionsTaken += 1;
-                int actionPointsUsed = 0;
-                for (int j = 0; j < amountOfMoveActionsTaken; j++)
-                {
-                    actionPointsUsed += j + 1;
-                }
-
+                DijkstraMapNode currentNode = grid.GetGridObject(i, j);
+                int adjustedNodeValue = currentNode.value - startMoveSpeed - 1; // Subtract 1 to allow unit to move max moveSpeed per ACtion and Subtracty startMovespeed to account leftover move speed
+                int actionPointsUsed = (adjustedNodeValue / movingUnit.moveSpeedPerMoveAction) + 1; // Add One so Any Move Takes Up ONe Action
+                //Debug.Log("Action Points used second: (" + currentNode.x + ", " + currentNode.y + "), " + actionPointsUsed);
                 if (actionData.ignorePassiveArea[currentNode.x, currentNode.y] || actionPointsUsed < actionData.movementData[currentNode.x, currentNode.y])
                 {
-                    actionData.movementData[currentNode.x, currentNode.y] = actionPointsUsed;
+                    //Debug.Log("Check 1: " + currentNode.x + ", " + currentNode.y + ", action points: " + actionPointsUsed);
                     actionData.movementActions[currentNode.x, currentNode.y] = new List<Action> { this };
                     actionData.startPositions[currentNode.x, currentNode.y] = new List<Vector2Int>() { new Vector2Int(movingUnit.x, movingUnit.y) };
                     actionData.ignorePassiveArea[currentNode.x, currentNode.y] = false;
+                    actionData.movementData[currentNode.x, currentNode.y] = actionPointsUsed;
                 }
             }
         }
+        //gameManager.debugGrid.UpdateGrid(actionData.movementData);
     }
 
     public override void SelectAction(Unit self)
@@ -890,7 +821,12 @@ public class Move : Action
             actionData.path = tempPath;
             movingUnit.gameManager.AddActionToQueue(actionData, false, false);
         }
-        movingUnit.gameManager.PlayActions();
+
+        if(onlyMoved)
+        {
+            movingUnit.gameManager.PlayActions();
+        }
+
     }
 
     public override void ConfirmAction(ActionData actionData)

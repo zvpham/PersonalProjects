@@ -15,7 +15,7 @@ public class AIActionData
 
     // Movementdata
     public bool canMove;
-    public int[,] movementData;
+    public int[,] movementData; // Contains Action Point Data to Move to This space (special moves like teleport are only calculated for distance in  one turn while move is calculated for entire board
     // [1 Action Moves, 2 Action Moves]
     public List<Vector2Int>[] hexesUnitCanMoveTo;
     public List<Action>[,] movementActions;
@@ -29,8 +29,7 @@ public class AIActionData
     public Action action;
     public int highestActionWeight;
     public Vector2Int desiredEndPosition;
-    public Vector2Int desiredTargetPositionStart;
-    public Vector2Int desiredTargetPositionEnd;
+    public List<Vector2Int> desiredTargetPositionEnd;
     public int itemIndex;
 
     public ActionPredictionData prediction;
@@ -51,9 +50,10 @@ public class AIActionData
         movementActions = new List<Action>[mapSize, mapSize];
         startPositions = new List<Vector2Int>[mapSize, mapSize];
         ignorePassiveArea = new bool[mapSize, mapSize];
-        hexesUnitCanMoveTo = new List<Vector2Int>[2];
+        hexesUnitCanMoveTo = new List<Vector2Int>[3];
         hexesUnitCanMoveTo[0] = new List<Vector2Int>();
         hexesUnitCanMoveTo[1] = new List<Vector2Int>();
+        hexesUnitCanMoveTo[2] = new List<Vector2Int>();
     }
     public int ModifyActionValue(AIActionData AiActionData, Vector2Int expectedEndPosition, Action action, int actionValue)
     {
@@ -61,7 +61,7 @@ public class AIActionData
         //Debug.Log("test: " + AiActionData.movementData.GetLength(0) + ", " + AiActionData.movementData.GetLength(1));
         int amountOfActionsUsed = AiActionData.movementData[expectedEndPosition.x, expectedEndPosition.y];      
         amountOfActionsUsed += action.actionPointUsage;
-        //Debug.Log("Test 3: " + amountOfActionsUsed + ", " + actionValue + ", " + (amountOfActionsUsed + 1) + ", " + (actionValue / (amountOfActionsUsed + 1)));
+        Debug.Log("Test 10: " + amountOfActionsUsed + ", " + actionValue + ", " + (amountOfActionsUsed + 1) + ", " + (actionValue / (amountOfActionsUsed + 1)));
         return actionValue / (amountOfActionsUsed + 1); // add + 1 so that position and other modifiers are more valuable than actionpoints
     }
 

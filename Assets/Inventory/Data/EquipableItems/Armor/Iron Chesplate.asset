@@ -18,7 +18,11 @@ MonoBehaviour:
   <itemName>k__BackingField: Iron ChestPlate
   <description>k__BackingField: 
   <itemImage>k__BackingField: {fileID: -1239233753, guid: 4ca42cc387825f64aba3746dd3e68e71, type: 3}
-  <DefaultParameterList>k__BackingField: []
+  <DefaultParameterList>k__BackingField:
+  - itemParameter: {fileID: 11400000, guid: ad246b747f4c837408ff01399e46c6f8, type: 2}
+    value: 40
+  - itemParameter: {fileID: 0}
+    value: 0
   attributeOne: 
   attributeTwo: 
   mainCategoryOne: Weight

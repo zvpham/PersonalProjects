@@ -12,6 +12,7 @@ namespace Inventory.Model
         public string attributeOne;
         public string attributeTwo;
 
+        /*
         public string mainCategoryOne = "Weight";
         public int mainOneMin;
         public int mainOneMax;
@@ -23,7 +24,7 @@ namespace Inventory.Model
         public string mainCategoryThree;
         public int mainThreeMin;
         public int mainThreeMax;
-
+        */
 
         // Data
         public EquipType equipType;
@@ -85,11 +86,22 @@ namespace Inventory.Model
                     break;
             }
 
+
+            int weight = -1;
+            for(int i = 0; i < DefaultParameterList.Count; i++)
+            {
+                if (DefaultParameterList[i].itemParameter.itemParameter == ItemParameterName.weight)
+                {
+                    weight = (int) DefaultParameterList[i].value[0];
+                    break;
+                }
+            }
+
             if(isBackUp)
             {
                 unit.ChangeStrength(unit.strength);
-                unit.ChangeBackUpWeight(unit.backUpWeight + mainOneMin);
-                unit.ChangeWeight(unit.currentWeight + (mainOneMin / 2));
+                unit.ChangeBackUpWeight(unit.backUpWeight + weight);
+                unit.ChangeWeight(unit.currentWeight + (weight / 2));
 
             }
             else
@@ -105,14 +117,14 @@ namespace Inventory.Model
                 }
 
                 unit.ChangeStrength(unit.strength);
-                unit.ChangeWeight(unit.currentWeight + mainOneMin);
+                unit.ChangeWeight(unit.currentWeight + weight);
                 if (isWeapon)
                 {
-                    unit.ChangeBackUpWeight(unit.backUpWeight + (mainOneMin / 2));
+                    unit.ChangeBackUpWeight(unit.backUpWeight + (weight / 2));
                 }
                 else
                 {
-                    unit.ChangeBackUpWeight(unit.backUpWeight + mainOneMin);
+                    unit.ChangeBackUpWeight(unit.backUpWeight + weight);
                 }
             }
         }
@@ -126,21 +138,31 @@ namespace Inventory.Model
                 isWeapon = true;
             }
 
+            int weight = -1;
+            for (int i = 0; i < DefaultParameterList.Count; i++)
+            {
+                if (DefaultParameterList[i].itemParameter.itemParameter == ItemParameterName.weight)
+                {
+                    weight = (int)DefaultParameterList[i].value[0];
+                    break;
+                }
+            }
+
             if (isBackUp)
             {
-                unit.ChangeWeight(unit.currentWeight - (mainOneMin / 2));
-                unit.ChangeBackUpWeight(unit.backUpWeight - mainOneMin);
+                unit.ChangeWeight(unit.currentWeight - (weight / 2));
+                unit.ChangeBackUpWeight(unit.backUpWeight - weight);
             }
             else
             {
-                unit.ChangeWeight(unit.currentWeight - mainOneMin);
+                unit.ChangeWeight(unit.currentWeight - weight);
                 if (isWeapon)
                 {
-                    unit.ChangeBackUpWeight(unit.backUpWeight - (mainOneMin / 2));
+                    unit.ChangeBackUpWeight(unit.backUpWeight - (weight / 2));
                 }
                 else
                 {
-                    unit.ChangeBackUpWeight(unit.backUpWeight - mainOneMin);
+                    unit.ChangeBackUpWeight(unit.backUpWeight - weight);
                 }
             }
         }

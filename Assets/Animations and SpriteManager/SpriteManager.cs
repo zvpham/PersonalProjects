@@ -7,6 +7,7 @@ using UnityEngine.Events;
 using UnityEngine.WSA;
 using UnityEngine.UIElements;
 using System.Runtime.ConstrainedExecution;
+using System;
 
 public class SpriteManager : MonoBehaviour
 {
@@ -29,8 +30,10 @@ public class SpriteManager : MonoBehaviour
     public List<TerrainHolder> activeWalls;
     public List<GameObject> inactiveHighlightedHexes;
     public List<GameObject> activeHighlightedHexes;
-    public List<GameObject> inactiveTargetHexes;
-    public List<GameObject> activeTargetHexes;
+    public List<GameObject> inactiveEffectiveTargetHexes;
+    public List<GameObject> activeEffectiveTargetHexes;
+    public List<GameObject> inactiveMaxRangeTargetHexes;
+    public List<GameObject> activeMaxRangeTargetHexes;
     public List<GameObject> inactiveTriangles;
     public List<GameObject> activeTriangles;
     public List<SpriteHolder> inactiveSpriteHolders;
@@ -44,7 +47,9 @@ public class SpriteManager : MonoBehaviour
     public GameObject highlightedHexHolder;
     public GameObject wallHolder;
     public GameObject targetHexPrefab;
+    public GameObject targetMaxRangeHexPrefab;
     public GameObject targetHexHolder;
+    public GameObject targetMaxRangeHexHolder;
     public GameObject spriteHolderHolder;
     public GameObject targetSpriteHolderHolder;
     public GameObject triangleHolder;
@@ -349,14 +354,47 @@ public class SpriteManager : MonoBehaviour
         extendedMeleeTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft, actionPointUseAmount, meleeRange, calculateAttackData);
         extendedMeleeTargeting.SelectNewPosition(currentlySelectedHex);
     }
-    public void ActivateRangedTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int actionPointUseAmount, int range,
-       AttackData attackData, List<EquipableAmmoSO> unitAmmo)
+
+    public struct RangedTargetingData
+    {
+        public Unit movingUnit;
+        public Action action;
+        public bool targetFriendly;
+        public bool canSelectSameTarget;
+        public bool doesDamage;
+        public int actionPointsLeft;
+        public int actionPointUseAmount;
+        public int effectiveRange;
+        public int maxRange;
+        public int numTargets;
+        public AttackData attackData;
+        public List<EquipableAmmoSO> unitAmmo;
+
+        public RangedTargetingData(Unit movingUnit,Action action,  bool targetFriendly, bool canSelectSameTarget, bool doesDamage, int actionPointsLeft, int actionPointUseAmount, int effectiveRange, 
+            int maxRange, int numTargets, AttackData attackData, List<EquipableAmmoSO> unitAmmo)
+        {
+            this.movingUnit = movingUnit;
+            this.action = action;
+            this.targetFriendly = targetFriendly;
+            this.canSelectSameTarget = canSelectSameTarget;
+            this.doesDamage = doesDamage;
+            this.actionPointsLeft = actionPointsLeft;
+            this.actionPointUseAmount = actionPointUseAmount;
+            this.effectiveRange = effectiveRange;
+            this.maxRange = maxRange;
+            this.numTargets = numTargets;
+            this.attackData = attackData;
+            this.unitAmmo = unitAmmo;
+        }
+    }
+
+    public void ActivateRangedTargeting(RangedTargetingData rangedTargetingData)
     {
         combatUI.OnActivateTargetingSystem();
         NewSelectedHex += rangedTargeting.SelectNewPosition;
         inputManager.FoundPosition += rangedTargeting.EndTargeting;
         activeTargetingSystems = rangedTargeting;
-        rangedTargeting.SetParameters(movingUnit, targetFriendly, actionPointsLeft, actionPointUseAmount, range, attackData ,unitAmmo);
+        rangedTargeting.SetParameters(rangedTargetingData);
         rangedTargeting.SelectNewPosition(currentlySelectedHex);
     }
     public void ActivateConeTargeting(Unit movingUnit, bool targetFriendly, int actionPointsLeft, int range, int coneRange)
@@ -427,13 +465,13 @@ public class SpriteManager : MonoBehaviour
 
     public void ResetCombatAttackUI()
     {
-        Debug.Log("ResetCombatAttackUI");
+        //Debug.Log("ResetCombatAttackUI");
         combatUI.ResetDataAttackUI();
     }
 
     public void CreateGrid(int mapWidth, int mapHeight, int amountOfTerrainLevels, float cellSize, Vector3 defaultGridAdjustment)
     {
-        spriteGrid = new GridHex<SpriteNode>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<SpriteNode> g, int x, int y) => new SpriteNode(g, x, y), true);
+        spriteGrid = new GridHex<SpriteNode>(mapWidth, mapHeight, cellSize, defaultGridAdjustment, (GridHex<SpriteNode> g, int x, int y) => new SpriteNode(g, x, y), false);
         terrainTilePositions =  new List<List<Vector2Int>>();
         terrain = new TerrainHolder[mapWidth, mapHeight];
         for (int i = 0; i < amountOfTerrainLevels; i++)
@@ -681,25 +719,49 @@ public class SpriteManager : MonoBehaviour
 
     public GameObject UseOpenTargetHex()
     {
-        if (inactiveTargetHexes.Count <= 0)
+        if (inactiveEffectiveTargetHexes.Count <= 0)
         {
             GameObject newHex = Instantiate(targetHexPrefab);
             newHex.transform.position = new Vector3(-20, -20);
             newHex.transform.parent = targetHexHolder.transform;
-            inactiveTargetHexes.Add(newHex);
+            inactiveEffectiveTargetHexes.Add(newHex);
         }
 
-        GameObject openHighlightedHex = inactiveTargetHexes[0];
-        inactiveTargetHexes.RemoveAt(0);
-        activeTargetHexes.Add(openHighlightedHex);
+        GameObject openHighlightedHex = inactiveEffectiveTargetHexes[0];
+        inactiveEffectiveTargetHexes.RemoveAt(0);
+        activeEffectiveTargetHexes.Add(openHighlightedHex);
         return openHighlightedHex;
     }
 
     // Disables with TargetingSystems
     public void DisableTargetHex(GameObject hex)
     {
-        activeTargetHexes.Remove(hex);
-        inactiveTargetHexes.Add(hex);
+        activeEffectiveTargetHexes.Remove(hex);
+        inactiveEffectiveTargetHexes.Add(hex);
+        hex.transform.position = new Vector3(-20, -20);
+    }
+
+    public GameObject UseOpenMaxRangeTargetHex()
+    {
+        if (inactiveMaxRangeTargetHexes.Count <= 0)
+        {
+            GameObject newHex = Instantiate(targetMaxRangeHexPrefab);
+            newHex.transform.position = new Vector3(-20, -20);
+            newHex.transform.parent = targetMaxRangeHexHolder.transform;
+            inactiveMaxRangeTargetHexes.Add(newHex);
+        }
+
+        GameObject openHighlightedHex = inactiveMaxRangeTargetHexes[0];
+        inactiveMaxRangeTargetHexes.RemoveAt(0);
+        activeMaxRangeTargetHexes.Add(openHighlightedHex);
+        return openHighlightedHex;
+    }
+
+    // Disables with TargetingSystems
+    public void DisableMaxRangeTargetHex(GameObject hex)
+    {
+        activeMaxRangeTargetHexes.Remove(hex);
+        inactiveMaxRangeTargetHexes.Add(hex);
         hex.transform.position = new Vector3(-20, -20);
     }
 

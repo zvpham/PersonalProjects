@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 55b6cc9363bb3ea4088ca9ba258055a3, type: 3}
-  m_Name: Durability Parameter
+  m_Script: {fileID: 11500000, guid: e10178dad4954514089a5493ebed779f, type: 3}
+  m_Name: SpellPointGeneration
   m_EditorClassIdentifier: 
-  <ParameterName>k__BackingField: Durability
+  itemParameter: 0

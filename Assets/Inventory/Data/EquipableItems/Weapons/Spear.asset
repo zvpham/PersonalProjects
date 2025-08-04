@@ -18,7 +18,9 @@ MonoBehaviour:
   <itemName>k__BackingField: Spear
   <description>k__BackingField: 
   <itemImage>k__BackingField: {fileID: 1872746550, guid: 4ca42cc387825f64aba3746dd3e68e71, type: 3}
-  <DefaultParameterList>k__BackingField: []
+  <DefaultParameterList>k__BackingField:
+  - itemParameter: {fileID: 0}
+    value: 0
   attributeOne: 
   attributeTwo: 
   mainCategoryOne: Weight

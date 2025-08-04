@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static Action;
+using static SpriteManager;
 
 [CreateAssetMenu(menuName = "Action/RangedAttack")]
 public class RangedAttack : Action
@@ -17,13 +18,22 @@ public class RangedAttack : Action
 
     public override int CalculateWeight(AIActionData actionData)
     {
-        CalculatedActionData calculatedData = StandardFiringPosition(actionData);
+        CalculatedActionData calculatedData;
+        if (actionData.AIState == AITurnStates.Skirmish)
+        {
+            calculatedData = SkirmishPreset(actionData, false);
+        }
+        else
+        {
+            calculatedData = CombatFiringPosition(actionData);
+        }
         int highestActionValue = -2;
         if (calculatedData.completedCalculation)
         {
             highestActionValue = calculatedData.highestActionValue;
             actionData.desiredEndPosition = calculatedData.desiredEndPosition;
-            actionData.desiredTargetPositionEnd = calculatedData.desiredTargetPositionEnd;
+            actionData.desiredTargetPositionEnd = new List<Vector2Int>() { calculatedData.desiredTargetPositionEnd };
+            actionData.action = calculatedData.action;
             actionData.action = calculatedData.action;
             actionData.itemIndex = calculatedData.itemIndex;
         }
@@ -43,12 +53,13 @@ public class RangedAttack : Action
         switch (actionData.AIState)
         {
             case (AITurnStates.Combat):
-                calculatedData = CombatFiringPosition(actionData);
+                calculatedData = CombatFiringOptimalPosition(actionData);
                 break;
             case (AITurnStates.Skirmish):
+                calculatedData = SkirmishPreset(actionData, true);
                 break;
             case (AITurnStates.Agressive):
-                calculatedData = CombatFiringPosition(actionData);
+                calculatedData = CombatFiringOptimalPosition(actionData);
                 break;
             case (AITurnStates.SuperiorRanged):
                 break;
@@ -60,7 +71,7 @@ public class RangedAttack : Action
         if (calculatedData.completedCalculation)
         {
             actionData.desiredEndPosition = calculatedData.desiredEndPosition;
-            actionData.desiredTargetPositionEnd = calculatedData.desiredTargetPositionEnd;
+            actionData.desiredTargetPositionEnd = new List<Vector2Int>() { calculatedData.desiredTargetPositionEnd };
             actionData.action = calculatedData.action;
             actionData.itemIndex = calculatedData.itemIndex;
         }
@@ -102,20 +113,27 @@ public class RangedAttack : Action
         CombatGameManager gameManager = actingUnit.gameManager;     
         DijkstraMap map = gameManager.map;
         map.ResetMap(true, false);
-        List<Vector2Int> moveablePositions;
+        List<Vector2Int> moveablePositions = new List<Vector2Int>();
         if(actionData.canMove)
         {
-            moveablePositions = actionData.hexesUnitCanMoveTo[0];
+            for(int i = 0; i < actingUnit.currentMajorActionsPoints; i++)
+            {
+                for(int j = 0; j < actionData.hexesUnitCanMoveTo[i].Count; j++)
+                {
+                    moveablePositions.Add(actionData.hexesUnitCanMoveTo[i][j]);
+                }
+            }
         }
         else
         {
             moveablePositions = new List<Vector2Int>() { new Vector2Int(actingUnit.x, actingUnit.y)};
         }
-        List<DijkstraMapNode> nodes = map.GetNodesInMeleeRange(moveablePositions, 0, actionData.enemyUnits, gameManager, actingUnit.moveModifier, maxRange);
+        List<DijkstraMapNode> nodes = map.GetNodesInRangedRange(moveablePositions, 0, actionData.enemyUnits, gameManager, actingUnit.moveModifier, maxRange);
         List<Vector2Int> positionsInTargetRange = new List<Vector2Int>();
-        for(int i = 0; i < nodes.Count; i++)
+        for(int i = 0; i < nodes.Count; i++)    
         {
             positionsInTargetRange.Add(new Vector2Int(nodes[i].x, nodes[i].y));
+            //Debug.Log("Positions in Range: " + positionsInTargetRange[i]);
         }
         for(int i = 0; i < actionData.enemyUnits.Count; i++)
         {
@@ -130,7 +148,13 @@ public class RangedAttack : Action
 
     public override void AIUseAction(AIActionData AiactionData, bool finalAction = false)
     {
-        Vector2Int targetHex = AiactionData.desiredTargetPositionEnd;
+        Unit movingUnit = AiactionData.unit;
+        if (AiactionData.desiredTargetPositionEnd == null || AiactionData.desiredTargetPositionEnd.Count == 0)
+        {
+            Debug.LogError("This should not happen TargetPosition Was not found when action called: " + name);
+            movingUnit.EndTurnAction();
+        }
+        Vector2Int targetHex = AiactionData.desiredTargetPositionEnd[0];
         Vector2Int endPosition = AiactionData.desiredEndPosition;
 
         List<Action> movementActions = AiactionData.movementActions[endPosition.x, endPosition.y];
@@ -140,9 +164,8 @@ public class RangedAttack : Action
             {
                 movementActions[i].AIUseAction(AiactionData);
             }
-        }
+        }   
 
-        Unit movingUnit = AiactionData.unit;
         Unit targetUnit = movingUnit.gameManager.grid.GetGridObject(targetHex).unit;
         movingUnit.gameManager.grid.GetXY(movingUnit.transform.position, out int x, out int y);
         ActionData actionData = new ActionData();
@@ -183,14 +206,15 @@ public class RangedAttack : Action
             return;
         }
 
-        Damage mainDamage = new Damage();
-        mainDamage.minDamage = minDamage;
-        mainDamage.maxDamage = maxDamage;
-        mainDamage.damageType = DamageTypes.physical;
+        Damage mainDamage = new Damage(minDamage, maxDamage, DamageTypes.physical);
 
         AttackData newAttackData = new AttackData(new List<Damage>() {mainDamage}, effectAgainstArmorPercentage, self);
-        self.gameManager.spriteManager.ActivateRangedTargeting(self, false, self.currentMajorActionsPoints, amountOfActionPointsUsed, effectiveRange,
+        self.GetActionModifiers(this, newAttackData);
+        Debug.Log("amOUNT OF dAAmage numbers: " +  newAttackData.allDamage.Count);
+        RangedTargetingData rangedTargetingData = new RangedTargetingData(self, this, false, true, true, self.currentMajorActionsPoints, amountOfActionPointsUsed, effectiveRange, maxRange, 1,
             newAttackData, unitAmmo);
+
+        self.gameManager.spriteManager.ActivateRangedTargeting(rangedTargetingData);
         self.gameManager.spriteManager.rangedTargeting.OnFoundTarget += FoundTarget;
     }
 
@@ -228,7 +252,7 @@ public class RangedAttack : Action
         unitAmmo.Add(newAmmo);
     }
 
-    public void FoundTarget(Unit movingUnit, Unit targetUnit, bool foundTarget, int itemIndex)
+    public void FoundTarget(Unit movingUnit, List<Unit> targetUnits, bool foundTarget, int itemIndex)
     {
         Debug.Log("Found Target");
         if (foundTarget)
@@ -237,7 +261,8 @@ public class RangedAttack : Action
             ActionData actionData = new ActionData();
             actionData.action = this;
             actionData.actingUnit = movingUnit;
-            actionData.affectedUnits.Add(targetUnit);
+            actionData.affectedUnits = new List<Unit>(targetUnits) {};
+            Debug.Log("Num Targests: " + targetUnits.Count);
             actionData.originLocation = new Vector2Int(x, y);
             actionData.itemIndex = itemIndex;
             movingUnit.gameManager.AddActionToQueue(actionData, false, false);
@@ -255,13 +280,7 @@ public class RangedAttack : Action
     {
         int adjustedMinimumDamage = (int)(minDamage * movingUnit.GetMinimumDamageModifer());
         int adjustmedMaximumDamage = (int)(maxDamage * movingUnit.GetMaximumDamageModifer());
-
-        Damage mainDamage = new Damage();
-        mainDamage.minDamage = adjustedMinimumDamage;
-        mainDamage.maxDamage = adjustmedMaximumDamage;
-        mainDamage.damageType = DamageTypes.physical;
-
-
+        Damage mainDamage = new Damage(adjustedMinimumDamage, adjustmedMaximumDamage, DamageTypes.physical);
         AttackData tempAttackData = new AttackData(new List<Damage>() { mainDamage }, effectAgainstArmorPercentage, movingUnit);
         tempAttackData.ignoreArmour = ignoreArmor;
         tempAttackData.meleeContact = false;
@@ -337,6 +356,7 @@ public class RangedAttack : Action
 
     public override void ConfirmAction(ActionData actionData)
     {
+        Debug.Log("Num Targests Confirm: " + actionData.affectedUnits.Count);
         Unit movingUnit = actionData.actingUnit;
         Unit targetUnit = actionData.affectedUnits[0];
         GridHex<GridPosition> map = movingUnit.gameManager.grid;
@@ -348,7 +368,7 @@ public class RangedAttack : Action
         Vector3Int targetUnitCube = map.OffsetToCube(x, y);
         int distanceBetweenUnits = map.CubeDistance(movingUnitCube, targetUnitCube);
 
-        if (targetUnit != null && distanceBetweenUnits <= maxRange)
+        if (targetUnit != null && distanceBetweenUnits <= maxRange && movingUnit.currentMajorActionsPoints > 0)
         {
             Debug.Log("Hit");
 
@@ -379,6 +399,7 @@ public class RangedAttack : Action
         }
         else
         {
+            Debug.LogWarning("Tried to use Ranged Attacked, but failed");
             movingUnit.UseActionPoints(0);
         }
     }
@@ -408,69 +429,9 @@ public class RangedAttack : Action
         return unitAmmo;
     }
 
-    public int[,] CreateThreatGrid(AIActionData actionData, List<Unit> threateningEnemioe)
+
+    public void FindingFiringPosition(AIActionData actionData, RangedAttackFiringData firingData, CalculatedActionData calculatedActionData)
     {
-        CombatGameManager gameManager = actionData.unit.gameManager;
-        DijkstraMap map = gameManager.map;
-
-        // Generate Threat Grid
-        Dictionary<Team, Dictionary<MoveModifier, List<Unit>>> unitsOrganizedByMovement = new Dictionary<Team, Dictionary<MoveModifier, List<Unit>>>();
-        foreach (Unit unit in threateningEnemioe)
-        {
-            if (unitsOrganizedByMovement.ContainsKey(unit.team))
-            {
-                if (unitsOrganizedByMovement[unit.team].ContainsKey(unit.moveModifier))
-                {
-                    unitsOrganizedByMovement[unit.team][unit.moveModifier].Add(unit);
-                }
-                else
-                {
-                    unitsOrganizedByMovement[unit.team].Add(unit.moveModifier, new List<Unit> { unit });
-                }
-            }
-            else
-            {
-                unitsOrganizedByMovement.Add(unit.team, new Dictionary<MoveModifier, List<Unit>>());
-                unitsOrganizedByMovement[unit.team].Add(unit.moveModifier, new List<Unit> { unit });
-            }
-        }
-
-        map.ResetMap(true);
-        foreach (Team team in unitsOrganizedByMovement.Keys)
-        {
-            foreach (MoveModifier movemodifier in unitsOrganizedByMovement[team].Keys)
-            {
-                Unit tempUnit = unitsOrganizedByMovement[team][movemodifier][0];
-                tempUnit.moveModifier.SetUnwalkable(gameManager, tempUnit);
-                List<Vector2Int> unitLocations = new List<Vector2Int>();
-                for (int i = 0; i < unitsOrganizedByMovement[team][movemodifier].Count; i++)
-                {
-                    Unit unit = unitsOrganizedByMovement[team][movemodifier][i];
-                    unitLocations.Add(new Vector2Int(unit.x, unit.y));
-                }
-                map.SetGoalsForThreatGrid(unitLocations, actionData.friendlyUnits, gameManager, movemodifier, debug: false);
-
-                tempUnit.moveModifier.SetWalkable(gameManager, tempUnit);
-            }
-        }
-        int[,] threatGrid = map.GetGridValues();
-        return threatGrid;
-    }
-
-    public struct RangedAttackFiringData
-    {
-        public CalculatedActionData calculatedActionData;
-        public Vector2Int newPosition;
-        public List<Unit> enemyUnitsInRange;
-        public List<EquipableAmmoSO> unitAmmo;
-        public float actionConsequence;
-        public int[,] elevationGrid;
-        public int[,] threatGrid;
-    }
-
-    public void FindingFiringPosition(AIActionData actionData, RangedAttackFiringData firingData)
-    {
-        CalculatedActionData calculatedActionData = firingData.calculatedActionData;
         Vector2Int newPosition = firingData.newPosition;
         List<Unit> enemyUnitsInRange = firingData.enemyUnitsInRange;
         List<EquipableAmmoSO> unitAmmo = firingData.unitAmmo;
@@ -480,6 +441,7 @@ public class RangedAttack : Action
         Unit actingUnit = actionData.unit;
         CombatGameManager gameManager = actingUnit.gameManager;
         GridHex<GridPosition> grid = gameManager.grid;
+        //Debug.Log("Check: " + newPosition + ", " + actionData.movementData[newPosition.x, newPosition.y]);
         for (int j = 0; j < enemyUnitsInRange.Count; j++)
         {
             Unit enemyUnit = enemyUnitsInRange[j];
@@ -492,8 +454,8 @@ public class RangedAttack : Action
                 coverModifer = 0.5f;
             }
 
-            float threatModifier = 0.67f + 0.33f * ((threatGrid[newPosition.x, newPosition.y] - 1) / 18);
-            //Debug.Log(" danger" + positionsInTargetRange[i] + " "+ threatGrid[newPosition.x, newPosition.y]);
+            float threatModifier = 0.67f + firingData.threatModifer * ( ((float)(threatGrid[newPosition.x, newPosition.y] - 1)) / 18);
+            //Debug.Log(" danger" + newPosition + " " + threatGrid[newPosition.x, newPosition.y]);
             if (threatModifier > 3)
             {
                 threatModifier = 3;
@@ -511,7 +473,7 @@ public class RangedAttack : Action
                 int modifiedMaxRange = (int)(maxRange * ammoData.rangeModifier);
                 int hexDistanceFromTarget = grid.OffsetDistance(enemyPosition, newPosition);
                 float rangeModifier = 1f;
-                //Debug.Log("test 3: " + positionsInTargetRange[i] + ", " + hexDistanceFromTarget + ", " + enemyPosition + ", " + newPosition);
+                //Debug.Log("test 3: " + newPosition + ", " + hexDistanceFromTarget + ", " + enemyPosition + ", " + newPosition);
                 if (hexDistanceFromTarget > modifiedEffectiveRange)
                 {
                     rangeModifier = 0.5f;
@@ -532,15 +494,19 @@ public class RangedAttack : Action
                     rangeModifier = 1f;
                 }
 
+                float totalModifiers = actionConsequence * rangeModifier * coverModifer * heightModifier * threatModifier;
+                //Debug.Log("test 4: " + newPosition + ", " + actionConsequence + ", " + rangeModifier + ", " + coverModifer + ", " + heightModifier + ", " + threatModifier + ", Total Modifiers" + totalModifiers);
+                /*
                 // have threat modifier used after the cull so ranged units incentivied to move to a much better shooting position
                 float totalModifiers = actionConsequence * rangeModifier * coverModifer * heightModifier;
-                //Debug.Log("test 4: " + positionsInTargetRange[i] +  ", " +  actionConsequence + ", "+ rangeModifier + ", " + coverModifer + ", " + heightModifier + ", " + threatModifier);
+                Debug.Log("test 4: " + newPosition +  ", " +  actionConsequence + ", "+ rangeModifier + ", " + coverModifer + ", " + heightModifier + ", " + threatModifier + ", Total Modifiers" + totalModifiers);
                 if (totalModifiers < 0.5f)
                 {
                     continue;
                 }
-
+                Debug.Log("test 4: " + newPosition + ", " + actionConsequence + ", " + rangeModifier + ", " + coverModifer + ", " + heightModifier + ", " + threatModifier);
                 totalModifiers *= threatModifier;
+                */
                 AttackData currentAttackData = CalculateAttackData(actingUnit, enemyUnit, k);
                 unitAmmo[k].ModifyAttack(currentAttackData);
                 Tuple<int, int, List<Status>> expectedTargetDamage = enemyUnit.GetEstimatedDamageValues(currentAttackData);
@@ -554,14 +520,15 @@ public class RangedAttack : Action
                 }
 
                 tempActionValue = (int)(tempActionValue * enemyUnit.targetValue);
-                //Debug.Log("test 2: " + positionsInTargetRange[i] + ", " + tempActionValue);
+                //Debug.Log("test 2: " + newPosition + ", " + tempActionValue);
                 tempActionValue = actionData.ModifyActionValue(actionData, newPosition, this, tempActionValue);
-                //Debug.Log("test 3: " + positionsInTargetRange[i] + ", " + (actingUnitMoveGrid[newPosition.x, newPosition.y]) + ", " + (actingUnitMoveGrid[newPosition.x, newPosition.y] + 1));
+                //Debug.Log("test 3: " + newPosition + ", " + tempActionValue);
                 tempActionValue = (int)(tempActionValue * totalModifiers);
-                //Debug.Log("test 5: " + positionsInTargetRange[i] + ", " + tempActionValue);
+                //Debug.Log("Test end Action Value: " + newPosition + ", " + tempActionValue + ", " + calculatedActionData.highestActionValue);   
 
-                if (calculatedActionData.highestActionValue < tempActionValue)
+                if (tempActionValue > calculatedActionData.highestActionValue)
                 {
+                   // Debug.Log("Current highest Value: " + newPosition + ", " + tempActionValue + ", " + calculatedActionData.highestActionValue);
                     calculatedActionData.completedCalculation = true;
                     calculatedActionData.highestActionValue = tempActionValue;
                     calculatedActionData.desiredEndPosition = newPosition;
@@ -576,11 +543,13 @@ public class RangedAttack : Action
     //no restricution on movement and find best firing position on  target
     // Find best target to hit through target value, in range, threat range, line of sight,
     // action cost for move and fire with bias towards moving to best position and firing rather than two subotpimal fires, (probably mroe intereseting)
-    public CalculatedActionData StandardFiringPosition(AIActionData actionData)
+    public CalculatedActionData CombatFiringPosition(AIActionData actionData)
     {
         CalculatedActionData calculatedActionData = new CalculatedActionData();
         calculatedActionData.completedCalculation = false;
         Unit actingUnit = actionData.unit;
+        CombatGameManager gameManager = actingUnit.gameManager;
+        DijkstraMap map = gameManager.map;
         List<EquipableAmmoSO> unitAmmo = FiringPositionSetup(actionData);
 
         if (unitAmmo == null)
@@ -589,19 +558,23 @@ public class RangedAttack : Action
             return calculatedActionData;
         }
 
-        CombatGameManager gameManager = actingUnit.gameManager;
-        DijkstraMap map = gameManager.map;
         map.ResetMap(true, false);
-        List<Vector2Int> MovablePositions;
+        List<Vector2Int> MovablePositions = new List<Vector2Int>();
         if (actionData.canMove)
         {
-            MovablePositions = actionData.hexesUnitCanMoveTo[0];
+            for (int i = 0; i < actingUnit.currentMajorActionsPoints; i++)
+            {
+                for (int j = 0; j < actionData.hexesUnitCanMoveTo[i].Count; j++)
+                {
+                    MovablePositions.Add(actionData.hexesUnitCanMoveTo[i][j]);
+                }
+            }
         }
         else
         {
             MovablePositions = new List<Vector2Int>() { new Vector2Int(actingUnit.x, actingUnit.y) };
         }
-        Debug.Log("Chekcing Weight");
+
         //Get Nodes that can be targeted by the acting unit
         List<DijkstraMapNode> nodesInTargetRange = map.GetNodesInRangedRange(MovablePositions, 0, actionData.enemyUnits, gameManager, actingUnit.moveModifier, maxRange);
 
@@ -611,6 +584,7 @@ public class RangedAttack : Action
             positionsInTargetRange.Add(new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
         }
 
+        // Generate Threat Grid
         List<Unit> enemyUnitsInRange = new List<Unit>();
         List<Vector2Int> enemyPositionsInTargetRange = new List<Vector2Int>();
         List<Unit> threateningEnemioe = new List<Unit>();
@@ -630,7 +604,6 @@ public class RangedAttack : Action
             }
         }
 
-        // Generate Threat Grid
         int[,] threatGrid = CreateThreatGrid(actionData, threateningEnemioe);
 
         //Get nodes that are in range of enemy units
@@ -643,11 +616,11 @@ public class RangedAttack : Action
         calculatedActionData.highestActionValue = actionData.highestActionWeight;
 
         RangedAttackFiringData firingData = new RangedAttackFiringData();
-        firingData.calculatedActionData = calculatedActionData;
         firingData.enemyUnitsInRange = enemyUnitsInRange;
         firingData.unitAmmo = unitAmmo;
         firingData.elevationGrid = elevationGrid;
         firingData.threatGrid = threatGrid;
+        firingData.threatModifer = 0.33f;
 
         for (int i = 0; i < positionsInTargetRange.Count; i++)
         {
@@ -678,7 +651,7 @@ public class RangedAttack : Action
 
             firingData.newPosition = newPosition;
             firingData.actionConsequence = actionConsequenceModifier;
-            FindingFiringPosition(actionData, firingData);
+            FindingFiringPosition(actionData, firingData, calculatedActionData);
         }
         Debug.Log("Final Posisition: " + calculatedActionData.desiredEndPosition);
         return calculatedActionData;
@@ -687,7 +660,7 @@ public class RangedAttack : Action
     //no restricution on movement and find best firing position on  target
     // Find best target to hit through target value, in range, threat range, line of sight,
     // action cost for move and fire with bias towards moving to best position and firing rather than two subotpimal fires, (probably mroe intereseting)
-    public CalculatedActionData CombatFiringPosition(AIActionData actionData)
+    public CalculatedActionData CombatFiringOptimalPosition(AIActionData actionData)
     {
         CalculatedActionData calculatedActionData = new CalculatedActionData();
         calculatedActionData.completedCalculation = false;
@@ -718,7 +691,7 @@ public class RangedAttack : Action
         List<Vector2Int> positionsInTargetRange = new List<Vector2Int>();
         for (int i = 0; i < nodesInTargetRange.Count; i++)
         {
-            Debug.Log("Check Nodes in Range: " + new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
+            //Debug.Log("Check Nodes in Range: " + new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
             positionsInTargetRange.Add(new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
         }
 
@@ -757,12 +730,12 @@ public class RangedAttack : Action
         int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
         calculatedActionData.highestActionValue = actionData.highestActionWeight;
         RangedAttackFiringData firingData = new RangedAttackFiringData();
-        firingData.calculatedActionData = calculatedActionData;
         firingData.enemyUnitsInRange = enemyUnitsInRange;
         firingData.unitAmmo = unitAmmo;
         firingData.elevationGrid = elevationGrid;
         firingData.threatGrid = threatGrid;
         firingData.actionConsequence = 1f;
+        firingData.threatModifer = 0.33f;
 
         for (int i = 0; i < positionsInTargetRange.Count; i++)
         {
@@ -776,12 +749,156 @@ public class RangedAttack : Action
             }
 
             firingData.newPosition = newPosition;
-            FindingFiringPosition(actionData, firingData);
+            FindingFiringPosition(actionData, firingData, calculatedActionData);
         }
         return calculatedActionData;
     }
 
-    public CalculatedActionData SkirmishFiringPosition(AIActionData actionData)
+    public CalculatedActionData SkirmishPreset(AIActionData actionData, bool findOptimalPosition)
+    {
+        CalculatedActionData calculatedActionData = new CalculatedActionData();
+        calculatedActionData.completedCalculation = false;
+        Unit actingUnit = actionData.unit;
+        CombatGameManager gameManager = actingUnit.gameManager;
+        DijkstraMap map = gameManager.map;
+        List<EquipableAmmoSO> unitAmmo = FiringPositionSetup(actionData);
+
+        if (unitAmmo == null)
+        {
+            Debug.LogError("this should not happen, no ammo should have been detected in Check if Action is in Range not here");
+            return calculatedActionData;
+        }
+
+        // Generate Threat Grid
+        List<Unit> threateningEnemioe = new List<Unit>();
+        List<Unit> enemyUnitsInRange = new List<Unit>();
+        for (int i = 0; i < actionData.enemyUnits.Count; i++)
+        {
+            Unit enemyUnit = gameManager.grid.GetGridObject(actionData.enemyUnits[i]).unit;
+            enemyUnitsInRange.Add(enemyUnit);
+            if (!actionData.markedUnits.Contains(actionData.enemyUnits[i]))
+            {
+                threateningEnemioe.Add(enemyUnit);
+            }
+        }
+
+        int[,] threatGrid = CreateThreatGrid(actionData, threateningEnemioe);
+
+        //Get nodes that are in range of enemy units
+        int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
+        calculatedActionData.highestActionValue = actionData.highestActionWeight;
+        RangedAttackFiringData firingData = new RangedAttackFiringData();
+        firingData.enemyUnitsInRange = enemyUnitsInRange;
+        firingData.unitAmmo = unitAmmo;
+        firingData.elevationGrid = elevationGrid;
+        firingData.threatGrid = threatGrid;
+        firingData.actionConsequence = 1f;
+        firingData.threatModifer = 0.66f;
+
+        if(findOptimalPosition)
+        {
+            return SkirmishOptimalFiringPosition(actionData, firingData, calculatedActionData);
+        }
+        else
+        {
+            return SkirmishFiringPosition(actionData, firingData, calculatedActionData);
+        }
+    }
+
+    // Unit will Actually Fire
+    public CalculatedActionData SkirmishFiringPosition(AIActionData actionData, RangedAttackFiringData firingData, CalculatedActionData calculatedActionData)
+    {
+        CombatGameManager gameManager = actionData.unit.gameManager;
+        Unit actingUnit = actionData.unit;
+        DijkstraMap map = gameManager.map;
+        map.ResetMap(true, false);
+        List<Vector2Int> targetPositions;
+        if (actionData.enemyUnits.Count > 0)    
+        {
+            targetPositions = actionData.enemyUnits;
+        }
+        else
+        {
+            targetPositions = actionData.enemyTeamStartingPositions;
+        }
+
+        //Get Nodes that acting unit can be in and be in range of aan Enemy Unit
+        List<DijkstraMapNode> nodesInTargetRange = map.GetNodesInRangedRange(targetPositions, 0, actionData.enemyUnits, gameManager, actingUnit.moveModifier, maxRange);
+        List<Vector2Int> positionsInTargetRange = new List<Vector2Int>();
+        for (int i = 0; i < nodesInTargetRange.Count; i++)
+        {
+            //Debug.Log("Check Nodes in Range: " + new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
+            positionsInTargetRange.Add(new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
+        }
+
+
+        for (int i = 0; i < positionsInTargetRange.Count; i++)
+        {
+            //Check to see if node can hit a target
+            Vector2Int newPosition = positionsInTargetRange[i];
+            Debug.Log("Check: " + positionsInTargetRange[i] + ", " + actionData.movementData[positionsInTargetRange[i].x, positionsInTargetRange[i].y]);
+
+            // Remove positions that the acting unit can't move to and shoot from
+            if(actingUnit.currentMajorActionsPoints < actionPointUsage + actionData.movementData[newPosition.x, newPosition.y])
+            {
+                continue;
+            }
+
+            firingData.newPosition = newPosition;
+            FindingFiringPosition(actionData, firingData, calculatedActionData);
+            Debug.Log("Value of Highest Action Value: " + calculatedActionData.highestActionValue);
+        }
+        return calculatedActionData;
+    }
+
+    public CalculatedActionData SkirmishOptimalFiringPosition(AIActionData actionData, RangedAttackFiringData firingData, CalculatedActionData calculatedActionData)
+    {
+        Unit actingUnit = actionData.unit;
+        CombatGameManager gameManager = actingUnit.gameManager;
+        DijkstraMap map = gameManager.map;
+
+        map.ResetMap(true, false);
+        List<Vector2Int> targetPositions;
+        if (actionData.enemyUnits.Count > 0)
+        {
+            targetPositions = actionData.enemyUnits;
+        }
+        else
+        {
+            targetPositions = actionData.enemyTeamStartingPositions;
+        }
+
+        //Get Nodes that acting unit can be in and be in range
+        List<DijkstraMapNode> nodesInTargetRange = map.GetNodesInRangedRange(targetPositions, 0, actionData.enemyUnits, gameManager, actingUnit.moveModifier, maxRange);
+
+        List<Vector2Int> positionsInTargetRange = new List<Vector2Int>();
+        for (int i = 0; i < nodesInTargetRange.Count; i++)
+        {
+            //Debug.Log("Check Nodes in Range: " + new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
+            positionsInTargetRange.Add(new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
+        }
+
+        //Get nodes that are in range of enemy units
+        map.ResetMap(true, false);
+        map.SetGoalForNodesInTargetRange(actionData.enemyUnits, maxRange);
+
+
+        for (int i = 0; i < positionsInTargetRange.Count; i++)
+        {
+            //Check to see if node can hit a target
+            Vector2Int newPosition = positionsInTargetRange[i];
+            Debug.Log("Check: " + positionsInTargetRange[i] + ", " + actionData.movementData[positionsInTargetRange[i].x, positionsInTargetRange[i].y]);
+
+            firingData.newPosition = newPosition;
+            FindingFiringPosition(actionData, firingData, calculatedActionData);
+            Debug.Log("Value of Highest Action Value: " + calculatedActionData.highestActionValue);
+        }
+        return calculatedActionData;
+    }
+
+    // Look For Best position To Fire From (No Actual Shooting)
+    /*
+    public CalculatedActionData SkirmishOptimalFiringPosition(AIActionData actionData)
     {
         CalculatedActionData calculatedActionData = new CalculatedActionData();
         calculatedActionData.completedCalculation = false;
@@ -806,13 +923,14 @@ public class RangedAttack : Action
         {
             targetPositions = actionData.enemyTeamStartingPositions;
         }
-        //Get Nodes that can be targeted by the acting unit
+
+        //Get Nodes that acting unit can be in and be in range
         List<DijkstraMapNode> nodesInTargetRange = map.GetNodesInRangedRange(targetPositions, 0, actionData.enemyUnits, gameManager, actingUnit.moveModifier, maxRange);
 
         List<Vector2Int> positionsInTargetRange = new List<Vector2Int>();
         for (int i = 0; i < nodesInTargetRange.Count; i++)
         {
-            Debug.Log("Check Nodes in Range: " + new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
+            //Debug.Log("Check Nodes in Range: " + new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
             positionsInTargetRange.Add(new Vector2Int(nodesInTargetRange[i].x, nodesInTargetRange[i].y));
         }
 
@@ -851,28 +969,30 @@ public class RangedAttack : Action
         int[,] elevationGrid = gameManager.spriteManager.elevationOfHexes;
         calculatedActionData.highestActionValue = actionData.highestActionWeight;
         RangedAttackFiringData firingData = new RangedAttackFiringData();
-        firingData.calculatedActionData = calculatedActionData;
         firingData.enemyUnitsInRange = enemyUnitsInRange;
         firingData.unitAmmo = unitAmmo;
         firingData.elevationGrid = elevationGrid;
         firingData.threatGrid = threatGrid;
         firingData.actionConsequence = 1f;
+        firingData.threatModifer = 0.66f;
 
         for (int i = 0; i < positionsInTargetRange.Count; i++)
         {
             //Check to see if node can hit a target
             Vector2Int newPosition = positionsInTargetRange[i];
             int rangeValue = rangeGrid[newPosition.x, newPosition.y];
-            Debug.Log("test 1: " + positionsInTargetRange[i] + ", " + rangeValue);
+            Debug.Log("Check: " + positionsInTargetRange[i] + ", " + actionData.movementData[positionsInTargetRange[i].x, positionsInTargetRange[i].y] + ", " + rangeValue);
             if (rangeValue == -1)
             {
                 continue;
             }
 
             firingData.newPosition = newPosition;
-            FindingFiringPosition(actionData, firingData);
+            FindingFiringPosition(actionData, firingData, calculatedActionData);
+            Debug.Log("Value of Highest Action Value: " + calculatedActionData.highestActionValue);
         }
         return calculatedActionData;
     }
+    */
 }
 

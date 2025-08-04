@@ -30,18 +30,6 @@ public class AgentWeapon : MonoBehaviour
 
     private void ModifyParameters()
     {
-        foreach(var parameter in parametersToModify)
-        {
-            if (itemCurrentState.Contains(parameter))
-            {
-                int index = itemCurrentState.IndexOf(parameter);
-                float newValue = itemCurrentState[index].value + parameter.value;
-                itemCurrentState[index] = new ItemParameter
-                {
-                    itemParameter = parameter.itemParameter,
-                    value = newValue
-                };  
-            }
-        }
+
     }
 }

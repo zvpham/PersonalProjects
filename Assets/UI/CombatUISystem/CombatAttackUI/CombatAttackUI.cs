@@ -35,12 +35,13 @@ public class CombatAttackUI : MonoBehaviour
 
     public void SetData(Unit targetUnit, List<AttackDataUI> attackDatas, Vector3 newPosition)
     {
+        //Reset Data
         for(int i = 0; i < modifierTexts.Count; i++)
         {
             Destroy(modifierTexts[i].gameObject);
         }
 
-
+        //Set Unit HP and ARmor values
         gameObject.SetActive(true);
         enabled = true;
         unit = targetUnit;
@@ -67,15 +68,22 @@ public class CombatAttackUI : MonoBehaviour
             healthValue.text = "0/0";
         }
 
-        if(attackDatas.Count == 0)
+
+        // Set Main Attack Data
+        string mainAttackString = "";
+        for(int i = 0; i < attackDatas.Count; i++)
         {
-            Debug.LogError("Called an attackUI without providing any attack data");
+            if (attackDatas[i].attackDataType == attackDataType.Main)
+            {
+                mainAttackString += attackDatas[0].data.ToString() + " ";
+            }
         }
+        mainAttackValue.text = mainAttackString;
 
-        mainAttackValue.text = attackDatas[0].data.ToString();
 
+        //Set Modifier Data
         modifierTexts = new List<TMP_Text>();
-        for(int i = 1; i < attackDatas.Count; i++)
+        for(int i = 0; i < attackDatas.Count; i++)
         {
             if (attackDatas[i].attackDataType == attackDataType.Modifier)
             {

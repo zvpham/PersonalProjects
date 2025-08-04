@@ -18,7 +18,7 @@ public abstract class Action : ScriptableObject
 
     public CustomAnimations animation;
 
-    public struct CalculatedActionData
+    public class CalculatedActionData
     {
         public int highestActionValue;
         public Vector2Int desiredEndPosition;
@@ -147,6 +147,66 @@ public abstract class Action : ScriptableObject
             }
         }
         return false;
+    }
+
+    public int[,] CreateThreatGrid(AIActionData actionData, List<Unit> threateningEnemioe)
+    {
+        CombatGameManager gameManager = actionData.unit.gameManager;
+        DijkstraMap map = gameManager.map;
+
+        // Generate Threat Grid
+        Dictionary<Team, Dictionary<MoveModifier, List<Unit>>> unitsOrganizedByMovement = new Dictionary<Team, Dictionary<MoveModifier, List<Unit>>>();
+        foreach (Unit unit in threateningEnemioe)
+        {
+            if (unitsOrganizedByMovement.ContainsKey(unit.team))
+            {
+                if (unitsOrganizedByMovement[unit.team].ContainsKey(unit.moveModifier))
+                {
+                    unitsOrganizedByMovement[unit.team][unit.moveModifier].Add(unit);
+                }
+                else
+                {
+                    unitsOrganizedByMovement[unit.team].Add(unit.moveModifier, new List<Unit> { unit });
+                }
+            }
+            else
+            {
+                unitsOrganizedByMovement.Add(unit.team, new Dictionary<MoveModifier, List<Unit>>());
+                unitsOrganizedByMovement[unit.team].Add(unit.moveModifier, new List<Unit> { unit });
+            }
+        }
+
+        map.ResetMap(true);
+        foreach (Team team in unitsOrganizedByMovement.Keys)
+        {
+            foreach (MoveModifier movemodifier in unitsOrganizedByMovement[team].Keys)
+            {
+                Unit tempUnit = unitsOrganizedByMovement[team][movemodifier][0];
+                tempUnit.moveModifier.SetUnwalkable(gameManager, tempUnit);
+                List<Vector2Int> unitLocations = new List<Vector2Int>();
+                for (int i = 0; i < unitsOrganizedByMovement[team][movemodifier].Count; i++)
+                {
+                    Unit unit = unitsOrganizedByMovement[team][movemodifier][i];
+                    unitLocations.Add(new Vector2Int(unit.x, unit.y));
+                }
+                map.SetGoalsForThreatGrid(unitLocations, actionData.friendlyUnits, gameManager, movemodifier, debug: false);
+
+                tempUnit.moveModifier.SetWalkable(gameManager, tempUnit);
+            }
+        }
+        int[,] threatGrid = map.GetGridValues();
+        return threatGrid;
+    }
+
+    public struct RangedAttackFiringData
+    {
+        public Vector2Int newPosition;
+        public List<Unit> enemyUnitsInRange;
+        public List<EquipableAmmoSO> unitAmmo;
+        public float actionConsequence;
+        public int[,] elevationGrid;
+        public int[,] threatGrid;
+        public float threatModifer;
     }
 
     public virtual bool SpecificCheckActionUsable(Unit self)

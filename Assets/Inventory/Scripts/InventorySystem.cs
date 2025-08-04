@@ -1,5 +1,6 @@
 using Inventory.Model;
 using Inventory.UI;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Resources;
@@ -210,22 +211,37 @@ public class InventorySystem : MonoBehaviour
                 ammoExtension = "X";
             }
 
-                inventoryUI.UpdateData(item.Key, equipData.itemImage, item.Value.quantity, equipData.name, equipData.attributeOne, equipData.attributeTwo, equipData.mainCategoryOne, StatToString(equipData.mainOneMin, equipData.mainOneMax), equipData.mainCategoryTwo,
-                StatToString((int)equipData.mainTwoMin, equipData.mainTwoMax), equipData.mainCategoryThree, StatToString(equipData.mainThreeMin,
-                equipData.mainThreeMax), ammoExtension);
+            Tuple<string, string> weight = GetData(equipData.DefaultParameterList[0]);
+            Tuple<string, string> parameter2 = GetData(equipData.DefaultParameterList[1]); // Should Either be damage or    
+            Tuple<string, string> parameter3 = GetData(equipData.DefaultParameterList[2]); // tertiary stat (range, or other)
+
+
+            inventoryUI.UpdateData(item.Key, equipData.itemImage, item.Value.quantity, equipData.name, equipData.attributeOne, equipData.attributeTwo, weight.Item1, weight.Item2
+                , parameter2.Item1, parameter2.Item2, parameter3.Item1, parameter3.Item2, ammoExtension);
         }
     }
 
-    private string StatToString(int min, int max)
+    //Parameter Name, Paramter value
+    public Tuple<string, string> GetData(ItemParameter parameter)
     {
-        if (max == 0)
+        string categoryName = parameter.itemParameter.ToString();
+        string value = "";
+        switch (parameter.itemParameter.itemParameter)
         {
-            return min.ToString();
+            case (ItemParameterName.weight):
+                value = parameter.value[0].ToString();
+                break;
+            case (ItemParameterName.armor):
+                value = parameter.value[0].ToString();
+                break;
+            case (ItemParameterName.damge):
+                value = parameter.value[0].ToString() + "-" + parameter.value[1].ToString();
+                break;
+            case (ItemParameterName.spellPointGeneration):
+                value = parameter.value[0].ToString();
+                break;
         }
-        else
-        {
-            return min.ToString() + "-" + max.ToString();
-        }
+        return new Tuple<string, string>(categoryName, value);
     }
 
     public void PerformAction(int itemIndex)

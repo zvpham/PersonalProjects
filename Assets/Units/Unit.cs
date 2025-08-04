@@ -81,6 +81,9 @@ public class Unit : UnitSuperClass, IInititiave
     public int currentMajorActionsPoints = 0;
     public int currentMinorActionsPoints = 0;
 
+    public int powerPointGeneration = 1;
+    public float magicPowerPoints = 0;
+
 
     public List<Unit> selfInTheseUnitsThreatenedZones = new List<Unit>();
 
@@ -98,12 +101,21 @@ public class Unit : UnitSuperClass, IInititiave
     public float targetValue;
     public List<AIUnitResponses> AIResponseToUnit = new List<AIUnitResponses>();
 
-    public UnityAction onTurnStart;
+    public UnityAction <Unit> onTurnStart;
+    public UnityAction <Unit> OnTurnStartActionDisruption;
+    public UnityAction <Unit> OnTurnStartTurnChange;
+
+
     public UnityAction<Vector2Int, Vector2Int, Unit, bool> OnPositionChanged;
+
+
+
     public UnityAction<Unit> OnDeath;
     // Self Unit, Damage Dealing Unit, Damage, IsMelee, isFirstInstanceOfDamage
     public UnityAction<Unit, Unit, AttackData> PreDamage;
+    // Self Unit, Damage Dealing Unit, IsMelee, isFirstInstanceOfDamage
     public UnityAction<Unit, Unit, bool, bool> OnDamage;
+    // Self Unit, Damage Dealing Unit, Damage, IsMelee, isFirstInstanceOfDamage
     public UnityAction<Unit, Unit, AttackData> PostDamage;
 
     public CombatGameManager gameManager;
@@ -216,31 +228,59 @@ public class Unit : UnitSuperClass, IInititiave
                 Item1.EquipItem(this);
                 if (Item1.GetType() == typeof(EquipableAmmoSO))
                 {
-                    itemUses[0] = Item1.mainThreeMin;
+                    for (int i = 0; i < Item1.DefaultParameterList.Count; i++)
+                    {
+                        if (Item1.DefaultParameterList[i].itemParameter.itemParameter == ItemParameterName.Capacity)
+                        {
+                            itemUses[0] = (int) Item1.DefaultParameterList[i].value[0];
+                            break;
+                        }
+                    }
                 }
             }
             if (Item2 != null)
             {
                 Item2.EquipItem(this);
-                if (Item1.GetType() == typeof(EquipableAmmoSO))
+                if (Item2.GetType() == typeof(EquipableAmmoSO))
                 {
-                    itemUses[1] = Item2.mainThreeMin;
+                    for (int i = 0; i < Item2.DefaultParameterList.Count; i++)
+                    {
+                        if (Item2.DefaultParameterList[i].itemParameter.itemParameter == ItemParameterName.Capacity)
+                        {
+                            itemUses[0] = (int)Item2.DefaultParameterList[i].value[0];
+                            break;
+                        }
+                    }
                 }
             }
             if (Item3 != null)
             {
                 Item3.EquipItem(this);
-                if (Item1.GetType() == typeof(EquipableAmmoSO))
+                if (Item3.GetType() == typeof(EquipableAmmoSO))
                 {
-                    itemUses[2] = Item3.mainThreeMin;
+                    for (int i = 0; i < Item3.DefaultParameterList.Count; i++)
+                    {
+                        if (Item3.DefaultParameterList[i].itemParameter.itemParameter == ItemParameterName.Capacity)
+                        {
+                            itemUses[0] = (int)Item3.DefaultParameterList[i].value[0];
+                            break;
+                        }
+                    }
                 }
             }
             if (Item4 != null)
             {
                 Item4.EquipItem(this);
-                if (Item1.GetType() == typeof(EquipableAmmoSO))
+                if (Item4.GetType() == typeof(EquipableAmmoSO))
                 {
-                    itemUses[3] = Item4.mainThreeMin;
+                    for (int i = 0; i < Item4.DefaultParameterList.Count; i++)
+                    {
+                        if (Item4.DefaultParameterList[i].itemParameter.itemParameter == ItemParameterName.Capacity)
+                        {
+                            itemUses[0] = (int)Item4.DefaultParameterList[i].value[0];
+                            break;
+                        }
+                    }
                 }
             }
             if (backUpMainHand != null)
@@ -411,10 +451,13 @@ public class Unit : UnitSuperClass, IInititiave
     public void StartTurn()
     {
         Debug.Log("Turn Start: " + team + ", " + this + ", " + x + ", " + y);
-        onTurnStart?.Invoke();
         currentMajorActionsPoints = maxMajorActionsPoints;
         currentMoveSpeed = 0;
         CheckActionsDisabled();
+
+        onTurnStart?.Invoke(this);
+        OnTurnStartActionDisruption?.Invoke(this);
+        OnTurnStartTurnChange?.Invoke(this);
         if (team == Team.Player)
         {
             gameManager.StartPlayerTurn(this);
@@ -427,7 +470,7 @@ public class Unit : UnitSuperClass, IInititiave
 
     public void ContinueAITurn()
     {
-        Debug.Log("Continue Turn: " + team + ", " + this + ", " + x + ", " + y);
+        Debug.Log("Continue Turn: " + team + ", " + this + ", " + x + ", " + y + ",  major Action Points left: " +  currentMajorActionsPoints + ", currentMovespeed Left: " + currentMoveSpeed); 
         gameManager.StartAITurn(this, team);    
     }
 
@@ -621,11 +664,14 @@ public class Unit : UnitSuperClass, IInititiave
         forceEndTurn = false;
         for(int i = 0; i < statuses.Count; i++)
         {
-            statuses[i].duration -= 1;
-            if (statuses[i].duration <= 0)
+            if (!statuses[i].noDuration)
             {
-                statuses.RemoveAt(i);
-                i--;
+                statuses[i].duration -= 1;
+                if (statuses[i].duration <= 0)
+                {
+                    statuses.RemoveAt(i);
+                    i--;
+                }
             }
         }
 
@@ -731,11 +777,9 @@ public class Unit : UnitSuperClass, IInititiave
 
         if (!ignoreShield && shieldDamageResistence != 0)
         {
+            string shieldString = "Shielded " + "-" + shieldDamageResistence;
             combatDamageResistenceValue += shieldDamageResistence;
-            tempShield = new Modifier();
-            tempShield.value = shieldDamageResistence;
-            tempShield.modifierText = "Shielded " + "-" + shieldDamageResistence;
-            tempShield.attackState = attackState.Benediction;
+            tempShield = new Modifier(shieldDamageResistence, shieldString, attackState.Benediction);
         }
 
         if (damageResistence > 1)
@@ -877,7 +921,7 @@ public class Unit : UnitSuperClass, IInititiave
             int damageValue = UnityEngine.Random.Range(damage.minDamage, damage.maxDamage + 1);
             damageValue = damageValue - (int)(damageValue * combatDamageResistenceValue);
             firstInstanceOfDamage = false;
-
+            Debug.Log("Roll Damage: " +  damage.minDamage + " - " + damage.maxDamage + ", rolled: " + damageValue);
             if (attackData.ignoreArmour)
             {
                 currentHealth -= damageValue;
@@ -895,7 +939,7 @@ public class Unit : UnitSuperClass, IInititiave
             }
         }
 
-        Debug.Log("Damage dealt: ");
+        Debug.Log("total Damage dealt to : " + name + ", " + (intialHealth - currentHealth));
         PostDamage?.Invoke(this, unitDealingDamage, attackData);
 
         if (currentHealth <= 0)

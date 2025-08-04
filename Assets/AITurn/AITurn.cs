@@ -253,7 +253,7 @@ public class AITurn : MonoBehaviour
     public void StartAITurn(List<Unit> unitGroup)
     {
         Debug.LogWarning("Remove This (Manually sets AIState to Combat)");
-        AIState = AITurnStates.Combat; //  THIS WHERE WE Combat STATE
+        AIState = AITurnStates.Skirmish; //  THIS WHERE WE Combat STATE
         visibleUnits = gameManager.playerTurn.playerUnits;
         /*
         CalculateEnemyState();
@@ -648,7 +648,7 @@ public class AITurn : MonoBehaviour
                         }
                         else
                         {
-                            AIMeleeMovement.MeleeRangeOneSkirmish(AiActionData);
+                            AIRangedMovement.RangedMoveToOptimalPositionSkirmish(AiActionData);
                         }
                     }
                     else
@@ -780,7 +780,7 @@ public class AITurn : MonoBehaviour
         for (int i = 0; i < actionsInRange.Count; i++)
         {
             int actionWieght = unit.actions[actionsInRange[i]].action.CalculateWeight(actionData);
-            //Debug.Log(unit.actions[actionsInRange[i]].action + " action weight: " + actionWieght);      
+            Debug.Log(unit.actions[actionsInRange[i]].action + " action weight: " + actionWieght);      
             if (actionData.highestActionWeight < actionWieght)
             {
                 actionIndex = i;
@@ -825,8 +825,19 @@ public class AITurn : MonoBehaviour
                 unit.actions[i].action.GetMovementMap(actionData);
             }
         }
+
         actionData.movementData[unit.x, unit.y] = 0;
         actionData.movementActions[unit.x, unit.y] = new List<Action>();
+        for (int i = 0; i < unit.gameManager.mapSize; i++)
+        {
+            for (int j = 0; j < unit.gameManager.mapSize; j++)
+            {
+                if(actionData.movementData[i, j] < 3)
+                {
+                    actionData.hexesUnitCanMoveTo[actionData.movementData[i, j]].Add(new Vector2Int(i, j));
+                }
+            }
+        }
     }
 
     public void UnitDeath(Unit unit)

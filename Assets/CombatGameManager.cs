@@ -24,6 +24,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
     public SpriteManager spriteManager;
     public DijkstraMap map;
     public GridHex<GridPosition> grid;
+    public DebugGrid debugGrid;
     public GridHex<PassiveGridObject> passiveGrid; // This is for when actions play
     public int[,] moveCostMap;
 
@@ -509,6 +510,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
             Debug.Log("try to finish actions but unit died");
             NextTurn();
         }
+        Debug.Log("MAjor Action Points Left: " + initialMovingUnit.currentMajorActionsPoints);
     }
 
     public void UnitGroupDeath(Unit unit)
@@ -661,7 +663,8 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
 
         for (int i = 0; i < units.Count; i++)
         {
-            Unit unit = units[0];
+            Debug.Log("Delete Unit");
+            Unit unit = units[i];
             if(unit.group !=  null)
             {
                 UnitGroup unitGroup = unit.group;
