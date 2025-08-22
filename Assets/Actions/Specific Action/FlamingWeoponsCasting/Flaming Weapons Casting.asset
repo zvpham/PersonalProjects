@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9dac7f3c6b157db44907d5ea2b9359f7, type: 3}
-  m_Name: Cancel Channeling
+  m_Script: {fileID: 11500000, guid: cdce2c4fda5ad7d4aaf99d65b84ea3fa, type: 3}
+  m_Name: Flaming Weapons Casting
   m_EditorClassIdentifier: 
-  actionSprite: {fileID: 21300000, guid: 2b6afe355cceaec49b0643188e63d9bd, type: 3}
+  actionSprite: {fileID: -505862336, guid: 4ca42cc387825f64aba3746dd3e68e71, type: 3}
   baseActionWeight: 0
   actionPriority: 0
   coolDown: 0
@@ -22,4 +22,6 @@ MonoBehaviour:
   oneTimeUsePerRound: 0
   actionTypes: 
   animation: {fileID: 0}
+  spell: {fileID: 11400000, guid: b8beeca37aaf06f44ae10c7a7beb3124, type: 2}
+  spellPointsRequired: 12
   channeling: {fileID: 11400000, guid: 4dcaa22a683d68940a292ae83c11d4c0, type: 2}

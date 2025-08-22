@@ -29,12 +29,14 @@ public class ContinueChanneling : Action
         int channelingIndex = -1;
         for (int i = 0; i < unit.statuses.Count; i++)
         {
+            Debug.Log("Check Chenneling Status: " + unit.statuses[i].status + ", " + channeling + ", " + (unit.statuses[i].status == channeling));
             if (unit.statuses[i].status == channeling)
             {
                 channelingIndex = i;
                 break;
             }
         }
+        Debug.Log("channeling Index: " + channelingIndex);
         SpellStatusData spellData = (SpellStatusData) unit.statuses[channelingIndex];
         int spellpointsRequired = spellData.spellPointsRequired;
         float currentSpellPoints = unit.magicPowerPoints;
@@ -44,9 +46,10 @@ public class ContinueChanneling : Action
         {
             currentSpellPoints += unit.powerPointGeneration;
             unit.currentMajorActionsPoints--;
-            if(currentSpellPoints > spellpointsRequired)
+            if(currentSpellPoints >= spellpointsRequired)
             {
                 FinishCastingSpell(unit, spellData, channelingIndex);
+                return;
             }
             else if(i == 0)
             {
@@ -54,17 +57,22 @@ public class ContinueChanneling : Action
                 {
                     unit.currentMinorActionsPoints--;
                     currentSpellPoints +=  unit.powerPointGeneration * 0.5f;
-                    if (currentSpellPoints > spellpointsRequired)
+                    if (currentSpellPoints >= spellpointsRequired)
                     {
                         FinishCastingSpell(unit, spellData, channelingIndex);
+                        return;
                     }
                 }
             }
         }
+        unit.magicPowerPoints = currentSpellPoints;
     }
 
     public void FinishCastingSpell(Unit unit, SpellStatusData spellData, int channelingIndex)
     {
+        Debug.Log("Channeling Index: " + channelingIndex + ", " + unit.statuses.Count);
+        unit.midAction = true;
+        unit.magicPowerPoints = 0;
         unit.statuses[channelingIndex].status.RemoveStatus(unit);
         spellData.spell.SelectAction(unit);
     }

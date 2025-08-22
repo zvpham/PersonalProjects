@@ -32,27 +32,22 @@ MonoBehaviour:
   - {r: 0.17254902, g: 0.46666667, b: 0.78431374, a: 0.18431373}
   - {r: 0.2738519, g: 0.29640132, b: 0.3207547, a: 0.18431373}
   allItems:
-  - {fileID: 11400000, guid: e24ff6b319aad4e479bf5f165bfab77d, type: 2}
-  - {fileID: 11400000, guid: f944c82b21d347d40889bd3537545b6b, type: 2}
-  - {fileID: 11400000, guid: c27e4b3a37033de43b07bcefb2e4a3c5, type: 2}
   - {fileID: 11400000, guid: d14e2fe2ca700bb4590cb729b4a53ff0, type: 2}
-  - {fileID: 11400000, guid: 5ed034043bae8b44c8b891607f065b27, type: 2}
-  - {fileID: 11400000, guid: 1d74f37f4f62311478991f762fb2e791, type: 2}
+  - {fileID: 11400000, guid: 8be619fcacc15b54ca5ef55ce02f32b7, type: 2}
+  - {fileID: 11400000, guid: 0210a436c583b6746841f8a36273ac28, type: 2}
+  - {fileID: 11400000, guid: 07387c97d427c7447a3df8413077839b, type: 2}
+  - {fileID: 11400000, guid: 76a5a59006ab46e4fa4fa0e9ef9e2519, type: 2}
+  - {fileID: 11400000, guid: 72d081e43a4ec0d4e833c694d4babd4d, type: 2}
   - {fileID: 11400000, guid: 0568be4482c37884f9f83fb696c4ea71, type: 2}
-  - {fileID: 11400000, guid: dc3c45d55cf0d774dad15972e2410128, type: 2}
-  - {fileID: 11400000, guid: ffa3891b4d5f9d842887a5c06841887f, type: 2}
+  - {fileID: 11400000, guid: a25af002f1e0b7c428574f7fe4b0a718, type: 2}
+  - {fileID: 11400000, guid: 157090947ba552e4e9faf0a793732c7d, type: 2}
   - {fileID: 11400000, guid: 29276f5da199c884c9da68d5d6e4e929, type: 2}
   - {fileID: 11400000, guid: 18a4528d0668ec54da9aab5fde4d7f4b, type: 2}
-  - {fileID: 11400000, guid: 570f771394a39b0418f47ebe86c6cc3b, type: 2}
   weapons: []
-  offHands:
-  - {fileID: 11400000, guid: c27e4b3a37033de43b07bcefb2e4a3c5, type: 2}
-  helmets:
-  - {fileID: 11400000, guid: d14e2fe2ca700bb4590cb729b4a53ff0, type: 2}
-  armor:
-  - {fileID: 11400000, guid: 5ed034043bae8b44c8b891607f065b27, type: 2}
-  boots:
-  - {fileID: 11400000, guid: 1d74f37f4f62311478991f762fb2e791, type: 2}
+  offHands: []
+  helmets: []
+  armor: []
+  boots: []
   accessories:
   - {fileID: 11400000, guid: 0568be4482c37884f9f83fb696c4ea71, type: 2}
   standardUnitActions: {fileID: 11400000, guid: 4bdc78d4e2d3efd4b9b50c5ae671e8d5, type: 2}

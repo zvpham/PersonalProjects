@@ -9,29 +9,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 54bb756516e9fc74e821bc0609b736be, type: 3}
+  m_Script: {fileID: 11500000, guid: 98622aaffeb284b4eb1105971d6ba219, type: 3}
   m_Name: Staff
   m_EditorClassIdentifier: 
-  <itemIndex>k__BackingField: 11
+  <itemIndex>k__BackingField: 0
   <isStackable>k__BackingField: 1
   <maxStackSize>k__BackingField: 2147483647
   <itemName>k__BackingField: Staff
   <description>k__BackingField: 
-  <itemImage>k__BackingField: {fileID: 1872746550, guid: 4ca42cc387825f64aba3746dd3e68e71, type: 3}
-  <DefaultParameterList>k__BackingField: []
+  <itemImage>k__BackingField: {fileID: -1376620025, guid: 4ca42cc387825f64aba3746dd3e68e71, type: 3}
+  <DefaultParameterList>k__BackingField:
+  - itemParameter: {fileID: 11400000, guid: ad246b747f4c837408ff01399e46c6f8, type: 2}
+    value:
+    - 50
+  - itemParameter: {fileID: 11400000, guid: 15401d7da8ac5f141aec9b4fca10fb53, type: 2}
+    value:
+    - 3
   attributeOne: 
   attributeTwo: 
-  mainCategoryOne: Weight
-  mainOneMin: 50
-  mainOneMax: 0
-  mainCategoryTwo: Damage
-  mainTwoMin: 50
-  mainTwoMax: 75
-  mainCategoryThree: 
-  mainThreeMin: 0
-  mainThreeMax: 0
   equipType: 3
-  itemTypes: 0000000008000000
+  itemTypes: 0000000010000000
   actions:
-  - {fileID: 11400000, guid: b8beeca37aaf06f44ae10c7a7beb3124, type: 2}
+  - {fileID: 11400000, guid: ac678c4226ea25e45b2c653dfe56dc86, type: 2}
   passives: []

@@ -6,6 +6,7 @@ using UnityEngine;
 public class ItemParameterSO : ScriptableObject
 {
     public ItemParameterName itemParameter;
+    public string parameterName;
 }
 
 public enum ItemParameterName

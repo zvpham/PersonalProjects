@@ -11,6 +11,22 @@ using static UnityEngine.UI.CanvasScaler;
 
 public class Unit : UnitSuperClass, IInititiave
 {
+    public int maxMajorActionsPoints = 2;
+    public int maxMinorActionsPoints = 0;
+    public int currentMajorActionsPoints = 0;
+    public int currentMinorActionsPoints = 0;
+
+    public int powerPointGeneration = 1;
+    public float magicPowerPoints = 0;
+
+    public MeleeAttack MeleeAttack;
+    public List<UnitActionData> actions = new List<UnitActionData>();
+
+    public List<UnitPassiveData> passives = new List<UnitPassiveData>();
+    public List<PassiveEffectArea> passiveEffects = new List<PassiveEffectArea>();
+
+    public List<StatusData> statuses = new List<StatusData>();
+
     // Class Selection UI
     public bool inOverWorld = false;
     public bool isLoaded = false;
@@ -68,23 +84,6 @@ public class Unit : UnitSuperClass, IInititiave
     public int x;
     public int y;
 
-    public MeleeAttack MeleeAttack;
-    public List<UnitActionData> actions = new List<UnitActionData>();
-
-    public List<UnitPassiveData> passives = new List<UnitPassiveData>();
-    public List<PassiveEffectArea> passiveEffects = new List<PassiveEffectArea>();
-    
-    public List<StatusData> statuses = new List<StatusData>();
-
-    public int maxMajorActionsPoints = 2;
-    public int maxMinorActionsPoints = 0;
-    public int currentMajorActionsPoints = 0;
-    public int currentMinorActionsPoints = 0;
-
-    public int powerPointGeneration = 1;
-    public float magicPowerPoints = 0;
-
-
     public List<Unit> selfInTheseUnitsThreatenedZones = new List<Unit>();
 
     public MoveModifier moveModifier;
@@ -97,6 +96,7 @@ public class Unit : UnitSuperClass, IInititiave
     public bool confirmDeath;
     public bool isDead = false;
     public bool confirmDamage;
+    public bool midAction = false;
     //AI Help Data
     public float targetValue;
     public List<AIUnitResponses> AIResponseToUnit = new List<AIUnitResponses>();
@@ -452,6 +452,7 @@ public class Unit : UnitSuperClass, IInititiave
     {
         Debug.Log("Turn Start: " + team + ", " + this + ", " + x + ", " + y);
         currentMajorActionsPoints = maxMajorActionsPoints;
+        currentMinorActionsPoints = maxMinorActionsPoints;
         currentMoveSpeed = 0;
         CheckActionsDisabled();
 
@@ -546,6 +547,12 @@ public class Unit : UnitSuperClass, IInititiave
 
     public void ActionsFinishedActivating()
     {
+        Debug.Log("Mid Action: " + midAction);
+        if(midAction)
+        {
+            return;
+        }
+
         if (team == Team.Player)
         {
             if (currentMajorActionsPoints <= 0)

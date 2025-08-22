@@ -9,27 +9,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 54bb756516e9fc74e821bc0609b736be, type: 3}
-  m_Name: Short Bow
+  m_Script: {fileID: 11500000, guid: 98622aaffeb284b4eb1105971d6ba219, type: 3}
+  m_Name: Bow
   m_EditorClassIdentifier: 
   <itemIndex>k__BackingField: 0
   <isStackable>k__BackingField: 1
   <maxStackSize>k__BackingField: 2147483647
-  <itemName>k__BackingField: Shortbow
+  <itemName>k__BackingField: Bow
   <description>k__BackingField: 
   <itemImage>k__BackingField: {fileID: -899544374, guid: 4ca42cc387825f64aba3746dd3e68e71, type: 3}
-  <DefaultParameterList>k__BackingField: []
+  <DefaultParameterList>k__BackingField:
+  - itemParameter: {fileID: 11400000, guid: ad246b747f4c837408ff01399e46c6f8, type: 2}
+    value:
+    - 50
+  - itemParameter: {fileID: 11400000, guid: d84d1512ce9efaf4d94e8e5f070dfbab, type: 2}
+    value:
+    - 35
+    - 75
   attributeOne: 
   attributeTwo: 
-  mainCategoryOne: Weight
-  mainOneMin: 30
-  mainOneMax: 0
-  mainCategoryTwo: 
-  mainTwoMin: 0
-  mainTwoMax: 0
-  mainCategoryThree: 
-  mainThreeMin: 0
-  mainThreeMax: 0
   equipType: 5
   itemTypes: 000000000b000000
   actions:

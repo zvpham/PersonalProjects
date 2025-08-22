@@ -60,9 +60,9 @@ MonoBehaviour:
   skillTreeTwoBranchOne: 00000000
   skillTreeTwoBranchTwo: 00000000
   helmet: {fileID: 0}
-  armor: {fileID: 11400000, guid: 5ed034043bae8b44c8b891607f065b27, type: 2}
-  legs: {fileID: 11400000, guid: 1d74f37f4f62311478991f762fb2e791, type: 2}
-  mainHand: {fileID: 11400000, guid: ffa3891b4d5f9d842887a5c06841887f, type: 2}
+  armor: {fileID: 11400000, guid: 8be619fcacc15b54ca5ef55ce02f32b7, type: 2}
+  legs: {fileID: 11400000, guid: 0210a436c583b6746841f8a36273ac28, type: 2}
+  mainHand: {fileID: 11400000, guid: 72d081e43a4ec0d4e833c694d4babd4d, type: 2}
   offHand: {fileID: 0}
   backUpMainHand: {fileID: 0}
   backUpOffHand: {fileID: 0}
@@ -99,10 +99,13 @@ MonoBehaviour:
   maxMinorActionsPoints: 0
   currentMajorActionsPoints: 0
   currentMinorActionsPoints: 0
+  powerPointGeneration: 1
+  magicPowerPoints: 0
   selfInTheseUnitsThreatenedZones: []
   moveModifier: {fileID: 0}
   moveModifierPriority: -1
   group: {fileID: 0}
+  unitMovedThisTurn: 0
   forceEndTurn: 0
   confirmDeath: 0
   isDead: 0

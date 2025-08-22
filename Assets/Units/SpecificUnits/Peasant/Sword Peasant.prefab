@@ -46,9 +46,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   testingUnitClassifications: 00000000
   unitType: 0
+  team: 0
   powerLevel: 0
   inOverWorld: 0
+  isLoaded: 0
   unitProfile: {fileID: 0}
+  unitSpriteRenderer: {fileID: 0}
   combatAttackUi: {fileID: 0}
   heroIndex: -1
   unitClass: {fileID: 11400000, guid: 415e275cce0d59b449542bbd859a0d10, type: 2}
@@ -59,8 +62,8 @@ MonoBehaviour:
   helmet: {fileID: 0}
   armor: {fileID: 0}
   legs: {fileID: 0}
-  mainHand: {fileID: 11400000, guid: e24ff6b319aad4e479bf5f165bfab77d, type: 2}
-  offHand: {fileID: 11400000, guid: c27e4b3a37033de43b07bcefb2e4a3c5, type: 2}
+  mainHand: {fileID: 11400000, guid: 07387c97d427c7447a3df8413077839b, type: 2}
+  offHand: {fileID: 11400000, guid: a25af002f1e0b7c428574f7fe4b0a718, type: 2}
   backUpMainHand: {fileID: 0}
   backUpOffHand: {fileID: 0}
   Item1: {fileID: 0}
@@ -80,26 +83,33 @@ MonoBehaviour:
   currentHealth: 0
   maxArmor: 0
   currentArmor: 0
+  totalMoveSpeedModifier: 0
+  currentMoveSpeed: 18
+  moveSpeedPerMoveAction: 0
   moveSpeed: 3
   damageResistence: 0
   shieldDamageResistence: 0
   x: 0
   y: 0
-  endTurn: {fileID: 0}
-  move: {fileID: 0}
-  amountMoveUsedDuringRound: 0
+  MeleeAttack: {fileID: 0}
   actions: []
-  actionsActives: 
   passives: []
-  maxActionsPoints: 2
-  currentActionsPoints: 0
-  actionCooldowns: 
-  actionUses: 
-  amountActionUsedDuringRound: 
+  statuses: []
+  maxMajorActionsPoints: 2
+  maxMinorActionsPoints: 0
+  currentMajorActionsPoints: 0
+  currentMinorActionsPoints: 0
+  powerPointGeneration: 1
+  magicPowerPoints: 0
   selfInTheseUnitsThreatenedZones: []
   moveModifier: {fileID: 0}
   moveModifierPriority: -1
-  team: 0
   group: {fileID: 0}
+  unitMovedThisTurn: 0
+  forceEndTurn: 0
   confirmDeath: 0
+  isDead: 0
+  confirmDamage: 0
+  targetValue: 0
+  AIResponseToUnit: 
   gameManager: {fileID: 0}

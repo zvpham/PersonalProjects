@@ -15,5 +15,7 @@ public enum ItemTypes
     Crossbow,
     Ammo,
     Ring,
-    SkillBook
+    SkillBook,
+    Staff,
+    Shield
 }

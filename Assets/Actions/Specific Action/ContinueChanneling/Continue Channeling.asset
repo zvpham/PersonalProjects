@@ -22,4 +22,4 @@ MonoBehaviour:
   oneTimeUsePerRound: 0
   actionTypes: 
   animation: {fileID: 0}
-  channeling: {fileID: 0}
+  channeling: {fileID: 11400000, guid: 4dcaa22a683d68940a292ae83c11d4c0, type: 2}

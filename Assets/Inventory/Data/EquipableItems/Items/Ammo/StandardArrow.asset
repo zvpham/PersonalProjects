@@ -18,22 +18,18 @@ MonoBehaviour:
   <itemName>k__BackingField: Standard Arrow
   <description>k__BackingField: 
   <itemImage>k__BackingField: {fileID: 21300000, guid: 45282bb780f2790488d46e92a5cfc95c, type: 3}
-  <DefaultParameterList>k__BackingField: []
+  <DefaultParameterList>k__BackingField:
+  - itemParameter: {fileID: 11400000, guid: 3416cdcbd6c3793438f66810f36e756f, type: 2}
+    value:
+    - 20
   attributeOne: 
   attributeTwo: 
-  mainCategoryOne: Weight
-  mainOneMin: 5
-  mainOneMax: 0
-  mainCategoryTwo: Damage
-  mainTwoMin: 1
-  mainTwoMax: 0
-  mainCategoryThree: Capacity
-  mainThreeMin: 5
-  mainThreeMax: 0
   equipType: 6
   itemTypes: 020000000d000000
   actions: []
   passives: []
   ammoType: 0
-  ammoData: {fileID: 11400000, guid: b91f16463a053ed4d8c928267368c93f, type: 2}
   armorPiercingModifier: 1
+  rangeModifier: 1
+  ignoreRangeModifier: 0
+  ignoreCoverModifer: 0

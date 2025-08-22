@@ -198,16 +198,33 @@ namespace Inventory.Model
             inventoryUI.ResetAllItems(inventoryState);
             foreach (var item in inventoryState)
             {
+                //Debug.Log("Load Item: " + item.Value.item.ToString());
                 EquipableItemSO equipData = (EquipableItemSO)item.Value.item;
                 string ammoExtension = "";
                 if (equipData.GetType() == typeof(EquipableAmmoSO))
                 {
                     ammoExtension = "X";
                 }
+                Tuple<string, string> weight = new Tuple<string, string> ("", "");
+                Tuple<string, string> parameter2 = new Tuple<string, string>("", ""); // Should Either be damage or    
+                Tuple<string, string> parameter3 = new Tuple<string, string>("", ""); // tertiary stat (range, or other)
 
-                Tuple<string, string> weight = GetData(equipData.DefaultParameterList[0]);
-                Tuple<string, string> parameter2 = GetData(equipData.DefaultParameterList[1]); // Should Either be damage or    
-                Tuple<string, string> parameter3 = GetData(equipData.DefaultParameterList[2]); // tertiary stat (range, or other)
+                for (int i = 0; i < equipData.DefaultParameterList.Count; i++)
+                {
+                    if(i == 0)
+                    {
+                        weight = GetData(equipData.DefaultParameterList[0]);
+                    }
+                    else if(i == 1)
+                    {
+                        parameter2 = GetData(equipData.DefaultParameterList[1]); // Should Either be damage or    
+                    }
+                    else if (i == 2)
+                    {
+                        parameter3 = GetData(equipData.DefaultParameterList[2]); // tertiary stat (range, or other)
+                    }
+                }
+               
 
 
                 inventoryUI.UpdateData(item.Key, equipData.itemImage, item.Value.quantity, equipData.name, equipData.attributeOne, equipData.attributeTwo, weight.Item1, weight.Item2
@@ -218,7 +235,7 @@ namespace Inventory.Model
         //Parameter Name, Paramter value
         public Tuple<string, string>  GetData(ItemParameter parameter)
         {
-            string categoryName =  parameter.itemParameter.ToString();
+            string categoryName =  parameter.itemParameter.itemParameter.ToString();
             string value = "";
             switch(parameter.itemParameter.itemParameter)
             {
@@ -823,9 +840,25 @@ namespace Inventory.Model
                         ammoExtension = "X";
                     }
 
-                    Tuple<string, string> weight = GetData(equipData.DefaultParameterList[0]);
-                    Tuple<string, string> parameter2 = GetData(equipData.DefaultParameterList[1]); // Should Either be damage or    
-                    Tuple<string, string> parameter3 = GetData(equipData.DefaultParameterList[2]); // tertiary stat (range, or other)
+                    Tuple<string, string> weight = new Tuple<string, string>("", "");
+                    Tuple<string, string> parameter2 = new Tuple<string, string>("", ""); // Should Either be damage or    
+                    Tuple<string, string> parameter3 = new Tuple<string, string>("", ""); // tertiary stat (range, or other)
+
+                    for (int j = 0; j < equipData.DefaultParameterList.Count; j++)
+                    {
+                        if (j == 0)
+                        {
+                            weight = GetData(equipData.DefaultParameterList[0]);
+                        }
+                        else if (j == 1)
+                        {
+                            parameter2 = GetData(equipData.DefaultParameterList[1]); // Should Either be damage or    
+                        }
+                        else if (j == 2)
+                        {
+                            parameter3 = GetData(equipData.DefaultParameterList[2]); // tertiary stat (range, or other)
+                        }
+                    }
 
                     inventoryUI.UpdateData(inventoryIndex, equipData.itemImage, inventoryItems[i].quantity, equipData.name, equipData.attributeOne, equipData.attributeTwo, weight.Item1, weight.Item2
                     , parameter2.Item1, parameter2.Item2, parameter3.Item1, parameter3.Item2, ammoExtension);

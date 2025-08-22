@@ -172,6 +172,7 @@ public class RangedTargeting : TargetingSystem
 
     public void SetUp(Vector2Int targetPosition, int numActionPoints, int currentMoveSpeed)
     {
+        Debug.Log("Setup");
         ResetSetUp();
 
         List<Unit> units = gameManager.units;
@@ -334,7 +335,7 @@ public class RangedTargeting : TargetingSystem
     public override void SelectNewPosition(Vector2Int newHex)
     {
         if (!selectedTarget)
-        {
+        {   
             currentlySelectedHex = newHex;
             map.ResetMap();
             List<Vector2Int> endHex = new List<Vector2Int>();
@@ -937,6 +938,7 @@ public class RangedTargeting : TargetingSystem
 
     public override void DeactivateTargetingSystem()
     {
+        Debug.Log("Deactivate Ranged Targeting System");
         ResetTargeting();
         ResetSetUp();
         for (int i = 0; i < coverHexes.Count; i++)
@@ -946,15 +948,11 @@ public class RangedTargeting : TargetingSystem
         coverHexes = new List<GameObject>();
         map.ResetMap(true);
         OnFoundTarget = null;
+        movingUnit.midAction = false;
     }
 
     public void DrawLine()
     {
-        if (actionPointsLeft <= 0)
-        {
-            return;
-        }
-
         actionLines = new List<List<Vector3>>() { new List<Vector3>() };
         actionLines[0].Add(movingUnit.transform.position);
         for (int i = 0; i < setPath.Count; i++)

@@ -9,7 +9,7 @@ using static SpriteManager;
 [CreateAssetMenu(menuName = "Action/FlamingWeaponsCasting")]
 public class FlamingWeaponsCasting : Action
 {
-    public Action flamingWeapons;
+    public Action spell;
     public int spellPointsRequired;
     public Status channeling;
 
@@ -47,11 +47,14 @@ public class FlamingWeaponsCasting : Action
         self.gameManager.spriteManager.ActivateActionConfirmationMenu(
             () =>
             {
+                /*
                 ActionData newData = new ActionData();
                 newData.action = this;
                 newData.actingUnit = self;
                 self.gameManager.AddActionToQueue(newData, false, false);
                 self.gameManager.PlayActions();
+                */
+                SpellActionPreset(self, spellPointsRequired, spell, channeling);
             },
             () =>
             {
@@ -83,10 +86,7 @@ public class FlamingWeaponsCasting : Action
 
     public override void ConfirmAction(ActionData actionData)
     {
-        Unit movingUnit = actionData.actingUnit;
-        ActionStatusData actionStatusData = new ActionStatusData(movingUnit, spellPointsRequired, flamingWeapons);
-        channeling.AddStatus(actionStatusData);
-        UseActionPreset(movingUnit);
+        Unit unit = actionData.actingUnit;
+        SpellActionPreset(unit, spellPointsRequired, spell, channeling);
     }
-
 }

@@ -86,25 +86,14 @@ namespace Inventory.Model
                     break;
             }
 
-
-            int weight = -1;
             for(int i = 0; i < DefaultParameterList.Count; i++)
             {
-                if (DefaultParameterList[i].itemParameter.itemParameter == ItemParameterName.weight)
-                {
-                    weight = (int) DefaultParameterList[i].value[0];
-                    break;
-                }
+                EquipParameter(unit, isBackUp, isWeapon, DefaultParameterList[i]);
             }
 
-            if(isBackUp)
-            {
-                unit.ChangeStrength(unit.strength);
-                unit.ChangeBackUpWeight(unit.backUpWeight + weight);
-                unit.ChangeWeight(unit.currentWeight + (weight / 2));
+            unit.ChangeStrength(unit.strength);
 
-            }
-            else
+            if (!isBackUp)
             {
                 for (int i = 0; i < actions.Count; i++)
                 {
@@ -116,16 +105,45 @@ namespace Inventory.Model
                     passives[i].AddPassive(unit);
                 }
 
-                unit.ChangeStrength(unit.strength);
-                unit.ChangeWeight(unit.currentWeight + weight);
-                if (isWeapon)
-                {
-                    unit.ChangeBackUpWeight(unit.backUpWeight + (weight / 2));
-                }
-                else
-                {
-                    unit.ChangeBackUpWeight(unit.backUpWeight + weight);
-                }
+            }
+        }
+
+        public void EquipParameter(Unit unit, bool isBackUp, bool isWeapon, ItemParameter itemParameter)
+        { 
+            switch(itemParameter.itemParameter.itemParameter)
+            {
+                case ItemParameterName.Capacity:
+                    break;
+                case ItemParameterName.spellPointGeneration:
+                    unit.powerPointGeneration += (int) itemParameter.value[0];
+                    break;
+                case ItemParameterName.armor:
+                    break;
+                case ItemParameterName.damge:
+                    break;
+                case ItemParameterName.weight:
+                    int weight =  (int)itemParameter.value[0];
+                    if (isBackUp)
+                    {
+                        unit.ChangeBackUpWeight(unit.backUpWeight + weight);
+                        unit.ChangeWeight(unit.currentWeight + (weight / 2));
+
+                    }
+                    else
+                    {
+
+                        unit.ChangeWeight(unit.currentWeight + weight);
+                        if (isWeapon)
+                        {
+                            unit.ChangeBackUpWeight(unit.backUpWeight + (weight / 2));
+                        }
+                        else
+                        {
+                            unit.ChangeBackUpWeight(unit.backUpWeight + weight);
+                        }
+                    }
+                    break;
+
             }
         }
 
@@ -138,32 +156,46 @@ namespace Inventory.Model
                 isWeapon = true;
             }
 
-            int weight = -1;
             for (int i = 0; i < DefaultParameterList.Count; i++)
             {
-                if (DefaultParameterList[i].itemParameter.itemParameter == ItemParameterName.weight)
-                {
-                    weight = (int)DefaultParameterList[i].value[0];
-                    break;
-                }
+                UnequipParameter(unit, isBackUp, isWeapon, DefaultParameterList[i]);
             }
+        }
 
-            if (isBackUp)
+        public void UnequipParameter(Unit unit, bool isBackUp, bool isWeapon, ItemParameter itemParameter)
+        {
+            switch (itemParameter.itemParameter.itemParameter)
             {
-                unit.ChangeWeight(unit.currentWeight - (weight / 2));
-                unit.ChangeBackUpWeight(unit.backUpWeight - weight);
-            }
-            else
-            {
-                unit.ChangeWeight(unit.currentWeight - weight);
-                if (isWeapon)
-                {
-                    unit.ChangeBackUpWeight(unit.backUpWeight - (weight / 2));
-                }
-                else
-                {
-                    unit.ChangeBackUpWeight(unit.backUpWeight - weight);
-                }
+                case ItemParameterName.Capacity:
+                    break;
+                case ItemParameterName.spellPointGeneration:
+                    unit.powerPointGeneration -= (int)itemParameter.value[0];
+                    break;
+                case ItemParameterName.armor:
+                    break;
+                case ItemParameterName.damge:
+                    break;
+                case ItemParameterName.weight:
+                    int weight = (int)  itemParameter.value[0];
+                    if (isBackUp)
+                    {
+                        unit.ChangeWeight(unit.currentWeight - (weight / 2));
+                        unit.ChangeBackUpWeight(unit.backUpWeight - weight);
+                    }
+                    else
+                    {
+                        unit.ChangeWeight(unit.currentWeight - weight);
+                        if (isWeapon)
+                        {
+                            unit.ChangeBackUpWeight(unit.backUpWeight - (weight / 2));
+                        }
+                        else
+                        {
+                            unit.ChangeBackUpWeight(unit.backUpWeight - weight);
+                        }
+                    }
+                    break;
+
             }
         }
     }

@@ -203,6 +203,7 @@ public class RangedAttack : Action
 
         if (!foundAmmo)
         {
+            Debug.LogWarning("Didn't find Ammo");
             return;
         }
 

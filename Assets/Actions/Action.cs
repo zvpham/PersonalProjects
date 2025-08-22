@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor.Experimental.GraphView;
+using UnityEditor.MPE;
 using UnityEngine;
 
 public abstract class Action : ScriptableObject
@@ -112,6 +114,51 @@ public abstract class Action : ScriptableObject
             return true;
         }
         return false;
+    }
+
+    public void SpellActionPreset(Unit unit, int spellPointsRequired, Action spell, Status channeling)
+    {
+        float currentSpellPoints = unit.magicPowerPoints;
+        int majorActionPoints = unit.currentMajorActionsPoints;
+        int minorActionPoints = unit.currentMinorActionsPoints;
+        bool finishedCastingSpell = false;
+        for (int i = 0; i < majorActionPoints; i++)
+        {
+            currentSpellPoints += unit.powerPointGeneration;
+            unit.currentMajorActionsPoints--;
+            if (currentSpellPoints >= spellPointsRequired)
+            {
+                Debug.Log("Testing Spell Cast major ");
+                unit.midAction = true;
+                finishedCastingSpell = true;
+                unit.magicPowerPoints = 0;
+                spell.SelectAction(unit);
+            }
+            else if (i == 0)
+            {
+                for (int j = 0; j < minorActionPoints; j++)
+                {
+                    unit.currentMinorActionsPoints--;
+                    currentSpellPoints += unit.powerPointGeneration * 0.5f;
+                    if (currentSpellPoints >= spellPointsRequired)
+                    {
+                        Debug.Log("Testing Spell Cast");
+                        unit.midAction = true;
+                        finishedCastingSpell = true;
+                        unit.magicPowerPoints = 0;
+                        spell.SelectAction(unit);
+                    }
+                }
+            }
+        }
+
+        if (!finishedCastingSpell)
+        {
+            unit.magicPowerPoints = currentSpellPoints;
+            ActionStatusData actionStatusData = new ActionStatusData(unit, spellPointsRequired, spell);
+            channeling.AddStatus(actionStatusData);
+            UseActionPreset(unit);
+        }
     }
 
     public bool CheckIfUnitIsInCover(Vector2Int shootingPosition, Vector2Int targetPosition, CombatGameManager gameManager)
