@@ -5,10 +5,11 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Class/SkillSO")]
 public class SkillSO : ScriptableObject
 {
-    public string description;
+    public string descriptionKeyName;
     public Sprite skillImage;
     public Action action;
     public Passive passive;
+
 
     public void UnlockSkill(Unit unit)
     {

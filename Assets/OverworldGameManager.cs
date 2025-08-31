@@ -63,6 +63,7 @@ public class OverworldGameManager : MonoBehaviour, IDataPersistence
                 newHero.transform.SetParent(gameObject.transform);
                 newHero.unitClass = resourceManager.job[hero.jobIndex];
 
+                /*
                 for (int j = 0; j < hero.skillTree1Branch1Unlocks.Count; j++)
                 {
                     if (hero.skillTree1Branch1Unlocks[j])
@@ -94,6 +95,7 @@ public class OverworldGameManager : MonoBehaviour, IDataPersistence
                         newHero.unitClass.skillTree2.branch2.BranchSkills[j].UnlockSkill(newHero);
                     }
                 }
+                */
             }
             characterSystem.SetHero(i, newHero);
         }

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ad2db68e7a4e0741864279849ec3305, type: 3}
+  m_Name: Text
+  m_EditorClassIdentifier: 
+  textAsset: {fileID: 4900000, guid: 352c71caa780e054092e548cecd6a38a, type: 3}
+  keys:
+  - ClassNameKnight
+  - SkillBranchNameCommander
+  - SkillBranchNameChampion
+  values:
+  - Knight
+  - Commander
+  - Champion
+  keys1:
+  - ClassNameKnight
+  - SkillBranchNameCommander
+  - SkillBranchNameChampion
+  values1:
+  - Test 1
+  - Test 2
+  - Test 3

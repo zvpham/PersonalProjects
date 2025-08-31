@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [CreateAssetMenu(menuName = "Class/SkillTree")]
 public class SkillTree : ScriptableObject
 {
-    public string SkillTreeName;
-    public SkillBranch branch1;
-    public SkillBranch branch2;
+    public Image SkillTreeImage;
+    public string SkillTreeNameKey;
+    public List<SkillSO> skills;
 }

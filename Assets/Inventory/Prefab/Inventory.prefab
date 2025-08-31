@@ -9727,10 +9727,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemPrefab: {fileID: -4230923398704183181, guid: 272bdfc16e0fff346a396574bf672e23, type: 3}
+  inventoryItemUIHolder: {fileID: 0}
+  unusedItemUIs: []
   contentPanel: {fileID: 8619417201697843088}
   mouseFollower: {fileID: 0}
   menuInputManager: {fileID: 0}
   isMissionStart: 0
+  mainitemFilters: []
+  SubItemFilterPanels: []
+  weaponSubFilters: []
+  armorSubFilters: []
+  AccessoriesSubFilters: []
+  SkillBookSubFilters: []
+  mainItemFilterIndex: 0
   listOfUIItems: []
   equipSlots:
   - {fileID: 6547522707987822293}

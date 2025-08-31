@@ -9,12 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8de938d23f3cb0846bf03a7e73a92f2e, type: 3}
-  m_Name: Warden
+  m_Script: {fileID: 11500000, guid: 69ccee34b2f37ed419c5eba807338f93, type: 3}
+  m_Name: Cooldown
   m_EditorClassIdentifier: 
-  BranchName: Warden
-  BranchSkills:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  modifierImage: {fileID: 21300000, guid: dc70d0da13c3be14b86b6d5ab4f90794, type: 3}
+  skillModifierParameter: 0
+  skillModifierDescriptionKey: 

@@ -257,6 +257,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
             newHero.transform.SetParent(gameObject.transform);
             newHero.unitClass = resourceManager.job[hero.jobIndex];
 
+            /*
             for (int j = 0; j < hero.skillTree1Branch1Unlocks.Count; j++)
             {
                 if (hero.skillTree1Branch1Unlocks[j])
@@ -288,7 +289,7 @@ public class CombatGameManager : MonoBehaviour, IDataPersistence
                     newHero.unitClass.skillTree2.branch2.BranchSkills[j].UnlockSkill(newHero);
                 }
             }
-
+            */
             if (hero.helmetIndex != -1)
             {
                 EquipableItemSO item = resourceManager.allItems[hero.helmetIndex];

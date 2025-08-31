@@ -171,6 +171,7 @@ public class Unit : UnitSuperClass, IInititiave
             {
                 unitProfile = unitClass.UIUnitProfile;
             }
+            /*
             for (int j = 0; j < skillTreeOneBranchOne.Count; j++)
             {
                 if (skillTreeOneBranchOne[j])
@@ -202,7 +203,7 @@ public class Unit : UnitSuperClass, IInititiave
                     unitClass.skillTree2.branch2.BranchSkills[j].UnlockSkill(this);
                 }
             }
-
+            */
             if (helmet != null)
             {
                 helmet.EquipItem(this);

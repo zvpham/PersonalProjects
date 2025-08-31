@@ -37,7 +37,7 @@ public class CombatUIProfile : MonoBehaviour
         gameObject.SetActive(true);
         enabled = true;
         unitName.text = unit.name;
-        className.text = unit.unitClass.className;
+        className.text = AllText.languages[AllText.currentDictionary][unit.unitClass.classNameKey];
         if(unit.maxArmor > 0)
         {
             armorBar.value = unit.currentArmor / unit.maxArmor;

@@ -6,8 +6,9 @@ using UnityEngine;
 public class UnitClass : ScriptableObject
 {
     public Sprite UIUnitProfile;
-    public string className;
+    public string classNameKey;
 
     public SkillTree skillTree1;
     public SkillTree skillTree2;
+    public SkillTree skillTree3;
 }
