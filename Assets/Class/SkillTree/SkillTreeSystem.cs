@@ -60,7 +60,24 @@ public class SkillTreeSystem : MonoBehaviour
 
     public void SkillNodeSelected(SkillNodeUI skillNode)
     {
+        SkillNode newSkillNode =  skillNode.gameObject.GetComponent<SkillNode>();
+        if(newSkillNode.unlocked)
+        {
+            actionConfirmationMenu.ActivateCancelAction();
 
+        }
+        else
+        {
+            ActivateActionConfirmationMenu(
+                () =>
+                {
+                    UnlockSKill(newSkillNode);
+                },
+                () =>
+                {
+
+                });
+        }
     }
 
     public void ActivateActionConfirmationMenu(UnityAction confirmAction, UnityAction cancelAction)
