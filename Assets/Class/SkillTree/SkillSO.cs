@@ -5,23 +5,20 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Class/SkillSO")]
 public class SkillSO : ScriptableObject
 {
-    public string descriptionKeyName;
-    public Sprite skillImage;
-    public Action action;
-    public Passive passive;
+    //Skill Image is in Action or Passive
+    //Skill Name Key is in Action or Passive
+    public List<string> descriptionKeyNames;
+    public Skill skill;
+    public List<SkillModifierSO> modifiers;
 
 
     public void UnlockSkill(Unit unit)
     {
-        action.AddAction(unit);
-        passive.AddPassive(unit);
-        passive.AddPassive(unit);
+        skill.AddSkill(unit);
     }
 
     public void LockSkill(Unit unit)
     {
-        action.RemoveAction(unit);
-        passive.RemovePassive(unit);
-        passive.RemovePassive(unit);
+        skill.RemoveSkill(unit);
     }
 }

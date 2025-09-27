@@ -3,15 +3,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Passive : ScriptableObject
+public abstract class Passive : Skill
 {
     public int passiveIndex;
-    public Sprite UISkillImage;
     public string description;
     public PassiveAreaClassification passiveClassification;
     public int maxUseAmount = 1;
 
-    public virtual void AddPassive(Unit unit)
+    public override void AddSkill(Unit unit)
+    {
+        AddPassive(unit);
+    }
+
+    public abstract void AddPassive(Unit unit);
+
+    public abstract void ChangeBoost(BoostType typeOfBoost, bool is_boost);
+
+    public void AddPassivePreset(Unit unit)
     {
         UnitPassiveData unitPassiveData = new UnitPassiveData();
         unitPassiveData.passive = this;
@@ -24,6 +32,11 @@ public abstract class Passive : ScriptableObject
     }
 
     public abstract void ActivatePassive(Unit unit, ActionData actionData);
+
+    public override void RemoveSkill(Unit unit)
+    {
+        RemovePassive(unit);
+    }
 
     public abstract void RemovePassive(Unit unit);
 

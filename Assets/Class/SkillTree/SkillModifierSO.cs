@@ -8,4 +8,5 @@ public class SkillModifierSO : ScriptableObject
     public Sprite modifierImage;
     public SkillModifierParameters skillModifierParameter;
     public string skillModifierDescriptionKey;
+    public int value;
 }

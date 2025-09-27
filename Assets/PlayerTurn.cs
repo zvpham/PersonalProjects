@@ -106,7 +106,7 @@ public class PlayerTurn : MonoBehaviour
         actionBar.ResetActionBarList();
         for(int i = 0; i < currentlySelectedUnit.actions.Count; i++)
         {
-            actionBar.AddAction(currentlySelectedUnit.actions[i].action.actionSprite, currentlySelectedUnit.actions[i].actionCoolDown,
+            actionBar.AddAction(currentlySelectedUnit.actions[i].action.skillimage, currentlySelectedUnit.actions[i].actionCoolDown,
                 currentlySelectedUnit.actions[i].actionUsesLeft);
         }
     }

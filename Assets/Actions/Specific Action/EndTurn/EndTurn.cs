@@ -52,7 +52,7 @@ public class EndTurn : Action
     {
         Unit self = actionData.actingUnit;
         self.forceEndTurn = true;
-        self.UseActionPoints(self.currentMajorActionsPoints);
+        self.UseActionPoints(self.currentMajorActionsPoints);         
     }
 
 }

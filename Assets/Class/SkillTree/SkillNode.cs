@@ -2,77 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SkillNode : MonoBehaviour
+public class SkillNode : SkillTreeNode
 {
-    public SkillNodeConnectionUI northConnector;
-    public SkillNodeConnectionUI southConnector;
-    public SkillNodeConnectionUI rightConnector;
-    public SkillNodeConnectionUI leftConnector;
+    public SkillSO skill;
 
-    public SkillNode northNode;
-    public SkillNode southNode;
-    public SkillNode leftNode;
-    public SkillNode rightNode;
-
-    public bool unlocked = false;
-
-    public void Unlock()
+    public override void Unlock(Unit unit)
     {
-        gameObject.GetComponent<SkillNodeUI>().Unlock();
-
-        if(northNode.unlocked)
-        {
-            northConnector.Unlock();
-        }
-
-        if(southNode.unlocked)
-        {
-            southConnector.Unlock();
-        }
-
-        if(leftNode.unlocked)
-        {
-            leftConnector.Unlock();
-        }
-
-        if(rightNode.unlocked)
-        {
-            rightConnector.Unlock();
-        }
+        base.Unlock(unit);
+        skill.skill.AddSkill(unit);
     }
 
-    public void Lock()
+    public override void Lock(Unit unit)
     {
-        gameObject.GetComponent<SkillNodeUI>().Unlock();
-        northConnector.Lock();
-        southConnector.Lock();
-        leftConnector.Lock();
-        rightConnector.Lock();
-
-    }
-
-    public bool CheckIfAnyConnectedNodesUnlocked()
-    {
-        bool foundUnlockedNode = false;
-        if(northNode != null && northNode.unlocked)
-        {
-            foundUnlockedNode = true;
-        }
-
-        if (southNode != null && southNode.unlocked)
-        {
-            foundUnlockedNode = true;
-        }
-
-        if (leftNode != null && leftNode.unlocked)
-        {
-            foundUnlockedNode = true;
-        }
-
-        if (rightNode != null && rightNode.unlocked)
-        {
-            foundUnlockedNode = true;
-        }
-        return foundUnlockedNode;
+        base.Lock(unit);
+        skill.skill.RemoveSkill(unit);
     }
 }

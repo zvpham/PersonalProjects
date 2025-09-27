@@ -8,7 +8,7 @@ public class UnitClass : ScriptableObject
     public Sprite UIUnitProfile;
     public string classNameKey;
 
-    public SkillTree skillTree1;
-    public SkillTree skillTree2;
-    public SkillTree skillTree3;
+    public SkillBranch skillTree1;
+    public SkillBranch skillTree2;
+    public SkillBranch skillTree3;
 }

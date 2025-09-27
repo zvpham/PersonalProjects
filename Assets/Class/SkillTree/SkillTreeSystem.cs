@@ -18,7 +18,11 @@ public class SkillTreeSystem : MonoBehaviour
     [SerializeField]
     public ActionConfirmationMenu actionConfirmationMenu;
 
+    public Unit currentUnit;
+
     public List<SkillNode> startNodes;
+
+    public Dictionary<string, List<bool>> skillUnlockDictionary = new Dictionary<string, List<bool>>();
 
     public void Start()
     {
@@ -29,6 +33,24 @@ public class SkillTreeSystem : MonoBehaviour
         skillBranchOne.ResetSkillBranch();
         skillBranchTwo.ResetSkillBranch();
         skillBranchThree.ResetSkillBranch();
+    }       
+
+    public void LoadUnitSkillTree(Unit unit)
+    {
+        currentUnit = unit;
+        LoadSkillBranch(skillBranchOne, 1);
+        LoadSkillBranch(skillBranchTwo, 2);
+        LoadSkillBranch(skillBranchThree, 3);
+    }
+
+    public void LoadSkillBranch(SkillBranchUI skillBranch, int unitSkilLBranchIndex)
+    {
+        SkillBranch unitSkillBranch = currentUnit.skillBranches[unitSkilLBranchIndex].skillBranch;
+        if(unitSkillBranch != null)
+        {
+            skillBranch.LoadSkillTree(unitSkillBranch);
+            LoadStartNodes(skillBranch);
+        }
     }
 
     public void LoadStartNodes(SkillBranchUI skillBranch)
@@ -48,14 +70,14 @@ public class SkillTreeSystem : MonoBehaviour
 
         if(startNodes.Contains(skillNode) || skillNode.CheckIfAnyConnectedNodesUnlocked())
         {
-            skillNode.Unlock();
+            skillNode.Unlock(currentUnit);
         }
     }
 
     // This should only be called when skill points are reset so there are no checks
     public void LockSkill(SkillNode skillNode)
     {
-        skillNode.Lock();
+        skillNode.Lock(currentUnit);
     }
 
     public void SkillNodeSelected(SkillNodeUI skillNode)

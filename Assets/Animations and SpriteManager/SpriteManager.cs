@@ -269,7 +269,7 @@ public class SpriteManager : MonoBehaviour
                     currentSpriteHolder.gameObject.transform.parent = transform;
                     currentSpriteHolder.gameObject.transform.position = GetWorldPosition(passiveArea.passiveLocations[j]);
                     currentSpriteHolder.spriteRenderer.sortingOrder = terrain[passivePosition.x, passivePosition.y].sprite.sortingOrder + 2;
-                    currentSpriteHolder.spriteRenderer.sprite = passiveArea.passive.passive.UISkillImage;
+                    currentSpriteHolder.spriteRenderer.sprite = passiveArea.passive.passive.skillimage;
                 }
             }
         }

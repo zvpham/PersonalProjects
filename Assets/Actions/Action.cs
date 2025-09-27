@@ -6,9 +6,8 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.MPE;
 using UnityEngine;
 
-public abstract class Action : ScriptableObject
+public abstract class Action : Skill
 {
-    public Sprite actionSprite;
     public int baseActionWeight;
     public int actionPriority; // For AI use, current useCase For Deciding what order to try movementActions
     public int coolDown;
@@ -260,7 +259,15 @@ public abstract class Action : ScriptableObject
     {
         return true;
     }
-    public void AddAction(Unit unit)
+
+
+    public override void AddSkill(Unit unit)
+    {
+        AddAction(unit);
+    }
+
+
+    public void AddAction(Unit unit, int actionIndex = -1)
     {
         UnitActionData actionData = new UnitActionData();
         actionData.action = this;
@@ -268,20 +275,21 @@ public abstract class Action : ScriptableObject
         actionData.actionCoolDown = 0;
         actionData.actionUsedDuringRound = false;
         actionData.actionUsesLeft = maxUses;
-        unit.actions.Add(actionData);
+        if(actionIndex == -1)
+        {
+            unit.actions.Add(actionData);
+        }
+        else
+        {
+            unit.actions.Insert(actionIndex, actionData);
+        }
     }
 
-    public void AddAction(Unit unit, int actionIndex)
+
+    public override void RemoveSkill(Unit unit)
     {
-        UnitActionData actionData = new UnitActionData();
-        actionData.action = this;
-        actionData.active = true;
-        actionData.actionCoolDown = 0;
-        actionData.actionUsedDuringRound = false;
-        actionData.actionUsesLeft = maxUses;
-        unit.actions.Insert(actionIndex, actionData);
+        RemoveAction(unit);
     }
-
 
     public void RemoveAction(Unit unit)
     {

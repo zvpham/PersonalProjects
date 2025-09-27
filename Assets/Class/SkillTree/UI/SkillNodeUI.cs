@@ -9,6 +9,12 @@ public class SkillNodeUI : MonoBehaviour, IPointerClickHandler
     public Image skillImage;
 
     public event Action<SkillNodeUI> OnClick;
+
+    public void LoadImage(Sprite skillSprite)
+    {
+        skillImage.sprite = skillSprite;
+    }
+
     public void Unlock()
     {
         border.color = GlobalSkillTree.unlockedColor;

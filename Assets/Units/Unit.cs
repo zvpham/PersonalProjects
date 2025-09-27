@@ -9,6 +9,14 @@ using System;
 using Unity.VisualScripting;
 using static UnityEngine.UI.CanvasScaler;
 
+[System.Serializable]
+public struct SkillBranchData
+{
+    public SkillBranch skillBranch;
+    //List<List<bool>>  : skills <skill unlocked, modifiers Unlocked>
+    public List<List<bool>> skillBranchUnlocks;
+}
+
 public class Unit : UnitSuperClass, IInititiave
 {
     public int maxMajorActionsPoints = 2;
@@ -38,10 +46,15 @@ public class Unit : UnitSuperClass, IInititiave
     public int heroIndex = -1;  
 
     public UnitClass unitClass;
+    //List<List<bool>>  : skills <skill unlocked, modifiers Unlocked>
+    public SkillBranchData[] skillBranches = new SkillBranchData[3]; 
+
+    // THis is old architecture
     public List<bool> skillTreeOneBranchOne = new List<bool>() { false, false, false, false };
     public List<bool> skillTreeOneBranchTwo = new List<bool>() { false, false, false, false };
     public List<bool> skillTreeTwoBranchOne = new List<bool>() { false, false, false, false };
     public List<bool> skillTreeTwoBranchTwo = new List<bool>() { false, false, false, false };
+    // ------------------------------------------------------------------------------------------
 
     public EquipableItemSO helmet;
     public EquipableItemSO armor;

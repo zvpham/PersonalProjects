@@ -763,7 +763,7 @@ public class MeleeTargeting : TargetingSystem
             }
             tempTargetPassiveSprite.transform.position = gameManager.spriteManager.GetWorldPosition(passiveSprites[i].Item2) + new Vector3(-0.6f + (0.3f * passivesGrid[passiveSprites[i].Item2]), -0.4f, 0);
             tempTargetPassiveSprite.spriteRenderer.sortingOrder = gameManager.spriteManager.terrain[passiveSprites[i].Item2.x, passiveSprites[i].Item2.y].sprite.sortingOrder + 10;
-            tempTargetPassiveSprite.spriteRenderer.sprite = passiveSprites[i].Item1.UISkillImage;
+            tempTargetPassiveSprite.spriteRenderer.sprite = passiveSprites[i].Item1.skillimage;
             targetingPassiveSpriteHolder.Add(tempTargetPassiveSprite);
         }
 

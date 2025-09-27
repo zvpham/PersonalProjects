@@ -6,7 +6,7 @@ public abstract class AreaPassive : Passive
 {
     public override void AddPassive(Unit unit)
     {
-        base.AddPassive(unit);
+        AddPassivePreset(unit);
         Debug.LogWarning("REmove this if Test statement for real game");
         if(unit.isLoaded == true)
         {
