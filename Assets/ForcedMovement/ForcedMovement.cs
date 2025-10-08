@@ -79,7 +79,7 @@ public class ForcedMovement : MonoBehaviour
         Unit target = unit.gameManager.grid.GetGridObject(forcedMovementPath[forcedPathIndex]);
 
 
-        Debug.LogWarning("Target: " + target + ", hitFlying: " + hitFlying + ", hitGrounded: " + hitGrounded + "Position: " + forcedMovementPath[forcedPathIndex]);
+        //Debug.LogWarning("Target: " + target + ", hitFlying: " + hitFlying + ", hitGrounded: " + hitGrounded + "Position: " + forcedMovementPath[forcedPathIndex]);
         if (target != null && hitFlying && target.flying && onHitUnit(unit, target))
         {
             Deactivate();
@@ -123,7 +123,7 @@ public class ForcedMovement : MonoBehaviour
                 }
                 Unit target = unit.gameManager.grid.GetGridObject(forcedMovementPath[forcedPathIndex]);
 
-                Debug.LogWarning("Target: " + target + ", hitFlying: " + hitFlying + ", hitGrounded: " + hitGrounded + "Position: " + forcedMovementPath[forcedPathIndex]);
+                //Debug.LogWarning("Target: " + target + ", hitFlying: " + hitFlying + ", hitGrounded: " + hitGrounded + "Position: " + forcedMovementPath[forcedPathIndex]);
                 if (target != null && hitFlying && target.flying && onHitUnit(unit, target))
                 {
                     Deactivate();
@@ -143,6 +143,12 @@ public class ForcedMovement : MonoBehaviour
                     return;
                 }
                 wallMovementComplete = true;
+
+                if(unit == null)
+                {
+                    Deactivate();
+                    return;
+                }
 
                 unit.UnitMovement(unit.transform.position, forcedMovementPath[forcedPathIndex]);
                 if ((Vector2)unit.transform.position == forcedMovementPath[forcedMovementPath.Count - 1])

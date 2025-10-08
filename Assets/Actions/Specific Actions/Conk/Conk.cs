@@ -24,6 +24,16 @@ public class Conk : StatusTargetAction
         targetingSystem = Instantiate(targetingPrefab, position, rotation);
         targetingSystem.GetComponent<MeleeTargeting>().setParameters(affectedUnit.transform.position);
         targetingSystem.GetComponent<MeleeTargeting>().foundTarget += FoundTarget;
+        targetingSystem.GetComponent<MeleeTargeting>().Canceled += EndTarget;
+    }
+
+    public void EndTarget(bool ignore)
+    {
+        targetingSystem.GetComponent<MeleeTargeting>().foundTarget -= FoundTarget;
+        Destroy(targetingSystem);
+        affectedUnit.DeactivateTargeting();
+        affectedUnit.TurnEnd();
+        affectedUnit.HandlePerformActions(actionType, actionName);
     }
 
     public void FoundTarget(Vector3 targetPosition)
@@ -37,7 +47,7 @@ public class Conk : StatusTargetAction
         if(launchDistance <= 3)
         {
             launchDistance = 3;
-        }
+        } 
 
         List<Vector2> path = new List<Vector2>();
 

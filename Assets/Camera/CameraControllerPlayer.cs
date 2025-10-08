@@ -47,7 +47,7 @@ public class CameraControllerPlayer : MonoBehaviour
         }
         else
         {
-            Debug.Log("No Target Attached");
+           // Debug.Log("No Target Attached");
         }
     }
 
@@ -136,7 +136,6 @@ public class CameraControllerPlayer : MonoBehaviour
             return;
         }
 
-        Debug.Log("Hello");
         attachedToTarget = true;
         targetPosition = target.transform.position;
         targetPosition = GetCameraBounds();

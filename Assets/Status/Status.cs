@@ -142,6 +142,10 @@ public abstract class Status : ScriptableObject
         }
         target.gameManager.mainGameManger.numberOfStatusRemoved += 1;
         int index = target.statuses.IndexOf(this);
+        if(index == -1 )
+        {
+            return;
+        }
         target.statuses.RemoveAt(index);
         int statusindex = target.gameManager.allStatuses.IndexOf(this);
         if(statusindex != -1)

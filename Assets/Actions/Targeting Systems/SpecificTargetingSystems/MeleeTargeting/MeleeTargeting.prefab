@@ -46,5 +46,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startingX: 0
   startingY: 0
+  startPosition: {x: 0, y: 0, z: 0}
+  endPosition: {x: 0, y: 0, z: 0}
   allDirections: {fileID: 11400000, guid: 7c1e5ae140c835b4097c2a7dbb13d47a, type: 2}
+  inputManager: {fileID: 0}
   gameManager: {fileID: 0}
+  offSet: 0.5
+  endPositionMarkerPrefab: {fileID: 2363729580697148819, guid: 98882de8cadc30a4391edbe82481e1b8,
+    type: 3}
+  endPositionMarker: {fileID: 0}
+  linePrefab: {fileID: 2363729580697148819, guid: 98882de8cadc30a4391edbe82481e1b8,
+    type: 3}
+  careAboutRange: 0
+  rangeMarkerList: []
+  rangeMarker: {fileID: 0}
+  prevMousePosition: {x: 0, y: 0, z: 0}
+  mousePosition: {x: 0, y: 0, z: 0}
+  targetPosition: {x: 0, y: 0, z: 0}

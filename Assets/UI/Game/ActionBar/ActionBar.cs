@@ -57,7 +57,7 @@ public class ActionBar : MonoBehaviour
         //Debug.Log(actionName.ToString());
         player.OnActionButtonPressed(actionName);
     }
-
+    [System.Serializable]
     public struct ActionBarLevel
     {
         public List<ActionName> actions;

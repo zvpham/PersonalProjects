@@ -16,7 +16,8 @@ MonoBehaviour:
   classLevels:
   - {fileID: 11400000, guid: 030b6ae14ae0ed54e94ccf1113153de8, type: 2}
   currentLevel: 1
-  description: 
+  description: This class is for testing new abilities - currently testing Jump,
+    slowtime field, Conk, and Bonk
   className: 3
   baseClass: 3
   classRarity: 0
